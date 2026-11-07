@@ -8,3 +8,6 @@ client/.env
 server/.env
 *.log
 .DS_Store
+crm-wireframe part 1.html
+crm-wireframe part 2.html
+
