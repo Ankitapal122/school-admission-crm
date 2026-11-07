@@ -1,0 +1,513 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
+}
+
+enum Role {
+  SUPER_ADMIN
+  SENIOR_MANAGER
+  COUNSELLOR
+}
+
+enum LeadStatus {
+  NEW_LEAD
+  CONTACTED
+  SCHOOL_TOUR_SCHEDULED
+  APPLICATION_SUBMITTED
+  REGISTERED
+  ADMISSION_CONFIRMED
+  ENROLLED
+  LOST
+}
+
+enum VerificationStatus {
+  DRAFT
+  PENDING_VERIFICATION
+  APPROVED
+  RETURNED
+  REJECTED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum FollowUpType {
+  PHONE_CALL
+  WHATSAPP
+  EMAIL
+  CAMPUS_VISIT
+}
+
+enum CommissionStatus {
+  PENDING
+  PENDING_APPROVAL
+  APPROVED
+  PAYABLE
+  PAID
+  REVERSED
+  CANCELLED
+}
+
+model RoleDefinition {
+  id          String       @id @default(uuid())
+  name        Role         @unique
+  displayName String
+  description String?
+  permissions Permission[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Permission {
+  id          String         @id @default(uuid())
+  code        String         @unique
+  module      String
+  description String?
+  roleId      String
+  role        RoleDefinition @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  createdAt   DateTime       @default(now())
+
+  @@index([roleId])
+}
+
+model User {
+  id                 String                @id @default(uuid())
+  email              String                @unique
+  employeeId         String                @unique
+  fullName           String
+  phone              String?
+  role               Role                  @default(COUNSELLOR)
+  passwordHash       String
+  status             String                @default("Active")
+  isTwoFactorEnabled Boolean               @default(false)
+  twoFactorSecret    String?
+  recoveryCodes      String[]              @default([])
+  isActive           Boolean               @default(true)
+  lastLoginAt        DateTime?
+
+  teamId             String?
+  team               Team?                 @relation("TeamMembers", fields: [teamId], references: [id])
+  managedTeams       Team[]                @relation("TeamManager")
+
+  managerId          String?
+  manager            User?                 @relation("ManagerSubordinates", fields: [managerId], references: [id])
+  subordinates       User[]                @relation("ManagerSubordinates")
+
+  refreshSessions    RefreshTokenSession[]
+  assignedLeads      Lead[]                @relation("AssignedCounsellor")
+  managedLeads       Lead[]                @relation("AssignedManager")
+  followUps          FollowUp[]
+  tasks              Task[]
+  admissions         Admission[]           @relation("CounsellorAdmissions")
+  managedAdmissions  Admission[]           @relation("ManagerAdmissions")
+  commissions        Commission[]          @relation("BeneficiaryCommissions")
+  auditLogs          AuditLog[]
+  notifications      Notification[]
+
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+
+  @@index([email])
+  @@index([role])
+  @@index([teamId])
+}
+
+model RefreshTokenSession {
+  id          String   @id @default(uuid())
+  tokenHash   String   @unique
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  family      String   @default(uuid())
+  isRevoked   Boolean  @default(false)
+  expiresAt   DateTime
+  userAgent   String?
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([family])
+}
+
+model PasswordReset {
+  id        String   @id @default(uuid())
+  email     String
+  token     String   @unique
+  otp       String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([token])
+}
+
+model Team {
+  id                     String      @id @default(uuid())
+  teamCode               String      @unique @default("UK-PIONEERS")
+  name                   String      @unique
+  description            String?
+  targetAdmissions       Int         @default(60)
+  monthlyAdmissionTarget Int         @default(15)
+  status                 String      @default("Active")
+  managerId              String?
+  manager                User?       @relation("TeamManager", fields: [managerId], references: [id])
+  members                User[]      @relation("TeamMembers")
+  leads                  Lead[]
+  admissions             Admission[]
+  commissions            Commission[]
+  historyJson            Json?
+  createdAt              DateTime    @default(now())
+  updatedAt              DateTime    @updatedAt
+}
+
+model School {
+  id                String      @id @default(uuid())
+  schoolCode        String      @unique @default(uuid())
+  name              String      @unique
+  city              String      // Dehradun, Mussoorie, Nainital, Ranikhet
+  state             String      @default("Uttarakhand")
+  board             String      // IB, ICSE, CBSE, Cambridge
+  type              String      // Boys, Girls, Co-Ed
+  genderType        String      @default("co_ed") // boys, girls, co_ed
+  minFeeAnnual      Float
+  maxFeeAnnual      Float
+  feesDisplay       String?
+  defaultCommission Float       @default(30000)
+  rank              Int         @default(99)
+  rating            Float       @default(4.8)
+  hostelQuality     String      @default("5 Star")
+  sports            String[]    @default(["Cricket", "Swimming", "Football"])
+  description       String?
+  website           String?
+  admissionsEmail   String?
+  phone             String?
+  isPartner         Boolean     @default(true)
+  deletedAt         DateTime?
+  leads             Lead[]
+  admissions        Admission[]
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  @@index([city])
+  @@index([board])
+  @@index([type])
+}
+
+model Parent {
+  id                   String    @id @default(uuid())
+  name                 String
+  mobile               String    @unique
+  alternateMobile      String?
+  email                String?
+  city                 String    @default("Dehradun")
+  state                String    @default("Uttarakhand")
+  whatsappNumber       String?
+  communicationConsent Boolean   @default(true)
+  occupation           String?
+  annualIncome         String?
+  students             Student[]
+  leads                Lead[]
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@index([mobile])
+}
+
+model Student {
+  id             String   @id @default(uuid())
+  name           String
+  gender         String   @default("male")
+  currentClass   String?
+  admissionClass String
+  currentSchool  String?
+  academicYear   String   @default("2026-27")
+  parentId       String
+  parent         Parent   @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  leads          Lead[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([parentId])
+  @@index([name])
+}
+
+model Lead {
+  id                   String             @id @default(uuid())
+  leadNumber           String             @unique
+  parentId             String?
+  parent               Parent?            @relation(fields: [parentId], references: [id])
+  studentId            String?
+  student              Student?           @relation(fields: [studentId], references: [id])
+
+  studentName          String
+  studentGender        String?
+  studentDob           DateTime?
+  currentGrade         String?
+  applyingForGrade     String
+  parentName           String
+  parentPhone          String
+  parentEmail          String?
+  city                 String?
+  preferredLocation    String?            @default("Dehradun")
+  boardingPreference   String?            @default("Full Boarding")
+  annualBudget         String?            @default("₹6L - ₹10L")
+  budgetMin            Float?
+  budgetMax            Float?
+  preferredBoard       String?
+  leadSource           String?            @default("Direct Enquiry")
+  admissionSession     String?            @default("2026-27")
+
+  preferredSchoolId    String?
+  preferredSchool      School?            @relation(fields: [preferredSchoolId], references: [id])
+
+  status               LeadStatus         @default(NEW_LEAD)
+  verificationStatus   VerificationStatus @default(PENDING_VERIFICATION)
+  priority             Priority           @default(HIGH)
+  score                Int                @default(85)
+  dpdpConsent          Boolean            @default(true)
+  notes                String?
+  returnRemarks        String?
+  remarksJson          Json?
+  historyJson          Json?
+  nextFollowUpDate     DateTime?
+
+  assignedCounsellorId String?
+  assignedCounsellor   User?              @relation("AssignedCounsellor", fields: [assignedCounsellorId], references: [id])
+
+  assignedManagerId    String?
+  assignedManager      User?              @relation("AssignedManager", fields: [assignedManagerId], references: [id])
+
+  teamId               String?
+  team                 Team?              @relation(fields: [teamId], references: [id])
+
+  verifiedById         String?
+  verifiedAt           DateTime?
+
+  followUps            FollowUp[]
+  tasks                Task[]
+  admissions           Admission[]
+  communications       CommunicationLog[]
+
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  @@index([parentPhone])
+  @@index([status])
+  @@index([verificationStatus])
+  @@index([assignedCounsellorId])
+  @@index([teamId])
+}
+
+model FollowUp {
+  id                  String       @id @default(uuid())
+  followUpCode        String       @unique @default(uuid())
+  leadId              String
+  lead                Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  counsellorId        String
+  counsellor          User         @relation(fields: [counsellorId], references: [id])
+  type                FollowUpType @default(PHONE_CALL)
+  status              String       @default("Completed")
+  notes               String
+  outcome             String?      @default("Call logged")
+  duration            String?      @default("03:45")
+  recordingLink       String?
+  dpdpConsentRecorded Boolean      @default(true)
+  scheduledAt         DateTime     @default(now())
+  completedAt         DateTime?
+  createdAt           DateTime     @default(now())
+
+  @@index([leadId])
+  @@index([scheduledAt])
+  @@index([counsellorId])
+}
+
+model Task {
+  id           String    @id @default(uuid())
+  title        String
+  description  String?
+  status       String    @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED
+  priority     Priority  @default(MEDIUM)
+  dueDate      DateTime
+  assignedToId String
+  assignedTo   User      @relation(fields: [assignedToId], references: [id], onDelete: Cascade)
+  leadId       String?
+  lead         Lead?     @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([assignedToId])
+  @@index([status])
+}
+
+model Admission {
+  id                  String       @id @default(uuid())
+  admissionNumber     String       @unique
+  receiptNumber       String       @unique
+  leadId              String
+  lead                Lead         @relation(fields: [leadId], references: [id])
+  schoolId            String
+  school              School       @relation(fields: [schoolId], references: [id])
+  counsellorId        String
+  counsellor          User         @relation("CounsellorAdmissions", fields: [counsellorId], references: [id])
+  managerId           String?
+  manager             User?        @relation("ManagerAdmissions", fields: [managerId], references: [id])
+  teamId              String?
+  team                Team?        @relation(fields: [teamId], references: [id])
+
+  studentName         String?
+  parentName          String?
+  schoolName          String?
+  admissionClass      String       @default("Class 6")
+  academicYear        String       @default("2026-27")
+  feeAgreed           Float
+  proofDocument       String       @default("admission_fee_receipt_verified.pdf")
+  status              String       @default("Admission Confirmed")
+  cancellationReason  String?
+  cancelledAt         DateTime?
+  commissionGenerated Boolean      @default(false)
+  receiptPdfUrl       String?
+  confirmedAt         DateTime     @default(now())
+  commissions         Commission[]
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+
+  @@index([leadId])
+  @@index([schoolId])
+  @@index([counsellorId])
+}
+
+model CommissionRule {
+  id                    String   @id @default(uuid())
+  ruleCode              String   @unique
+  name                  String
+  type                  String   @default("Fixed")
+  counsellorShare       Float    @default(5000)
+  managerShare          Float    @default(2000)
+  orgShare              Float    @default(3000)
+  totalCommissionAmount Float    @default(10000)
+  eligibilityRules      String   @default("Confirmed admission with tuition fee receipt submission")
+  isActive              Boolean  @default(true)
+  version               Int      @default(1)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model Commission {
+  id                 String           @id @default(uuid())
+  commissionCode     String           @unique @default(uuid())
+  admissionId        String
+  admission          Admission        @relation(fields: [admissionId], references: [id])
+  leadId             String?
+  schoolName         String?
+  studentName        String?
+  parentName         String?
+  beneficiaryId      String?
+  beneficiary        User?            @relation("BeneficiaryCommissions", fields: [beneficiaryId], references: [id])
+  beneficiaryName    String           @default("Beneficiary")
+  beneficiaryType    String           @default("Counsellor") // Counsellor, Manager, Organization
+  beneficiaryRole    Role             @default(COUNSELLOR)
+  teamId             String?
+  team               Team?            @relation(fields: [teamId], references: [id])
+  amount             Float
+  status             CommissionStatus @default(PENDING_APPROVAL)
+  ruleVersion        Int              @default(1)
+  paymentReference   String?
+  paymentMode        String?
+  paidAt             DateTime?
+  approvedById       String?
+  approvedAt         DateTime?
+  isReversal         Boolean          @default(false)
+  parentCommissionId String?
+  reversalReason     String?
+  reversedAt         DateTime?
+  payments           Payment[]
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  @@index([admissionId])
+  @@index([beneficiaryId])
+  @@index([status])
+}
+
+model Payment {
+  id           String     @id @default(uuid())
+  paymentCode  String     @unique @default(uuid())
+  commissionId String
+  commission   Commission @relation(fields: [commissionId], references: [id], onDelete: Cascade)
+  amount       Float
+  utrNumber    String
+  paymentMode  String     @default("NEFT / Bank Transfer")
+  status       String     @default("COMPLETED")
+  recordedById String?
+  paidAt       DateTime   @default(now())
+  createdAt    DateTime   @default(now())
+
+  @@index([commissionId])
+}
+
+model CommunicationLog {
+  id            String   @id @default(uuid())
+  leadId        String?
+  lead          Lead?    @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  channel       String   // whatsapp, email, sms
+  recipient     String
+  recipientName String   @default("Parent")
+  subject       String?
+  templateName  String?
+  content       String
+  status        String   @default("delivered")
+  senderName    String?
+  sentAt        DateTime @default(now())
+
+  @@index([leadId])
+}
+
+model AuditLog {
+  id            String   @id @default(uuid())
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userName      String?
+  userRole      String?
+  action        String
+  module        String   @default("System")
+  entity        String   @default("System")
+  entityId      String?
+  details       Json?
+  ipAddress     String?
+  isSpecialFlag Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([createdAt])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      String   @default("INFO")
+  link      String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead])
+}
+
+model SystemSetting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     Json
+  category  String   @default("general")
+  updatedAt DateTime @updatedAt
+}

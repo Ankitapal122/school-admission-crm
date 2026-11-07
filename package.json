@@ -1,0 +1,37 @@
+{
+  "name": "uttarakhand-boarding-crm",
+  "version": "2.0.0",
+  "description": "Enterprise Student CRM for Uttarakhand Boarding Schools with Real MongoDB, JWT Auth, Role-Based Dashboards & Commission Management",
+  "main": "server.js",
+  "scripts": {
+    "start": "npm --prefix server run start",
+    "dev": "npm --prefix server run start:dev",
+    "dev:client": "npm --prefix client run dev",
+    "dev:server": "npm --prefix server run start:dev",
+    "build:client": "npm --prefix client run build",
+    "build:server": "npm --prefix server run build"
+  },
+  "keywords": [
+    "crm",
+    "student-crm",
+    "boarding-schools",
+    "uttarakhand",
+    "mongodb",
+    "jwt",
+    "rbac"
+  ],
+  "author": "BoardingEdu (P) Ltd.",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.9.5",
+    "nodemailer": "^6.9.16",
+    "qrcode": "^1.5.4",
+    "speakeasy": "^2.0.0"
+  }
+}

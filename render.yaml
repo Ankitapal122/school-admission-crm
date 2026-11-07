@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: boardingedu-crm-api
+    env: node
+    rootDir: server
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npx prisma db push && npm run start:prod
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: boardingedu-crm-db
+          property: connectionString
+
+databases:
+  - name: boardingedu-crm-db
+    plan: free

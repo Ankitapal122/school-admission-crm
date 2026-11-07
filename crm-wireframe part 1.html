@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BoardingEdu (P) Ltd. – Wireframe Part 1 (Screens 1-21)</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+  :root {
+    --primary: #1e3a8a; --primary-light: #3b82f6; --accent: #f59e0b;
+    --success: #10b981; --danger: #ef4444; --warning: #f97316;
+    --purple: #8b5cf6; --whatsapp: #25D366; --call: #0ea5e9;
+    --bg: #f1f5f9; --card: #ffffff; --text: #1e293b;
+    --muted: #64748b; --border: #e2e8f0; --wire: #cbd5e1;
+  }
+  body { background: var(--bg); color: var(--text); padding: 25px 15px; line-height: 1.5; }
+  .container { max-width: 1200px; margin: 0 auto; }
+
+  .page-header {
+    text-align: center; padding: 40px 25px;
+    background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+    color: white; border-radius: 16px; margin-bottom: 40px;
+    box-shadow: 0 8px 30px rgba(30,58,138,0.25);
+  }
+  .page-header h1 { font-size: 30px; margin-bottom: 10px; }
+  .page-header p { font-size: 14px; opacity: 0.9; margin-bottom: 15px; }
+  .page-header .badges { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
+  .page-header .badge {
+    background: rgba(255,255,255,0.2); padding: 6px 14px;
+    border-radius: 20px; font-size: 12px; font-weight: 600;
+  }
+
+  .category {
+    background: white; border-radius: 16px; padding: 25px;
+    margin-bottom: 35px; box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  }
+  .category-title {
+    font-size: 20px; color: var(--primary); margin-bottom: 8px;
+    display: flex; align-items: center; gap: 10px;
+    padding-bottom: 15px; border-bottom: 3px solid var(--primary-light);
+    margin-bottom: 25px;
+  }
+  .category-title .icon { font-size: 26px; }
+  .category-desc { color: var(--muted); font-size: 13px; margin-bottom: 25px; }
+
+  .screen {
+    background: #f8fafc; border: 2px solid var(--border);
+    border-radius: 12px; margin-bottom: 30px; overflow: hidden;
+  }
+  .screen-header {
+    background: linear-gradient(90deg, #1e3a8a, #3b82f6);
+    color: white; padding: 14px 20px;
+    display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 10px;
+  }
+  .screen-header h3 { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .screen-header .screen-num {
+    background: rgba(255,255,255,0.25); width: 28px; height: 28px;
+    border-radius: 50%; display: inline-flex;
+    align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+  }
+  .screen-header .role-badge {
+    background: var(--accent); padding: 4px 10px;
+    border-radius: 12px; font-size: 10px; font-weight: 700; text-transform: uppercase;
+  }
+  .screen-body { padding: 20px; }
+
+  .screen-desc {
+    background: #fef3c7; border-left: 4px solid var(--accent);
+    padding: 12px 15px; border-radius: 6px; margin-bottom: 15px;
+    font-size: 12.5px; color: #78350f;
+  }
+  .screen-desc strong { color: #92400e; }
+
+  .mockup {
+    background: #f1f5f9; padding: 15px;
+    border-radius: 10px; border: 1px dashed var(--wire);
+    margin-bottom: 15px; min-height: 200px;
+  }
+
+  .mock-nav {
+    background: white; padding: 10px 15px; border-radius: 8px;
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px; border: 1px solid var(--border);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .mock-logo {
+    font-weight: 800; color: var(--primary); font-size: 13px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .mock-nav-items { display: flex; gap: 15px; font-size: 11px; color: var(--muted); }
+  .mock-nav-items span { cursor: pointer; padding: 3px 8px; border-radius: 4px; }
+  .mock-nav-items span.active { background: #dbeafe; color: var(--primary); font-weight: 600; }
+  .mock-user {
+    display: flex; align-items: center; gap: 8px; font-size: 11px;
+  }
+  .mock-avatar {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #1e40af);
+    color: white; display: flex; align-items: center;
+    justify-content: center; font-size: 10px; font-weight: 700;
+  }
+
+  .mock-card {
+    background: white; border-radius: 8px; padding: 12px;
+    border: 1px solid var(--border); margin-bottom: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .mock-card-title {
+    font-size: 12px; font-weight: 700; color: var(--primary);
+    margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
+  }
+
+  .mock-grid { display: grid; gap: 10px; margin-bottom: 10px; }
+  .mock-grid.g2 { grid-template-columns: 1fr 1fr; }
+  .mock-grid.g3 { grid-template-columns: 1fr 1fr 1fr; }
+  .mock-grid.g4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  .mock-grid.g2-1 { grid-template-columns: 2fr 1fr; }
+  .mock-grid.g1-2 { grid-template-columns: 1fr 2fr; }
+
+  .mock-stat {
+    background: white; padding: 12px; border-radius: 8px;
+    border-left: 4px solid var(--primary-light);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .mock-stat .val { font-size: 20px; font-weight: 800; color: var(--primary); }
+  .mock-stat .lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; margin-top: 3px; letter-spacing: 0.5px; }
+
+  .mock-input {
+    background: white; border: 1px solid var(--border);
+    padding: 8px 10px; border-radius: 6px; font-size: 12px;
+    color: var(--muted); margin-bottom: 8px; display: flex;
+    align-items: center; justify-content: space-between;
+  }
+  .mock-input .label {
+    color: var(--text); font-weight: 500; font-size: 11px;
+  }
+  .mock-input .placeholder { color: #94a3b8; font-style: italic; }
+  .mock-input .req { color: var(--danger); font-weight: 700; margin-left: 3px; }
+
+  .mock-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 7px 14px; border-radius: 6px; font-size: 11px;
+    font-weight: 600; color: white; cursor: pointer;
+    border: none; margin-right: 6px; margin-bottom: 6px;
+  }
+  .mock-btn.primary { background: var(--primary-light); }
+  .mock-btn.success { background: var(--success); }
+  .mock-btn.danger { background: var(--danger); }
+  .mock-btn.warning { background: var(--warning); }
+  .mock-btn.purple { background: var(--purple); }
+  .mock-btn.outline {
+    background: white; color: var(--primary);
+    border: 1px solid var(--primary-light);
+  }
+  .mock-btn.wa { background: var(--whatsapp); }
+  .mock-btn.call { background: var(--call); }
+  .mock-btn.sm { padding: 5px 10px; font-size: 10px; }
+
+  .mock-table {
+    width: 100%; border-collapse: collapse; font-size: 11px;
+    background: white; border-radius: 6px; overflow: hidden;
+  }
+  .mock-table th {
+    background: #f1f5f9; padding: 7px 8px; text-align: left;
+    font-weight: 700; color: var(--primary); font-size: 10px;
+    text-transform: uppercase; border-bottom: 1px solid var(--border);
+  }
+  .mock-table td {
+    padding: 7px 8px; border-bottom: 1px solid #f1f5f9; color: var(--text);
+  }
+  .mock-table tr:last-child td { border-bottom: none; }
+
+  .mock-badge {
+    display: inline-block; padding: 2px 7px; border-radius: 10px;
+    font-size: 9px; font-weight: 700; color: white; text-transform: uppercase;
+  }
+  .badge-new { background: #3b82f6; }
+  .badge-success { background: var(--success); }
+  .badge-warning { background: var(--warning); }
+  .badge-danger { background: var(--danger); }
+  .badge-purple { background: var(--purple); }
+  .badge-muted { background: #94a3b8; }
+
+  .mock-tabs {
+    display: flex; gap: 3px; border-bottom: 2px solid var(--border);
+    margin-bottom: 12px; overflow-x: auto;
+  }
+  .mock-tab {
+    padding: 8px 14px; font-size: 11px; font-weight: 600;
+    color: var(--muted); cursor: pointer; white-space: nowrap;
+    border-bottom: 2px solid transparent; margin-bottom: -2px;
+  }
+  .mock-tab.active {
+    color: var(--primary); border-bottom-color: var(--primary);
+  }
+
+  .mock-sidebar {
+    background: white; border-radius: 8px; padding: 10px;
+    border: 1px solid var(--border); font-size: 11px;
+  }
+  .mock-sidebar-item {
+    padding: 8px 10px; border-radius: 6px; margin-bottom: 3px;
+    color: var(--muted); cursor: pointer; display: flex;
+    align-items: center; gap: 8px;
+  }
+  .mock-sidebar-item.active {
+    background: #dbeafe; color: var(--primary); font-weight: 600;
+  }
+
+  .mock-note {
+    background: #eff6ff; border-left: 4px solid var(--primary-light);
+    padding: 10px 12px; border-radius: 6px; font-size: 11.5px;
+    color: #1e40af; margin-top: 10px;
+  }
+  .mock-note.warning { background: #fef3c7; border-color: var(--accent); color: #78350f; }
+  .mock-note.danger { background: #fee2e2; border-color: var(--danger); color: #991b1b; }
+  .mock-note.success { background: #ecfdf5; border-color: var(--success); color: #065f46; }
+
+  .mock-kanban {
+    display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px;
+  }
+  .mock-kanban-col {
+    min-width: 140px; background: #f8fafc; border-radius: 8px; padding: 8px;
+    border: 1px dashed var(--wire);
+  }
+  .mock-kanban-col .col-title {
+    font-size: 10px; font-weight: 700; color: var(--primary);
+    text-transform: uppercase; margin-bottom: 6px;
+    display: flex; justify-content: space-between;
+  }
+  .mock-kanban-card {
+    background: white; padding: 8px; border-radius: 6px;
+    margin-bottom: 6px; border: 1px solid var(--border); font-size: 10px;
+  }
+  .mock-kanban-card .name { font-weight: 700; color: var(--text); margin-bottom: 3px; }
+  .mock-kanban-card .meta { color: var(--muted); font-size: 9px; }
+
+  .mock-modal {
+    background: white; border-radius: 12px; padding: 18px;
+    border: 2px solid var(--primary-light); max-width: 420px;
+    margin: 10px auto; box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+  }
+  .mock-modal-title {
+    font-size: 14px; font-weight: 700; color: var(--primary);
+    margin-bottom: 12px; text-align: center;
+  }
+
+  .mock-phone {
+    max-width: 320px; margin: 0 auto; background: #1e293b;
+    border-radius: 24px; padding: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  }
+  .mock-phone-screen {
+    background: white; border-radius: 16px; padding: 12px;
+    min-height: 400px; overflow-y: auto;
+  }
+
+  .api-note {
+    background: #1e293b; color: #86efac; padding: 10px 14px;
+    border-radius: 6px; font-family: 'Courier New', monospace;
+    font-size: 11px; margin-top: 10px;
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  }
+  .api-note .method {
+    padding: 2px 8px; border-radius: 4px; font-weight: 700;
+    color: white; font-size: 10px;
+  }
+  .api-note .method.get { background: var(--success); }
+  .api-note .method.post { background: var(--primary-light); }
+  .api-note .method.put { background: var(--accent); }
+  .api-note .method.delete { background: var(--danger); }
+
+  .mock-flow {
+    display: flex; gap: 8px; align-items: center;
+    justify-content: center; flex-wrap: wrap; margin: 12px 0;
+    font-size: 11px;
+  }
+  .mock-flow-step {
+    background: white; padding: 8px 12px; border-radius: 6px;
+    border: 1px solid var(--border); text-align: center; min-width: 90px;
+  }
+  .mock-flow-step.active {
+    background: var(--primary-light); color: white;
+    border-color: var(--primary-light); font-weight: 600;
+  }
+  .mock-flow-arrow { color: var(--muted); font-size: 14px; }
+
+  @media (max-width: 768px) {
+    .mock-grid.g2, .mock-grid.g3, .mock-grid.g4 { grid-template-columns: 1fr 1fr; }
+    .mock-grid.g2-1, .mock-grid.g1-2 { grid-template-columns: 1fr; }
+    .page-header h1 { font-size: 20px; }
+    .screen-body { padding: 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="page-header">
+    <h1>🎨 BoardingEdu (P) Ltd. – Wireframe Part 1</h1>
+    <p>Screens 1-21 | Auth + Jr. Counsellor + Manager | Mobile + Desktop</p>
+    <div class="badges">
+      <span class="badge">📱 PWA Ready</span>
+      <span class="badge">🔐 Role-Based</span>
+      <span class="badge">📱 Free WhatsApp</span>
+      <span class="badge">📞 Normal SIM Call</span>
+      <span class="badge">🔄 Live Preview</span>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- CATEGORY 1: AUTHENTICATION SCREENS (1-6) -->
+  <!-- ============================================ -->
+  <div class="category">
+    <div class="category-title">
+      <span class="icon">🔐</span> Category 1: Authentication Screens (Screens 1-6)
+    </div>
+    <p class="category-desc">Login flow, password recovery, 2FA setup and verification. Available to all roles.</p>
+
+    <!-- SCREEN 1: LOGIN -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">1</span> Login Screen</h3>
+        <span class="role-badge">All Users</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> Email + password login. If 2FA enabled → temp_token → OTP verify. Mobile-first design.
+        </div>
+        <div class="mockup">
+          <div style="max-width: 380px; margin: 0 auto;">
+            <div style="text-align: center; margin-bottom: 20px;">
+              <div style="font-size: 40px;">🎓</div>
+              <div style="font-weight: 800; color: var(--primary); font-size: 18px; margin-top: 8px;">BoardingEdu CRM</div>
+              <div style="color: var(--muted); font-size: 11px; margin-top: 3px;">Connecting Parents and Schools</div>
+            </div>
+            <div class="mock-card" style="padding: 18px;">
+              <div class="mock-input">
+                <span class="label">📧 Email <span class="req">*</span></span>
+              </div>
+              <div class="mock-input">
+                <span class="label">🔒 Password <span class="req">*</span></span>
+                <span class="placeholder">••••••••</span>
+              </div>
+              <div style="text-align: right; margin-bottom: 12px;">
+                <span style="font-size: 11px; color: var(--primary-light); cursor: pointer;">Forgot Password?</span>
+              </div>
+              <button class="mock-btn primary" style="width: 100%; justify-content: center; padding: 10px;">🔐 Login</button>
+            </div>
+            <div class="mock-note" style="text-align: center;">
+              🔒 Secure JWT Authentication | Session timeout: 15 min
+            </div>
+          </div>
+        </div>
+        <div class="api-note">
+          <span class="method post">POST</span> /auth/login
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 2: FORGOT PASSWORD -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">2</span> Forgot Password Screen</h3>
+        <span class="role-badge">All Users</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> User enters email → reset link sent via Brevo / SendGrid. Link valid for 15 minutes, single-use.
+        </div>
+        <div class="mockup">
+          <div style="max-width: 380px; margin: 0 auto;">
+            <div class="mock-card" style="padding: 18px;">
+              <div class="mock-modal-title">🔑 Forgot Password?</div>
+              <p style="font-size: 11.5px; color: var(--muted); text-align: center; margin-bottom: 15px;">
+                Enter your registered email. We will send a password reset link.
+              </p>
+              <div class="mock-input">
+                <span class="label">📧 Email <span class="req">*</span></span>
+              </div>
+              <button class="mock-btn primary" style="width: 100%; justify-content: center; padding: 10px;">📨 Send Reset Link</button>
+              <div style="text-align: center; margin-top: 12px; font-size: 11px;">
+                <span style="color: var(--primary-light); cursor: pointer;">← Back to Login</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="api-note">
+          <span class="method post">POST</span> /auth/forgot-password
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 3: RESET PASSWORD -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">3</span> Reset Password Screen</h3>
+        <span class="role-badge">All Users</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> User clicks email link → enters new password. Token expires in 15 minutes. Password policy enforced.
+        </div>
+        <div class="mockup">
+          <div style="max-width: 380px; margin: 0 auto;">
+            <div class="mock-card" style="padding: 18px;">
+              <div class="mock-modal-title">🔐 Set New Password</div>
+              <div class="mock-input">
+                <span class="label">🔒 New Password <span class="req">*</span></span>
+                <span class="placeholder">••••••••</span>
+              </div>
+              <div class="mock-input">
+                <span class="label">🔒 Confirm Password <span class="req">*</span></span>
+                <span class="placeholder">••••••••</span>
+              </div>
+              <div style="background: #eff6ff; padding: 10px; border-radius: 6px; margin-bottom: 12px; font-size: 10.5px; color: #1e40af;">
+                <strong>Password must:</strong><br>
+                ✅ Min 8 characters<br>
+                ✅ 1 Uppercase, 1 Lowercase<br>
+                ✅ 1 Number, 1 Special char
+              </div>
+              <button class="mock-btn success" style="width: 100%; justify-content: center; padding: 10px;">✅ Reset Password</button>
+            </div>
+          </div>
+        </div>
+        <div class="api-note">
+          <span class="method post">POST</span> /auth/reset-password
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 4: 2FA SETUP -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">4</span> 2FA Setup (QR + Backup Codes)</h3>
+        <span class="role-badge">Admin / Manager</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> User scans QR in Google Authenticator. Backup codes shown ONCE. Admin = mandatory, Manager = optional.
+        </div>
+        <div class="mockup">
+          <div style="max-width: 480px; margin: 0 auto;">
+            <div class="mock-card">
+              <div class="mock-modal-title">🔐 Two-Factor Authentication Setup</div>
+              <div style="text-align: center; padding: 12px; background: white; border-radius: 8px; border: 2px dashed var(--wire); margin-bottom: 15px;">
+                <div style="width: 140px; height: 140px; background: #f1f5f9; border-radius: 8px; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 40px;">📱</div>
+                <p style="font-size: 11px; color: var(--muted); margin-top: 8px;">Scan this QR in Google Authenticator</p>
+              </div>
+              <div class="mock-input">
+                <span class="label">🔑 Secret Key</span>
+                <span class="placeholder">JBSWY3DPEHPK3PXP</span>
+              </div>
+              <div style="background: #fef3c7; padding: 12px; border-radius: 6px; margin-bottom: 12px;">
+                <div style="font-size: 11px; font-weight: 700; color: #92400e; margin-bottom: 8px;">⚠️ Backup Codes (Save now — shown only ONCE)</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; font-family: 'Courier New', monospace; font-size: 12px;">
+                  <span>A1B2C3</span><span>D4E5F6</span>
+                  <span>G7H8I9</span><span>J1K2L3</span>
+                  <span>M4N5O6</span><span>P7Q8R9</span>
+                </div>
+              </div>
+              <button class="mock-btn primary" style="width: 100%; justify-content: center;">📥 Download Backup Codes</button>
+              <button class="mock-btn success" style="width: 100%; justify-content: center; margin-top: 6px;">✅ Verify &amp; Enable 2FA</button>
+            </div>
+          </div>
+        </div>
+        <div class="api-note">
+          <span class="method post">POST</span> /security/2fa/setup &nbsp;→&nbsp; <span class="method post">POST</span> /security/2fa/verify
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 5: 2FA LOGIN (OTP) -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">5</span> 2FA Login (OTP Entry)</h3>
+        <span class="role-badge">Admin / Manager</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> Step 2 of login. User enters the 6-digit OTP from Google Authenticator. temp_token valid for 5 minutes.
+        </div>
+        <div class="mockup">
+          <div style="max-width: 380px; margin: 0 auto;">
+            <div class="mock-card" style="padding: 18px;">
+              <div class="mock-modal-title">🔐 Enter 2FA Code</div>
+              <p style="font-size: 11.5px; color: var(--muted); text-align: center; margin-bottom: 15px;">
+                Open Google Authenticator and enter the 6-digit code
+              </p>
+              <div style="display: flex; gap: 6px; justify-content: center; margin-bottom: 15px;">
+                <input style="width: 40px; height: 48px; text-align: center; border: 1px solid var(--border); border-radius: 6px; font-size: 20px; font-weight: 700;" value="1">
+                <input style="width: 40px; height: 48px; text-align: center; border: 1px solid var(--border); border-radius: 6px; font-size: 20px; font-weight: 700;" value="2">
+                <input style="width: 40px; height: 48px; text-align: center; border: 1px solid var(--border); border-radius: 6px; font-size: 20px; font-weight: 700;" value="3">
+                <input style="width: 40px; height: 48px; text-align: center; border: 1px solid var(--border); border-radius: 6px; font-size: 20px; font-weight: 700;" value="4">
+                <input style="width: 40px; height: 48px; text-align: center; border: 1px solid var(--border); border-radius: 6px; font-size: 20px; font-weight: 700;" value="5">
+                <input style="width: 40px; height: 48px; text-align: center; border: 1px solid var(--border); border-radius: 6px; font-size: 20px; font-weight: 700;" value="6">
+              </div>
+              <div style="text-align: center; font-size: 11px; color: var(--muted); margin-bottom: 12px;">
+                ⏰ temp_token expires in <span style="color: var(--danger); font-weight: 700;">4:32</span>
+              </div>
+              <button class="mock-btn primary" style="width: 100%; justify-content: center; padding: 10px;">✅ Verify &amp; Login</button>
+              <div style="text-align: center; margin-top: 12px; font-size: 11px;">
+                <span style="color: var(--primary-light); cursor: pointer;">Use Backup Code instead →</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="api-note">
+          <span class="method post">POST</span> /auth/2fa/verify-login
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 6: CHANGE PASSWORD -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">6</span> Change Password Screen</h3>
+        <span class="role-badge">All Users</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> Logged-in user changes their own password. Other sessions invalidated on success.
+        </div>
+        <div class="mockup">
+          <div style="max-width: 420px; margin: 0 auto;">
+            <div class="mock-card">
+              <div class="mock-modal-title">🔐 Change Password</div>
+              <div class="mock-input">
+                <span class="label">🔒 Current Password <span class="req">*</span></span>
+                <span class="placeholder">••••••••</span>
+              </div>
+              <div class="mock-input">
+                <span class="label">🔒 New Password <span class="req">*</span></span>
+                <span class="placeholder">••••••••</span>
+              </div>
+              <div class="mock-input">
+                <span class="label">🔒 Confirm New Password <span class="req">*</span></span>
+                <span class="placeholder">••••••••</span>
+              </div>
+              <div class="mock-note warning">
+                ⚠️ All other active sessions will be logged out.
+              </div>
+              <button class="mock-btn success" style="width: 100%; justify-content: center; margin-top: 10px;">✅ Update Password</button>
+            </div>
+          </div>
+        </div>
+        <div class="api-note">
+          <span class="method put">PUT</span> /users/me/password
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============================================ -->
+  <!-- CATEGORY 2: JR. COUNSELLOR SCREENS (7-13) -->
+  <!-- ============================================ -->
+  <div class="category">
+    <div class="category-title">
+      <span class="icon">👤</span> Category 2: Jr. Counsellor Screens (Screens 7-13)
+    </div>
+    <p class="category-desc">Daily workflow for Jr. Counsellors — lead entry, follow-ups, commission, profile.</p>
+
+    <!-- SCREEN 7: JR. COUNSELLOR DASHBOARD -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">7</span> Jr. Counsellor Dashboard</h3>
+        <span class="role-badge">Jr. Counsellor</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> Main landing page. Stats cards + New Lead button + Pending Confirmations widget + tabs.
+        </div>
+        <div class="mockup">
+          <div class="mock-nav">
+            <div class="mock-logo">🎓 BoardingEdu CRM</div>
+            <div class="mock-nav-items">
+              <span class="active">Dashboard</span>
+              <span>Leads</span>
+              <span>Follow-ups</span>
+              <span>Commission</span>
+            </div>
+            <div class="mock-user">
+              <div class="mock-avatar">RS</div>
+              <span>Rahul S.</span>
+              <span style="position: relative;">🔔<span style="position: absolute; top: -4px; right: -4px; background: var(--danger); color: white; border-radius: 50%; width: 14px; height: 14px; font-size: 8px; display: flex; align-items: center; justify-content: center;">3</span></span>
+            </div>
+          </div>
+
+          <div class="mock-note danger" style="margin-bottom: 12px;">
+            ⚠️ <strong>Pending Confirmations: 5</strong> — 3 WhatsApp + 2 Call outcomes. <span style="text-decoration: underline; cursor: pointer;">Resolve now →</span>
+          </div>
+
+          <div class="mock-grid g4">
+            <div class="mock-stat" style="border-left-color: var(--primary-light);">
+              <div class="val">12</div>
+              <div class="lbl">Today's Leads</div>
+            </div>
+            <div class="mock-stat" style="border-left-color: var(--accent);">
+              <div class="val">8</div>
+              <div class="lbl">Follow-ups Today</div>
+            </div>
+            <div class="mock-stat" style="border-left-color: var(--success);">
+              <div class="val">25</div>
+              <div class="lbl">Admissions</div>
+            </div>
+            <div class="mock-stat" style="border-left-color: var(--purple);">
+              <div class="val">₹75K</div>
+              <div class="lbl">Commission</div>
+            </div>
+          </div>
+
+          <div style="text-align: center; margin: 15px 0;">
+            <button class="mock-btn primary" style="font-size: 13px; padding: 10px 20px;">➕ New Lead Entry</button>
+            <button class="mock-btn outline">📋 My Leads</button>
+            <button class="mock-btn outline">📅 Follow-ups</button>
+          </div>
+
+          <div class="mock-card">
+            <div class="mock-card-title">📅 Today's Follow-ups (8)</div>
+            <table class="mock-table">
+              <thead><tr><th>Student</th><th>Class</th><th>Follow-up Time</th><th>Status</th><th>Action</th></tr></thead>
+              <tbody>
+                <tr><td>Aryan Kumar</td><td>6</td><td>10:30 AM</td><td><span class="mock-badge badge-warning">Pending</span></td><td><button class="mock-btn call sm">📞</button><button class="mock-btn wa sm">📱</button></td></tr>
+                <tr><td>Priya Sharma</td><td>8</td><td>11:00 AM</td><td><span class="mock-badge badge-warning">Pending</span></td><td><button class="mock-btn call sm">📞</button><button class="mock-btn wa sm">📱</button></td></tr>
+                <tr><td>Rohan Verma</td><td>5</td><td>2:30 PM</td><td><span class="mock-badge badge-new">Scheduled</span></td><td><button class="mock-btn call sm">📞</button><button class="mock-btn wa sm">📱</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="api-note">
+          <span class="method get">GET</span> /dashboard/jr &nbsp;|&nbsp; <span class="method get">GET</span> /dashboard/pending-confirmations
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 8: NEW LEAD ENTRY FORM -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">8</span> New Lead Entry Form</h3>
+        <span class="role-badge">Jr. + Manager</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> Complete parent enquiry form. Duplicate check on Mobile + Student Name + Class. Auto +3 days follow-up.
+        </div>
+        <div class="mockup">
+          <div class="mock-tabs">
+            <div class="mock-tab active">👨‍👩‍👧 Student &amp; Family</div>
+            <div class="mock-tab">📚 Academic</div>
+            <div class="mock-tab">📞 Contact</div>
+            <div class="mock-tab">📊 Source</div>
+          </div>
+
+          <div class="mock-grid g3">
+            <div class="mock-input"><span class="label">Student Name <span class="req">*</span></span></div>
+            <div class="mock-input"><span class="label">Academic Year <span class="req">*</span></span><span class="placeholder">2026-27 ▾</span></div>
+            <div class="mock-input"><span class="label">Class <span class="req">*</span></span><span class="placeholder">Select ▾</span></div>
+          </div>
+          <div class="mock-grid g3">
+            <div class="mock-input"><span class="label">Father's Name</span></div>
+            <div class="mock-input"><span class="label">Father's Occupation</span></div>
+            <div class="mock-input"><span class="label">Mother's Name</span></div>
+          </div>
+          <div class="mock-grid g3">
+            <div class="mock-input"><span class="label">Mother's Occupation</span></div>
+            <div class="mock-input"><span class="label">Guardian Name</span></div>
+            <div class="mock-input"><span class="label">Guardian Mobile</span></div>
+          </div>
+          <div class="mock-grid g3">
+            <div class="mock-input"><span class="label">Mobile Primary <span class="req">*</span></span><span class="placeholder">+91 __________</span></div>
+            <div class="mock-input"><span class="label">Mobile Alt</span></div>
+            <div class="mock-input"><span class="label">WhatsApp Number</span></div>
+          </div>
+          <div class="mock-grid g3">
+            <div class="mock-input"><span class="label">Email</span></div>
+            <div class="mock-input"><span class="label">Preferred Contact Time</span><span class="placeholder">Morning ▾</span></div>
+            <div class="mock-input"><span class="label">Board <span class="req">*</span></span><span class="placeholder">CBSE ▾</span></div>
+          </div>
+          <div class="mock-grid g3">
+            <div class="mock-input"><span class="label">School Type <span class="req">*</span></span><span class="placeholder">Boarding ▾</span></div>
+            <div class="mock-input"><span class="label">City Resident</span></div>
+            <div class="mock-input"><span class="label">City Preferred</span></div>
+          </div>
+          <div class="mock-grid g3">
+            <div class="mock-input"><span class="label">Budget Range <span class="req">*</span></span><span class="placeholder">₹4L – ₹5L ▾</span></div>
+            <div class="mock-input"><span class="label">Gender</span><span class="placeholder">Male ▾</span></div>
+            <div class="mock-input"><span class="label">Previous Class %</span></div>
+          </div>
+          <div class="mock-grid g2">
+            <div class="mock-input"><span class="label">Source <span class="req">*</span></span><span class="placeholder">Call ▾</span></div>
+            <div class="mock-input"><span class="label">Source Detail (Referral name / Campaign)</span></div>
+          </div>
+          <div class="mock-input" style="height: 60px; align-items: flex-start;">
+            <span class="label">Initial Remark</span>
+          </div>
+          <div style="background: #ecfdf5; padding: 10px; border-radius: 6px; margin: 10px 0; font-size: 11px;">
+            <label><input type="checkbox" checked> ✅ I confirm parent consent for data storage (DPDP)</label>
+          </div>
+          <div class="mock-note warning">
+            ⚠️ <strong>Duplicate Check:</strong> Mobile + Student Name + Class will be checked. If a match is found, a warning is shown.
+          </div>
+          <div style="text-align: right; margin-top: 10px;">
+            <button class="mock-btn outline">❌ Cancel</button>
+            <button class="mock-btn primary">💾 Create Lead</button>
+          </div>
+        </div>
+        <div class="api-note">
+          <span class="method post">POST</span> /leads/check-duplicate &nbsp;|&nbsp; <span class="method post">POST</span> /leads
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 9: LEAD DETAIL PAGE -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">9</span> Lead Detail Page</h3>
+        <span class="role-badge">All Roles</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> Complete lead info + history timeline + remarks. Jr. = limited edit (name, mobile, remark). Manager = full edit.
+        </div>
+        <div class="mockup">
+          <div class="mock-nav">
+            <div class="mock-logo">← Back to Leads</div>
+            <div class="mock-user">
+              <span style="font-size: 10px; color: var(--muted);">LD000123</span>
+              <span class="mock-badge badge-new">New</span>
+            </div>
+          </div>
+
+          <div class="mock-grid g2-1">
+            <div>
+              <div class="mock-card">
+                <div class="mock-card-title">👤 Aryan Kumar | Class 6 | CBSE</div>
+                <div class="mock-grid g3">
+                  <div style="font-size: 11px;"><strong>Father:</strong> Suresh Kumar</div>
+                  <div style="font-size: 11px;"><strong>Mother:</strong> Sunita Devi</div>
+                  <div style="font-size: 11px;"><strong>Mobile:</strong> +919876543210</div>
+                  <div style="font-size: 11px;"><strong>Alt:</strong> +919876543211</div>
+                  <div style="font-size: 11px;"><strong>Email:</strong> suresh@email.com</div>
+                  <div style="font-size: 11px;"><strong>Budget:</strong> ₹4L – ₹5L</div>
+                  <div style="font-size: 11px;"><strong>City:</strong> Delhi → Mumbai</div>
+                  <div style="font-size: 11px;"><strong>Source:</strong> Call</div>
+                  <div style="font-size: 11px;"><strong>Score:</strong> <span class="mock-badge badge-success">85 🟢</span></div>
+                </div>
+                <div style="margin-top: 10px; display: flex; gap: 5px;">
+                  <button class="mock-btn call sm">📞 Call</button>
+                  <button class="mock-btn wa sm">📱 WhatsApp</button>
+                  <button class="mock-btn outline sm">✏️ Edit</button>
+                </div>
+              </div>
+
+              <div class="mock-card">
+                <div class="mock-card-title">➕ Add Remark</div>
+                <div class="mock-input" style="height: 50px; align-items: flex-start;">
+                  <span class="placeholder">Type your remark here...</span>
+                </div>
+                <button class="mock-btn primary sm">💾 Save Remark</button>
+              </div>
+
+              <div class="mock-card">
+                <div class="mock-card-title">📜 History Timeline</div>
+                <div style="font-size: 11px; border-left: 2px solid var(--border); padding-left: 10px; margin-left: 5px;">
+                  <div style="margin-bottom: 10px;">
+                    <div style="font-weight: 700; color: var(--primary);">14 Oct 2025 – Remark added</div>
+                    <div style="color: var(--muted);">"Parent asked for fees details" — Rahul</div>
+                  </div>
+                  <div style="margin-bottom: 10px;">
+                    <div style="font-weight: 700; color: var(--primary);">13 Oct 2025 – Call logged</div>
+                    <div style="color: var(--muted);">Outcome: Interested | 04:20 min — Rahul</div>
+                  </div>
+                  <div>
+                    <div style="font-weight: 700; color: var(--primary);">10 Oct 2025 – Lead created</div>
+                    <div style="color: var(--muted);">By Rahul | Source: Call</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div class="mock-card">
+                <div class="mock-card-title">🎯 Lead Score</div>
+                <div style="text-align: center; padding: 15px;">
+                  <div style="font-size: 40px; font-weight: 800; color: var(--success);">85</div>
+                  <div style="font-size: 10px; color: var(--muted);">🟢 HIGH PRIORITY</div>
+                </div>
+                <div style="font-size: 10px;">
+                  <div>Budget Match: 20/25</div>
+                  <div>Engagement: 25/25</div>
+                  <div>Source Quality: 10/20</div>
+                  <div>Timeline: 15/15</div>
+                  <div>Class Demand: 15/15</div>
+                </div>
+              </div>
+
+              <div class="mock-card">
+                <div class="mock-card-title">📌 Follow-up</div>
+                <div style="font-size: 11px;">
+                  <div><strong>Next:</strong> 18 Oct 2025</div>
+                  <div><strong>Reason:</strong> Call after fees discussion</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="api-note">
+          <span class="method get">GET</span> /leads/:id &nbsp;|&nbsp; <span class="method post">POST</span> /leads/:id/remark
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 10: OLD LEADS LIST -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">10</span> Old Leads List (Date-wise Filters)</h3>
+        <span class="role-badge">All Roles</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> Filter leads by date range, class, status, source. Searchable. Sortable by Lead Score.
+        </div>
+        <div class="mockup">
+          <div class="mock-card">
+            <div class="mock-card-title">🔍 Filters</div>
+            <div class="mock-grid g4">
+              <div class="mock-input"><span class="label">📅 From Date</span></div>
+              <div class="mock-input"><span class="label">📅 To Date</span></div>
+              <div class="mock-input"><span class="label">Class</span><span class="placeholder">All ▾</span></div>
+              <div class="mock-input"><span class="label">Status</span><span class="placeholder">All ▾</span></div>
+            </div>
+            <div class="mock-grid g4">
+              <div class="mock-input"><span class="label">Source</span><span class="placeholder">All ▾</span></div>
+              <div class="mock-input"><span class="label">Counsellor</span><span class="placeholder">All ▾</span></div>
+              <div class="mock-input"><span class="label">Score</span><span class="placeholder">All ▾</span></div>
+              <div style="text-align: right;">
+                <button class="mock-btn primary sm">🔍 Search</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin: 10px 0;">
+            <span style="font-size: 12px; color: var(--muted);">Showing 5 of 1,247 leads</span>
+            <button class="mock-btn success sm">📥 Export Excel</button>
+          </div>
+
+          <table class="mock-table">
+            <thead>
+              <tr><th>Lead ID</th><th>Student</th><th>Class</th><th>Mobile</th><th>Score</th><th>Status</th><th>Follow-up</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>LD000123</td><td>Aryan Kumar</td><td>6</td><td>+919876543210</td><td><span class="mock-badge badge-success">85</span></td><td><span class="mock-badge badge-new">New</span></td><td>18 Oct</td><td><button class="mock-btn call sm">📞</button><button class="mock-btn wa sm">📱</button></td></tr>
+              <tr><td>LD000124</td><td>Priya Sharma</td><td>8</td><td>+919876543220</td><td><span class="mock-badge badge-success">78</span></td><td><span class="mock-badge badge-warning">Follow-up</span></td><td>18 Oct</td><td><button class="mock-btn call sm">📞</button><button class="mock-btn wa sm">📱</button></td></tr>
+              <tr><td>LD000125</td><td>Rohan Verma</td><td>5</td><td>+919876543230</td><td><span class="mock-badge badge-warning">62</span></td><td><span class="mock-badge badge-danger">Duplicate</span></td><td>—</td><td><button class="mock-btn call sm">📞</button><button class="mock-btn wa sm">📱</button></td></tr>
+              <tr><td>LD000126</td><td>Sneha Patel</td><td>7</td><td>+919876543240</td><td><span class="mock-badge badge-success">92</span></td><td><span class="mock-badge badge-success">Admission Done</span></td><td>—</td><td><button class="mock-btn call sm">📞</button><button class="mock-btn wa sm">📱</button></td></tr>
+              <tr><td>LD000127</td><td>Karan Mehta</td><td>4</td><td>+919876543250</td><td><span class="mock-badge badge-danger">38</span></td><td><span class="mock-badge badge-muted">Expired</span></td><td>—</td><td><button class="mock-btn call sm">📞</button><button class="mock-btn wa sm">📱</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="api-note">
+          <span class="method get">GET</span> /leads?filters=...
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 11: FOLLOW-UP VIEW (Jr) -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">11</span> Follow-up View (Jr. Read-Only)</h3>
+        <span class="role-badge">Jr. Counsellor</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> Jr. views follow-ups but cannot set dates. Today / Overdue / Upcoming tabs.
+        </div>
+        <div class="mockup">
+          <div class="mock-tabs">
+            <div class="mock-tab active">📅 Today (8)</div>
+            <div class="mock-tab">⏰ Overdue (3)</div>
+            <div class="mock-tab">📆 Upcoming (15)</div>
+          </div>
+
+          <table class="mock-table">
+            <thead>
+              <tr><th>Lead ID</th><th>Student</th><th>Class</th><th>Follow-up Reason</th><th>Contact</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>LD000123</td><td>Aryan Kumar</td><td>6</td><td>Fees discussion callback</td><td><button class="mock-btn call sm">📞</button><button class="mock-btn wa sm">📱</button></td></tr>
+              <tr><td>LD000124</td><td>Priya Sharma</td><td>8</td><td>Shortlist confirmation</td><td><button class="mock-btn call sm">📞</button><button class="mock-btn wa sm">📱</button></td></tr>
+              <tr><td>LD000128</td><td>Neha Singh</td><td>9</td><td>Document submission</td><td><button class="mock-btn call sm">📞</button><button class="mock-btn wa sm">📱</button></td></tr>
+            </tbody>
+          </table>
+
+          <div class="mock-note" style="margin-top: 12px;">
+            ℹ️ <strong>Read-Only:</strong> Only the Manager can change the follow-up date.
+          </div>
+        </div>
+        <div class="api-note">
+          <span class="method get">GET</span> /follow-ups/today
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 12: COMMISSION SUMMARY (Jr) -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">12</span> Commission Summary (Jr. Counsellor)</h3>
+        <span class="role-badge">Jr. Counsellor</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> Personal commission stats — earned, paid, pending. Month-wise breakdown.
+        </div>
+        <div class="mockup">
+          <div class="mock-grid g4">
+            <div class="mock-stat" style="border-left-color: var(--primary-light);">
+              <div class="val">450</div>
+              <div class="lbl">Total Leads</div>
+            </div>
+            <div class="mock-stat" style="border-left-color: var(--success);">
+              <div class="val">25</div>
+              <div class="lbl">Admissions</div>
+            </div>
+            <div class="mock-stat" style="border-left-color: var(--accent);">
+              <div class="val">₹75K</div>
+              <div class="lbl">Earned</div>
+            </div>
+            <div class="mock-stat" style="border-left-color: var(--purple);">
+              <div class="val">₹45K</div>
+              <div class="lbl">Paid</div>
+            </div>
+          </div>
+
+          <div class="mock-card">
+            <div class="mock-card-title">💰 Month-wise Breakdown</div>
+            <table class="mock-table">
+              <thead><tr><th>Month</th><th>Admissions</th><th>Earned ₹</th><th>Paid ₹</th><th>Pending ₹</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td>Oct 2025</td><td>8</td><td>₹24,000</td><td>₹16,000</td><td>₹8,000</td><td><span class="mock-badge badge-warning">Partial</span></td></tr>
+                <tr><td>Sep 2025</td><td>6</td><td>₹18,000</td><td>₹18,000</td><td>₹0</td><td><span class="mock-badge badge-success">Paid</span></td></tr>
+                <tr><td>Aug 2025</td><td>5</td><td>₹15,000</td><td>₹11,000</td><td>₹4,000</td><td><span class="mock-badge badge-warning">Partial</span></td></tr>
+                <tr><td>Jul 2025</td><td>6</td><td>₹18,000</td><td>₹0</td><td>₹18,000</td><td><span class="mock-badge badge-danger">Pending</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="api-note">
+          <span class="method get">GET</span> /commission/jr/:user_id
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 13: PENDING CONFIRMATIONS WIDGET -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">13</span> Pending Confirmations Widget (Detailed)</h3>
+        <span class="role-badge">All Roles</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> Persistent widget showing pending WhatsApp &amp; Call confirmations. Age-wise breakdown. This is Layer 1 of the 3-layer reminder system.
+        </div>
+        <div class="mockup">
+          <div class="mock-card" style="border-left: 4px solid var(--danger);">
+            <div class="mock-card-title" style="color: var(--danger);">⚠️ Pending Confirmations: 5</div>
+            <div class="mock-grid g2">
+              <div style="font-size: 11px;">📱 WhatsApp: <strong>3</strong></div>
+              <div style="font-size: 11px;">📞 Call: <strong>2</strong></div>
+            </div>
+            <div style="background: #fef3c7; padding: 10px; border-radius: 6px; margin-top: 8px;">
+              <div style="font-size: 10.5px; font-weight: 700; color: #92400e; margin-bottom: 6px;">⏰ Age Breakdown:</div>
+              <div class="mock-grid g4" style="font-size: 10px;">
+                <div><strong>&lt; 1h:</strong> 2</div>
+                <div><strong>1-4h:</strong> 2</div>
+                <div><strong>&gt; 4h:</strong> 1</div>
+                <div><strong>&gt; 24h:</strong> 0</div>
+              </div>
+            </div>
+            <div style="margin-top: 10px;">
+              <button class="mock-btn danger sm">🔴 Resolve Now</button>
+              <button class="mock-btn outline sm">📋 View All</button>
+            </div>
+          </div>
+
+          <div class="mock-note warning" style="margin-top: 12px;">
+            <strong>🔔 3-Layer Reminder System:</strong><br>
+            Layer 1: This persistent widget → Layer 2: 1h popup + 4h Manager alert + 24h red flag → Layer 3: Confirmation mandatory before next WA / Call
+          </div>
+        </div>
+        <div class="api-note">
+          <span class="method get">GET</span> /dashboard/pending-confirmations
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============================================ -->
+  <!-- CATEGORY 3: MANAGER SCREENS (14-21) -->
+  <!-- ============================================ -->
+  <div class="category">
+    <div class="category-title">
+      <span class="icon">👔</span> Category 3: Manager (Sr. Counsellor) Screens (Screens 14-21)
+    </div>
+    <p class="category-desc">Lead verification, auto-suggest, pipeline, duplicate merge, WhatsApp / Call, applications, scoring config.</p>
+
+    <!-- SCREEN 14: MANAGER DASHBOARD -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">14</span> Manager Dashboard</h3>
+        <span class="role-badge">Manager</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> 8-tab dashboard — new leads queue, duplicates, shortlisted, follow-ups, admissions, commission, team, reports.
+        </div>
+        <div class="mockup">
+          <div class="mock-nav">
+            <div class="mock-logo">🎓 BoardingEdu CRM</div>
+            <div class="mock-nav-items">
+              <span class="active">Dashboard</span>
+              <span>New Leads</span>
+              <span>Duplicates</span>
+              <span>Team</span>
+              <span>Reports</span>
+            </div>
+            <div class="mock-user">
+              <div class="mock-avatar" style="background: linear-gradient(135deg, #f59e0b, #b45309);">RM</div>
+              <span>RM</span>
+              <span>🔔</span>
+            </div>
+          </div>
+
+          <div class="mock-grid g4">
+            <div class="mock-stat" style="border-left-color: var(--primary-light);">
+              <div class="val">1,350</div>
+              <div class="lbl">Total Leads</div>
+            </div>
+            <div class="mock-stat" style="border-left-color: var(--success);">
+              <div class="val">73</div>
+              <div class="lbl">Admissions</div>
+            </div>
+            <div class="mock-stat" style="border-left-color: var(--danger);">
+              <div class="val">12</div>
+              <div class="lbl">Duplicate Alerts</div>
+            </div>
+            <div class="mock-stat" style="border-left-color: var(--purple);">
+              <div class="val">₹2L</div>
+              <div class="lbl">Commission</div>
+            </div>
+          </div>
+
+          <div class="mock-tabs" style="margin-top: 15px;">
+            <div class="mock-tab active">🆕 New Leads (24)</div>
+            <div class="mock-tab">⚠️ Duplicates (12)</div>
+            <div class="mock-tab">⭐ Shortlisted (45)</div>
+            <div class="mock-tab">📅 Follow-ups (18)</div>
+            <div class="mock-tab">📄 Applications (32)</div>
+          </div>
+
+          <div class="mock-card">
+            <div class="mock-card-title">📋 New Leads Queue (from Jr. Counsellors)</div>
+            <table class="mock-table">
+              <thead><tr><th>Lead ID</th><th>Student</th><th>Class</th><th>Score</th><th>Created By</th><th>Action</th></tr></thead>
+              <tbody>
+                <tr><td>LD000131</td><td>Vikram Joshi</td><td>7</td><td><span class="mock-badge badge-success">88</span></td><td>Priya C</td><td><button class="mock-btn primary sm">Review</button></td></tr>
+                <tr><td>LD000132</td><td>Ananya Roy</td><td>9</td><td><span class="mock-badge badge-success">76</span></td><td>Amit</td><td><button class="mock-btn primary sm">Review</button></td></tr>
+                <tr><td>LD000133</td><td>Sahil Khan</td><td>6</td><td><span class="mock-badge badge-warning">65</span></td><td>Rahul</td><td><button class="mock-btn primary sm">Review</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="api-note">
+          <span class="method get">GET</span> /dashboard/sr
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 15: AUTO-SUGGEST SCHOOLS -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">15</span> Auto-Suggest Schools Engine (8 Criteria)</h3>
+        <span class="role-badge">Manager</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> The most important feature. 8 weighted criteria produce a match score out of 100. Best schools are auto-suggested.
+        </div>
+        <div class="mockup">
+          <div class="mock-card">
+            <div class="mock-card-title">🎯 Matching for LD000123 – Aryan Kumar (Class 6, CBSE, ₹4-5L, Mumbai)</div>
+
+            <div class="mock-grid g3">
+              <div class="mock-input"><span class="label">Sort By</span><span class="placeholder">Match Score ▾</span></div>
+              <div class="mock-input"><span class="label">Filter State</span><span class="placeholder">All ▾</span></div>
+              <div class="mock-input"><span class="label">Fees Range</span><span class="placeholder">₹4L – ₹6L ▾</span></div>
+            </div>
+
+            <table class="mock-table">
+              <thead>
+                <tr><th>School</th><th>Board</th><th>State</th><th>Fees</th><th>Match Score</th><th>Commission</th><th>Action</th></tr>
+              </thead>
+              <tbody>
+                <tr style="background: #ecfdf5;">
+                  <td><strong>ABC International</strong></td><td>CBSE</td><td>Delhi</td><td>₹4.5L</td>
+                  <td><span class="mock-badge badge-success">90</span></td>
+                  <td>₹25,000</td>
+                  <td><button class="mock-btn success sm">⭐ Add Shortlist</button></td>
+                </tr>
+                <tr>
+                  <td><strong>XYZ Public School</strong></td><td>CBSE</td><td>Maharashtra</td><td>₹4L</td>
+                  <td><span class="mock-badge badge-success">85</span></td>
+                  <td>₹30,000</td>
+                  <td><button class="mock-btn success sm">⭐ Add Shortlist</button></td>
+                </tr>
+                <tr>
+                  <td><strong>PQR Residential</strong></td><td>CBSE</td><td>Karnataka</td><td>₹5L</td>
+                  <td><span class="mock-badge badge-warning">72</span></td>
+                  <td>₹22,000</td>
+                  <td><button class="mock-btn success sm">⭐ Add Shortlist</button></td>
+                </tr>
+                <tr>
+                  <td><strong>LMN Academy</strong></td><td>ICSE</td><td>Rajasthan</td><td>₹3.5L</td>
+                  <td><span class="mock-badge badge-muted">58</span></td>
+                  <td>₹18,000</td>
+                  <td><button class="mock-btn success sm">⭐ Add Shortlist</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="mock-note success" style="margin-top: 12px;">
+            <strong>🧮 Scoring Breakdown (ABC International – 90/100):</strong><br>
+            Class: 15/15 | Board: 15/15 | Fees: 15/15 | State: 0/10 | Gender: 15/15 | Type: 10/10 | Facilities: 10/10 | Ranking: 10/10<br>
+            <strong>Total: 90 / 100</strong>
+          </div>
+        </div>
+        <div class="api-note">
+          <span class="method post">POST</span> /match/suggest
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 16: DUPLICATE MERGE COMPARE -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">16</span> Duplicate Merge – Side-by-Side Compare</h3>
+        <span class="role-badge">Manager</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> Side-by-side compare before merge. Prisma $transaction ensures atomic merge — no partial merge.
+        </div>
+        <div class="mockup">
+          <div class="mock-note danger">
+            ⚠️ <strong>Duplicate Found!</strong> Mobile + Student Name + Class matched with LD000100.
+          </div>
+
+          <div class="mock-grid g2">
+            <div class="mock-card" style="border-left: 4px solid var(--danger);">
+              <div class="mock-card-title">🔴 Source Lead (will merge)</div>
+              <div style="font-size: 11px;">
+                <div><strong>ID:</strong> LD000100</div>
+                <div><strong>Name:</strong> Aryan Kumar</div>
+                <div><strong>Class:</strong> 6</div>
+                <div><strong>Mobile:</strong> +919876543210</div>
+                <div><strong>Status:</strong> Expired</div>
+                <div><strong>Remarks:</strong> 3</div>
+                <div><strong>Applications:</strong> 1</div>
+                <div><strong>Created:</strong> 15 Jul 2025</div>
+              </div>
+            </div>
+
+            <div class="mock-card" style="border-left: 4px solid var(--success);">
+              <div class="mock-card-title">🟢 Target Lead (will survive)</div>
+              <div style="font-size: 11px;">
+                <div><strong>ID:</strong> LD000123</div>
+                <div><strong>Name:</strong> Aryan Kumar</div>
+                <div><strong>Class:</strong> 6</div>
+                <div><strong>Mobile:</strong> +919876543210</div>
+                <div><strong>Status:</strong> New</div>
+                <div><strong>Remarks:</strong> 2</div>
+                <div><strong>Applications:</strong> 0</div>
+                <div><strong>Created:</strong> 10 Oct 2025</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mock-card">
+            <div class="mock-card-title">🔀 What will happen (Atomic Transaction)</div>
+            <div style="font-size: 11.5px; line-height: 1.8;">
+              ✅ 3 remarks from LD000100 → copied to LD000123<br>
+              ✅ 1 application re-linked to LD000123<br>
+              ✅ Commission entries re-linked<br>
+              ✅ LD000100 → status: <strong>Merged</strong> + merged_into_lead_id = LD000123<br>
+              ✅ Audit log entry created<br>
+              ⚠️ Any step fails → <strong>full rollback</strong>
+            </div>
+          </div>
+
+          <div style="text-align: right; margin-top: 12px;">
+            <button class="mock-btn outline">❌ Cancel</button>
+            <button class="mock-btn danger">🔀 Merge Leads</button>
+          </div>
+        </div>
+        <div class="api-note">
+          <span class="method post">POST</span> /leads/merge
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 17: KANBAN PIPELINE -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">17</span> Kanban Pipeline Board</h3>
+        <span class="role-badge">Manager</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> 12-stage visual pipeline with drag-and-drop. Lead count per stage. Score badge on each card. 5 terminal statuses (merged, expired, suspended, reopened, disqualified) are not displayed here.
+        </div>
+        <div class="mockup">
+          <div class="mock-kanban">
+            <div class="mock-kanban-col">
+              <div class="col-title"><span>New</span><span>24</span></div>
+              <div class="mock-kanban-card"><div class="name">Aryan K.</div><div class="meta">Class 6 | 85🟢</div></div>
+              <div class="mock-kanban-card"><div class="name">Priya S.</div><div class="meta">Class 8 | 78🟢</div></div>
+            </div>
+            <div class="mock-kanban-col">
+              <div class="col-title"><span>Contacted</span><span>18</span></div>
+              <div class="mock-kanban-card"><div class="name">Rohan V.</div><div class="meta">Class 5 | 62🟡</div></div>
+            </div>
+            <div class="mock-kanban-col">
+              <div class="col-title"><span>Qualified</span><span>12</span></div>
+              <div class="mock-kanban-card"><div class="name">Sneha P.</div><div class="meta">Class 7 | 92🟢</div></div>
+            </div>
+            <div class="mock-kanban-col">
+              <div class="col-title"><span>Shortlisted</span><span>8</span></div>
+            </div>
+            <div class="mock-kanban-col">
+              <div class="col-title"><span>Applied</span><span>6</span></div>
+            </div>
+            <div class="mock-kanban-col">
+              <div class="col-title"><span>Conf. Call</span><span>4</span></div>
+            </div>
+            <div class="mock-kanban-col">
+              <div class="col-title"><span>Test / Interview</span><span>3</span></div>
+            </div>
+            <div class="mock-kanban-col">
+              <div class="col-title"><span>Visit / Reg</span><span>2</span></div>
+            </div>
+            <div class="mock-kanban-col">
+              <div class="col-title"><span>Selected</span><span>3</span></div>
+            </div>
+            <div class="mock-kanban-col">
+              <div class="col-title"><span>Admission Done</span><span>25</span></div>
+            </div>
+            <div class="mock-kanban-col">
+              <div class="col-title"><span>Commission Recv.</span><span>21</span></div>
+            </div>
+            <div class="mock-kanban-col">
+              <div class="col-title"><span>Closed</span><span>19</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="api-note">
+          <span class="method put">PUT</span> /leads/:id/status &nbsp;|&nbsp; <span class="method get">GET</span> /applications
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 18: WHATSAPP PREVIEW -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">18</span> WhatsApp Preview + Send</h3>
+        <span class="role-badge">Manager</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> Pre-filled wa.me message with variables. 800-char warning, 2000-char hard limit for the message body. A Confirm Sent button creates a log entry. Templates are loaded from the <code>whatsapp_templates</code> table.
+        </div>
+        <div class="mockup">
+          <div class="mock-grid g2">
+            <div>
+              <div class="mock-card">
+                <div class="mock-card-title">📱 Template Selection</div>
+                <div class="mock-input"><span class="label">Recipient Type</span><span class="placeholder">Parent ▾</span></div>
+                <div class="mock-input"><span class="label">Template</span><span class="placeholder">Parent – School Shortlist ▾</span></div>
+                <div class="mock-input"><span class="label">Recipient Number</span><span class="placeholder">+919876543210</span></div>
+                <div class="mock-input"><span class="label">School (Optional)</span><span class="placeholder">ABC International ▾</span></div>
+              </div>
+
+              <div class="mock-card">
+                <div class="mock-card-title">📝 Message Preview</div>
+                <div style="background: #dcfce7; padding: 12px; border-radius: 8px; font-size: 11px; line-height: 1.6;">
+                  Namaste <strong>Suresh Kumar</strong> ji 🙏<br><br>
+                  <strong>Aryan Kumar</strong> (Class 6, CBSE) ke boarding school admission ke liye humne aapke liye ye schools shortlist kiye hain:<br><br>
+                  1. ABC International School – ₹4.5L<br>
+                  2. XYZ Public School – ₹4L<br>
+                  3. PQR Residential – ₹5L<br><br>
+                  Kya aap in schools ke baare me aur jaanna chahenge?<br><br>
+                  - <strong>Rahul Sharma</strong><br>
+                  BoardingEdu
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 10px; color: var(--muted);">
+                  <span>~350 characters</span>
+                  <span style="color: var(--success);">✅ Safe (under 800)</span>
+                </div>
+              </div>
+
+              <div style="text-align: right;">
+                <button class="mock-btn wa">📱 Open WhatsApp</button>
+                <button class="mock-btn success">✅ Confirm Sent</button>
+              </div>
+            </div>
+
+            <div>
+              <div class="mock-card" style="text-align: center;">
+                <div class="mock-card-title">📱 WhatsApp Preview</div>
+                <div class="mock-phone" style="padding: 8px;">
+                  <div class="mock-phone-screen" style="min-height: 320px; font-size: 11px;">
+                    <div style="background: #25D366; color: white; padding: 8px; border-radius: 8px 8px 0 0; margin: -12px -12px 12px;">
+                      <strong>Suresh Kumar</strong> +919876543210
+                    </div>
+                    <div style="background: #dcfce7; padding: 8px; border-radius: 8px; margin-bottom: 8px;">
+                      Namaste Suresh Kumar ji 🙏<br><br>
+                      Aryan Kumar (Class 6, CBSE) ke boarding school...
+                    </div>
+                    <div style="text-align: right; font-size: 9px; color: var(--muted);">10:45 AM ✓✓</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="api-note">
+          <span class="method post">POST</span> /whatsapp/generate-link &nbsp;|&nbsp; <span class="method post">POST</span> /whatsapp/log
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 19: CALL OUTCOME MODAL -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">19</span> Call Outcome Modal</h3>
+        <span class="role-badge">All Roles</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> The modal opens after a call. Outcome, direction, duration, recording link, notes. Consent checkbox for DPDP.
+        </div>
+        <div class="mockup">
+          <div class="mock-modal">
+            <div class="mock-modal-title">📞 Log Call Outcome</div>
+            <div style="background: #eff6ff; padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; font-size: 11px;">
+              <strong>Lead:</strong> Aryan Kumar | <strong>Mobile:</strong> +919876543210
+            </div>
+
+            <div class="mock-input"><span class="label">Direction <span class="req">*</span></span><span class="placeholder">Outbound ▾</span></div>
+            <div class="mock-input"><span class="label">Outcome <span class="req">*</span></span><span class="placeholder">Interested ▾</span></div>
+            <div class="mock-grid g2">
+              <div class="mock-input"><span class="label">Duration (MM:SS)</span><span class="placeholder">04:20</span></div>
+              <div class="mock-input"><span class="label">Recording Link</span><span class="placeholder">rec_ld123_01.mp3</span></div>
+            </div>
+            <div class="mock-input" style="height: 50px; align-items: flex-start;">
+              <span class="label">Notes</span>
+            </div>
+            <div style="background: #fef3c7; padding: 8px; border-radius: 6px; font-size: 11px; margin-bottom: 12px;">
+              <label><input type="checkbox" checked> ✅ Parent consent for call recording (DPDP)</label>
+            </div>
+
+            <div style="text-align: right;">
+              <button class="mock-btn outline">Skip</button>
+              <button class="mock-btn success">💾 Save Outcome</button>
+            </div>
+          </div>
+        </div>
+        <div class="api-note">
+          <span class="method post">POST</span> /calls/log
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 20: APPLICATION DETAIL -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">20</span> Application Detail Page</h3>
+        <span class="role-badge">All Roles</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> Full detail of a single application — stage, sub-stage, conference call, visit, admission timeline.
+        </div>
+        <div class="mockup">
+          <div class="mock-card">
+            <div class="mock-card-title">📄 AP001 | Aryan Kumar → ABC International School</div>
+            <div class="mock-grid g3">
+              <div style="font-size: 11px;"><strong>Lead:</strong> LD000123</div>
+              <div style="font-size: 11px;"><strong>School:</strong> SC001</div>
+              <div style="font-size: 11px;"><strong>Stage:</strong> <span class="mock-badge badge-success">Admission Done</span></div>
+            </div>
+          </div>
+
+          <div class="mock-card">
+            <div class="mock-card-title">📊 Stage Progress</div>
+            <div class="mock-flow">
+              <div class="mock-flow-step active">Applied</div>
+              <div class="mock-flow-arrow">→</div>
+              <div class="mock-flow-step active">Conf. Call</div>
+              <div class="mock-flow-arrow">→</div>
+              <div class="mock-flow-step active">Test</div>
+              <div class="mock-flow-arrow">→</div>
+              <div class="mock-flow-step active">Visit</div>
+              <div class="mock-flow-arrow">→</div>
+              <div class="mock-flow-step active">Selected</div>
+              <div class="mock-flow-arrow">→</div>
+              <div class="mock-flow-step active">Admission</div>
+            </div>
+          </div>
+
+          <div class="mock-grid g2">
+            <div class="mock-card">
+              <div class="mock-card-title">📅 Important Dates</div>
+              <table class="mock-table">
+                <tbody>
+                  <tr><td>Test Date</td><td>15 Oct 2025</td></tr>
+                  <tr><td>Visit Date</td><td>18 Oct 2025</td></tr>
+                  <tr><td>Selected Date</td><td>20 Oct 2025</td></tr>
+                  <tr><td>Admission Date</td><td>25 Oct 2025</td></tr>
+                  <tr><td>Child Drop Date</td><td>28 Oct 2025</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="mock-card">
+              <div class="mock-card-title">🔢 Numbers</div>
+              <table class="mock-table">
+                <tbody>
+                  <tr><td>Reg Number</td><td>REG-7845</td></tr>
+                  <tr><td>School App No.</td><td>ABC/2025/1042</td></tr>
+                  <tr><td>Sub-Stage</td><td><span class="mock-badge badge-success">C: Formalities Done</span></td></tr>
+                  <tr><td>Commission</td><td><span class="mock-badge badge-success">Yes ✅</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="api-note">
+          <span class="method get">GET</span> /applications/:id
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 21: LEAD SCORING CONFIG -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">21</span> Lead Scoring Config (Manager View)</h3>
+        <span class="role-badge">Manager / Admin</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> Live preview of lead scoring weights. Total must equal 100. Save button disabled until total = 100. Weights stored in the <code>lead_scoring_config</code> table.
+        </div>
+        <div class="mockup">
+          <div class="mock-card">
+            <div class="mock-card-title">🎯 Lead Scoring Weights</div>
+            <div style="background: #ecfdf5; padding: 10px; border-radius: 6px; text-align: center; margin-bottom: 12px;">
+              <div style="font-size: 24px; font-weight: 800; color: var(--success);">Total: 100 ✓</div>
+            </div>
+
+            <table class="mock-table">
+              <thead><tr><th>Criteria</th><th>Weight</th><th>Range</th></tr></thead>
+              <tbody>
+                <tr><td>💰 Budget Match</td><td><strong>25</strong></td><td>0-25</td></tr>
+                <tr><td>📞 Engagement</td><td><strong>25</strong></td><td>0-25</td></tr>
+                <tr><td>🌐 Source Quality</td><td><strong>20</strong></td><td>0-20</td></tr>
+                <tr><td>⏰ Timeline Urgency</td><td><strong>15</strong></td><td>0-15</td></tr>
+                <tr><td>📚 Class Demand</td><td><strong>15</strong></td><td>0-15</td></tr>
+              </tbody>
+            </table>
+
+            <div class="mock-note warning" style="margin-top: 12px;">
+              ⚠️ After changing weights, existing leads must be recalculated. <button class="mock-btn warning sm">🔄 Recalculate All</button>
+            </div>
+          </div>
+        </div>
+        <div class="api-note">
+          <span class="method put">PUT</span> /scoring/criteria
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- End of Part 1 Footer -->
+  <div style="text-align: center; padding: 30px; background: white; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.06);">
+    <div style="font-size: 15px; font-weight: 700; color: var(--primary); margin-bottom: 4px;">BoardingEdu (P) Ltd.</div>
+    <div style="font-size: 12px; color: var(--muted); margin-bottom: 15px;">Connecting Parents and Schools</div>
+    <div style="font-size: 20px; font-weight: 800; color: var(--primary); margin-bottom: 10px;">📄 End of Part 1 (Screens 1-21)</div>
+    <p style="color: var(--muted); font-size: 13px; margin-bottom: 15px;">
+      Part 1 covers Authentication, Jr. Counsellor, and Manager workflows.<br>
+      Part 2 continues with Lifecycle, Admin, Reports, and Profile screens.
+    </p>
+    <div class="mock-note success" style="display: inline-block; text-align: left;">
+      ✅ <strong>Part 1 – Total 21 screens:</strong><br>
+      &nbsp;&nbsp;• Authentication (6 screens: 1-6)<br>
+      &nbsp;&nbsp;• Jr. Counsellor (7 screens: 7-13)<br>
+      &nbsp;&nbsp;• Manager (8 screens: 14-21)
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BoardingEdu (P) Ltd. – Wireframe Part 2 (Screens 22-36)</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+  :root {
+    --primary: #1e3a8a; --primary-light: #3b82f6; --accent: #f59e0b;
+    --success: #10b981; --danger: #ef4444; --warning: #f97316;
+    --purple: #8b5cf6; --whatsapp: #25D366; --call: #0ea5e9;
+    --bg: #f1f5f9; --card: #ffffff; --text: #1e293b;
+    --muted: #64748b; --border: #e2e8f0; --wire: #cbd5e1;
+  }
+  body { background: var(--bg); color: var(--text); padding: 25px 15px; line-height: 1.5; }
+  .container { max-width: 1200px; margin: 0 auto; }
+
+  .page-header {
+    text-align: center; padding: 40px 25px;
+    background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+    color: white; border-radius: 16px; margin-bottom: 40px;
+    box-shadow: 0 8px 30px rgba(30,58,138,0.25);
+  }
+  .page-header h1 { font-size: 30px; margin-bottom: 10px; }
+  .page-header p { font-size: 14px; opacity: 0.9; margin-bottom: 15px; }
+  .page-header .badges { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
+  .page-header .badge {
+    background: rgba(255,255,255,0.2); padding: 6px 14px;
+    border-radius: 20px; font-size: 12px; font-weight: 600;
+  }
+
+  .category {
+    background: white; border-radius: 16px; padding: 25px;
+    margin-bottom: 35px; box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  }
+  .category-title {
+    font-size: 20px; color: var(--primary); margin-bottom: 8px;
+    display: flex; align-items: center; gap: 10px;
+    padding-bottom: 15px; border-bottom: 3px solid var(--primary-light);
+    margin-bottom: 25px;
+  }
+  .category-title .icon { font-size: 26px; }
+  .category-desc { color: var(--muted); font-size: 13px; margin-bottom: 25px; }
+
+  .screen {
+    background: #f8fafc; border: 2px solid var(--border);
+    border-radius: 12px; margin-bottom: 30px; overflow: hidden;
+  }
+  .screen-header {
+    background: linear-gradient(90deg, #1e3a8a, #3b82f6);
+    color: white; padding: 14px 20px;
+    display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 10px;
+  }
+  .screen-header h3 { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .screen-header .screen-num {
+    background: rgba(255,255,255,0.25); width: 28px; height: 28px;
+    border-radius: 50%; display: inline-flex;
+    align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+  }
+  .screen-header .role-badge {
+    background: var(--accent); padding: 4px 10px;
+    border-radius: 12px; font-size: 10px; font-weight: 700; text-transform: uppercase;
+  }
+  .screen-body { padding: 20px; }
+
+  .screen-desc {
+    background: #fef3c7; border-left: 4px solid var(--accent);
+    padding: 12px 15px; border-radius: 6px; margin-bottom: 15px;
+    font-size: 12.5px; color: #78350f;
+  }
+  .screen-desc strong { color: #92400e; }
+
+  .mockup {
+    background: #f1f5f9; padding: 15px;
+    border-radius: 10px; border: 1px dashed var(--wire);
+    margin-bottom: 15px; min-height: 200px;
+  }
+
+  .mock-nav {
+    background: white; padding: 10px 15px; border-radius: 8px;
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px; border: 1px solid var(--border);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .mock-logo { font-weight: 800; color: var(--primary); font-size: 13px; display: flex; align-items: center; gap: 6px; }
+  .mock-nav-items { display: flex; gap: 15px; font-size: 11px; color: var(--muted); }
+  .mock-nav-items span { cursor: pointer; padding: 3px 8px; border-radius: 4px; }
+  .mock-nav-items span.active { background: #dbeafe; color: var(--primary); font-weight: 600; }
+  .mock-user { display: flex; align-items: center; gap: 8px; font-size: 11px; }
+  .mock-avatar {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #1e40af);
+    color: white; display: flex; align-items: center;
+    justify-content: center; font-size: 10px; font-weight: 700;
+  }
+
+  .mock-card {
+    background: white; border-radius: 8px; padding: 12px;
+    border: 1px solid var(--border); margin-bottom: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .mock-card-title {
+    font-size: 12px; font-weight: 700; color: var(--primary);
+    margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
+  }
+
+  .mock-grid { display: grid; gap: 10px; margin-bottom: 10px; }
+  .mock-grid.g2 { grid-template-columns: 1fr 1fr; }
+  .mock-grid.g3 { grid-template-columns: 1fr 1fr 1fr; }
+  .mock-grid.g4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  .mock-grid.g2-1 { grid-template-columns: 2fr 1fr; }
+  .mock-grid.g1-2 { grid-template-columns: 1fr 2fr; }
+
+  .mock-stat {
+    background: white; padding: 12px; border-radius: 8px;
+    border-left: 4px solid var(--primary-light);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .mock-stat .val { font-size: 20px; font-weight: 800; color: var(--primary); }
+  .mock-stat .lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; margin-top: 3px; letter-spacing: 0.5px; }
+
+  .mock-input {
+    background: white; border: 1px solid var(--border);
+    padding: 8px 10px; border-radius: 6px; font-size: 12px;
+    color: var(--muted); margin-bottom: 8px; display: flex;
+    align-items: center; justify-content: space-between;
+  }
+  .mock-input .label { color: var(--text); font-weight: 500; font-size: 11px; }
+  .mock-input .placeholder { color: #94a3b8; font-style: italic; }
+  .mock-input .req { color: var(--danger); font-weight: 700; margin-left: 3px; }
+
+  .mock-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 7px 14px; border-radius: 6px; font-size: 11px;
+    font-weight: 600; color: white; cursor: pointer;
+    border: none; margin-right: 6px; margin-bottom: 6px;
+  }
+  .mock-btn.primary { background: var(--primary-light); }
+  .mock-btn.success { background: var(--success); }
+  .mock-btn.danger { background: var(--danger); }
+  .mock-btn.warning { background: var(--warning); }
+  .mock-btn.purple { background: var(--purple); }
+  .mock-btn.outline { background: white; color: var(--primary); border: 1px solid var(--primary-light); }
+  .mock-btn.wa { background: var(--whatsapp); }
+  .mock-btn.call { background: var(--call); }
+  .mock-btn.sm { padding: 5px 10px; font-size: 10px; }
+
+  .mock-table {
+    width: 100%; border-collapse: collapse; font-size: 11px;
+    background: white; border-radius: 6px; overflow: hidden;
+  }
+  .mock-table th {
+    background: #f1f5f9; padding: 7px 8px; text-align: left;
+    font-weight: 700; color: var(--primary); font-size: 10px;
+    text-transform: uppercase; border-bottom: 1px solid var(--border);
+  }
+  .mock-table td {
+    padding: 7px 8px; border-bottom: 1px solid #f1f5f9; color: var(--text);
+  }
+  .mock-table tr:last-child td { border-bottom: none; }
+
+  .mock-badge {
+    display: inline-block; padding: 2px 7px; border-radius: 10px;
+    font-size: 9px; font-weight: 700; color: white; text-transform: uppercase;
+  }
+  .badge-new { background: #3b82f6; }
+  .badge-success { background: var(--success); }
+  .badge-warning { background: var(--warning); }
+  .badge-danger { background: var(--danger); }
+  .badge-purple { background: var(--purple); }
+  .badge-muted { background: #94a3b8; }
+
+  .mock-tabs {
+    display: flex; gap: 3px; border-bottom: 2px solid var(--border);
+    margin-bottom: 12px; overflow-x: auto;
+  }
+  .mock-tab {
+    padding: 8px 14px; font-size: 11px; font-weight: 600;
+    color: var(--muted); cursor: pointer; white-space: nowrap;
+    border-bottom: 2px solid transparent; margin-bottom: -2px;
+  }
+  .mock-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+  .mock-note {
+    background: #eff6ff; border-left: 4px solid var(--primary-light);
+    padding: 10px 12px; border-radius: 6px; font-size: 11.5px;
+    color: #1e40af; margin-top: 10px;
+  }
+  .mock-note.warning { background: #fef3c7; border-color: var(--accent); color: #78350f; }
+  .mock-note.danger { background: #fee2e2; border-color: var(--danger); color: #991b1b; }
+  .mock-note.success { background: #ecfdf5; border-color: var(--success); color: #065f46; }
+  .mock-note.purple { background: #f3e8ff; border-color: var(--purple); color: #6d28d9; }
+
+  .mock-modal {
+    background: white; border-radius: 12px; padding: 18px;
+    border: 2px solid var(--primary-light); max-width: 420px;
+    margin: 10px auto; box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+  }
+  .mock-modal-title {
+    font-size: 14px; font-weight: 700; color: var(--primary);
+    margin-bottom: 12px; text-align: center;
+  }
+
+  .mock-phone {
+    max-width: 320px; margin: 0 auto; background: #1e293b;
+    border-radius: 24px; padding: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  }
+  .mock-phone-screen {
+    background: white; border-radius: 16px; padding: 12px;
+    min-height: 400px; overflow-y: auto;
+  }
+
+  .api-note {
+    background: #1e293b; color: #86efac; padding: 10px 14px;
+    border-radius: 6px; font-family: 'Courier New', monospace;
+    font-size: 11px; margin-top: 10px;
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  }
+  .api-note .method {
+    padding: 2px 8px; border-radius: 4px; font-weight: 700;
+    color: white; font-size: 10px;
+  }
+  .api-note .method.get { background: var(--success); }
+  .api-note .method.post { background: var(--primary-light); }
+  .api-note .method.put { background: var(--accent); }
+  .api-note .method.delete { background: var(--danger); }
+
+  .mock-flow {
+    display: flex; gap: 8px; align-items: center;
+    justify-content: center; flex-wrap: wrap; margin: 12px 0; font-size: 11px;
+  }
+  .mock-flow-step {
+    background: white; padding: 8px 12px; border-radius: 6px;
+    border: 1px solid var(--border); text-align: center; min-width: 90px;
+  }
+  .mock-flow-step.active {
+    background: var(--primary-light); color: white;
+    border-color: var(--primary-light); font-weight: 600;
+  }
+  .mock-flow-step.danger {
+    background: var(--danger); color: white; border-color: var(--danger);
+  }
+  .mock-flow-arrow { color: var(--muted); font-size: 14px; }
+
+  .progress-bar {
+    background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden;
+    margin: 6px 0;
+  }
+  .progress-fill {
+    height: 100%; border-radius: 4px;
+  }
+
+  @media (max-width: 768px) {
+    .mock-grid.g2, .mock-grid.g3, .mock-grid.g4 { grid-template-columns: 1fr 1fr; }
+    .mock-grid.g2-1, .mock-grid.g1-2 { grid-template-columns: 1fr; }
+    .page-header h1 { font-size: 20px; }
+    .screen-body { padding: 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="page-header">
+    <h1>🎨 BoardingEdu (P) Ltd. – Wireframe Part 2</h1>
+    <p>Screens 22-36 | Lifecycle + Admin + Reports + Profile &amp; PWA</p>
+    <div class="badges">
+      <span class="badge">15 Screens</span>
+      <span class="badge">Lifecycle + Admin</span>
+      <span class="badge">Reports + PWA</span>
+      <span class="badge">Consistent with Part 1</span>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- CATEGORY 4: SHORTLIST & LIFECYCLE (22-25) -->
+  <!-- ============================================ -->
+  <div class="category">
+    <div class="category-title">
+      <span class="icon">⭐</span> Category 4: Shortlist &amp; Lifecycle (Screens 22-25)
+    </div>
+    <p class="category-desc">School shortlist, reopened / expired / suspended lead management.</p>
+
+    <!-- SCREEN 22: SHORTLIST MANAGEMENT -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">22</span> School Shortlist Management</h3>
+        <span class="role-badge">Manager</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> Manager shortlists schools for a lead. Add / remove / reorder. Per-school note. WhatsApp send button. Data stored in the <code>shortlists</code> table with unique <code>(lead_id, school_id)</code> constraint.
+        </div>
+        <div class="mockup">
+          <div class="mock-card">
+            <div class="mock-card-title">⭐ Shortlist for LD000123 – Aryan Kumar</div>
+
+            <div class="mock-grid g2-1">
+              <div>
+                <div style="font-size: 11px; font-weight: 700; color: var(--primary); margin-bottom: 8px;">
+                  Selected Schools (3)
+                </div>
+                <div style="background: white; padding: 10px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 8px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                      <div style="font-weight: 700; font-size: 12px;">1. ABC International School</div>
+                      <div style="font-size: 10px; color: var(--muted);">CBSE | Delhi | ₹4.5L | Match: 90%</div>
+                    </div>
+                    <div>
+                      <button class="mock-btn outline sm">✏️</button>
+                      <button class="mock-btn danger sm">❌</button>
+                    </div>
+                  </div>
+                </div>
+                <div style="background: white; padding: 10px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 8px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                      <div style="font-weight: 700; font-size: 12px;">2. XYZ Public School</div>
+                      <div style="font-size: 10px; color: var(--muted);">CBSE | Mumbai | ₹4L | Match: 85%</div>
+                    </div>
+                    <div>
+                      <button class="mock-btn outline sm">✏️</button>
+                      <button class="mock-btn danger sm">❌</button>
+                    </div>
+                  </div>
+                </div>
+                <div style="background: white; padding: 10px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 8px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                      <div style="font-weight: 700; font-size: 12px;">3. PQR Residential</div>
+                      <div style="font-size: 10px; color: var(--muted);">CBSE | Bangalore | ₹5L | Match: 72%</div>
+                    </div>
+                    <div>
+                      <button class="mock-btn outline sm">✏️</button>
+                      <button class="mock-btn danger sm">❌</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div class="mock-card">
+                  <div class="mock-card-title">➕ Add School</div>
+                  <div class="mock-input"><span class="label">Search School</span><span class="placeholder">Type name...</span></div>
+                  <div class="mock-input"><span class="label">Or Select</span><span class="placeholder">Choose from list ▾</span></div>
+                  <button class="mock-btn primary sm">➕ Add</button>
+                </div>
+
+                <div style="background: #dcfce7; padding: 10px; border-radius: 8px; margin-top: 10px;">
+                  <div style="font-size: 11px; font-weight: 700; color: #166534; margin-bottom: 6px;">📱 Send to Parent</div>
+                  <button class="mock-btn wa sm" style="width: 100%;">📱 WhatsApp Shortlist</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="mock-note">
+              📌 Stored in the <code>shortlists</code> table. Per-school note is editable. The Remove button performs a soft delete.
+            </div>
+          </div>
+        </div>
+        <div class="api-note">
+          <span class="method get">GET</span> /leads/:id/shortlist &nbsp;|&nbsp; <span class="method post">POST</span> /leads/:id/shortlist &nbsp;|&nbsp; <span class="method delete">DELETE</span> /leads/:id/shortlist/:school_id
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 23: REOPENED LEAD NOTIFICATION -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">23</span> Reopened Lead Notification</h3>
+        <span class="role-badge">Manager + Jr.</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> When an expired or suspended lead is reopened, a notification is sent. The Manager manually assigns the lead. History stored in the <code>reopened_lead_history</code> table.
+        </div>
+        <div class="mockup">
+          <div class="mock-modal" style="border-color: var(--success);">
+            <div class="mock-modal-title" style="color: var(--success);">🎉 Lead Reopened!</div>
+
+            <div style="background: #ecfdf5; padding: 12px; border-radius: 8px; margin-bottom: 12px; font-size: 11.5px;">
+              <div><strong>Lead ID:</strong> LD000100</div>
+              <div><strong>Student:</strong> Aryan Kumar | Class 6</div>
+              <div><strong>Previous Status:</strong> <span class="mock-badge badge-muted">expired</span></div>
+              <div><strong>New Status:</strong> <span class="mock-badge badge-success">reopened</span></div>
+              <div><strong>Reopened At:</strong> 15 Oct 2025, 3:45 PM</div>
+              <div><strong>Reason:</strong> New lead auto-matched → parent interested</div>
+              <div><strong>Recalculated Score:</strong> <span class="mock-badge badge-success">72 🟢</span></div>
+            </div>
+
+            <div class="mock-input">
+              <span class="label">Assign To <span class="req">*</span></span>
+              <span class="placeholder">Rahul Sharma ▾</span>
+            </div>
+
+            <div class="mock-note success">
+              ✅ Auto-set: Follow-up +3 days | Old remarks preserved | Notification sent to Manager + Jr. Counsellor
+            </div>
+
+            <div style="text-align: right; margin-top: 12px;">
+              <button class="mock-btn outline">Dismiss</button>
+              <button class="mock-btn success">✅ Confirm Assignment</button>
+            </div>
+          </div>
+        </div>
+        <div class="api-note">
+          <span class="method post">POST</span> /leads/:id/reopen
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 24: EXPIRED LEADS LIST -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">24</span> Expired Leads List</h3>
+        <span class="role-badge">Manager / Admin</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> Leads expired through the 90-90-90-360 cycle. Reopen button. Filter by expiry reason.
+        </div>
+        <div class="mockup">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+            <div class="mock-input" style="min-width: 200px; margin: 0;"><span class="label">🔍 Search</span></div>
+            <div style="display: flex; gap: 6px;">
+              <button class="mock-btn outline sm">📅 Date Range</button>
+              <button class="mock-btn outline sm">📊 Reason</button>
+              <button class="mock-btn outline sm">📥 Export</button>
+            </div>
+          </div>
+
+          <table class="mock-table">
+            <thead>
+              <tr><th>Lead ID</th><th>Student</th><th>Class</th><th>Expired At</th><th>Days Ago</th><th>Reason</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>LD000100</td><td>Aryan Kumar</td><td>6</td><td>15 Jul 2025</td><td>92</td>
+                <td>90-day no activity</td>
+                <td><button class="mock-btn success sm">🔄 Reopen</button><button class="mock-btn outline sm">👁️</button></td>
+              </tr>
+              <tr>
+                <td>LD000089</td><td>Priya Sharma</td><td>8</td><td>10 Jul 2025</td><td>97</td>
+                <td>Parent not interested</td>
+                <td><button class="mock-btn success sm">🔄 Reopen</button><button class="mock-btn outline sm">👁️</button></td>
+              </tr>
+              <tr>
+                <td>LD000072</td><td>Rohan Verma</td><td>5</td><td>05 Jul 2025</td><td>102</td>
+                <td>School rejected</td>
+                <td><button class="mock-btn success sm">🔄 Reopen</button><button class="mock-btn outline sm">👁️</button></td>
+              </tr>
+              <tr style="background: #fef3c7;">
+                <td>LD000045</td><td>Karan Mehta</td><td>4</td><td>20 Jan 2025</td><td>268</td>
+                <td>Force Expire (360 days)</td>
+                <td><button class="mock-btn outline sm">🔒 Locked</button></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="mock-note warning" style="margin-top: 12px;">
+            ⚠️ <strong>Force Expired leads</strong> (360+ days, <code>force_expired = true</code>) cannot be reopened. A new lead must be created instead.
+          </div>
+        </div>
+        <div class="api-note">
+          <span class="method get">GET</span> /leads/expired
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 25: SUSPENDED LEADS LIST -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">25</span> Suspended Leads List</h3>
+        <span class="role-badge">Manager / Admin</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> Parent-requested suspended leads. A reminder is sent when the suspend period ends.
+        </div>
+        <div class="mockup">
+          <table class="mock-table">
+            <thead>
+              <tr><th>Lead ID</th><th>Student</th><th>Class</th><th>Suspended At</th><th>Period</th><th>Resume On</th><th>Days Left</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>LD000128</td><td>Neha Singh</td><td>9</td><td>15 Jan 2026</td><td>6 months</td><td>15 Jul 2026</td>
+                <td><span class="mock-badge badge-warning">180 days</span></td>
+                <td><button class="mock-btn success sm">🔄 Resume Now</button><button class="mock-btn outline sm">✏️</button></td>
+              </tr>
+              <tr>
+                <td>LD000115</td><td>Sahil Khan</td><td>7</td><td>20 Dec 2025</td><td>3 months</td><td>20 Mar 2026</td>
+                <td><span class="mock-badge badge-danger">15 days</span></td>
+                <td><button class="mock-btn success sm">🔄 Resume Now</button><button class="mock-btn outline sm">✏️</button></td>
+              </tr>
+              <tr>
+                <td>LD000098</td><td>Ananya Roy</td><td>10</td><td>01 Dec 2025</td><td>1 month</td><td>01 Jan 2026</td>
+                <td><span class="mock-badge badge-muted">Expired</span></td>
+                <td><button class="mock-btn success sm">🔄 Resume</button><button class="mock-btn outline sm">🗑️</button></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="mock-note" style="margin-top: 12px;">
+            ℹ️ When the suspend period ends, an auto-reminder is sent to both the Manager and the Jr. Counsellor.
+          </div>
+        </div>
+        <div class="api-note">
+          <span class="method get">GET</span> /leads/suspended
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============================================ -->
+  <!-- CATEGORY 5: ADMIN SCREENS (26-33) -->
+  <!-- ============================================ -->
+  <div class="category">
+    <div class="category-title">
+      <span class="icon">👑</span> Category 5: Admin Screens (Screens 26-33)
+    </div>
+    <p class="category-desc">Full admin control – dashboard, users, schools, commission, reversal, audit, bulk import, system settings.</p>
+
+    <!-- SCREEN 26: ADMIN DASHBOARD -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">26</span> Admin Dashboard (9 Sections)</h3>
+        <span class="role-badge">Super Admin</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> Complete admin control panel – revenue overview, team summary, quick actions, 9 sections.
+        </div>
+        <div class="mockup">
+          <div class="mock-nav">
+            <div class="mock-logo">🎓 BoardingEdu CRM – Admin</div>
+            <div class="mock-nav-items">
+              <span class="active">Dashboard</span>
+              <span>Users</span>
+              <span>Schools</span>
+              <span>Commission</span>
+              <span>Reports</span>
+              <span>Settings</span>
+            </div>
+            <div class="mock-user">
+              <div class="mock-avatar" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">SA</div>
+              <span>Super Admin</span>
+            </div>
+          </div>
+
+          <div class="mock-grid g4">
+            <div class="mock-stat" style="border-left-color: var(--success);">
+              <div class="val">₹45L</div>
+              <div class="lbl">Yearly Revenue</div>
+            </div>
+            <div class="mock-stat" style="border-left-color: var(--primary-light);">
+              <div class="val">380</div>
+              <div class="lbl">Admissions YTD</div>
+            </div>
+            <div class="mock-stat" style="border-left-color: var(--accent);">
+              <div class="val">₹5.9L</div>
+              <div class="lbl">Pending Payments</div>
+            </div>
+            <div class="mock-stat" style="border-left-color: var(--purple);">
+              <div class="val">₹12L</div>
+              <div class="lbl">Net Profit YTD</div>
+            </div>
+          </div>
+
+          <div class="mock-grid g3" style="margin-top: 15px;">
+            <div class="mock-card">
+              <div class="mock-card-title">👥 Team Summary</div>
+              <div style="font-size: 11px;">
+                <div>Jr. Counsellors: <strong>5 active</strong></div>
+                <div>Managers: <strong>2 active</strong></div>
+                <div>Total Leads: <strong>3,420</strong></div>
+                <div>Conversion: <strong>5.2%</strong></div>
+              </div>
+            </div>
+            <div class="mock-card">
+              <div class="mock-card-title">🏫 School Stats</div>
+              <div style="font-size: 11px;">
+                <div>Total Schools: <strong>500</strong></div>
+                <div>Active: <strong>487</strong></div>
+                <div>Top School: <strong>ABC International</strong></div>
+                <div>Total Partners: <strong>12 states</strong></div>
+              </div>
+            </div>
+            <div class="mock-card">
+              <div class="mock-card-title">⚡ Quick Actions</div>
+              <button class="mock-btn primary sm">➕ Add User</button>
+              <button class="mock-btn primary sm">🏫 Add School</button>
+              <button class="mock-btn outline sm">📊 View Reports</button>
+              <button class="mock-btn outline sm">⚙️ Settings</button>
+            </div>
+          </div>
+
+          <div class="mock-card" style="margin-top: 15px;">
+            <div class="mock-card-title">📈 Revenue Trend (Last 6 Months)</div>
+            <div style="display: flex; align-items: flex-end; gap: 10px; height: 100px; padding: 10px; background: #f8fafc; border-radius: 6px;">
+              <div style="flex: 1; background: linear-gradient(to top, #3b82f6, #60a5fa); height: 60%; border-radius: 4px 4px 0 0; text-align: center; color: white; font-size: 9px; padding-top: 4px;">₹6.3L</div>
+              <div style="flex: 1; background: linear-gradient(to top, #3b82f6, #60a5fa); height: 75%; border-radius: 4px 4px 0 0; text-align: center; color: white; font-size: 9px; padding-top: 4px;">₹7.8L</div>
+              <div style="flex: 1; background: linear-gradient(to top, #3b82f6, #60a5fa); height: 55%; border-radius: 4px 4px 0 0; text-align: center; color: white; font-size: 9px; padding-top: 4px;">₹5.7L</div>
+              <div style="flex: 1; background: linear-gradient(to top, #3b82f6, #60a5fa); height: 90%; border-radius: 4px 4px 0 0; text-align: center; color: white; font-size: 9px; padding-top: 4px;">₹9.4L</div>
+              <div style="flex: 1; background: linear-gradient(to top, #3b82f6, #60a5fa); height: 80%; border-radius: 4px 4px 0 0; text-align: center; color: white; font-size: 9px; padding-top: 4px;">₹8.2L</div>
+              <div style="flex: 1; background: linear-gradient(to top, #10b981, #34d399); height: 100%; border-radius: 4px 4px 0 0; text-align: center; color: white; font-size: 9px; padding-top: 4px;">₹10.5L</div>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 5px; font-size: 9px; color: var(--muted); text-align: center;">
+              <div style="flex: 1;">May</div><div style="flex: 1;">Jun</div><div style="flex: 1;">Jul</div>
+              <div style="flex: 1;">Aug</div><div style="flex: 1;">Sep</div><div style="flex: 1;">Oct</div>
+            </div>
+          </div>
+        </div>
+        <div class="api-note">
+          <span class="method get">GET</span> /dashboard/admin
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 27: USER MANAGEMENT -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">27</span> User Management (Add / Edit / Suspend)</h3>
+        <span class="role-badge">Super Admin</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> Add / edit / delete / suspend users. Role change forces logout. Bank details are encrypted at rest.
+        </div>
+        <div class="mockup">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+            <div class="mock-input" style="min-width: 250px; margin: 0;"><span class="label">🔍 Search by name, email, role</span></div>
+            <button class="mock-btn primary sm">➕ Add New User</button>
+          </div>
+
+          <table class="mock-table">
+            <thead>
+              <tr><th>User ID</th><th>Name</th><th>Email</th><th>Role</th><th>Manager</th><th>Status</th><th>Last Login</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>U001</td><td>Rahul Sharma</td><td>rahul@boardingedu.com</td>
+                <td><span class="mock-badge badge-new">Jr. Counsellor</span></td>
+                <td>RM</td>
+                <td><span class="mock-badge badge-success">Active</span></td>
+                <td>14 Oct, 09:15</td>
+                <td><button class="mock-btn outline sm">✏️</button><button class="mock-btn danger sm">⏸️</button></td>
+              </tr>
+              <tr>
+                <td>U002</td><td>Priya Chaudhary</td><td>priya@boardingedu.com</td>
+                <td><span class="mock-badge badge-new">Jr. Counsellor</span></td>
+                <td>RM</td>
+                <td><span class="mock-badge badge-success">Active</span></td>
+                <td>14 Oct, 08:45</td>
+                <td><button class="mock-btn outline sm">✏️</button><button class="mock-btn danger sm">⏸️</button></td>
+              </tr>
+              <tr>
+                <td>U010</td><td>RM (Sr. Manager)</td><td>rm@boardingedu.com</td>
+                <td><span class="mock-badge badge-warning">Manager</span></td>
+                <td>—</td>
+                <td><span class="mock-badge badge-success">Active</span></td>
+                <td>14 Oct, 10:30</td>
+                <td><button class="mock-btn outline sm">✏️</button><button class="mock-btn danger sm">⏸️</button></td>
+              </tr>
+              <tr style="background: #f1f5f9;">
+                <td>U015</td><td>Vikram Singh</td><td>vikram@boardingedu.com</td>
+                <td><span class="mock-badge badge-new">Jr. Counsellor</span></td>
+                <td>RM</td>
+                <td><span class="mock-badge badge-muted">Suspended</span></td>
+                <td>20 Sep, 17:00</td>
+                <td><button class="mock-btn success sm">▶️</button><button class="mock-btn outline sm">👁️</button></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="mock-note warning" style="margin-top: 12px;">
+            ⚠️ <strong>Role change</strong> → all active sessions are force-logged out. <strong>Suspend</strong> → data preserved, login blocked.
+          </div>
+        </div>
+        <div class="api-note">
+          <span class="method get">GET</span> /users &nbsp;|&nbsp; <span class="method post">POST</span> /users &nbsp;|&nbsp; <span class="method put">PUT</span> /users/:id/role
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 28: SCHOOL MASTER -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">28</span> School Master (500 Schools)</h3>
+        <span class="role-badge">Super Admin</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> Master database of 500 schools. Add / edit / delete. Bulk import + export. The <strong>Type</strong> column uses the <code>SchoolGenderType</code> enum (boys / girls / co_ed).
+        </div>
+        <div class="mockup">
+          <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+            <button class="mock-btn primary sm">➕ Add School</button>
+            <button class="mock-btn outline sm">📤 Bulk Import</button>
+            <button class="mock-btn outline sm">📥 Export CSV</button>
+          </div>
+
+          <div class="mock-input"><span class="label">🔍 Search School</span><span class="placeholder">Type name, city, state...</span></div>
+
+          <table class="mock-table">
+            <thead>
+              <tr><th>ID</th><th>Name</th><th>Board</th><th>Type</th><th>State</th><th>Rank</th><th>Fees</th><th>Commission</th><th>Status</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>SC001</td><td>ABC International</td><td>CBSE</td><td>boys</td><td>Delhi</td><td>12</td><td>₹4-5L</td><td>₹25,000</td><td><span class="mock-badge badge-success">Active</span></td><td><button class="mock-btn outline sm">✏️</button></td></tr>
+              <tr><td>SC002</td><td>XYZ Public School</td><td>ICSE</td><td>co_ed</td><td>Maharashtra</td><td>28</td><td>₹3.5-4.5L</td><td>₹30,000</td><td><span class="mock-badge badge-success">Active</span></td><td><button class="mock-btn outline sm">✏️</button></td></tr>
+              <tr><td>SC003</td><td>PQR Girls Academy</td><td>IB</td><td>girls</td><td>Karnataka</td><td>5</td><td>₹6-8L</td><td>₹40,000</td><td><span class="mock-badge badge-success">Active</span></td><td><button class="mock-btn outline sm">✏️</button></td></tr>
+              <tr><td>SC004</td><td>LMN Residential</td><td>CBSE</td><td>co_ed</td><td>Rajasthan</td><td>65</td><td>₹2-3L</td><td>₹15,000</td><td><span class="mock-badge badge-warning">Inactive</span></td><td><button class="mock-btn outline sm">✏️</button></td></tr>
+            </tbody>
+          </table>
+
+          <div class="mock-note" style="margin-top: 12px;">
+            ℹ️ Ranking scale is defined from 1 to 500. Soft delete via <code>deleted_at</code>. Bulk import accepts <code>.xlsx</code> and <code>.csv</code> only (max 10 MB).
+          </div>
+        </div>
+        <div class="api-note">
+          <span class="method get">GET</span> /schools &nbsp;|&nbsp; <span class="method post">POST</span> /schools
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 29: COMMISSION LEDGER -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">29</span> Commission Ledger</h3>
+        <span class="role-badge">Super Admin</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> All commission entries. Month / year filter. Status tracking (Pending → Received → Paid). Reversal column.
+        </div>
+        <div class="mockup">
+          <div class="mock-grid g4">
+            <div class="mock-stat" style="border-left-color: var(--primary-light);">
+              <div class="val">₹24L</div>
+              <div class="lbl">Total Accrued</div>
+            </div>
+            <div class="mock-stat" style="border-left-color: var(--success);">
+              <div class="val">₹18.1L</div>
+              <div class="lbl">Received</div>
+            </div>
+            <div class="mock-stat" style="border-left-color: var(--accent);">
+              <div class="val">₹5.9L</div>
+              <div class="lbl">Pending</div>
+            </div>
+            <div class="mock-stat" style="border-left-color: var(--danger);">
+              <div class="val">₹25K</div>
+              <div class="lbl">Reversed</div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 8px; margin: 12px 0; flex-wrap: wrap;">
+            <div class="mock-input" style="margin: 0;"><span class="label">📅 From</span></div>
+            <div class="mock-input" style="margin: 0;"><span class="label">📅 To</span></div>
+            <div class="mock-input" style="margin: 0;"><span class="label">School</span><span class="placeholder">All ▾</span></div>
+            <div class="mock-input" style="margin: 0;"><span class="label">Status</span><span class="placeholder">All ▾</span></div>
+            <button class="mock-btn primary sm">🔍 Apply</button>
+            <button class="mock-btn outline sm">📥 Export</button>
+          </div>
+
+          <table class="mock-table">
+            <thead>
+              <tr><th>Com. ID</th><th>Lead</th><th>School</th><th>Company ₹</th><th>Jr ₹</th><th>Sr ₹</th><th>Net Profit</th><th>Status</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>CM001</td><td>LD000123</td><td>ABC Intl</td>
+                <td>₹25,000</td><td>₹3,000</td><td>₹5,000</td><td>₹17,000</td>
+                <td><span class="mock-badge badge-success">Received</span></td>
+                <td><button class="mock-btn success sm">💰 Mark Paid</button></td>
+              </tr>
+              <tr>
+                <td>CM002</td><td>LD000124</td><td>XYZ Public</td>
+                <td>₹30,000</td><td>₹4,000</td><td>₹6,000</td><td>₹20,000</td>
+                <td><span class="mock-badge badge-warning">Pending</span></td>
+                <td><button class="mock-btn primary sm">✅ Mark Received</button></td>
+              </tr>
+              <tr>
+                <td>CM003</td><td>LD000126</td><td>PQR Girls</td>
+                <td>₹40,000</td><td>₹5,000</td><td>₹7,000</td><td>₹28,000</td>
+                <td><span class="mock-badge badge-new">Paid Out</span></td>
+                <td><button class="mock-btn outline sm">👁️</button></td>
+              </tr>
+              <tr style="background: #fee2e2;">
+                <td>CM004</td><td>LD000127</td><td>ABC Intl</td>
+                <td style="text-decoration: line-through;">₹25,000</td><td>₹0</td><td>₹0</td><td>₹0</td>
+                <td><span class="mock-badge badge-danger">Reversed ↩️</span></td>
+                <td><button class="mock-btn outline sm">👁️</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="api-note">
+          <span class="method get">GET</span> /commission/ledger &nbsp;|&nbsp; <span class="method post">POST</span> /commission/:id/receive
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 30: COMMISSION REVERSAL (FNF) -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">30</span> Commission Reversal (FNF Handling)</h3>
+        <span class="role-badge">Manager / Admin</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> Commission is reversed when an admission is cancelled. The FNF 90-day rule applies. An adjustment entry is created and linked to the original via <code>parent_commission_id</code>.
+        </div>
+        <div class="mockup">
+          <div class="mock-modal" style="max-width: 500px; border-color: var(--danger);">
+            <div class="mock-modal-title" style="color: var(--danger);">↩️ Reverse Commission CM004</div>
+
+            <div style="background: #fee2e2; padding: 12px; border-radius: 8px; margin-bottom: 12px; font-size: 11.5px;">
+              <div><strong>Lead:</strong> LD000127 (Karan Mehta)</div>
+              <div><strong>School:</strong> ABC International</div>
+              <div><strong>Original Amount:</strong> ₹25,000</div>
+              <div><strong>Status:</strong> <span class="mock-badge badge-success">Paid Out</span> (already paid to staff)</div>
+            </div>
+
+            <div class="mock-input">
+              <span class="label">Reversal Reason <span class="req">*</span></span>
+              <span class="placeholder">Admission cancelled ▾</span>
+            </div>
+            <div class="mock-input" style="height: 50px; align-items: flex-start;">
+              <span class="label">Notes</span>
+            </div>
+
+            <div style="background: #fef3c7; padding: 12px; border-radius: 8px; font-size: 11.5px; margin-bottom: 12px;">
+              <div style="font-weight: 700; color: #92400e; margin-bottom: 6px;">⚠️ FNF Handling:</div>
+              <div>The user is <strong>Active</strong> (not in the FNF period)</div>
+              <div>→ Adjustment entry created: <strong>deduct ₹8,000 from the next incentive</strong></div>
+            </div>
+
+            <div class="mock-note danger">
+              <strong>What will happen:</strong><br>
+              • CM004 → status "Reversed", amounts set to ₹0<br>
+              • CM005 (Adjustment) → new row with a ₹8,000 deduction, <code>parent_commission_id = CM004</code><br>
+              • Audit log entry with a special flag<br>
+              • Weekly report reversal count incremented by 1
+            </div>
+
+            <div style="text-align: right; margin-top: 12px;">
+              <button class="mock-btn outline">Cancel</button>
+              <button class="mock-btn danger">↩️ Confirm Reversal</button>
+            </div>
+          </div>
+        </div>
+        <div class="api-note">
+          <span class="method post">POST</span> /commission/:id/reverse
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 31: AUDIT LOG VIEWER -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">31</span> Audit Log Viewer</h3>
+        <span class="role-badge">Super Admin</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> Complete audit trail – who, when, and what changed. Month-partitioned. Commission reversals carry a special flag.
+        </div>
+        <div class="mockup">
+          <div style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
+            <div class="mock-input" style="margin: 0;"><span class="label">User</span><span class="placeholder">All ▾</span></div>
+            <div class="mock-input" style="margin: 0;"><span class="label">Module</span><span class="placeholder">All ▾</span></div>
+            <div class="mock-input" style="margin: 0;"><span class="label">Date</span><span class="placeholder">Oct 2025 ▾</span></div>
+            <button class="mock-btn primary sm">🔍 Filter</button>
+            <button class="mock-btn outline sm">📥 Export</button>
+          </div>
+
+          <table class="mock-table">
+            <thead>
+              <tr><th>Timestamp</th><th>User</th><th>Action</th><th>Module</th><th>Details</th><th>Flag</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>14 Oct 10:45</td><td>Rahul S.</td>
+                <td><span class="mock-badge badge-new">CREATE</span></td><td>Leads</td>
+                <td>Created LD000123 (Aryan Kumar)</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td>14 Oct 11:20</td><td>RM</td>
+                <td><span class="mock-badge badge-warning">UPDATE</span></td><td>Leads</td>
+                <td>LD000123 status: new → contacted</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td>13 Oct 15:30</td><td>Priya C.</td>
+                <td><span class="mock-badge badge-danger">DELETE</span></td><td>Leads</td>
+                <td>LD000115 soft deleted</td>
+                <td>—</td>
+              </tr>
+              <tr style="background: #fee2e2;">
+                <td>02 Nov 16:00</td><td>Admin</td>
+                <td><span class="mock-badge badge-danger">REVERSE</span></td><td>Commission</td>
+                <td>CM004 reversed – "Admission cancelled"</td>
+                <td>🚩 <strong>Special</strong></td>
+              </tr>
+              <tr>
+                <td>01 Nov 09:00</td><td>System</td>
+                <td><span class="mock-badge badge-purple">AUTO</span></td><td>Leads</td>
+                <td>LD000045 force expired (360 days)</td>
+                <td>—</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="mock-note">
+            📌 Retention: 90 days queryable online, then archived to S3 for 12 months. Auto-delete after 15 months total.
+          </div>
+        </div>
+        <div class="api-note">
+          <span class="method get">GET</span> /audit-log &nbsp;|&nbsp; <span class="method get">GET</span> /audit-log/:module
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 32: BULK IMPORT PREVIEW -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">32</span> Bulk Import Preview (Strict + Lenient)</h3>
+        <span class="role-badge">Super Admin</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> Excel upload → preview → confirm. Strict mode (all-or-nothing) or Lenient mode (valid rows import). Supports Schools, Leads, and WhatsApp Templates bulk import.
+        </div>
+        <div class="mockup">
+          <div class="mock-flow">
+            <div class="mock-flow-step active">1. Upload</div>
+            <div class="mock-flow-arrow">→</div>
+            <div class="mock-flow-step active">2. Preview</div>
+            <div class="mock-flow-arrow">→</div>
+            <div class="mock-flow-step">3. Confirm</div>
+            <div class="mock-flow-arrow">→</div>
+            <div class="mock-flow-step">4. Done</div>
+          </div>
+
+          <div class="mock-card">
+            <div class="mock-card-title">📤 Step 1: Upload Excel</div>
+            <div style="border: 2px dashed var(--wire); border-radius: 8px; padding: 30px; text-align: center; background: white;">
+              <div style="font-size: 32px;">📄</div>
+              <div style="font-size: 12px; color: var(--muted); margin-top: 8px;">
+                Drag &amp; drop .xlsx / .csv file here (Max 10 MB)
+              </div>
+              <div class="mock-input" style="margin: 12px auto; max-width: 260px;">
+                <span class="label">Import Type</span>
+                <span class="placeholder">Schools ▾</span>
+              </div>
+              <button class="mock-btn primary sm" style="margin-top: 6px;">📁 Choose File</button>
+              <div style="font-size: 10px; color: var(--muted); margin-top: 6px;">
+                ⚠️ Formula cells ignored for security. .xlsm not allowed.
+              </div>
+            </div>
+          </div>
+
+          <div class="mock-card">
+            <div class="mock-card-title">👁️ Step 2: Preview Results</div>
+
+            <div class="mock-grid g4">
+              <div class="mock-stat" style="border-left-color: var(--primary-light);">
+                <div class="val">5,000</div>
+                <div class="lbl">Total Rows</div>
+              </div>
+              <div class="mock-stat" style="border-left-color: var(--success);">
+                <div class="val">4,850</div>
+                <div class="lbl">Valid</div>
+              </div>
+              <div class="mock-stat" style="border-left-color: var(--accent);">
+                <div class="val">120</div>
+                <div class="lbl">Duplicates</div>
+              </div>
+              <div class="mock-stat" style="border-left-color: var(--danger);">
+                <div class="val">30</div>
+                <div class="lbl">Errors</div>
+              </div>
+            </div>
+
+            <div style="background: #f8fafc; border-radius: 8px; padding: 10px; margin-top: 10px;">
+              <div style="font-size: 11px; font-weight: 700; color: var(--primary); margin-bottom: 6px;">Error Rows Preview (first 3):</div>
+              <table class="mock-table">
+                <thead><tr><th>Row</th><th>Error</th></tr></thead>
+                <tbody>
+                  <tr><td>#45</td><td>Invalid mobile format</td></tr>
+                  <tr><td>#120</td><td>Missing student name</td></tr>
+                  <tr><td>#387</td><td>Class out of range (13)</td></tr>
+                </tbody>
+              </table>
+              <button class="mock-btn outline sm" style="margin-top: 8px;">📥 Download Error CSV</button>
+            </div>
+
+            <div class="mock-grid g2" style="margin-top: 12px;">
+              <div class="mock-input">
+                <span class="label">Import Mode</span>
+                <span class="placeholder">Lenient ▾</span>
+              </div>
+              <div class="mock-input">
+                <span class="label">Skip Duplicates?</span>
+                <span class="placeholder">Yes ▾</span>
+              </div>
+            </div>
+
+            <div class="mock-note warning">
+              <strong>Strict Mode:</strong> If even one row has an error, the entire import is rolled back — nothing is imported.<br>
+              <strong>Lenient Mode:</strong> The 4,850 valid rows are imported; error rows are provided as a CSV download.
+            </div>
+
+            <div style="text-align: right; margin-top: 12px;">
+              <button class="mock-btn outline">Cancel</button>
+              <button class="mock-btn primary">✅ Confirm Import</button>
+            </div>
+          </div>
+        </div>
+        <div class="api-note">
+          <span class="method post">POST</span> /settings/import-excel/preview &nbsp;|&nbsp; <span class="method post">POST</span> /settings/import-excel/confirm
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 33: SYSTEM SETTINGS (NEW) -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">33</span> System Settings Panel</h3>
+        <span class="role-badge">Super Admin</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> Central admin panel to manage all global configuration without code changes. All values stored in the <code>system_settings</code> table (key-value JSON). WhatsApp message templates stored in <code>whatsapp_templates</code> table.
+        </div>
+        <div class="mockup">
+          <div class="mock-nav">
+            <div class="mock-logo">🎓 BoardingEdu CRM – Admin</div>
+            <div class="mock-nav-items">
+              <span>Dashboard</span>
+              <span>Users</span>
+              <span>Schools</span>
+              <span>Commission</span>
+              <span>Reports</span>
+              <span class="active">Settings</span>
+            </div>
+            <div class="mock-user">
+              <div class="mock-avatar" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">SA</div>
+              <span>Super Admin</span>
+            </div>
+          </div>
+
+          <div class="mock-tabs">
+            <div class="mock-tab active">⚙️ General</div>
+            <div class="mock-tab">⏱️ Rate Limits</div>
+            <div class="mock-tab">🔐 Password Policy</div>
+            <div class="mock-tab">📱 WhatsApp Templates</div>
+            <div class="mock-tab">🎯 Duplicate Rule</div>
+            <div class="mock-tab">👤 Assignment</div>
+            <div class="mock-tab">💰 GST / TDS</div>
+          </div>
+
+          <div class="mock-grid g2">
+            <div class="mock-card">
+              <div class="mock-card-title">⚙️ General Settings</div>
+              <div class="mock-input"><span class="label">Lead ID Prefix</span><span class="placeholder">LD</span></div>
+              <div class="mock-input"><span class="label">Lead ID Padding</span><span class="placeholder">6</span></div>
+              <div class="mock-input"><span class="label">School ID Prefix</span><span class="placeholder">SC</span></div>
+              <div class="mock-input"><span class="label">App ID Prefix</span><span class="placeholder">AP</span></div>
+              <div class="mock-input"><span class="label">Timezone</span><span class="placeholder">Asia/Kolkata ▾</span></div>
+              <div class="mock-input"><span class="label">Currency</span><span class="placeholder">INR (₹) ▾</span></div>
+              <div style="text-align: right; margin-top: 10px;">
+                <button class="mock-btn success sm">💾 Save</button>
+              </div>
+            </div>
+
+            <div class="mock-card">
+              <div class="mock-card-title">⏱️ Rate Limits (per hour per user)</div>
+              <div class="mock-input"><span class="label">Lead Creation</span><span class="placeholder">50 / hour</span></div>
+              <div class="mock-input"><span class="label">Lead Merge</span><span class="placeholder">10 / hour</span></div>
+              <div class="mock-input"><span class="label">Bulk Import</span><span class="placeholder">2 / hour</span></div>
+              <div class="mock-input"><span class="label">Report Generation</span><span class="placeholder">20 / hour</span></div>
+              <div style="text-align: right; margin-top: 10px;">
+                <button class="mock-btn success sm">💾 Save</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="mock-grid g2">
+            <div class="mock-card">
+              <div class="mock-card-title">🔐 Password Policy</div>
+              <div class="mock-input"><span class="label">Minimum Length</span><span class="placeholder">8</span></div>
+              <div class="mock-input"><span class="label">Require Uppercase</span><span class="placeholder">Yes ▾</span></div>
+              <div class="mock-input"><span class="label">Require Lowercase</span><span class="placeholder">Yes ▾</span></div>
+              <div class="mock-input"><span class="label">Require Number</span><span class="placeholder">Yes ▾</span></div>
+              <div class="mock-input"><span class="label">Require Special Char</span><span class="placeholder">Yes ▾</span></div>
+              <div class="mock-input"><span class="label">Session Timeout (min)</span><span class="placeholder">15</span></div>
+              <div style="text-align: right; margin-top: 10px;">
+                <button class="mock-btn success sm">💾 Save</button>
+              </div>
+            </div>
+
+            <div class="mock-card">
+              <div class="mock-card-title">📱 WhatsApp Templates (4 active)</div>
+              <table class="mock-table">
+                <thead><tr><th>Key</th><th>Name</th><th>Type</th><th>Action</th></tr></thead>
+                <tbody>
+                  <tr><td>parent_shortlist</td><td>Parent – School Shortlist</td><td>parent</td><td><button class="mock-btn outline sm">✏️</button></td></tr>
+                  <tr><td>parent_application_submitted</td><td>Parent – Application Submitted</td><td>parent</td><td><button class="mock-btn outline sm">✏️</button></td></tr>
+                  <tr><td>parent_admission_confirmed</td><td>Parent – Admission Confirmation</td><td>parent</td><td><button class="mock-btn outline sm">✏️</button></td></tr>
+                  <tr><td>school_group_new_application</td><td>School Group – New App</td><td>school_group</td><td><button class="mock-btn outline sm">✏️</button></td></tr>
+                </tbody>
+              </table>
+              <button class="mock-btn primary sm" style="margin-top: 8px;">➕ Add Template</button>
+            </div>
+          </div>
+
+          <div class="mock-grid g2">
+            <div class="mock-card">
+              <div class="mock-card-title">🎯 Duplicate Rule</div>
+              <div class="mock-input"><span class="label">Field 1</span><span class="placeholder">mobile_primary</span></div>
+              <div class="mock-input"><span class="label">Field 2</span><span class="placeholder">student_name</span></div>
+              <div class="mock-input"><span class="label">Field 3</span><span class="placeholder">class_grade</span></div>
+              <div class="mock-input"><span class="label">Severity</span><span class="placeholder">Warning (soft block) ▾</span></div>
+              <div style="text-align: right; margin-top: 10px;">
+                <button class="mock-btn success sm">💾 Save</button>
+              </div>
+            </div>
+
+            <div class="mock-card">
+              <div class="mock-card-title">👤 Lead Assignment Default</div>
+              <div class="mock-input"><span class="label">Method</span><span class="placeholder">Round Robin ▾</span></div>
+              <div style="font-size: 11px; color: var(--muted); line-height: 1.6;">
+                Options: Round-robin · Manual · Source-based · School-based
+              </div>
+              <div class="mock-input" style="margin-top: 8px;"><span class="label">Fallback Counsellor</span><span class="placeholder">Rahul Sharma ▾</span></div>
+              <div style="text-align: right; margin-top: 10px;">
+                <button class="mock-btn success sm">💾 Save</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="mock-card">
+            <div class="mock-card-title">💰 GST / TDS (India Compliance – Placeholder)</div>
+            <div class="mock-grid g3">
+              <div class="mock-input"><span class="label">GST Enabled</span><span class="placeholder">No ▾</span></div>
+              <div class="mock-input"><span class="label">TDS 194H Enabled</span><span class="placeholder">No ▾</span></div>
+              <div class="mock-input"><span class="label">TDS Rate (%)</span><span class="placeholder">5</span></div>
+            </div>
+            <div class="mock-input"><span class="label">TDS Threshold (₹)</span><span class="placeholder">15,000</span></div>
+            <div style="text-align: right; margin-top: 10px;">
+              <button class="mock-btn success sm">💾 Save</button>
+            </div>
+            <div class="mock-note warning" style="margin-top: 10px;">
+              ⚠️ To be finalized in consultation with a CA. Placeholder only.
+            </div>
+          </div>
+        </div>
+        <div class="api-note">
+          <span class="method get">GET</span> /settings &nbsp;|&nbsp; <span class="method put">PUT</span> /settings &nbsp;|&nbsp; <span class="method get">GET</span> /settings/rate-limits &nbsp;|&nbsp; <span class="method put">PUT</span> /security/password-policy &nbsp;|&nbsp; <span class="method post">POST</span> /settings/whatsapp-templates
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============================================ -->
+  <!-- CATEGORY 6: REPORTS & PROFILE (34-36) -->
+  <!-- ============================================ -->
+  <div class="category">
+    <div class="category-title">
+      <span class="icon">📊</span> Category 6: Reports, Weekly Summary &amp; Profile (Screens 34-36)
+    </div>
+    <p class="category-desc">Report viewer, weekly summary, profile + PWA install.</p>
+
+    <!-- SCREEN 34: REPORT VIEWER -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">34</span> Report Viewer (20 Reports)</h3>
+        <span class="role-badge">Role-Based</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> 12 Standard + 5 Advanced + 3 Activity reports. Filters, export (Excel / PDF). Background job for large reports (stored in Redis via BullMQ).
+        </div>
+        <div class="mockup">
+          <div class="mock-grid g3">
+            <div class="mock-card" style="border-left: 4px solid var(--primary-light);">
+              <div class="mock-card-title">📘 Standard Reports (12)</div>
+              <div style="font-size: 11px; line-height: 1.8;">
+                <div>• All Leads Report</div>
+                <div>• Pipeline Report</div>
+                <div>• Admissions Report</div>
+                <div>• School-wise Admissions</div>
+                <div>• Commission Report</div>
+                <div>• Revenue Report</div>
+                <div>• Jr. Performance Report</div>
+                <div>• Sr. Performance Report</div>
+                <div>• Login-Logout Report</div>
+                <div>• Audit Log Report</div>
+                <div>• Follow-up Report</div>
+                <div>• Duplicate Leads Report</div>
+              </div>
+            </div>
+            <div class="mock-card" style="border-left: 4px solid var(--accent);">
+              <div class="mock-card-title">⭐ Advanced Reports (5)</div>
+              <div style="font-size: 11px; line-height: 1.8;">
+                <div>• Source-wise Conversion</div>
+                <div>• Counsellor-wise Funnel</div>
+                <div>• Time-to-Conversion</div>
+                <div>• Lost Lead Analysis</div>
+                <div>• School-wise Revenue</div>
+              </div>
+            </div>
+            <div class="mock-card" style="border-left: 4px solid var(--success);">
+              <div class="mock-card-title">📱 Activity Reports (3)</div>
+              <div style="font-size: 11px; line-height: 1.8;">
+                <div>• WhatsApp Activity Report</div>
+                <div>• Call Activity Report</div>
+                <div>• Commission Reversal Report</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mock-card" style="margin-top: 12px;">
+            <div class="mock-card-title">📊 Sample Report: Source-wise Conversion</div>
+
+            <div class="mock-grid g4">
+              <div class="mock-input" style="margin: 0;"><span class="label">📅 From</span></div>
+              <div class="mock-input" style="margin: 0;"><span class="label">📅 To</span></div>
+              <div class="mock-input" style="margin: 0;"><span class="label">Format</span><span class="placeholder">Excel ▾</span></div>
+              <button class="mock-btn primary sm">📊 Generate</button>
+            </div>
+
+            <table class="mock-table" style="margin-top: 12px;">
+              <thead>
+                <tr><th>Source</th><th>Total Leads</th><th>Admissions</th><th>Conversion %</th><th>Revenue</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Referral</td><td>420</td><td>42</td><td><span class="mock-badge badge-success">10.0%</span></td><td>₹8.4L</td></tr>
+                <tr><td>Website</td><td>580</td><td>35</td><td><span class="mock-badge badge-success">6.0%</span></td><td>₹7.0L</td></tr>
+                <tr><td>WhatsApp</td><td>340</td><td>18</td><td><span class="mock-badge badge-warning">5.3%</span></td><td>₹3.6L</td></tr>
+                <tr><td>Call</td><td>890</td><td>42</td><td><span class="mock-badge badge-warning">4.7%</span></td><td>₹8.4L</td></tr>
+                <tr><td>Ad</td><td>720</td><td>18</td><td><span class="mock-badge badge-danger">2.5%</span></td><td>₹3.6L</td></tr>
+              </tbody>
+            </table>
+
+            <div class="mock-note" style="margin-top: 12px;">
+              💡 Large reports are generated via a BullMQ background job (jobs stored in Redis). A download link is sent in the notification.
+            </div>
+          </div>
+        </div>
+        <div class="api-note">
+          <span class="method get">GET</span> /reports/:type &nbsp;|&nbsp; <span class="method get">GET</span> /jobs/:id/status
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 35: WEEKLY REPORT -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">35</span> Weekly Report to Super Admin</h3>
+        <span class="role-badge">Super Admin</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> Every Monday at 9 AM, auto-delivered as an in-app notification. No email / SMS. PWA push if installed. Export to PDF.
+        </div>
+        <div class="mockup">
+          <div class="mock-modal" style="max-width: 540px;">
+            <div class="mock-modal-title">📅 Weekly Report – Week of 13 Oct 2025</div>
+
+            <div class="mock-grid g3" style="margin-bottom: 12px;">
+              <div class="mock-stat" style="border-left-color: var(--success);">
+                <div class="val">18</div>
+                <div class="lbl">Admissions</div>
+              </div>
+              <div class="mock-stat" style="border-left-color: var(--primary-light);">
+                <div class="val">₹2.7L</div>
+                <div class="lbl">Revenue</div>
+              </div>
+              <div class="mock-stat" style="border-left-color: var(--accent);">
+                <div class="val">₹1.2L</div>
+                <div class="lbl">Pending</div>
+              </div>
+            </div>
+
+            <div class="mock-card">
+              <div class="mock-card-title">🏆 Top Performers (This Week)</div>
+              <div style="font-size: 11px;">
+                <div>🥇 <strong>Amit Verma</strong> – 5 admissions</div>
+                <div>🥈 <strong>Rahul Sharma</strong> – 4 admissions</div>
+                <div>🥉 <strong>Priya C.</strong> – 3 admissions</div>
+              </div>
+            </div>
+
+            <div class="mock-card">
+              <div class="mock-card-title">📊 Activity Summary</div>
+              <div class="mock-grid g2" style="font-size: 11px;">
+                <div>📱 WhatsApp sent: <strong>142</strong></div>
+                <div>📞 Calls made: <strong>98</strong></div>
+                <div>⚠️ Duplicate leads: <strong>12</strong></div>
+                <div>↩️ Reversals: <strong>2</strong></div>
+              </div>
+            </div>
+
+            <div class="mock-card">
+              <div class="mock-card-title">📉 Lost Lead Analysis (Top 3 Reasons)</div>
+              <div style="font-size: 11px;">
+                <div>1. Budget mismatch: <strong>8 leads</strong></div>
+                <div>2. School not available: <strong>5 leads</strong></div>
+                <div>3. Parent not interested: <strong>4 leads</strong></div>
+              </div>
+            </div>
+
+            <div style="text-align: right; margin-top: 12px;">
+              <button class="mock-btn outline">👁️ View in Bell</button>
+              <button class="mock-btn primary">📥 Export PDF</button>
+            </div>
+          </div>
+
+          <div class="mock-note purple" style="margin-top: 12px;">
+            🔔 <strong>Delivery:</strong> In-app notification bell (Layer 1) + PWA push notification (Layer 2, if installed and permission granted). No email, no SMS.
+          </div>
+        </div>
+        <div class="api-note">
+          <span class="method get">GET</span> /notifications (weekly_report type)
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 36: PROFILE SETTINGS + PWA -->
+    <div class="screen">
+      <div class="screen-header">
+        <h3><span class="screen-num">36</span> Profile Settings + PWA Install Prompt</h3>
+        <span class="role-badge">All Users</span>
+      </div>
+      <div class="screen-body">
+        <div class="screen-desc">
+          <strong>Purpose:</strong> User profile update, notification preferences, bank account, PWA install. Two columns on desktop, stacked on mobile.
+        </div>
+        <div class="mockup">
+          <div class="mock-tabs">
+            <div class="mock-tab active">👤 Profile</div>
+            <div class="mock-tab">🔔 Notifications</div>
+            <div class="mock-tab">🏦 Bank Account</div>
+            <div class="mock-tab">🔐 Security</div>
+            <div class="mock-tab">📱 PWA</div>
+          </div>
+
+          <div class="mock-grid g2">
+            <div class="mock-card">
+              <div class="mock-card-title">👤 Profile Information</div>
+              <div class="mock-input"><span class="label">Full Name <span class="req">*</span></span><span class="placeholder">Rahul Sharma</span></div>
+              <div class="mock-input"><span class="label">Email <span class="req">*</span></span><span class="placeholder">rahul@boardingedu.com</span></div>
+              <div class="mock-input"><span class="label">Phone</span><span class="placeholder">+919876543210</span></div>
+              <div class="mock-input"><span class="label">Role</span><span class="placeholder">Jr. Counsellor (read-only)</span></div>
+              <div style="text-align: right; margin-top: 10px;">
+                <button class="mock-btn success sm">💾 Save Profile</button>
+              </div>
+            </div>
+
+            <div class="mock-card" style="background: linear-gradient(135deg, #dcfce7, #f0fdf4); border-color: var(--success);">
+              <div class="mock-card-title" style="color: #166534;">📱 Install BoardingEdu CRM as Mobile App</div>
+              <div style="text-align: center; padding: 10px;">
+                <div style="font-size: 40px;">📲</div>
+                <div style="font-size: 12px; font-weight: 700; color: #166534; margin-top: 8px;">
+                  Install BoardingEdu CRM
+                </div>
+                <div style="font-size: 11px; color: #047857; margin-top: 6px; line-height: 1.5;">
+                  Works like a native app. No Play Store needed. Offline support + push notifications.
+                </div>
+                <button class="mock-btn success" style="margin-top: 12px; padding: 10px 20px;">📲 Install Now</button>
+              </div>
+
+              <div style="background: rgba(255,255,255,0.6); padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 10.5px; color: #047857;">
+                <strong>📱 On iPhone:</strong> Tap Share → "Add to Home Screen"<br>
+                <strong>📱 On Android:</strong> Tap menu (⋮) → "Install App"
+              </div>
+            </div>
+          </div>
+
+          <div class="mock-grid g2" style="margin-top: 12px;">
+            <div class="mock-card">
+              <div class="mock-card-title">🔔 Notification Preferences</div>
+              <div style="font-size: 11.5px; line-height: 2;">
+                <label><input type="checkbox" checked> 📅 Follow-up Reminders</label><br>
+                <label><input type="checkbox" checked> 📊 Weekly Report</label><br>
+                <label><input type="checkbox" checked> ⚠️ Merge Alerts</label><br>
+                <label><input type="checkbox"> 📲 Push Notifications (PWA)</label><br>
+                <label><input type="checkbox" checked> 💰 Commission Updates</label>
+              </div>
+            </div>
+
+            <div class="mock-card">
+              <div class="mock-card-title">🏦 Bank Account (Encrypted)</div>
+              <div class="mock-input"><span class="label">Account Number</span><span class="placeholder">••••••••1234</span></div>
+              <div class="mock-input"><span class="label">IFSC Code</span><span class="placeholder">HDFC0001234</span></div>
+              <div class="mock-input"><span class="label">Bank Name</span><span class="placeholder">HDFC Bank</span></div>
+              <div class="mock-input"><span class="label">UPI ID</span><span class="placeholder">rahul@hdfc</span></div>
+              <div class="mock-note success">
+                🔐 AES-256 encrypted at rest. Only the Admin can view the full details.
+              </div>
+            </div>
+          </div>
+
+          <div class="mock-phone" style="margin-top: 20px;">
+            <div class="mock-phone-screen" style="min-height: 250px; position: relative;">
+              <div style="text-align: center; padding: 20px;">
+                <div style="background: linear-gradient(135deg, #1e3a8a, #3b82f6); border-radius: 14px; padding: 15px; color: white;">
+                  <div style="font-size: 28px;">🎓</div>
+                  <div style="font-weight: 800; font-size: 14px; margin-top: 6px;">BoardingEdu CRM</div>
+                  <div style="font-size: 10px; opacity: 0.9; margin-top: 3px;">Add to Home Screen?</div>
+                </div>
+                <div style="font-size: 11px; color: var(--muted); margin-top: 10px; line-height: 1.5;">
+                  Install this app for quick access, offline mode, and push notifications.
+                </div>
+                <div style="display: flex; gap: 6px; margin-top: 12px;">
+                  <button class="mock-btn outline sm" style="flex: 1;">Not Now</button>
+                  <button class="mock-btn success sm" style="flex: 1;">Install</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="api-note">
+          <span class="method put">PUT</span> /users/me &nbsp;|&nbsp; <span class="method put">PUT</span> /notifications/preferences &nbsp;|&nbsp; <span class="method post">POST</span> /push/subscribe
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- COMPLETION SUMMARY -->
+  <div style="text-align: center; padding: 40px; background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; border-radius: 16px; margin-top: 20px; box-shadow: 0 8px 30px rgba(30,58,138,0.3);">
+    <div style="font-size: 15px; font-weight: 700; color: #fcd34d; margin-bottom: 4px;">BoardingEdu (P) Ltd.</div>
+    <div style="font-size: 12px; opacity: 0.85; margin-bottom: 12px;">Connecting Parents and Schools</div>
+    <div style="font-size: 32px; font-weight: 800; margin-bottom: 10px;">🎉 Wireframe Complete!</div>
+    <div style="font-size: 15px; opacity: 0.95; margin-bottom: 20px;">
+      Total 36 Screens Ready | 6 Categories | All Roles Covered
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; max-width: 700px; margin: 0 auto;">
+      <div style="background: rgba(255,255,255,0.15); padding: 15px; border-radius: 10px;">
+        <div style="font-size: 26px; font-weight: 800; color: #fcd34d;">36</div>
+        <div style="font-size: 11px; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.5px;">Total Screens</div>
+      </div>
+      <div style="background: rgba(255,255,255,0.15); padding: 15px; border-radius: 10px;">
+        <div style="font-size: 26px; font-weight: 800; color: #fcd34d;">6</div>
+        <div style="font-size: 11px; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.5px;">Categories</div>
+      </div>
+      <div style="background: rgba(255,255,255,0.15); padding: 15px; border-radius: 10px;">
+        <div style="font-size: 26px; font-weight: 800; color: #fcd34d;">3</div>
+        <div style="font-size: 11px; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.5px;">Roles Covered</div>
+      </div>
+    </div>
+
+    <div style="margin-top: 25px; font-size: 13px; opacity: 0.9; line-height: 1.7;">
+      ✅ Part 1: Screens 1-21 (Auth + Jr. Counsellor + Manager)<br>
+      ✅ Part 2: Screens 22-36 (Lifecycle + Admin + Reports + Profile)
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div style="text-align: center; padding: 25px; background: white; border-radius: 12px; margin-top: 20px; color: var(--muted); font-size: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.06);">
+    <div style="font-size: 15px; font-weight: 700; color: var(--primary); margin-bottom: 4px;">BoardingEdu (P) Ltd.</div>
+    <div style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">Connecting Parents and Schools</div>
+    <strong>📌 Wireframe Summary – Part 2 (Screens 22-36)</strong><br>
+    22. Shortlist Management | 23. Reopened Lead Notification | 24. Expired Leads | 25. Suspended Leads<br>
+    26. Admin Dashboard | 27. User Management | 28. School Master | 29. Commission Ledger<br>
+    30. Commission Reversal (FNF) | 31. Audit Log Viewer | 32. Bulk Import Preview | 33. System Settings<br>
+    34. Report Viewer | 35. Weekly Report | 36. Profile Settings + PWA Install<br><br>
+    <strong>🖥️ Best viewed on desktop | 📱 Mobile responsive | 🎨 All roles covered</strong>
+  </div>
+
+</div>
+</body>
+</html>
