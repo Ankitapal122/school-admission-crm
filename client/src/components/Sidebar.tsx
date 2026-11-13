@@ -54,7 +54,13 @@ export default function Sidebar({
           }}
           className="sidebar-brand"
         >
-          <div className="brand-icon">🏔️</div>
+          <div className="brand-icon" style={{ background: '#FFFFFF', padding: '3px', overflow: 'hidden' }}>
+            <img
+              src="/boardingedu-logo.png"
+              alt="BoardingEdu"
+              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+            />
+          </div>
           <div>
             <div className="brand-title">BoardingEdu CRM</div>
             <div className="brand-subtitle">Uttarakhand Schools</div>

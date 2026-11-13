@@ -703,39 +703,29 @@ export default function LoginPage() {
       {authView === 'login' && (
         <div className="auth-wrapper">
           <div className="auth-card">
-            {/* Centered Graduation Cap Header matching Screenshot 1 */}
-            <div style={{ textAlign: 'center', marginBottom: '26px' }}>
+            {/* Official BoardingEdu Logo Header */}
+            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
               <div
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  marginBottom: '12px',
-                  color: '#2563EB',
+                  marginBottom: '10px',
                 }}
               >
-                <svg
-                  width="54"
-                  height="54"
-                  viewBox="0 0 24 24"
-                  fill="#2563EB"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M12 3L1 9L12 15L21 10.09V17H23V9M5 13.18V17.18L12 21L19 17.18V13.18L12 17L5 13.18Z" />
-                </svg>
+                <img
+                  src="/boardingedu-logo.png"
+                  alt="BoardingEdu - Connecting Parents & Schools"
+                  style={{
+                    height: '96px',
+                    width: 'auto',
+                    maxWidth: '100%',
+                    objectFit: 'contain',
+                    filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.06))',
+                  }}
+                />
               </div>
-              <h1
-                style={{
-                  fontSize: '23px',
-                  fontWeight: 800,
-                  color: '#0F172A',
-                  letterSpacing: '-0.4px',
-                  marginBottom: '4px',
-                }}
-              >
-                School Admission CRM
-              </h1>
-              <p style={{ fontSize: '13.5px', color: '#64748B', fontWeight: 500 }}>
+              <p style={{ fontSize: '13.5px', color: '#64748B', fontWeight: 600 }}>
                 Login to Your Account
               </p>
             </div>
