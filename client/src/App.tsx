@@ -165,6 +165,29 @@ export default function App() {
           onClick={() => setMobileMenuOpen(false)}
         />
 
+        {/* Floating dock trigger when sidebar is collapsed */}
+        {sidebarCollapsed && (
+          <button
+            className="sidebar-dock-trigger desktop-only"
+            onClick={() => setSidebarCollapsed(false)}
+            title="Expand Sidebar Navigation"
+            aria-label="Expand sidebar"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
+        )}
+
         {/* Main Content Wrapper */}
         <div className={`main-wrapper ${sidebarCollapsed ? 'expanded' : ''}`}>
           {/* Topbar */}
@@ -173,6 +196,8 @@ export default function App() {
             onOpenNewLead={() => setIsLeadModalOpen(true)}
             onSelectTab={setCurrentTab}
             onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)}
+            onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
+            sidebarCollapsed={sidebarCollapsed}
             onShowToast={showToast}
             wireframeScreenNum={wireframeScreenNum}
           />
