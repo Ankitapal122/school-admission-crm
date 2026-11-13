@@ -67,13 +67,13 @@ export default function LoginPage() {
   const handleRoleCardClick = (role: 'admin' | 'manager' | 'counsellor') => {
     setSelectedRole(role);
     if (role === 'admin') {
-      setIdentifier('admin@boardingedu.com');
-      setPassword('Password@123');
-      showToast('Admin account selected', 'success');
+      setIdentifier('adminboarding123@gmail.com');
+      setPassword('Admin@123');
+      showToast('Admin account selected (adminboarding123@gmail.com)', 'success');
     } else if (role === 'manager') {
-      setIdentifier('manager@boardingedu.com');
-      setPassword('Password@123');
-      showToast('Manager account selected', 'success');
+      setIdentifier('managerborading123@gmail.com');
+      setPassword('Manager@123');
+      showToast('Manager account selected (managerborading123@gmail.com)', 'success');
     } else {
       setIdentifier('priya@boardingedu.com');
       setPassword('Password@123');
@@ -765,7 +765,7 @@ export default function LoginPage() {
                   <input
                     type="text"
                     id="loginIdentifier"
-                    placeholder="admin@boardingedu.com"
+                    placeholder="adminboarding123@gmail.com"
                     required
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}

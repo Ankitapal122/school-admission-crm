@@ -84,15 +84,19 @@ async function main() {
     'UK26-W1X2-Y3Z4',
   ];
 
+  const adminPasswordHash = await bcrypt.hash('Admin@123', 10);
+  const managerPasswordHash = await bcrypt.hash('Manager@123', 10);
+  const counsellorPasswordHash = await bcrypt.hash('Password@123', 10);
+
   const admin = await prisma.user.upsert({
-    where: { email: 'admin@boardingedu.com' },
-    update: { fullName: 'Virendra Rawat (Super Admin)', passwordHash, recoveryCodes },
+    where: { email: 'adminboarding123@gmail.com' },
+    update: { fullName: 'Virendra Rawat (Super Admin)', passwordHash: adminPasswordHash, recoveryCodes },
     create: {
-      email: 'admin@boardingedu.com',
+      email: 'adminboarding123@gmail.com',
       employeeId: 'EMP-ADM-001',
       fullName: 'Virendra Rawat (Super Admin)',
       role: Role.SUPER_ADMIN,
-      passwordHash,
+      passwordHash: adminPasswordHash,
       phone: '+91 98100 11001',
       status: 'Active',
       recoveryCodes,
@@ -100,14 +104,14 @@ async function main() {
   });
 
   const manager = await prisma.user.upsert({
-    where: { email: 'manager@boardingedu.com' },
-    update: { fullName: 'Rajesh Malhotra (Sr. Manager)', managerId: admin.id, passwordHash, recoveryCodes },
+    where: { email: 'managerborading123@gmail.com' },
+    update: { fullName: 'Rajesh Malhotra (Sr. Manager)', managerId: admin.id, passwordHash: managerPasswordHash, recoveryCodes },
     create: {
-      email: 'manager@boardingedu.com',
+      email: 'managerborading123@gmail.com',
       employeeId: 'EMP-MGR-001',
       fullName: 'Rajesh Malhotra (Sr. Manager)',
       role: Role.SENIOR_MANAGER,
-      passwordHash,
+      passwordHash: managerPasswordHash,
       phone: '+91 98200 22002',
       status: 'Active',
       managerId: admin.id,

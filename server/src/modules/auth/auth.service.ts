@@ -109,19 +109,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials. User does not exist.');
     }
 
-    let isMatch = await bcrypt.compare(pass, user.passwordHash);
-
-    // Fast-path / resilience fallback for demo accounts
-    if (!isMatch) {
-      const emailLower = (user.email || '').toLowerCase();
-      const isAdminDemo = emailLower === 'admin@boardingedu.com' && (pass === 'Admin@123' || pass === 'Admin@1234' || pass === 'Password@123');
-      const isMgrDemo = emailLower === 'manager@boardingedu.com' && (pass === 'Manager@123' || pass === 'Password@123');
-      const isCounsellorDemo = (emailLower === 'rahul@boardingedu.com' || emailLower === 'priya@boardingedu.com') && (pass === 'Counsellor@123' || pass === 'Password@123');
-      if (isAdminDemo || isMgrDemo || isCounsellorDemo) {
-        isMatch = true;
-      }
-    }
-
+    const isMatch = await bcrypt.compare(pass, user.passwordHash);
     if (!isMatch) {
       throw new UnauthorizedException('Invalid credentials. Incorrect password.');
     }
