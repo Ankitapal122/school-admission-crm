@@ -633,7 +633,7 @@ export default function RoleDashboard({
           <div className="stats-grid">
             <div className="stat-card blue">
               <div className="stat-card-top">
-                <span className="stat-label">Total Company Enquiries</span>
+                <span className="stat-label">Total School Enquiries</span>
                 <div className="stat-icon">📥</div>
               </div>
               <div className="stat-value">{kpiStats.totalLeads ?? 1250}</div>
