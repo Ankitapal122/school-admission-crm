@@ -216,7 +216,7 @@ function KanbanColumn({
   return (
     <div
       ref={setNodeRef}
-      className="flex-1 min-w-[280px] max-w-[320px] bg-slate-100/70 rounded-2xl p-3 border border-slate-200 flex flex-col"
+      className="flex-1 min-w-[260px] sm:min-w-[280px] max-w-[85vw] sm:max-w-[320px] bg-slate-100/70 rounded-2xl p-3 border border-slate-200 flex flex-col shrink-0 snap-center"
     >
       <div className="flex items-center justify-between pb-3 px-1">
         <div className="flex items-center gap-2">
@@ -291,18 +291,18 @@ export default function KanbanBoard() {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-2 sm:p-4 md:p-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 sm:mb-6">
         <div>
-          <h2 className="text-2xl font-extrabold text-[#123B70]">Lead Pipeline Kanban</h2>
-          <p className="text-xs text-slate-500 mt-1">
+          <h2 className="text-xl sm:text-2xl font-extrabold text-[#123B70]">Lead Pipeline Kanban</h2>
+          <p className="text-xs text-slate-500 mt-0.5">
             Drag and drop parent enquiries across admissions stages in real-time.
           </p>
         </div>
       </div>
 
       <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
-        <div className="flex gap-4 overflow-x-auto pb-6">
+        <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 sm:pb-6 snap-x snap-mandatory touch-pan-x">
           {Object.entries(STAGE_CONFIG).map(([stageKey, config]) => (
             <KanbanColumn
               key={stageKey}

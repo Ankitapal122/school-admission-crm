@@ -2595,27 +2595,45 @@ export function CreateLeadModal({
   onSuccess: () => void;
   onShowToast: (msg: string, type?: 'success' | 'danger' | 'warning') => void;
 }) {
-  const [parentName, setParentName] = useState('Sanjay Bhattacharya');
-  const [mobile, setMobile] = useState('+919876543210');
   const [studentName, setStudentName] = useState('Arjun Bhattacharya');
   const [admissionClass, setAdmissionClass] = useState('Class 6');
+  const [fatherName, setFatherName] = useState('Sanjay Bhattacharya');
+  const [fatherMobile, setFatherMobile] = useState('+91 98765 43210');
+  const [motherName, setMotherName] = useState('Sunita Bhattacharya');
+  const [motherMobile, setMotherMobile] = useState('+91 98765 43211');
+  const [parentEmail, setParentEmail] = useState('sanjay.bhatt@gmail.com');
   const [preferredSchool, setPreferredSchool] = useState(schools[0]?._id || '');
   const [annualBudget, setAnnualBudget] = useState('₹5.5L - ₹7.5L');
   const [remarks, setRemarks] = useState('');
   const [isDuplicate, setIsDuplicate] = useState(false);
+  const [duplicateMessage, setDuplicateMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
-  const checkDuplicateInModal = async (val: string) => {
-    setMobile(val);
-    if (val.replace(/\D/g, '').length < 10) {
+  const checkDuplicateInModal = async (fMobile: string, mMobile: string) => {
+    const fClean = fMobile.replace(/\D/g, '');
+    const mClean = mMobile.replace(/\D/g, '');
+    if (fClean.length < 10 && mClean.length < 10) {
       setIsDuplicate(false);
+      setDuplicateMessage('');
       return;
     }
     try {
-      const res = await apiCall('/leads/check-duplicate', 'POST', { mobile: val });
-      setIsDuplicate(!!res.isDuplicate);
+      const res = await apiCall('/leads/check-duplicate', 'POST', {
+        fatherPhone: fMobile,
+        motherPhone: mMobile,
+        studentName,
+      });
+      if (res.isDuplicate) {
+        setIsDuplicate(true);
+        setDuplicateMessage(
+          `⚠️ Duplicate Lead Match: Yeh number already CRM me ${res.matchedLead?.counsellor || 'ek counsellor'} ke paas exist karta hai (Lead #${res.matchedLead?.leadId})!`
+        );
+      } else {
+        setIsDuplicate(false);
+        setDuplicateMessage('');
+      }
     } catch {
       // ignore
     }
@@ -2623,19 +2641,41 @@ export function CreateLeadModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const fClean = fatherMobile.replace(/\D/g, '').slice(-10);
+    const mClean = motherMobile.replace(/\D/g, '').slice(-10);
+
+    if (!fClean || fClean.length < 10) {
+      onShowToast('Father ka contact number 10-digit mandatory hai.', 'danger');
+      return;
+    }
+    if (!mClean || mClean.length < 10) {
+      onShowToast('Mother ka contact number 10-digit mandatory hai (Hamesha 2 numbers lene hain).', 'danger');
+      return;
+    }
+    if (fClean === mClean) {
+      onShowToast('Father aur Mother ke do alag-alag numbers hone chahiye!', 'danger');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const res = await apiCall('/leads', 'POST', {
-        parentName,
-        mobile,
         studentName,
         admissionClass,
+        fatherName,
+        fatherPhone: fatherMobile,
+        motherName,
+        motherPhone: motherMobile,
+        parentName: `${fatherName} & ${motherName}`,
+        mobile: fatherMobile,
+        parentEmail,
         preferredSchool: preferredSchool || schools[0]?._id,
         annualBudget,
-        remarks,
+        remarks: `${remarks} [Dual-Parent Registered: Father (${fatherName}: ${fatherMobile}) | Mother (${motherName}: ${motherMobile})]`,
         isDraft: false,
       });
-      onShowToast(res.message || 'Lead created and submitted for verification!');
+      onShowToast(res.message || 'Lead successfully created with Dual-Parent Contacts & submitted to Manager!');
       onSuccess();
       onClose();
     } catch (err: any) {
@@ -2649,9 +2689,14 @@ export function CreateLeadModal({
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--primary-navy)' }}>
-            ➕ Create Parent &amp; Student Enquiry
-          </h3>
+          <div>
+            <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--primary-navy)' }}>
+              ➕ New Student &amp; Dual-Parent Lead Entry
+            </h3>
+            <span style={{ fontSize: '11.5px', color: '#64748B' }}>
+              Boarding Policy: Father &amp; Mother dono ke contact numbers mandatory hain
+            </span>
+          </div>
           <button className="btn btn-sm btn-outline" onClick={onClose}>
             ✕
           </button>
@@ -2664,52 +2709,27 @@ export function CreateLeadModal({
                   background: '#FEE2E2',
                   border: '1px solid #FCA5A5',
                   color: '#991B1B',
-                  padding: '10px',
+                  padding: '10px 12px',
                   borderRadius: '8px',
                   fontSize: '12px',
                   marginBottom: '14px',
+                  fontWeight: 600,
                 }}
               >
-                ⚠️ <strong>Duplicate Match Warning:</strong> An existing parent with this phone
-                number or student already exists in PostgreSQL!
+                {duplicateMessage}
               </div>
             )}
 
+            {/* Student & Class Details */}
             <div className="grid-2">
               <div className="form-group">
                 <label className="form-label">
-                  Parent Name <span className="req">*</span>
+                  Student Full Name <span className="req">*</span>
                 </label>
                 <input
                   type="text"
                   className="form-control"
-                  required
-                  value={parentName}
-                  onChange={(e) => setParentName(e.target.value)}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">
-                  Parent Mobile <span className="req">*</span>
-                </label>
-                <input
-                  type="tel"
-                  className="form-control"
-                  required
-                  value={mobile}
-                  onChange={(e) => checkDuplicateInModal(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div className="grid-2">
-              <div className="form-group">
-                <label className="form-label">
-                  Student Name <span className="req">*</span>
-                </label>
-                <input
-                  type="text"
-                  className="form-control"
+                  placeholder="e.g. Arjun Sharma"
                   required
                   value={studentName}
                   onChange={(e) => setStudentName(e.target.value)}
@@ -2717,26 +2737,118 @@ export function CreateLeadModal({
               </div>
               <div className="form-group">
                 <label className="form-label">
-                  Admission Class <span className="req">*</span>
+                  Target Std / Class <span className="req">*</span>
                 </label>
                 <select
                   className="form-control"
                   value={admissionClass}
                   onChange={(e) => setAdmissionClass(e.target.value)}
                 >
+                  <option value="Class 4">Class 4</option>
                   <option value="Class 5">Class 5</option>
                   <option value="Class 6">Class 6</option>
                   <option value="Class 7">Class 7</option>
                   <option value="Class 8">Class 8</option>
                   <option value="Class 9">Class 9</option>
+                  <option value="Class 10">Class 10</option>
                   <option value="Class 11">Class 11</option>
+                  <option value="Class 12">Class 12</option>
                 </select>
               </div>
             </div>
 
+            {/* Mandatory Dual-Parent Contact Numbers */}
+            <div
+              style={{
+                background: '#F8FAFC',
+                border: '1.5px dashed #CBD5E1',
+                padding: '12px',
+                borderRadius: '10px',
+                marginBottom: '14px',
+              }}
+            >
+              <div style={{ fontSize: '12px', fontWeight: 700, color: '#1E293B', marginBottom: '8px' }}>
+                👨‍👩‍👦 Mandatory Dual-Parent Contacts (Father &amp; Mother)
+              </div>
+              <div className="grid-2">
+                <div className="form-group">
+                  <label className="form-label">
+                    Father Name <span className="req">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Father Name"
+                    required
+                    value={fatherName}
+                    onChange={(e) => setFatherName(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">
+                    Father Contact No. (Calling) <span className="req">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    className="form-control"
+                    placeholder="+91 98765 43210"
+                    required
+                    value={fatherMobile}
+                    onChange={(e) => {
+                      setFatherMobile(e.target.value);
+                      checkDuplicateInModal(e.target.value, motherMobile);
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="grid-2" style={{ marginTop: '4px' }}>
+                <div className="form-group">
+                  <label className="form-label">
+                    Mother Name <span className="req">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Mother Name"
+                    required
+                    value={motherName}
+                    onChange={(e) => setMotherName(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">
+                    Mother Contact No. (Mandatory #2) <span className="req">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    className="form-control"
+                    placeholder="+91 98765 43211"
+                    required
+                    value={motherMobile}
+                    onChange={(e) => {
+                      setMotherMobile(e.target.value);
+                      checkDuplicateInModal(fatherMobile, e.target.value);
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Email, Preferred School & Annual Budget */}
             <div className="grid-2">
               <div className="form-group">
-                <label className="form-label">Preferred School</label>
+                <label className="form-label">Parent Email ID</label>
+                <input
+                  type="email"
+                  className="form-control"
+                  placeholder="parent@example.com"
+                  value={parentEmail}
+                  onChange={(e) => setParentEmail(e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Preferred Boarding School</label>
                 <select
                   className="form-control"
                   value={preferredSchool}
@@ -2749,25 +2861,38 @@ export function CreateLeadModal({
                   ))}
                 </select>
               </div>
+            </div>
+
+            <div className="grid-2">
               <div className="form-group">
-                <label className="form-label">Annual Budget</label>
+                <label className="form-label">Annual Budget Capacity</label>
                 <select
                   className="form-control"
                   value={annualBudget}
                   onChange={(e) => setAnnualBudget(e.target.value)}
                 >
-                  <option value="₹5.5L - ₹7.5L">₹5.5L - ₹7.5L</option>
-                  <option value="₹8L - ₹12L">₹8L - ₹12L</option>
-                  <option value="₹12L - ₹18L">₹12L - ₹18L</option>
+                  <option value="₹4L - ₹6L">₹4 Lakhs - ₹6 Lakhs</option>
+                  <option value="₹5.5L - ₹7.5L">₹5.5 Lakhs - ₹7.5 Lakhs</option>
+                  <option value="₹8L - ₹12L">₹8 Lakhs - ₹12 Lakhs</option>
+                  <option value="₹12L - ₹18L">₹12 Lakhs - ₹18 Lakhs (Doon / Woodstock Tier)</option>
+                  <option value="₹18L+">₹18 Lakhs+ (International IB Tier)</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Boarding Intent</label>
+                <select className="form-control" defaultValue="Full Boarding Residential">
+                  <option value="Full Boarding Residential">Full Boarding Residential (2026-27)</option>
+                  <option value="Weekly Boarding">Weekly Boarding</option>
                 </select>
               </div>
             </div>
 
             <div className="form-group">
-              <label className="form-label">Initial Counsellor Remark</label>
+              <label className="form-label">Initial Counsellor Call Notes &amp; Feedback</label>
               <textarea
                 className="form-control"
-                placeholder="Parent looking for top boarding school in Dehradun with sports facilities..."
+                rows={2}
+                placeholder="Parent wants residential campus with strong sports legacy and ICSE curriculum..."
                 value={remarks}
                 onChange={(e) => setRemarks(e.target.value)}
               />
@@ -2783,8 +2908,7 @@ export function CreateLeadModal({
                 color: '#166534',
               }}
             >
-              📅 <strong>Auto-Schedule Follow-up:</strong> Next follow-up is automatically set to{' '}
-              <strong>+3 Days</strong> from submission.
+              🔒 <strong>Duplicate Protection Active:</strong> System Father &amp; Mother dono ke numbers ko instantly verify karta hai.
             </div>
           </div>
           <div className="modal-footer">
@@ -2792,7 +2916,7 @@ export function CreateLeadModal({
               Cancel
             </button>
             <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : '💾 Save & Submit for Verification'}
+              {isSubmitting ? 'Saving...' : '💾 Save Lead &amp; Submit for Manager Review'}
             </button>
           </div>
         </form>

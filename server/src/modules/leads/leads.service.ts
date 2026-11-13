@@ -44,10 +44,21 @@ export class LeadsService {
       uiStatus = 'Parent Interested';
     }
 
+    const remarks = Array.isArray(l.remarksJson) ? l.remarksJson : [];
+    const contactInfo = remarks.find((r: any) => r.fatherPhone || r.motherPhone) || {};
+    const fatherPhone = contactInfo.fatherPhone || l.parentPhone;
+    const motherPhone = contactInfo.motherPhone || l.parent?.alternateMobile || '';
+    const fatherName = contactInfo.fatherName || l.parentName;
+    const motherName = contactInfo.motherName || '';
+
     return {
       ...l,
       _id: l.id,
       leadId: formattedLeadId,
+      fatherName,
+      fatherPhone,
+      motherName,
+      motherPhone,
       studentId: l.student || {
         _id: l.studentId || l.id,
         name: l.studentName,
@@ -58,6 +69,7 @@ export class LeadsService {
         _id: l.parentId || l.id,
         name: l.parentName,
         mobile: l.parentPhone,
+        alternateMobile: motherPhone,
         email: l.parentEmail,
         city: l.city,
       },
@@ -82,7 +94,7 @@ export class LeadsService {
       leadStatus: uiStatus,
       statusEnum: l.status,
       annualBudget: l.annualBudget || '₹5.5L - ₹7.5L',
-      remarks: Array.isArray(l.remarksJson) ? l.remarksJson : [],
+      remarks,
       history: Array.isArray(l.historyJson) ? l.historyJson : [],
     };
   }
@@ -210,27 +222,36 @@ export class LeadsService {
     return stages;
   }
 
-  async checkDuplicate(body: { mobile?: string; parentPhone?: string; studentName?: string; admissionClass?: string }) {
-    const phoneInput = body.mobile || body.parentPhone || '';
-    const cleanPhone = phoneInput.replace(/\D/g, '').slice(-10);
+  async checkDuplicate(body: {
+    mobile?: string;
+    parentPhone?: string;
+    fatherPhone?: string;
+    motherPhone?: string;
+    studentName?: string;
+    admissionClass?: string;
+  }) {
+    const p1 = (body.fatherPhone || body.mobile || body.parentPhone || '').replace(/\D/g, '').slice(-10);
+    const p2 = (body.motherPhone || '').replace(/\D/g, '').slice(-10);
 
-    if (!cleanPhone && !body.studentName) {
+    const orConditions: any[] = [];
+    if (p1) {
+      orConditions.push({ parentPhone: { contains: p1 } });
+    }
+    if (p2) {
+      orConditions.push({ parentPhone: { contains: p2 } });
+    }
+    if (body.studentName?.trim()) {
+      orConditions.push({
+        studentName: { equals: body.studentName.trim(), mode: 'insensitive' as const },
+      });
+    }
+
+    if (orConditions.length === 0) {
       return { success: true, isDuplicate: false, matchedLead: null };
     }
 
     const existingLead = await this.prisma.lead.findFirst({
-      where: {
-        OR: [
-          ...(cleanPhone ? [{ parentPhone: { contains: cleanPhone } }] : []),
-          ...(body.studentName
-            ? [
-                {
-                  studentName: { equals: body.studentName.trim(), mode: 'insensitive' as const },
-                },
-              ]
-            : []),
-        ],
-      },
+      where: { OR: orConditions },
       include: {
         assignedCounsellor: { select: { fullName: true } },
       },
@@ -253,13 +274,17 @@ export class LeadsService {
   }
 
   async create(data: any, user?: any) {
-    const parentName = (data.parentName || '').trim();
-    const parentPhone = (data.mobile || data.parentPhone || '').trim();
+    const fatherName = (data.fatherName || data.parentName || '').trim();
+    const fatherPhone = (data.fatherPhone || data.mobile || data.parentPhone || '').trim();
+    const motherName = (data.motherName || '').trim();
+    const motherPhone = (data.motherPhone || '').trim();
+    const parentName = fatherName && motherName ? `${fatherName} & ${motherName}` : fatherName || motherName || 'Parent';
+    const parentPhone = fatherPhone || motherPhone;
     const studentName = (data.studentName || '').trim();
     const applyingForGrade = (data.admissionClass || data.applyingForGrade || 'Class 6').trim();
 
     if (!parentName || !parentPhone || !studentName) {
-      throw new BadRequestException('Parent Name, Mobile, and Student Name are required.');
+      throw new BadRequestException('Student Name, Father Name & Contact, and Mother Name & Contact are required.');
     }
 
     // 1. Upsert Parent
@@ -267,12 +292,14 @@ export class LeadsService {
       where: { mobile: parentPhone },
       update: {
         name: parentName,
+        alternateMobile: motherPhone || undefined,
         email: data.parentEmail || data.email || undefined,
         city: data.city || 'Dehradun',
       },
       create: {
         name: parentName,
         mobile: parentPhone,
+        alternateMobile: motherPhone || null,
         email: data.parentEmail || data.email || '',
         city: data.city || 'Dehradun',
         state: data.state || 'Uttarakhand',
@@ -309,16 +336,28 @@ export class LeadsService {
     const isDraft = Boolean(data.isDraft);
     const verificationStatus = isDraft ? VerificationStatus.DRAFT : VerificationStatus.PENDING_VERIFICATION;
 
-    const initialRemarks = data.remarks
-      ? [
-          {
-            author: user?.fullName || 'Counsellor',
-            role: user?.role || 'counsellor',
-            note: data.remarks,
-            createdAt: new Date().toISOString(),
-          },
-        ]
-      : [];
+    const initialRemarks = [
+      ...(data.remarks
+        ? [
+            {
+              author: user?.fullName || 'Counsellor',
+              role: user?.role || 'counsellor',
+              note: data.remarks,
+              createdAt: new Date().toISOString(),
+            },
+          ]
+        : []),
+      {
+        author: 'System',
+        role: 'system',
+        note: `Registered Dual Parent Contacts: Father (${fatherName}: ${fatherPhone}), Mother (${motherName}: ${motherPhone || 'N/A'})`,
+        fatherName,
+        fatherPhone,
+        motherName,
+        motherPhone,
+        createdAt: new Date().toISOString(),
+      },
+    ];
 
     const initialHistory = [
       {

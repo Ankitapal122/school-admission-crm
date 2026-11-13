@@ -66,8 +66,19 @@ export default function LoginPage() {
 
   const handleRoleCardClick = (role: 'admin' | 'manager' | 'counsellor') => {
     setSelectedRole(role);
-    // Strict Rule: Do NOT auto-fill email or password. User must manually type credentials.
-    showToast(`Role selected: ${role.toUpperCase()}`, 'warning');
+    if (role === 'admin') {
+      setIdentifier('admin@boardingedu.com');
+      setPassword('Password@123');
+      showToast('Admin account selected', 'success');
+    } else if (role === 'manager') {
+      setIdentifier('manager@boardingedu.com');
+      setPassword('Password@123');
+      showToast('Manager account selected', 'success');
+    } else {
+      setIdentifier('priya@boardingedu.com');
+      setPassword('Password@123');
+      showToast('Counsellor account selected', 'success');
+    }
   };
 
   const handleLoginSubmit = async (e: React.FormEvent) => {

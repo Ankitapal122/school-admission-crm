@@ -64,20 +64,6 @@ export default function Navbar({
           <span>☰</span>
         </button>
         <h1 className="page-title">{formatPageTitle(currentTab)}</h1>
-        {previewRole && (
-          <div className="preview-badge-banner">
-            <span>👁️</span> PREVIEW MODE: Viewing interface as{' '}
-            <strong>{previewRole === 'SENIOR_MANAGER' ? 'MANAGER' : 'COUNSELLOR'}</strong> (Admin
-            permissions intact)
-            <button
-              className="btn btn-sm btn-outline"
-              style={{ marginLeft: '6px', padding: '2px 6px' }}
-              onClick={() => handlePreviewChange('')}
-            >
-              Exit Preview
-            </button>
-          </div>
-        )}
       </div>
 
       <div className="topbar-right">
@@ -106,15 +92,33 @@ export default function Navbar({
                 )
               : undefined
           }
+          aria-label="Notifications"
         >
           <span>🔔</span>
           <span className="dot"></span>
         </button>
 
         <button className="btn btn-primary btn-sm" onClick={onOpenNewLead}>
-          ➕ New Lead
+          ➕ <span className="hidden sm:inline">New </span>Lead
         </button>
       </div>
+
+      {previewRole && (
+        <div className="preview-badge-banner">
+          <div>
+            <span>👁️</span> PREVIEW MODE: Viewing interface as{' '}
+            <strong>{previewRole === 'SENIOR_MANAGER' ? 'MANAGER' : 'COUNSELLOR'}</strong> (Admin
+            permissions intact)
+          </div>
+          <button
+            className="btn btn-sm btn-outline"
+            style={{ marginLeft: '6px', padding: '2px 8px' }}
+            onClick={() => handlePreviewChange('')}
+          >
+            Exit Preview
+          </button>
+        </div>
+      )}
     </header>
   );
 }
