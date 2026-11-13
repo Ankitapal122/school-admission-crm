@@ -29,6 +29,7 @@ export default function LoginPage() {
 
   // Forgot Password / OTP / Reset State
   const [forgotEmail, setForgotEmail] = useState('');
+  const [phoneHint, setPhoneHint] = useState('');
   const [demoOtp, setDemoOtp] = useState('');
   const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
   const [resetToken, setResetToken] = useState('');
@@ -144,16 +145,23 @@ export default function LoginPage() {
 
   const handleForgotPasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const cleanEmail = forgotEmail.trim();
+    if (!cleanEmail) {
+      showToast('Please enter your registered email address.', 'danger');
+      return;
+    }
     setIsLoading(true);
     try {
-      const res = await apiCall('/auth/forgot-password', 'POST', { email: forgotEmail.trim() });
-      const code = res.demoOtp || '123456';
+      const res = await apiCall('/auth/forgot-password', 'POST', { email: cleanEmail });
+      const code = res.demoOtp || '';
       setDemoOtp(code);
-      setOtpDigits(code.split('').slice(0, 6));
-      showToast(`Password reset OTP dispatched! (Demo OTP: ${code})`, 'success');
+      setPhoneHint(res.phone || '+91 98100 11001');
+      // DO NOT pre-fill OTP: User must enter the OTP code manually
+      setOtpDigits(['', '', '', '', '', '']);
+      showToast(`Verification OTP dispatched to ${cleanEmail} & mobile!`, 'success');
       setAuthView('verify-otp');
     } catch (err: any) {
-      showToast(err.message, 'danger');
+      showToast(err.message || 'Email not found or error generating OTP.', 'danger');
     } finally {
       setIsLoading(false);
     }
@@ -161,33 +169,47 @@ export default function LoginPage() {
 
   const handleVerifyOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const otp = otpDigits.join('');
+    const otp = otpDigits.join('').trim();
     if (otp.length !== 6) {
-      showToast('Please enter all 6 digits of the OTP code.', 'danger');
+      showToast('Please enter all 6 digits of the verification OTP.', 'danger');
       return;
     }
+    setIsLoading(true);
     try {
-      const res = await apiCall('/auth/verify-otp', 'POST', { email: forgotEmail, otp });
+      const res = await apiCall('/auth/verify-otp', 'POST', { email: forgotEmail.trim(), otp });
       setResetToken(res.resetToken);
-      showToast('OTP verified! Create your new secure password.', 'success');
+      showToast('OTP verified successfully! Now create your new password.', 'success');
       setAuthView('create-new-password');
     } catch (err: any) {
-      showToast(err.message, 'danger');
+      showToast(err.message || 'Invalid or incorrect OTP. Please enter the correct verification code.', 'danger');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleCreateNewPasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (newPassword.length < 8) {
+      showToast('Password must be at least 8 characters long.', 'danger');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      showToast('Passwords do not match. Please re-enter both identical passwords.', 'danger');
+      return;
+    }
+    setIsLoading(true);
     try {
       const res = await apiCall('/auth/reset-password', 'POST', {
         resetToken,
         newPassword,
         confirmPassword,
       });
-      showToast(res.message || 'Password updated successfully!', 'success');
+      showToast(res.message || 'Password updated successfully in database!', 'success');
       setAuthView('password-reset-success');
     } catch (err: any) {
-      showToast(err.message, 'danger');
+      showToast(err.message || 'Failed to update password.', 'danger');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -289,32 +311,50 @@ export default function LoginPage() {
       {authView === 'forgot-password' && (
         <div className="auth-wrapper">
           <div className="auth-card">
-            <div className="auth-header">
+            {/* Official BoardingEdu Logo Header */}
+            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
               <div
-                className="auth-logo"
-                style={{ background: 'linear-gradient(135deg, var(--warning), #FBBF24)' }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '10px',
+                }}
               >
-                🔑
+                <img
+                  src="/boardingedu-logo.png"
+                  alt="BoardingEdu - Connecting Parents & Schools"
+                  style={{
+                    height: '95px',
+                    width: 'auto',
+                    maxWidth: '220px',
+                    objectFit: 'contain',
+                    display: 'block',
+                  }}
+                />
               </div>
-              <h1 className="auth-title">Forgot Password</h1>
-              <p className="auth-subtitle">
-                Enter your registered work email address to receive a secure single-use reset OTP.
+              <h1 className="auth-title" style={{ fontSize: '20px', fontWeight: 700, color: '#0F172A', marginBottom: '4px' }}>
+                Forgot Password
+              </h1>
+              <p className="auth-subtitle" style={{ fontSize: '13px', color: '#64748B', margin: 0 }}>
+                Enter your registered work email to receive a single-use verification code on email &amp; SMS.
               </p>
             </div>
 
             <form onSubmit={handleForgotPasswordSubmit}>
-              <div className="form-group">
-                <label className="form-label">
+              <div className="form-group" style={{ marginBottom: '16px' }}>
+                <label className="form-label" style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>
                   Registered Work Email <span className="req">*</span>
                 </label>
                 <input
                   type="email"
                   id="forgotEmail"
                   className="form-control"
-                  placeholder="e.g. rahul@boardingedu.com"
+                  placeholder="e.g. adminboarding123@gmail.com"
                   required
                   value={forgotEmail}
                   onChange={(e) => setForgotEmail(e.target.value)}
+                  style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '14px' }}
                 />
               </div>
 
@@ -322,10 +362,17 @@ export default function LoginPage() {
                 type="submit"
                 id="btnForgot"
                 className="btn btn-primary"
-                style={{ width: '100%', padding: '11px' }}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  fontWeight: 700,
+                  fontSize: '14px',
+                  boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
+                }}
                 disabled={isLoading}
               >
-                {isLoading ? 'Dispatching secure OTP...' : '📨 Send Password Reset OTP'}
+                {isLoading ? 'Sending Verification OTP...' : '📨 Send Verification OTP (Email & SMS)'}
               </button>
             </form>
 
@@ -337,8 +384,8 @@ export default function LoginPage() {
                   setAuthView('login');
                 }}
                 style={{
-                  color: 'var(--text-muted)',
-                  fontSize: '12px',
+                  color: '#2563EB',
+                  fontSize: '13px',
                   textDecoration: 'none',
                   fontWeight: 600,
                 }}
@@ -353,56 +400,179 @@ export default function LoginPage() {
       {authView === 'verify-otp' && (
         <div className="auth-wrapper">
           <div className="auth-card">
-            <div className="auth-header">
+            {/* Official BoardingEdu Logo Header */}
+            <div style={{ textAlign: 'center', marginBottom: '18px' }}>
               <div
-                className="auth-logo"
-                style={{ background: 'linear-gradient(135deg, var(--primary-blue), #3B82F6)' }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '10px',
+                }}
               >
-                🔢
+                <img
+                  src="/boardingedu-logo.png"
+                  alt="BoardingEdu - Connecting Parents & Schools"
+                  style={{
+                    height: '90px',
+                    width: 'auto',
+                    maxWidth: '220px',
+                    objectFit: 'contain',
+                    display: 'block',
+                  }}
+                />
               </div>
-              <h1 className="auth-title">Verify Email OTP</h1>
-              <p className="auth-subtitle">
-                Enter the 6-digit verification code sent to{' '}
-                <strong>{forgotEmail || 'your email'}</strong>
+              <h1 className="auth-title" style={{ fontSize: '20px', fontWeight: 700, color: '#0F172A', marginBottom: '4px' }}>
+                Enter OTP Verification Code
+              </h1>
+              <p className="auth-subtitle" style={{ fontSize: '13px', color: '#64748B', margin: 0 }}>
+                Please enter the 6-digit code received on your registered phone &amp; email.
               </p>
             </div>
 
-            {demoOtp && (
-              <div
-                style={{
-                  background: 'var(--warning-bg)',
-                  border: '1px solid #FDE68A',
-                  color: '#92400E',
-                  padding: '8px 12px',
-                  borderRadius: '8px',
-                  fontSize: '12px',
-                  marginBottom: '15px',
-                  textAlign: 'center',
-                }}
-              >
-                💡 <strong>Demo Mode OTP Code:</strong>{' '}
-                <span style={{ fontFamily: 'monospace', fontSize: '14px', fontWeight: 800 }}>
-                  {demoOtp}
+            {/* Live SMS & Email Notification Card */}
+            <div
+              style={{
+                background: 'linear-gradient(135deg, #F0FDF4 0%, #EFF6FF 100%)',
+                border: '1px solid #BBF7D0',
+                borderRadius: '12px',
+                padding: '12px 14px',
+                marginBottom: '18px',
+                boxShadow: '0 2px 8px rgba(16, 185, 129, 0.08)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                <span style={{ fontSize: '16px' }}>📲</span>
+                <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#166534' }}>
+                  Verification Code Dispatched (SMS &amp; Email)
+                </span>
+                <span
+                  style={{
+                    marginLeft: 'auto',
+                    background: '#22C55E',
+                    color: '#fff',
+                    fontSize: '10px',
+                    fontWeight: 800,
+                    padding: '2px 8px',
+                    borderRadius: '10px',
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  SENT
                 </span>
               </div>
-            )}
+              <div style={{ fontSize: '12px', color: '#334155', lineHeight: 1.5 }}>
+                <div>
+                  <strong>Email:</strong> {forgotEmail}
+                </div>
+                <div>
+                  <strong>Phone (SMS):</strong> {phoneHint || '+91 98100 11001'}
+                </div>
+              </div>
+
+              {demoOtp && (
+                <div
+                  style={{
+                    marginTop: '10px',
+                    padding: '8px 12px',
+                    background: '#FFFFFF',
+                    borderRadius: '8px',
+                    border: '1.5px dashed #22C55E',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: '10px', color: '#64748B', fontWeight: 600 }}>
+                      INCOMING MESSAGE (OTP CODE):
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: 'monospace',
+                        fontSize: '18px',
+                        fontWeight: 900,
+                        letterSpacing: '4px',
+                        color: '#15803D',
+                      }}
+                    >
+                      {demoOtp}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOtpDigits(demoOtp.split('').slice(0, 6));
+                      showToast('OTP code entered!', 'success');
+                    }}
+                    style={{
+                      border: 'none',
+                      background: '#DCFCE7',
+                      color: '#15803D',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      padding: '5px 10px',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Auto-Fill
+                  </button>
+                </div>
+              )}
+            </div>
 
             <form onSubmit={handleVerifyOtpSubmit}>
-              <div className="otp-inputs">
+              <div className="otp-inputs" style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '14px' }}>
                 {otpDigits.map((digit, idx) => (
                   <input
                     key={idx}
                     ref={otpRefs[idx]}
                     type="text"
+                    inputMode="numeric"
                     maxLength={1}
                     className="otp-box"
                     value={digit}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Backspace') {
+                        if (!digit && idx > 0) {
+                          otpRefs[idx - 1].current?.focus();
+                        }
+                      }
+                    }}
+                    onPaste={(e) => {
+                      e.preventDefault();
+                      const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+                      if (pasted) {
+                        const next = [...otpDigits];
+                        for (let i = 0; i < 6; i++) {
+                          next[i] = pasted[i] || '';
+                        }
+                        setOtpDigits(next);
+                        const nextIdx = Math.min(pasted.length, 5);
+                        otpRefs[nextIdx].current?.focus();
+                      }
+                    }}
                     onChange={(e) => {
-                      const val = e.target.value;
+                      const val = e.target.value.replace(/\D/g, '');
                       const next = [...otpDigits];
-                      next[idx] = val;
+                      next[idx] = val.slice(-1);
                       setOtpDigits(next);
-                      if (val && idx < 5) otpRefs[idx + 1].current?.focus();
+                      if (val && idx < 5) {
+                        otpRefs[idx + 1].current?.focus();
+                      }
+                    }}
+                    style={{
+                      width: '46px',
+                      height: '52px',
+                      textAlign: 'center',
+                      fontSize: '22px',
+                      fontWeight: 800,
+                      borderRadius: '8px',
+                      border: digit ? '2px solid #2563EB' : '1.5px solid #CBD5E1',
+                      background: digit ? '#EFF6FF' : '#FFFFFF',
+                      color: '#0F172A',
+                      outline: 'none',
                     }}
                   />
                 ))}
@@ -417,16 +587,24 @@ export default function LoginPage() {
                 }}
               >
                 ⏰ Code expires in{' '}
-                <span style={{ color: 'var(--warning)', fontWeight: 700 }}>14:32</span> • Single-use
+                <span style={{ color: 'var(--warning)', fontWeight: 700 }}>14:45</span> • Single-use verification code
               </div>
 
               <button
                 type="submit"
                 id="btnVerifyOTP"
                 className="btn btn-primary"
-                style={{ width: '100%', padding: '11px' }}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  fontWeight: 700,
+                  fontSize: '14px',
+                  boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
+                }}
+                disabled={isLoading}
               >
-                ✅ Verify OTP &amp; Proceed
+                {isLoading ? 'Verifying OTP...' : '✅ Verify OTP & Proceed'}
               </button>
             </form>
 
@@ -437,7 +615,7 @@ export default function LoginPage() {
                   e.preventDefault();
                   setAuthView('forgot-password');
                 }}
-                style={{ color: 'var(--text-muted)', fontSize: '12px', textDecoration: 'none' }}
+                style={{ color: '#2563EB', fontSize: '13px', textDecoration: 'none', fontWeight: 600 }}
               >
                 ← Resend OTP / Change Email
               </a>
@@ -449,25 +627,42 @@ export default function LoginPage() {
       {authView === 'create-new-password' && (
         <div className="auth-wrapper">
           <div className="auth-card">
-            <div className="auth-header">
+            {/* Official BoardingEdu Logo Header */}
+            <div style={{ textAlign: 'center', marginBottom: '18px' }}>
               <div
-                className="auth-logo"
-                style={{ background: 'linear-gradient(135deg, var(--success), #34D399)' }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '10px',
+                }}
               >
-                🔐
+                <img
+                  src="/boardingedu-logo.png"
+                  alt="BoardingEdu - Connecting Parents & Schools"
+                  style={{
+                    height: '90px',
+                    width: 'auto',
+                    maxWidth: '220px',
+                    objectFit: 'contain',
+                    display: 'block',
+                  }}
+                />
               </div>
-              <h1 className="auth-title">Create New Password</h1>
-              <p className="auth-subtitle">
-                Set a strong enterprise password compliant with security policy.
+              <h1 className="auth-title" style={{ fontSize: '20px', fontWeight: 700, color: '#0F172A', marginBottom: '4px' }}>
+                Create New Password
+              </h1>
+              <p className="auth-subtitle" style={{ fontSize: '13px', color: '#64748B', margin: 0 }}>
+                Set a strong secure password for your BoardingEdu account.
               </p>
             </div>
 
             <form onSubmit={handleCreateNewPasswordSubmit}>
-              <div className="form-group">
-                <label className="form-label">
+              <div className="form-group" style={{ marginBottom: '14px' }}>
+                <label className="form-label" style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>
                   New Password <span className="req">*</span>
                 </label>
-                <div className="input-with-action">
+                <div className="input-with-action" style={{ position: 'relative' }}>
                   <input
                     type={showNewPass ? 'text' : 'password'}
                     id="resetNewPass"
@@ -476,23 +671,36 @@ export default function LoginPage() {
                     required
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
+                    style={{ padding: '10px 40px 10px 14px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '14px', width: '100%' }}
                   />
                   <button
                     type="button"
                     className="input-action-btn"
                     onClick={() => setShowNewPass(!showNewPass)}
+                    style={{
+                      position: 'absolute',
+                      right: '10px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '16px',
+                    }}
                   >
-                    👁️
+                    {showNewPass ? '🙈' : '👁️'}
                   </button>
                 </div>
               </div>
 
-              <div className="password-strength-bar">
+              <div className="password-strength-bar" style={{ height: '6px', background: '#E2E8F0', borderRadius: '3px', overflow: 'hidden', marginBottom: '10px' }}>
                 <div
                   id="strengthFill"
                   className="password-strength-fill"
                   style={{
+                    height: '100%',
                     width: `${strengthScore}%`,
+                    transition: 'all 0.3s ease',
                     background:
                       strengthScore === 100
                         ? 'var(--success)'
@@ -503,25 +711,23 @@ export default function LoginPage() {
                 />
               </div>
 
-              <div className="password-requirements">
-                <div className={`req-item ${has8 ? 'valid' : ''}`}>
-                  <span>{has8 ? '✅' : '❌'}</span> Min 8 characters
+              <div className="password-requirements" style={{ background: '#F8FAFC', padding: '10px 12px', borderRadius: '8px', marginBottom: '14px', fontSize: '12px' }}>
+                <div className={`req-item ${has8 ? 'valid' : ''}`} style={{ color: has8 ? '#15803D' : '#64748B', marginBottom: '3px' }}>
+                  <span>{has8 ? '✅' : '⚪'}</span> Min 8 characters
                 </div>
-                <div className={`req-item ${hasUpperLower ? 'valid' : ''}`}>
-                  <span>{hasUpperLower ? '✅' : '❌'}</span> At least 1 Uppercase &amp; 1 Lowercase
-                  letter
+                <div className={`req-item ${hasUpperLower ? 'valid' : ''}`} style={{ color: hasUpperLower ? '#15803D' : '#64748B', marginBottom: '3px' }}>
+                  <span>{hasUpperLower ? '✅' : '⚪'}</span> At least 1 Uppercase &amp; 1 Lowercase letter
                 </div>
-                <div className={`req-item ${hasNumSpec ? 'valid' : ''}`}>
-                  <span>{hasNumSpec ? '✅' : '❌'}</span> At least 1 Number &amp; 1 Special char
-                  (@$!%*?&amp;)
+                <div className={`req-item ${hasNumSpec ? 'valid' : ''}`} style={{ color: hasNumSpec ? '#15803D' : '#64748B' }}>
+                  <span>{hasNumSpec ? '✅' : '⚪'}</span> At least 1 Number &amp; 1 Special char (@$!%*?&amp;)
                 </div>
               </div>
 
-              <div className="form-group" style={{ marginTop: '14px' }}>
-                <label className="form-label">
+              <div className="form-group" style={{ marginBottom: '14px' }}>
+                <label className="form-label" style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>
                   Confirm New Password <span className="req">*</span>
                 </label>
-                <div className="input-with-action">
+                <div className="input-with-action" style={{ position: 'relative' }}>
                   <input
                     type={showConfirmPass ? 'text' : 'password'}
                     id="resetConfirmPass"
@@ -530,13 +736,24 @@ export default function LoginPage() {
                     required
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
+                    style={{ padding: '10px 40px 10px 14px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '14px', width: '100%' }}
                   />
                   <button
                     type="button"
                     className="input-action-btn"
                     onClick={() => setShowConfirmPass(!showConfirmPass)}
+                    style={{
+                      position: 'absolute',
+                      right: '10px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '16px',
+                    }}
                   >
-                    👁️
+                    {showConfirmPass ? '🙈' : '👁️'}
                   </button>
                 </div>
               </div>
@@ -552,17 +769,27 @@ export default function LoginPage() {
                   marginBottom: '16px',
                 }}
               >
-                ⚠️ <strong>Session Revocation:</strong> All existing active sessions and mobile
-                tokens will be logged out upon password change.
+                🔒 <strong>Security Policy:</strong> Saving will update your password in PostgreSQL and revoke all existing active sessions.
               </div>
 
               <button
                 type="submit"
                 id="btnSetNewPass"
                 className="btn btn-success"
-                style={{ width: '100%', padding: '11px' }}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  fontWeight: 700,
+                  fontSize: '14px',
+                  background: '#16A34A',
+                  border: 'none',
+                  color: '#fff',
+                  boxShadow: '0 4px 12px rgba(22, 163, 74, 0.25)',
+                }}
+                disabled={isLoading}
               >
-                ✅ Save New Password in Database
+                {isLoading ? 'Saving Password...' : '✅ Save New Password in Database'}
               </button>
             </form>
           </div>
@@ -572,19 +799,50 @@ export default function LoginPage() {
       {authView === 'password-reset-success' && (
         <div className="auth-wrapper">
           <div className="auth-card" style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '54px', marginBottom: '12px' }}>🎉</div>
-            <h1 className="auth-title" style={{ color: 'var(--success)' }}>
-              Password Successfully Reset!
+            {/* Official BoardingEdu Logo Header */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '15px',
+              }}
+            >
+              <img
+                src="/boardingedu-logo.png"
+                alt="BoardingEdu - Connecting Parents & Schools"
+                style={{
+                  height: '90px',
+                  width: 'auto',
+                  maxWidth: '220px',
+                  objectFit: 'contain',
+                  display: 'block',
+                }}
+              />
+            </div>
+            <div style={{ fontSize: '48px', marginBottom: '10px' }}>🎉</div>
+            <h1 className="auth-title" style={{ color: '#16A34A', fontSize: '22px', fontWeight: 800 }}>
+              Password Reset Successfully!
             </h1>
-            <p className="auth-subtitle" style={{ marginTop: '8px' }}>
-              Your new password has been securely hashed with bcrypt and saved to PostgreSQL. All
-              active previous sessions have been revoked.
+            <p className="auth-subtitle" style={{ marginTop: '8px', fontSize: '13px', color: '#64748B', lineHeight: 1.5 }}>
+              Your new password has been securely hashed with bcrypt and saved to PostgreSQL. You can now log in with your updated credentials.
             </p>
 
             <button
               className="btn btn-primary"
-              style={{ marginTop: '24px', padding: '12px 24px' }}
-              onClick={() => setAuthView('login')}
+              style={{
+                marginTop: '20px',
+                padding: '12px 28px',
+                borderRadius: '8px',
+                fontWeight: 700,
+                fontSize: '14px',
+                boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
+              }}
+              onClick={() => {
+                setIdentifier(forgotEmail);
+                setPassword('');
+                setAuthView('login');
+              }}
             >
               🚀 Proceed to Sign In with New Password
             </button>

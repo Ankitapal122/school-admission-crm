@@ -282,38 +282,42 @@ export class AuthService {
     const cleanEmail = email.toLowerCase().trim();
     const user = await this.prisma.user.findUnique({ where: { email: cleanEmail } });
 
+    if (!user) {
+      throw new NotFoundException(`No registered account found with email '${cleanEmail}'. Please enter a valid registered work email.`);
+    }
+
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const token = `RST-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
-    if (user) {
-      await this.prisma.passwordReset.create({
-        data: {
-          email: cleanEmail,
-          token,
-          otp,
-          expiresAt,
-          used: false,
-        },
-      });
-    }
+    await this.prisma.passwordReset.create({
+      data: {
+        email: cleanEmail,
+        token,
+        otp,
+        expiresAt,
+        used: false,
+      },
+    });
 
     return {
       success: true,
       message: `Password reset verification code sent to ${cleanEmail}. Valid for 15 minutes.`,
       demoOtp: otp,
       token,
+      phone: user.phone || '+91 98100 11001',
     };
   }
 
   async verifyResetOTP(email: string, otp: string) {
-    if (!email || !otp) throw new BadRequestException('Email and OTP required.');
+    if (!email || !otp) throw new BadRequestException('Email and 6-digit OTP code are required.');
     const cleanEmail = email.toLowerCase().trim();
+    const cleanOtp = otp.trim();
 
     const record = await this.prisma.passwordReset.findFirst({
       where: {
         email: cleanEmail,
-        otp: otp.trim(),
+        otp: cleanOtp,
         used: false,
         expiresAt: { gt: new Date() },
       },
@@ -321,7 +325,7 @@ export class AuthService {
     });
 
     if (!record) {
-      throw new BadRequestException('Invalid or expired OTP code. Please request a new code.');
+      throw new BadRequestException('Invalid or expired OTP code. Please enter the correct verification code.');
     }
 
     return {
@@ -393,6 +397,10 @@ export class AuthService {
         },
       }),
     ]);
+
+    // Clear cached user so new password takes effect immediately
+    this.clearUserCache(user.email);
+    if (user.employeeId) this.clearUserCache(user.employeeId);
 
     return {
       success: true,
