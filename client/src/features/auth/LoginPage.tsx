@@ -704,10 +704,10 @@ export default function LoginPage() {
         <div className="auth-wrapper">
           <div className="auth-card">
             {/* Official BoardingEdu Logo Header */}
-            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
               <div
                 style={{
-                  display: 'inline-flex',
+                  display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   marginBottom: '10px',
@@ -717,15 +717,15 @@ export default function LoginPage() {
                   src="/boardingedu-logo.png"
                   alt="BoardingEdu - Connecting Parents & Schools"
                   style={{
-                    height: '96px',
+                    height: '115px',
                     width: 'auto',
-                    maxWidth: '100%',
+                    maxWidth: '260px',
                     objectFit: 'contain',
-                    filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.06))',
+                    display: 'block',
                   }}
                 />
               </div>
-              <p style={{ fontSize: '13.5px', color: '#64748B', fontWeight: 600 }}>
+              <p style={{ fontSize: '14px', color: '#64748B', fontWeight: 600 }}>
                 Login to Your Account
               </p>
             </div>
