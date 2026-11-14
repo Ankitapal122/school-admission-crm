@@ -791,10 +791,12 @@ export class AuthService {
     return {
       sent: true,
       email: user.email,
+      phone: user.phone || '+91 98765 43200',
       message: mailRes.delivered
         ? 'Verification OTP sent to your registered email address.'
-        : 'Verification OTP generated (check email / dev OTP preview).',
-      ...(!mailRes.delivered ? { devOtp: otp } : {}),
+        : 'Verification OTP generated (check email / OTP preview).',
+      demoOtp: otp,
+      devOtp: otp,
     };
   }
 

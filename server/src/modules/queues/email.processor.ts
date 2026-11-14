@@ -8,17 +8,28 @@ export class EmailProcessor {
 
   private getTransporter(): nodemailer.Transporter | null {
     if (this.transporter) return this.transporter;
-    const host = process.env.SMTP_HOST || (process.env.BREVO_API_KEY ? 'smtp-relay.brevo.com' : '');
-    const user = process.env.SMTP_USER || process.env.BREVO_SMTP_USER || '';
-    const pass = process.env.SMTP_PASS || process.env.BREVO_API_KEY || '';
+    const user =
+      process.env.SMTP_USER ||
+      process.env.EMAIL_USER ||
+      process.env.BREVO_SMTP_USER ||
+      '';
+    const pass =
+      process.env.SMTP_PASS ||
+      process.env.EMAIL_PASS ||
+      process.env.BREVO_API_KEY ||
+      '';
+    const host =
+      process.env.SMTP_HOST ||
+      (process.env.BREVO_API_KEY ? 'smtp-relay.brevo.com' : user ? 'smtp.gmail.com' : '');
     if (!host || !user || !pass) {
       return null;
     }
+    const port = Number(process.env.SMTP_PORT || 587);
     this.transporter = nodemailer.createTransport({
       host,
-      port: Number(process.env.SMTP_PORT || 587),
-      secure: false,
-      auth: { user, pass },
+      port,
+      secure: port === 465,
+      auth: { user, pass: pass.replace(/\s+/g, '') },
     });
     return this.transporter;
   }
