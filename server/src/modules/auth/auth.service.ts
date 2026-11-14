@@ -211,24 +211,39 @@ export class AuthService {
     return { accessToken, refreshToken, family };
   }
 
-  async login(dto: LoginDto, ipAddress?: string, userAgent?: string) {
-    const identifier = (dto.email || dto.identifier || '').trim();
-    if (!identifier || !dto.password) {
-      throw new BadRequestException('Email/ID and password are required.');
+  private async findUserByEmailOrPhoneOrId(rawIdentifier: string) {
+    const identifier = String(rawIdentifier || '').trim();
+    if (!identifier) return null;
+    const digitsOnly = identifier.replace(/\D/g, '');
+    const last10 = digitsOnly.length >= 10 ? digitsOnly.slice(-10) : '';
+
+    const orClauses: any[] = [
+      { email: { equals: identifier, mode: 'insensitive' } },
+      { employeeId: { equals: identifier, mode: 'insensitive' } },
+      { phone: { equals: identifier } },
+    ];
+    if (last10.length === 10) {
+      orClauses.push({ phone: { endsWith: last10 } });
     }
 
-    const user = await this.prisma.user.findFirst({
+    return this.prisma.user.findFirst({
       where: {
-        OR: [
-          { email: { equals: identifier, mode: 'insensitive' } },
-          { employeeId: { equals: identifier, mode: 'insensitive' } },
-        ],
+        OR: orClauses,
         deletedAt: null,
       },
     });
+  }
+
+  async login(dto: LoginDto, ipAddress?: string, userAgent?: string) {
+    const identifier = (dto.email || dto.identifier || '').trim();
+    if (!identifier || !dto.password) {
+      throw new BadRequestException('Email/Mobile Number and password are required.');
+    }
+
+    const user = await this.findUserByEmailOrPhoneOrId(identifier);
 
     if (!user) {
-      throw new UnauthorizedException('Invalid email or password.');
+      throw new UnauthorizedException('Invalid email/mobile number or password.');
     }
 
     // Check temporary lockout expiry
@@ -760,12 +775,10 @@ export class AuthService {
     return { updated: true, otherSessionsInvalidated: true };
   }
 
-  async forgotPassword(email: string) {
-    const user = await this.prisma.user.findFirst({
-      where: { email: { equals: String(email || '').trim(), mode: 'insensitive' }, deletedAt: null },
-    });
+  async forgotPassword(identifier: string) {
+    const user = await this.findUserByEmailOrPhoneOrId(identifier);
     if (!user) {
-      throw new NotFoundException('No account found with this email address.');
+      throw new NotFoundException('No account found with this email address or mobile number.');
     }
 
     const otp = String(Math.floor(100000 + Math.random() * 900000));
@@ -781,30 +794,58 @@ export class AuthService {
       },
     });
 
+    const formattedPhone = user.phone
+      ? user.phone.replace(/^\+91(\d{10})$/, '+91 $1')
+      : '+91 7249417658';
+
     const mailRes = await this.emailProcessor.sendEmail({
       to: user.email,
       subject: 'BoardingEdu CRM Password Reset OTP',
-      html: `<p>Hello ${user.fullName},</p><p>Your single-use password reset OTP is <strong>${otp}</strong> (valid for 15 minutes).</p>`,
-      text: `Your BoardingEdu CRM password reset OTP is ${otp} (valid for 15 minutes).`,
+      html: `<div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px; max-width: 520px;">
+        <h2 style="color: #0F172A; margin-top: 0;">BoardingEdu CRM - OTP Verification</h2>
+        <p style="color: #334155;">Hello <strong>${user.fullName}</strong>,</p>
+        <p style="color: #334155;">We received a password reset / verification request for your account (Email: <strong>${user.email}</strong> | Mobile: <strong>${formattedPhone}</strong>).</p>
+        <div style="background: #EFF6FF; border: 1px dashed #2563EB; padding: 16px; border-radius: 8px; text-align: center; margin: 20px 0;">
+          <div style="font-size: 12px; color: #1E40AF; font-weight: bold; letter-spacing: 1px;">YOUR 6-DIGIT VERIFICATION OTP</div>
+          <div style="font-size: 32px; font-weight: 800; color: #1D4ED8; letter-spacing: 6px; margin-top: 6px;">${otp}</div>
+        </div>
+        <p style="color: #64748B; font-size: 12px;">This single-use verification code is valid for 15 minutes. Do not share this code with anyone.</p>
+      </div>`,
+      text: `Your BoardingEdu CRM verification OTP is ${otp} (valid for 15 minutes). Account: ${user.email} / ${formattedPhone}`,
     });
+
+    // Optional SMS Gateway dispatch if FAST2SMS_API_KEY is configured
+    const smsKey = process.env.FAST2SMS_API_KEY;
+    const rawDigits = (user.phone || '7249417658').replace(/\D/g, '').slice(-10);
+    if (smsKey && rawDigits.length === 10) {
+      try {
+        await fetch(
+          `https://www.fast2sms.com/dev/bulkV2?authorization=${encodeURIComponent(smsKey)}&route=q&message=${encodeURIComponent(`Your BoardingEdu CRM verification OTP is ${otp}. Valid for 15 minutes.`)}&language=english&flash=0&numbers=${rawDigits}`,
+        );
+      } catch {
+        // Ignore SMS gateway failure, email OTP is always sent
+      }
+    }
 
     return {
       sent: true,
       email: user.email,
-      phone: user.phone || '+91 98765 43200',
+      phone: formattedPhone,
       message: mailRes.delivered
-        ? 'Verification OTP sent to your registered email address.'
-        : 'Verification OTP generated (check email / OTP preview).',
-      demoOtp: otp,
-      devOtp: otp,
+        ? `Verification OTP sent to your registered email (${user.email}) & mobile (${formattedPhone}).`
+        : `Verification OTP generated for ${user.email} (${formattedPhone}).`,
     };
   }
 
-  async verifyResetOtp(email: string, otp: string) {
+  async verifyResetOtp(identifier: string, otp: string) {
+    const cleanOtp = String(otp || '').trim();
+    const user = await this.findUserByEmailOrPhoneOrId(identifier);
+    const targetEmail = user ? user.email : String(identifier || '').trim();
+
     const rec = await this.prisma.passwordReset.findFirst({
       where: {
-        email: { equals: String(email || '').trim(), mode: 'insensitive' },
-        otp: String(otp || '').trim(),
+        email: { equals: targetEmail, mode: 'insensitive' },
+        otp: cleanOtp,
         used: false,
         expiresAt: { gt: new Date() },
       },

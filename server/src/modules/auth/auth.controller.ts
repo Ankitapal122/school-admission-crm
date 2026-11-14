@@ -117,20 +117,23 @@ export class AuthController {
   }
 
   @Post('forgot-password')
-  async forgotPassword(@Body('email') email: string) {
-    const result = await this.authService.forgotPassword(email);
+  async forgotPassword(@Body() body: { email?: string; phone?: string; identifier?: string }) {
+    const identifier = body?.identifier || body?.email || body?.phone || '';
+    const result = await this.authService.forgotPassword(identifier);
     return apiEnvelope(result, result.message, result);
   }
 
   @Post('verify-reset-otp')
-  async verifyResetOtp(@Body() body: { email: string; otp: string }) {
-    const result = await this.authService.verifyResetOtp(body.email, body.otp);
+  async verifyResetOtp(@Body() body: { email?: string; phone?: string; identifier?: string; otp: string }) {
+    const identifier = body?.identifier || body?.email || body?.phone || '';
+    const result = await this.authService.verifyResetOtp(identifier, body.otp);
     return apiEnvelope(result, 'OTP verified', result);
   }
 
   @Post('verify-otp')
-  async verifyResetOtpAlias(@Body() body: { email: string; otp: string }) {
-    const result = await this.authService.verifyResetOtp(body.email, body.otp);
+  async verifyResetOtpAlias(@Body() body: { email?: string; phone?: string; identifier?: string; otp: string }) {
+    const identifier = body?.identifier || body?.email || body?.phone || '';
+    const result = await this.authService.verifyResetOtp(identifier, body.otp);
     return apiEnvelope(result, 'OTP verified', result);
   }
 

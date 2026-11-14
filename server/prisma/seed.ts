@@ -103,6 +103,7 @@ async function seed() {
     update: {
       role: 'SUPER_ADMIN',
       passwordHash: adminHash,
+      phone: '+917249417658',
       status: 'active',
       isActive: true,
       deletedAt: null,
@@ -113,7 +114,7 @@ async function seed() {
       email: 'adminboarding123@gmail.com',
       employeeId: 'EMP-ADM-001',
       fullName: 'Virendra Rawat (Super Admin)',
-      phone: '+919876543200',
+      phone: '+917249417658',
       role: 'SUPER_ADMIN',
       passwordHash: adminHash,
       status: 'active',

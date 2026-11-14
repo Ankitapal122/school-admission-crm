@@ -28,9 +28,10 @@ export default function LoginPage() {
   const [toastMsg, setToastMsg] = useState<{ text: string; type: 'success' | 'danger' | 'warning' } | null>(null);
 
   // Forgot Password / OTP / Reset State
+  const [forgotMethod, setForgotMethod] = useState<'email' | 'phone'>('email');
   const [forgotEmail, setForgotEmail] = useState('');
-  const [phoneHint, setPhoneHint] = useState('');
-  const [demoOtp, setDemoOtp] = useState('');
+  const [resolvedEmail, setResolvedEmail] = useState('');
+  const [phoneHint, setPhoneHint] = useState('+91 7249417658');
   const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
   const [resetToken, setResetToken] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -161,23 +162,33 @@ export default function LoginPage() {
 
   const handleForgotPasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanEmail = forgotEmail.trim();
-    if (!cleanEmail) {
-      showToast('Please enter your registered email address.', 'danger');
+    const cleanInput = forgotEmail.trim();
+    if (!cleanInput) {
+      showToast(
+        forgotMethod === 'phone'
+          ? 'Please enter your registered mobile number (e.g. 7249417658).'
+          : 'Please enter your registered email address (e.g. adminboarding123@gmail.com).',
+        'danger'
+      );
       return;
     }
     setIsLoading(true);
     try {
-      const res = await apiCall('/auth/forgot-password', 'POST', { email: cleanEmail });
-      const code = res.demoOtp || '';
-      setDemoOtp(code);
-      setPhoneHint(res.phone || '+91 98100 11001');
-      // DO NOT pre-fill OTP: User must enter the OTP code manually
+      const res = await apiCall('/auth/forgot-password', 'POST', {
+        identifier: cleanInput,
+        email: cleanInput,
+        phone: cleanInput,
+      });
+      setResolvedEmail(res.email || cleanInput);
+      setPhoneHint(res.phone || '+91 7249417658');
       setOtpDigits(['', '', '', '', '', '']);
-      showToast(`Verification OTP dispatched to ${cleanEmail} & mobile!`, 'success');
+      showToast(
+        res.message || `Verification OTP sent to your registered email & mobile (+91 7249417658)!`,
+        'success'
+      );
       setAuthView('verify-otp');
     } catch (err: any) {
-      showToast(err.message || 'Email not found or error generating OTP.', 'danger');
+      showToast(err.message || 'Account not found or error generating OTP.', 'danger');
     } finally {
       setIsLoading(false);
     }
@@ -192,7 +203,12 @@ export default function LoginPage() {
     }
     setIsLoading(true);
     try {
-      const res = await apiCall('/auth/verify-otp', 'POST', { email: forgotEmail.trim(), otp });
+      const targetIdentifier = (resolvedEmail || forgotEmail).trim();
+      const res = await apiCall('/auth/verify-otp', 'POST', {
+        identifier: targetIdentifier,
+        email: targetIdentifier,
+        otp,
+      });
       setResetToken(res.resetToken);
       showToast('OTP verified successfully! Now create your new password.', 'success');
       setAuthView('create-new-password');
@@ -365,25 +381,83 @@ export default function LoginPage() {
                 Forgot Password
               </h1>
               <p className="auth-subtitle" style={{ fontSize: '13px', color: '#64748B', margin: 0 }}>
-                Enter your registered work email to receive a single-use verification code on email &amp; SMS.
+                Choose how you want to verify your account — via Registered Email or Mobile Number (7249417658).
               </p>
+            </div>
+
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '8px',
+                background: '#F1F5F9',
+                padding: '4px',
+                borderRadius: '10px',
+                marginBottom: '16px',
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  setForgotMethod('email');
+                  setForgotEmail('adminboarding123@gmail.com');
+                }}
+                style={{
+                  padding: '9px 10px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '12.5px',
+                  fontWeight: 700,
+                  background: forgotMethod === 'email' ? '#FFFFFF' : 'transparent',
+                  color: forgotMethod === 'email' ? '#2563EB' : '#64748B',
+                  boxShadow: forgotMethod === 'email' ? '0 1px 3px rgba(15,23,42,0.1)' : 'none',
+                }}
+              >
+                📧 Email Verification
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setForgotMethod('phone');
+                  setForgotEmail('7249417658');
+                }}
+                style={{
+                  padding: '9px 10px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '12.5px',
+                  fontWeight: 700,
+                  background: forgotMethod === 'phone' ? '#FFFFFF' : 'transparent',
+                  color: forgotMethod === 'phone' ? '#2563EB' : '#64748B',
+                  boxShadow: forgotMethod === 'phone' ? '0 1px 3px rgba(15,23,42,0.1)' : 'none',
+                }}
+              >
+                📱 Mobile OTP (7249417658)
+              </button>
             </div>
 
             <form onSubmit={handleForgotPasswordSubmit}>
               <div className="form-group" style={{ marginBottom: '16px' }}>
                 <label className="form-label" style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>
-                  Registered Work Email <span className="req">*</span>
+                  {forgotMethod === 'phone' ? 'Registered Mobile Number' : 'Registered Work Email'} <span className="req">*</span>
                 </label>
                 <input
-                  type="email"
+                  type="text"
                   id="forgotEmail"
                   className="form-control"
-                  placeholder="e.g. adminboarding123@gmail.com"
+                  placeholder={forgotMethod === 'phone' ? 'e.g. 7249417658 or +917249417658' : 'e.g. adminboarding123@gmail.com'}
                   required
                   value={forgotEmail}
                   onChange={(e) => setForgotEmail(e.target.value)}
                   style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '14px' }}
                 />
+                <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '6px' }}>
+                  {forgotMethod === 'phone'
+                    ? '📱 Enter 7249417658 — 6-digit verification OTP will be sent immediately.'
+                    : '📧 Enter adminboarding123@gmail.com — 6-digit OTP will arrive in your Gmail inbox.'}
+                </div>
               </div>
 
               <button
@@ -489,65 +563,17 @@ export default function LoginPage() {
                   SENT
                 </span>
               </div>
-              <div style={{ fontSize: '12px', color: '#334155', lineHeight: 1.5 }}>
+              <div style={{ fontSize: '12px', color: '#334155', lineHeight: 1.6 }}>
                 <div>
-                  <strong>Email:</strong> {forgotEmail}
+                  <strong>Email:</strong> {resolvedEmail || forgotEmail || 'adminboarding123@gmail.com'}
                 </div>
                 <div>
-                  <strong>Phone (SMS):</strong> {phoneHint || '+91 98100 11001'}
+                  <strong>Phone (SMS):</strong> {phoneHint || '+91 7249417658'}
+                </div>
+                <div style={{ marginTop: '8px', fontSize: '11.5px', color: '#15803D', fontWeight: 600 }}>
+                  📩 Please check your Gmail inbox ({resolvedEmail || 'adminboarding123@gmail.com'}) / SMS ({phoneHint || '+91 7249417658'}) and enter the 6-digit OTP below.
                 </div>
               </div>
-
-              {demoOtp && (
-                <div
-                  style={{
-                    marginTop: '10px',
-                    padding: '8px 12px',
-                    background: '#FFFFFF',
-                    borderRadius: '8px',
-                    border: '1.5px dashed #22C55E',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <div>
-                    <div style={{ fontSize: '10px', color: '#64748B', fontWeight: 600 }}>
-                      INCOMING MESSAGE (OTP CODE):
-                    </div>
-                    <div
-                      style={{
-                        fontFamily: 'monospace',
-                        fontSize: '18px',
-                        fontWeight: 900,
-                        letterSpacing: '4px',
-                        color: '#15803D',
-                      }}
-                    >
-                      {demoOtp}
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setOtpDigits(demoOtp.split('').slice(0, 6));
-                      showToast('OTP code entered!', 'success');
-                    }}
-                    style={{
-                      border: 'none',
-                      background: '#DCFCE7',
-                      color: '#15803D',
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      padding: '5px 10px',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    Auto-Fill
-                  </button>
-                </div>
-              )}
             </div>
 
             <form onSubmit={handleVerifyOtpSubmit}>
@@ -1069,7 +1095,7 @@ export default function LoginPage() {
             <form onSubmit={handleLoginSubmit}>
               <input type="hidden" id="loginRole" value={selectedRole} />
 
-              {/* Email Address Field */}
+              {/* Email or Mobile Number Field */}
               <div style={{ marginBottom: '16px' }}>
                 <label
                   style={{
@@ -1080,7 +1106,7 @@ export default function LoginPage() {
                     marginBottom: '6px',
                   }}
                 >
-                  Email Address
+                  Email Address or Mobile Number
                 </label>
                 <div className="auth-input-container">
                   <span className="auth-input-icon">
@@ -1101,7 +1127,7 @@ export default function LoginPage() {
                   <input
                     type="text"
                     id="loginIdentifier"
-                    placeholder="adminboarding123@gmail.com"
+                    placeholder="adminboarding123@gmail.com or 7249417658"
                     required
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
@@ -1211,6 +1237,11 @@ export default function LoginPage() {
                   href="#forgot-password"
                   onClick={(e) => {
                     e.preventDefault();
+                    if (identifier.trim()) {
+                      const clean = identifier.trim();
+                      setForgotEmail(clean);
+                      setForgotMethod(/^\+?[\d\s-]{10,14}$/.test(clean) ? 'phone' : 'email');
+                    }
                     setAuthView('forgot-password');
                   }}
                   style={{
