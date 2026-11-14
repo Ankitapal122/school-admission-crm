@@ -537,6 +537,7 @@ model School {
   isPartner         Boolean   @default(true) @map("is_partner")
   status            String    @default("active")
   classesOffered    String?   @default("1-12") @map("classes_offered")
+  details           Json?     @map("details")
   version           Int       @default(1)
   deletedAt         DateTime? @map("deleted_at")
   createdAt         DateTime  @default(now()) @map("created_at")
