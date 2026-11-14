@@ -10,4 +10,15 @@ server/.env
 .DS_Store
 crm-wireframe part 1.html
 crm-wireframe part 2.html
+Documents/venv/
+Documents/school_images/
+Documents/debug_html/
+Documents/*.partial
+Documents/*.xlsx
+Documents/*.csv
+server/reports_cache/
+server/audit_archives/
+client/playwright-report/
+client/test-results/
+
 

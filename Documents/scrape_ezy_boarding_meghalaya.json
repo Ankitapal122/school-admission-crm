@@ -1,0 +1,1378 @@
+[
+ {
+  "name": "Pine Mount School",
+  "slug": null,
+  "city": "Shillong",
+  "state": "Meghalaya",
+  "area": null,
+  "locality": null,
+  "pincode": "793001",
+  "type": "Boarding School",
+  "boarding_type": "Day Cum Boarding",
+  "boards": [
+   "ICSE"
+  ],
+  "classes": "6 - 10",
+  "gender": "Girls",
+  "description": "About Us Pine Mount School is a girls’ day-cum-boarding school in Shillong, Meghalaya, affiliated with the CISCE board and offering education up to Class 10. The school provides English-medium education in a disciplined and supportive learning environment focused on academic excellence and overall student development. With a balanced student-teacher ratio, the school encourages individual attention, co-curricular participation, and value-based learning. Pine Mount School operates from April to March and offers facilities designed to support both day scholars and boarders.",
+  "about": "About Us Pine Mount School is a girls’ day-cum-boarding school in Shillong, Meghalaya, affiliated with the CISCE board and offering education up to Class 10. The school provides English-medium education in a disciplined and supportive learning environment focused on academic excellence and overall student development. With a balanced student-teacher ratio, the school encourages individual attention, co-curricular participation, and value-based learning. Pine Mount School operates from April to March and offers facilities designed to support both day scholars and boarders.",
+  "hostel": true,
+  "rating": null,
+  "reviews": null,
+  "fee_min": 150000,
+  "fee_max": 150000,
+  "address": "Shillong, Shillong, Shillong, Meghalaya - 793001",
+  "lat": 25.565205823862193,
+  "lng": 91.88030726071067,
+  "phone": "+91-3642223039",
+  "email": "principalpinemountschool@gmail.com",
+  "website": null,
+  "social": {},
+  "logo": "https://d3bat55ebwjhsf.cloudfront.net/schools/logos/user_generic_school_user/6ee4a671-b666-41ac-9d71-46f4a8fc5eb2-9d50deb4-4b_ycBmpXf.webp",
+  "images": [
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/cover/user_root_user%40ezy.com/IMG_20231111_104811.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/download_-_2022-05-04T094608.413.jpeg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/download_-_2022-05-04T094611.728.jpeg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/download_-_2022-05-04T094617.837.jpeg"
+  ],
+  "facilities": [
+   "Day care",
+   "Meals",
+   "Transportation",
+   "Boys Hostel",
+   "Girls Hostel",
+   "AC Classes",
+   "Wifi",
+   "Smart Classes",
+   "Art and Craft",
+   "Dance",
+   "Drama",
+   "Music",
+   "Picnics and excursion",
+   "Debate",
+   "Gardening",
+   "Cafeteria/Canteen",
+   "Library/Reading Room",
+   "Auditorium/Media Room",
+   "Computer Lab",
+   "Science Lab",
+   "CCTV",
+   "Medical Room",
+   "Indoor Sports",
+   "Outdoor Sports",
+   "Yoga"
+  ],
+  "facility_groups": {
+   "Advanced Facilities": [
+    "Day care",
+    "Meals",
+    "Transportation",
+    "Medical Room"
+   ],
+   "Boarding": [
+    "Boys Hostel",
+    "Girls Hostel"
+   ],
+   "Class": [
+    "AC Classes",
+    "Wifi",
+    "Smart Classes"
+   ],
+   "Extra Curricular": [
+    "Art and Craft",
+    "Dance",
+    "Drama",
+    "Music",
+    "Picnics and excursion",
+    "Debate",
+    "Gardening"
+   ],
+   "Infrastructure": [
+    "Cafeteria/Canteen",
+    "Library/Reading Room",
+    "Auditorium/Media Room"
+   ],
+   "Lab": [
+    "Computer Lab",
+    "Science Lab"
+   ],
+   "Safety and Security": [
+    "CCTV"
+   ],
+   "Sports and Fitness": [
+    "Indoor Sports",
+    "Outdoor Sports",
+    "Yoga"
+   ]
+  },
+  "founded": 1880,
+  "medium": "English",
+  "academic_session": "April to March",
+  "student_teacher_ratio": "30:1",
+  "campus_size": null,
+  "languages": [
+   "English",
+   "Hindi"
+  ],
+  "food_options": null,
+  "verified": null,
+  "page_last_updated": "2026-07-20",
+  "affiliation_no": null,
+  "school_timing": null,
+  "student_count": null,
+  "teacher_count": null,
+  "source_site": "ezyschooling.com",
+  "source_url": "https://ezyschooling.com/school/pine-mount-school-shillong-meghalaya",
+  "latest_fee_session": "2026-2027",
+  "current_admission_session": null,
+  "class_fees": [
+   {
+    "class_name": "Class 6",
+    "monthly_fee": null,
+    "annual_fee": 150000,
+    "one_time_fee": null,
+    "first_year_total": 150000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 150000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 7",
+    "monthly_fee": null,
+    "annual_fee": 150000,
+    "one_time_fee": null,
+    "first_year_total": 150000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 150000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 8",
+    "monthly_fee": null,
+    "annual_fee": 150000,
+    "one_time_fee": null,
+    "first_year_total": 150000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 150000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 9",
+    "monthly_fee": null,
+    "annual_fee": 150000,
+    "one_time_fee": null,
+    "first_year_total": 150000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 150000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 10",
+    "monthly_fee": null,
+    "annual_fee": 150000,
+    "one_time_fee": null,
+    "first_year_total": 150000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 150000,
+      "refundable": null
+     }
+    ]
+   }
+  ],
+  "admissions": [],
+  "warnings": [
+   "no admission / application-fee table on the page",
+   "no website on the overview page"
+  ],
+  "mongo_extra": {
+   "scraped_at": "2026-10-27",
+   "scraped_from": "ezyschooling.com",
+   "ezy_slug": "pine-mount-school-shillong-meghalaya",
+   "fee_data_sessions": [
+    "2026-2027"
+   ],
+   "page_heading_session": "2027-2028",
+   "listing_fee_range": null,
+   "boarding_type_raw": "Day Cum Boarding",
+   "sessions_clicked": [
+    "2026-2027",
+    "2027-2028"
+   ],
+   "all_facts": {
+    "Board": "ICSE",
+    "Gender": "Girls",
+    "Classes": "6 - 10 Class",
+    "Academic Session": "April to March",
+    "Medium": "English",
+    "Student Teacher Ratio": "30:1",
+    "Day/Boarding": "Day Cum Boarding"
+   },
+   "sources": {
+    "name": "listing card",
+    "city": "breadcrumb",
+    "state": "listing card",
+    "type": "Quick Facts: Day/Boarding",
+    "boarding_type": "Quick Facts: Day/Boarding",
+    "address": "page header",
+    "pincode": "page header",
+    "classes": "Quick Facts",
+    "boards": "Quick Facts",
+    "gender": "Quick Facts",
+    "medium": "Quick Facts",
+    "academic_session": "Quick Facts",
+    "student_teacher_ratio": "Quick Facts",
+    "founded": "page header",
+    "class_fees": "fees-structure page (site-printed numbers; fee_session = session stated by the page or clicked button)",
+    "fee_min": "lowest / highest annual fee of the newest fee session (2026-2027)",
+    "fee_max": "lowest / highest annual fee of the newest fee session (2026-2027)",
+    "email": "Address And Contact block",
+    "phone": "page data next to the e-mail",
+    "about": "About Us section",
+    "description": "About Us section",
+    "facilities": "Facilities icons marked yes (grouped by the page section)",
+    "facility_groups": "Facilities icons marked yes (grouped by the page section)",
+    "hostel": "Facilities icons (Boys/Girls Hostel)",
+    "lat_lng": "school's own Google-Maps embed",
+    "logo": "image with alt \"<school> Logo\"",
+    "images": "cover + \"<school> Gallery\" images",
+    "languages": "Languages Taught section",
+    "page_last_updated": "page footer"
+   },
+   "facilities_not_available": [
+    "Alumni Association",
+    "Ramps",
+    "Washrooms",
+    "Elevators",
+    "Playground",
+    "Robotics Lab",
+    "GPS Bus Tracking App",
+    "Student Tracking App",
+    "Karate",
+    "Taekwondo",
+    "Gym",
+    "Swimming Pool",
+    "Skating",
+    "Horse Riding"
+   ]
+  }
+ },
+ {
+  "name": "Assam Rifles Public School",
+  "slug": null,
+  "city": "Shillong",
+  "state": "Meghalaya",
+  "area": "Laittkor",
+  "locality": "Laittkor",
+  "pincode": "793001",
+  "type": "Boarding School",
+  "boarding_type": "Full Boarding",
+  "boards": [
+   "CBSE"
+  ],
+  "classes": "6 - 12",
+  "gender": "Co-ed",
+  "description": "About Us Assam Rifles Public School is established on the values and ethos of a public school. Its mission is characterized by the quest for adventure, inclusion, harmony, values, merit and optimism. The core of our philosophy is of test and win. Our approaches extend beyond text books, classrooms and boundaries. The pedagogies are rich in experience and abundantly supplied with opportunities to apply learning to unexplored situations for simple forward-looking solutions.",
+  "about": "About Us Assam Rifles Public School is established on the values and ethos of a public school. Its mission is characterized by the quest for adventure, inclusion, harmony, values, merit and optimism. The core of our philosophy is of test and win. Our approaches extend beyond text books, classrooms and boundaries. The pedagogies are rich in experience and abundantly supplied with opportunities to apply learning to unexplored situations for simple forward-looking solutions.",
+  "hostel": true,
+  "rating": null,
+  "reviews": null,
+  "fee_min": 207000,
+  "fee_max": 207000,
+  "address": "Laittkor, Shillong, Shillong, Meghalaya - 793001",
+  "lat": 25.51717028134927,
+  "lng": 91.87691661356735,
+  "phone": "+91-9436100956",
+  "email": "arpsprincipal@yahoo.in",
+  "website": "http://www.arpsshillong.com/index.html",
+  "social": {},
+  "logo": "https://d3bat55ebwjhsf.cloudfront.net/schools/logos/user_generic_school_user/7a5aa1c7-edce-4f06-a488-65746886f782-e58c7fa6-4b_UKzxp01.webp",
+  "images": [
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/cover/user_root_user%40ezy.com/DJI_0160.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/AR-raising-Day_2021-450x311.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/WhatsApp-Image-2022-04-01-at-3.53.37-PM-1-768x366.jpeg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/sports5_WKvNKLW.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/sports1_dBMxTs3.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/school-temple.jpg"
+  ],
+  "facilities": [
+   "Transportation",
+   "Boys Hostel",
+   "Girls Hostel",
+   "AC Classes",
+   "Wifi",
+   "Smart Classes",
+   "Art and Craft",
+   "Dance",
+   "Drama",
+   "Music",
+   "Picnics and excursion",
+   "Debate",
+   "Gardening",
+   "Cafeteria/Canteen",
+   "Library/Reading Room",
+   "Playground",
+   "Auditorium/Media Room",
+   "Computer Lab",
+   "Science Lab",
+   "Robotics Lab",
+   "CCTV",
+   "Medical Room",
+   "Indoor Sports",
+   "Outdoor Sports",
+   "Yoga"
+  ],
+  "facility_groups": {
+   "Advanced Facilities": [
+    "Transportation",
+    "Medical Room"
+   ],
+   "Boarding": [
+    "Boys Hostel",
+    "Girls Hostel"
+   ],
+   "Class": [
+    "AC Classes",
+    "Wifi",
+    "Smart Classes"
+   ],
+   "Extra Curricular": [
+    "Art and Craft",
+    "Dance",
+    "Drama",
+    "Music",
+    "Picnics and excursion",
+    "Debate",
+    "Gardening"
+   ],
+   "Infrastructure": [
+    "Cafeteria/Canteen",
+    "Library/Reading Room",
+    "Playground",
+    "Auditorium/Media Room"
+   ],
+   "Lab": [
+    "Computer Lab",
+    "Science Lab",
+    "Robotics Lab"
+   ],
+   "Safety and Security": [
+    "CCTV"
+   ],
+   "Sports and Fitness": [
+    "Indoor Sports",
+    "Outdoor Sports",
+    "Yoga"
+   ]
+  },
+  "founded": 1980,
+  "medium": "English",
+  "academic_session": "April to March",
+  "student_teacher_ratio": "35:1",
+  "campus_size": null,
+  "languages": [],
+  "food_options": null,
+  "verified": null,
+  "page_last_updated": null,
+  "affiliation_no": null,
+  "school_timing": null,
+  "student_count": null,
+  "teacher_count": null,
+  "source_site": "ezyschooling.com",
+  "source_url": "https://ezyschooling.com/school/assam-rifles-public-school-shillong-meghalaya",
+  "latest_fee_session": "2024-2025",
+  "current_admission_session": null,
+  "class_fees": [
+   {
+    "class_name": "Class 6",
+    "monthly_fee": null,
+    "annual_fee": 207000,
+    "one_time_fee": 4000,
+    "first_year_total": 211000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Registration Fees",
+      "frequency": "Onetime",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 207000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 3000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 7",
+    "monthly_fee": null,
+    "annual_fee": 207000,
+    "one_time_fee": 4000,
+    "first_year_total": 211000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Registration Fees",
+      "frequency": "Onetime",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 207000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 3000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 8",
+    "monthly_fee": null,
+    "annual_fee": 207000,
+    "one_time_fee": 4000,
+    "first_year_total": 211000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Registration Fees",
+      "frequency": "Onetime",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 207000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 3000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 9",
+    "monthly_fee": null,
+    "annual_fee": 207000,
+    "one_time_fee": 4000,
+    "first_year_total": 211000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Registration Fees",
+      "frequency": "Onetime",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 207000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 3000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 10",
+    "monthly_fee": null,
+    "annual_fee": 207000,
+    "one_time_fee": 4000,
+    "first_year_total": 211000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Registration Fees",
+      "frequency": "Onetime",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 207000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 3000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 11",
+    "monthly_fee": null,
+    "annual_fee": 207000,
+    "one_time_fee": 4000,
+    "first_year_total": 211000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Registration Fees",
+      "frequency": "Onetime",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 207000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 3000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 12",
+    "monthly_fee": null,
+    "annual_fee": 207000,
+    "one_time_fee": 4000,
+    "first_year_total": 211000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Registration Fees",
+      "frequency": "Onetime",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 207000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 3000,
+      "refundable": null
+     }
+    ]
+   }
+  ],
+  "admissions": [],
+  "warnings": [
+   "no admission / application-fee table on the page"
+  ],
+  "mongo_extra": {
+   "scraped_at": "2026-10-27",
+   "scraped_from": "ezyschooling.com",
+   "ezy_slug": "assam-rifles-public-school-shillong-meghalaya",
+   "fee_data_sessions": [
+    "2024-2025"
+   ],
+   "page_heading_session": "2027-2028",
+   "listing_fee_range": null,
+   "boarding_type_raw": "Full Boarding",
+   "sessions_clicked": [
+    "2026-2027",
+    "2027-2028"
+   ],
+   "all_facts": {
+    "Board": "CBSE",
+    "Gender": "Coed",
+    "Classes": "6 - 12 Class",
+    "Academic Session": "April to March",
+    "Medium": "English",
+    "Student Teacher Ratio": "35:1",
+    "Day/Boarding": "Full Boarding"
+   },
+   "sources": {
+    "name": "listing card",
+    "city": "breadcrumb",
+    "state": "listing card",
+    "area": "address: text before the city (the page has no separate area field)",
+    "locality": "address: text before the city (the page has no separate area field)",
+    "type": "Quick Facts: Day/Boarding",
+    "boarding_type": "Quick Facts: Day/Boarding",
+    "address": "page header",
+    "pincode": "page header",
+    "classes": "Quick Facts",
+    "boards": "Quick Facts",
+    "gender": "Quick Facts",
+    "medium": "Quick Facts",
+    "academic_session": "Quick Facts",
+    "student_teacher_ratio": "Quick Facts",
+    "founded": "page header",
+    "class_fees": "fees-structure page (site-printed numbers; fee_session = session stated by the page or clicked button)",
+    "fee_min": "lowest / highest annual fee of the newest fee session (2024-2025)",
+    "fee_max": "lowest / highest annual fee of the newest fee session (2024-2025)",
+    "email": "Address And Contact block",
+    "website": "Address And Contact block",
+    "phone": "page data next to the e-mail",
+    "about": "About Us section",
+    "description": "About Us section",
+    "facilities": "Facilities icons marked yes (grouped by the page section)",
+    "facility_groups": "Facilities icons marked yes (grouped by the page section)",
+    "hostel": "Facilities icons (Boys/Girls Hostel)",
+    "lat_lng": "school's own Google-Maps embed",
+    "logo": "image with alt \"<school> Logo\"",
+    "images": "cover + \"<school> Gallery\" images"
+   },
+   "facilities_not_available": [
+    "Alumni Association",
+    "Day care",
+    "Meals",
+    "Ramps",
+    "Washrooms",
+    "Elevators",
+    "GPS Bus Tracking App",
+    "Student Tracking App",
+    "Karate",
+    "Taekwondo",
+    "Gym",
+    "Swimming Pool",
+    "Skating",
+    "Horse Riding"
+   ]
+  }
+ },
+ {
+  "name": "Christ School International",
+  "slug": null,
+  "city": "Shillong",
+  "state": "Meghalaya",
+  "area": "Umiam P.O., Barapani",
+  "locality": "Barapani",
+  "pincode": "793001",
+  "type": "Boarding School",
+  "boarding_type": "Full Boarding",
+  "boards": [
+   "CBSE"
+  ],
+  "classes": "6 - 10",
+  "gender": "Co-ed",
+  "description": "About Us The Christ School International, Shillong adopts the all-inclusive teaching strategies practiced by the Montclair State University, USA. Senior secondary (+2) students get an option to pursue studies in Science, Commerce or Arts. The school provides the holistic, safe, supportive and stress-free environment to educate students in an easiest different manner so that all students enjoy learning and also absorb deeply in order to obtain depth knowledge. Although the school provide highly experienced and dedicated teaching faculties and taught students with latest teaching methodologies. On the other hand, school provides complete advanced learning resources in a vast infrastructure.",
+  "about": "About Us The Christ School International, Shillong adopts the all-inclusive teaching strategies practiced by the Montclair State University, USA. Senior secondary (+2) students get an option to pursue studies in Science, Commerce or Arts. The school provides the holistic, safe, supportive and stress-free environment to educate students in an easiest different manner so that all students enjoy learning and also absorb deeply in order to obtain depth knowledge. Although the school provide highly experienced and dedicated teaching faculties and taught students with latest teaching methodologies. On the other hand, school provides complete advanced learning resources in a vast infrastructure.",
+  "hostel": true,
+  "rating": 5.0,
+  "reviews": 1,
+  "fee_min": 228000,
+  "fee_max": 228000,
+  "address": "Nongsder, Umiam P.O., Barapani, Shillong, Shillong, Meghalaya - 793001",
+  "lat": 25.67543518110686,
+  "lng": 91.91464264236747,
+  "phone": "+91-3642570035",
+  "email": "christshillong@gmail.com",
+  "website": "https://christ-senior-secondary-school-international.business.site/?m=true",
+  "social": {},
+  "logo": "https://d3bat55ebwjhsf.cloudfront.net/schools/logos/user_generic_school_user/ad79c438-12f7-4d66-ab0c-16399db4a86f-be7f2e1e-4b_VuBDIPt.webp",
+  "images": [
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/cover/5229/user_root_user%40ezy.com/unnamed_2.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/unnamed_w0Us64b.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/unnamed_2.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/unnamed_1.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/80315337_2574604152616941_7228874093146144768_o.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/78967962_2572679082809448_6561683204686741504_o.jpg"
+  ],
+  "facilities": [
+   "Day care",
+   "Meals",
+   "Transportation",
+   "Boys Hostel",
+   "Girls Hostel",
+   "AC Classes",
+   "Wifi",
+   "Smart Classes",
+   "Art and Craft",
+   "Dance",
+   "Drama",
+   "Music",
+   "Picnics and excursion",
+   "Debate",
+   "Gardening",
+   "Library/Reading Room",
+   "Playground",
+   "Auditorium/Media Room",
+   "Computer Lab",
+   "Science Lab",
+   "Robotics Lab",
+   "Medical Room",
+   "Indoor Sports",
+   "Outdoor Sports",
+   "Yoga"
+  ],
+  "facility_groups": {
+   "Advanced Facilities": [
+    "Day care",
+    "Meals",
+    "Transportation",
+    "Medical Room"
+   ],
+   "Boarding": [
+    "Boys Hostel",
+    "Girls Hostel"
+   ],
+   "Class": [
+    "AC Classes",
+    "Wifi",
+    "Smart Classes"
+   ],
+   "Extra Curricular": [
+    "Art and Craft",
+    "Dance",
+    "Drama",
+    "Music",
+    "Picnics and excursion",
+    "Debate",
+    "Gardening"
+   ],
+   "Infrastructure": [
+    "Library/Reading Room",
+    "Playground",
+    "Auditorium/Media Room"
+   ],
+   "Lab": [
+    "Computer Lab",
+    "Science Lab",
+    "Robotics Lab"
+   ],
+   "Sports and Fitness": [
+    "Indoor Sports",
+    "Outdoor Sports",
+    "Yoga"
+   ]
+  },
+  "founded": 2007,
+  "medium": "English",
+  "academic_session": "April to March",
+  "student_teacher_ratio": "30:1",
+  "campus_size": null,
+  "languages": [
+   "English",
+   "Hindi"
+  ],
+  "food_options": null,
+  "verified": null,
+  "page_last_updated": null,
+  "affiliation_no": null,
+  "school_timing": null,
+  "student_count": null,
+  "teacher_count": null,
+  "source_site": "ezyschooling.com",
+  "source_url": "https://ezyschooling.com/school/christ-school-international-shillong-meghalaya",
+  "latest_fee_session": "2024-2025",
+  "current_admission_session": null,
+  "class_fees": [
+   {
+    "class_name": "Class 6",
+    "monthly_fee": null,
+    "annual_fee": 228000,
+    "one_time_fee": null,
+    "first_year_total": 228000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 13000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 200000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 15000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 7",
+    "monthly_fee": null,
+    "annual_fee": 228000,
+    "one_time_fee": null,
+    "first_year_total": 228000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 13000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 200000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 15000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 8",
+    "monthly_fee": null,
+    "annual_fee": 228000,
+    "one_time_fee": null,
+    "first_year_total": 228000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 13000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 200000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 15000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 9",
+    "monthly_fee": null,
+    "annual_fee": 228000,
+    "one_time_fee": null,
+    "first_year_total": 228000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 13000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 200000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 15000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 10",
+    "monthly_fee": null,
+    "annual_fee": 228000,
+    "one_time_fee": null,
+    "first_year_total": 228000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 13000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 200000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 15000,
+      "refundable": null
+     }
+    ]
+   }
+  ],
+  "admissions": [],
+  "warnings": [
+   "no admission / application-fee table on the page"
+  ],
+  "mongo_extra": {
+   "scraped_at": "2026-10-27",
+   "scraped_from": "ezyschooling.com",
+   "ezy_slug": "christ-school-international-shillong-meghalaya",
+   "fee_data_sessions": [
+    "2024-2025"
+   ],
+   "page_heading_session": "2027-2028",
+   "listing_fee_range": null,
+   "boarding_type_raw": "Full Boarding",
+   "sessions_clicked": [
+    "2026-2027",
+    "2027-2028"
+   ],
+   "all_facts": {
+    "Board": "CBSE",
+    "Gender": "Coed",
+    "Classes": "6 - 10 Class",
+    "Academic Session": "April to March",
+    "Medium": "English",
+    "Student Teacher Ratio": "30:1",
+    "Day/Boarding": "Full Boarding"
+   },
+   "sources": {
+    "name": "listing card",
+    "city": "breadcrumb",
+    "state": "listing card",
+    "area": "address: text before the city (the page has no separate area field)",
+    "locality": "address: text before the city (the page has no separate area field)",
+    "type": "Quick Facts: Day/Boarding",
+    "boarding_type": "Quick Facts: Day/Boarding",
+    "rating": "page header",
+    "address": "page header",
+    "pincode": "page header",
+    "classes": "Quick Facts",
+    "boards": "Quick Facts",
+    "gender": "Quick Facts",
+    "medium": "Quick Facts",
+    "academic_session": "Quick Facts",
+    "student_teacher_ratio": "Quick Facts",
+    "founded": "page header",
+    "class_fees": "fees-structure page (site-printed numbers; fee_session = session stated by the page or clicked button)",
+    "fee_min": "lowest / highest annual fee of the newest fee session (2024-2025)",
+    "fee_max": "lowest / highest annual fee of the newest fee session (2024-2025)",
+    "email": "Address And Contact block",
+    "website": "Address And Contact block",
+    "phone": "page data next to the e-mail",
+    "about": "About Us section",
+    "description": "About Us section",
+    "facilities": "Facilities icons marked yes (grouped by the page section)",
+    "facility_groups": "Facilities icons marked yes (grouped by the page section)",
+    "hostel": "Facilities icons (Boys/Girls Hostel)",
+    "lat_lng": "school's own Google-Maps embed",
+    "logo": "image with alt \"<school> Logo\"",
+    "images": "cover + \"<school> Gallery\" images",
+    "languages": "Languages Taught section"
+   },
+   "facilities_not_available": [
+    "Alumni Association",
+    "Ramps",
+    "Washrooms",
+    "Elevators",
+    "Cafeteria/Canteen",
+    "CCTV",
+    "GPS Bus Tracking App",
+    "Student Tracking App",
+    "Karate",
+    "Taekwondo",
+    "Gym",
+    "Swimming Pool",
+    "Skating",
+    "Horse Riding"
+   ]
+  }
+ },
+ {
+  "name": "St.John's School Whitehall",
+  "slug": null,
+  "city": "Shillong",
+  "state": "Meghalaya",
+  "area": "Nongthymmai, East Khasi Hills",
+  "locality": "East Khasi Hills",
+  "pincode": "793001",
+  "type": "Boarding School",
+  "boarding_type": "Full Boarding",
+  "boards": [
+   "State Board"
+  ],
+  "classes": "6 - 10",
+  "gender": "Co-ed",
+  "description": "About Us The State Education Board Syllabus is followed in the school and the pupils are prepared for the Secondary School Leaving Certificate Examination of the Meghalaya Board School. Love of learning is instilled from the outset and the SSLC results are consistently good and leavers move confidently into higher education.",
+  "about": "About Us The State Education Board Syllabus is followed in the school and the pupils are prepared for the Secondary School Leaving Certificate Examination of the Meghalaya Board School. Love of learning is instilled from the outset and the SSLC results are consistently good and leavers move confidently into higher education.",
+  "hostel": true,
+  "rating": null,
+  "reviews": null,
+  "fee_min": 284000,
+  "fee_max": 284000,
+  "address": "Dum Dum P.O, Nongthymmai, East Khasi Hills, Shillong, Shillong, Meghalaya - 793001",
+  "lat": 25.564984896749532,
+  "lng": 91.90984543558187,
+  "phone": "+91-3642537491",
+  "email": "secretary@stjohnswhitehall.com",
+  "website": "https://stjohn.in/",
+  "social": {},
+  "logo": "https://d3bat55ebwjhsf.cloudfront.net/schools/logos/user_generic_school_user/8eb796dc-0ae8-4291-ae19-b160016bff71-662e4107-4b_Fn2RCWs.webp",
+  "images": [
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/cover/user_root_user%40ezy.com/53249-267-562.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/download_54_3daLpBH.jpeg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/download_55_TQybzPO.jpeg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/download_56_RAfJVXr.jpeg"
+  ],
+  "facilities": [
+   "Day care",
+   "Meals",
+   "Transportation",
+   "Boys Hostel",
+   "Girls Hostel",
+   "AC Classes",
+   "Wifi",
+   "Smart Classes",
+   "Art and Craft",
+   "Dance",
+   "Drama",
+   "Music",
+   "Picnics and excursion",
+   "Debate",
+   "Gardening",
+   "Cafeteria/Canteen",
+   "Library/Reading Room",
+   "Playground",
+   "Auditorium/Media Room",
+   "Computer Lab",
+   "Science Lab",
+   "Robotics Lab",
+   "CCTV",
+   "Medical Room",
+   "Indoor Sports",
+   "Outdoor Sports",
+   "Yoga"
+  ],
+  "facility_groups": {
+   "Advanced Facilities": [
+    "Day care",
+    "Meals",
+    "Transportation",
+    "Medical Room"
+   ],
+   "Boarding": [
+    "Boys Hostel",
+    "Girls Hostel"
+   ],
+   "Class": [
+    "AC Classes",
+    "Wifi",
+    "Smart Classes"
+   ],
+   "Extra Curricular": [
+    "Art and Craft",
+    "Dance",
+    "Drama",
+    "Music",
+    "Picnics and excursion",
+    "Debate",
+    "Gardening"
+   ],
+   "Infrastructure": [
+    "Cafeteria/Canteen",
+    "Library/Reading Room",
+    "Playground",
+    "Auditorium/Media Room"
+   ],
+   "Lab": [
+    "Computer Lab",
+    "Science Lab",
+    "Robotics Lab"
+   ],
+   "Safety and Security": [
+    "CCTV"
+   ],
+   "Sports and Fitness": [
+    "Indoor Sports",
+    "Outdoor Sports",
+    "Yoga"
+   ]
+  },
+  "founded": 1974,
+  "medium": "English",
+  "academic_session": "April to March",
+  "student_teacher_ratio": "50:1",
+  "campus_size": null,
+  "languages": [],
+  "food_options": null,
+  "verified": null,
+  "page_last_updated": null,
+  "affiliation_no": null,
+  "school_timing": null,
+  "student_count": null,
+  "teacher_count": null,
+  "source_site": "ezyschooling.com",
+  "source_url": "https://ezyschooling.com/school/st-johns-school-whitehall-shillong-meghalaya",
+  "latest_fee_session": "2024-2025",
+  "current_admission_session": null,
+  "class_fees": [
+   {
+    "class_name": "Class 6",
+    "monthly_fee": null,
+    "annual_fee": 284000,
+    "one_time_fee": null,
+    "first_year_total": 284000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 50000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 224000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 10000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 7",
+    "monthly_fee": null,
+    "annual_fee": 284000,
+    "one_time_fee": null,
+    "first_year_total": 284000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 50000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 224000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 10000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 8",
+    "monthly_fee": null,
+    "annual_fee": 284000,
+    "one_time_fee": null,
+    "first_year_total": 284000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 50000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 224000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 10000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 9",
+    "monthly_fee": null,
+    "annual_fee": 284000,
+    "one_time_fee": null,
+    "first_year_total": 284000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 50000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 224000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 10000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 10",
+    "monthly_fee": null,
+    "annual_fee": 284000,
+    "one_time_fee": null,
+    "first_year_total": 284000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 50000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 224000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 10000,
+      "refundable": null
+     }
+    ]
+   }
+  ],
+  "admissions": [],
+  "warnings": [
+   "no admission / application-fee table on the page"
+  ],
+  "mongo_extra": {
+   "scraped_at": "2026-10-27",
+   "scraped_from": "ezyschooling.com",
+   "ezy_slug": "st-johns-school-whitehall-shillong-meghalaya",
+   "fee_data_sessions": [
+    "2024-2025"
+   ],
+   "page_heading_session": "2027-2028",
+   "listing_fee_range": null,
+   "boarding_type_raw": "Full Boarding",
+   "sessions_clicked": [
+    "2026-2027",
+    "2027-2028"
+   ],
+   "all_facts": {
+    "Board": "State Board",
+    "Gender": "Coed",
+    "Classes": "6 - 10 Class",
+    "Academic Session": "April to March",
+    "Medium": "English",
+    "Student Teacher Ratio": "50:1",
+    "Day/Boarding": "Full Boarding"
+   },
+   "sources": {
+    "name": "listing card",
+    "city": "breadcrumb",
+    "state": "listing card",
+    "area": "address: text before the city (the page has no separate area field)",
+    "locality": "address: text before the city (the page has no separate area field)",
+    "type": "Quick Facts: Day/Boarding",
+    "boarding_type": "Quick Facts: Day/Boarding",
+    "address": "page header",
+    "pincode": "page header",
+    "classes": "Quick Facts",
+    "boards": "Quick Facts",
+    "gender": "Quick Facts",
+    "medium": "Quick Facts",
+    "academic_session": "Quick Facts",
+    "student_teacher_ratio": "Quick Facts",
+    "founded": "page header",
+    "class_fees": "fees-structure page (site-printed numbers; fee_session = session stated by the page or clicked button)",
+    "fee_min": "lowest / highest annual fee of the newest fee session (2024-2025)",
+    "fee_max": "lowest / highest annual fee of the newest fee session (2024-2025)",
+    "email": "Address And Contact block",
+    "website": "Address And Contact block",
+    "phone": "page data next to the e-mail",
+    "about": "About Us section",
+    "description": "About Us section",
+    "facilities": "Facilities icons marked yes (grouped by the page section)",
+    "facility_groups": "Facilities icons marked yes (grouped by the page section)",
+    "hostel": "Facilities icons (Boys/Girls Hostel)",
+    "lat_lng": "school's own Google-Maps embed",
+    "logo": "image with alt \"<school> Logo\"",
+    "images": "cover + \"<school> Gallery\" images"
+   },
+   "facilities_not_available": [
+    "Alumni Association",
+    "Ramps",
+    "Washrooms",
+    "Elevators",
+    "GPS Bus Tracking App",
+    "Student Tracking App",
+    "Karate",
+    "Taekwondo",
+    "Gym",
+    "Swimming Pool",
+    "Skating",
+    "Horse Riding"
+   ]
+  }
+ }
+]

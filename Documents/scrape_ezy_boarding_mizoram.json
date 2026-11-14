@@ -1,0 +1,617 @@
+[
+ {
+  "name": "Sainik School",
+  "slug": null,
+  "city": "Chhingchhip",
+  "state": "Mizoram",
+  "area": null,
+  "locality": null,
+  "pincode": "796161",
+  "type": "Boarding School",
+  "boarding_type": "Full Boarding",
+  "boards": [
+   "CBSE"
+  ],
+  "classes": "6 - 12",
+  "gender": "Co-ed",
+  "description": "About Us Sainik School Chhingchhip is a co-educational residential English medium School, imparting Public School Education with a Military bias. The School was established on 21 Apr 2017 with the primary aim to prepare young boys academically, physically and mentally fit for entry into the National Defence Academy and Naval Academy. The School was inaugurated on 17 May 2017 by the Honorable Chief Minister of Mizoram and has started with its first batch of 60 cadets for class VI. Apart from preparing the students academically, the School endeavor to develop Character, Team Spirit, Loyalty, Esprit-de-Corps and high sense of Discipline among cadets of the School.",
+  "about": "About Us Sainik School Chhingchhip is a co-educational residential English medium School, imparting Public School Education with a Military bias. The School was established on 21 Apr 2017 with the primary aim to prepare young boys academically, physically and mentally fit for entry into the National Defence Academy and Naval Academy. The School was inaugurated on 17 May 2017 by the Honorable Chief Minister of Mizoram and has started with its first batch of 60 cadets for class VI. Apart from preparing the students academically, the School endeavor to develop Character, Team Spirit, Loyalty, Esprit-de-Corps and high sense of Discipline among cadets of the School.",
+  "hostel": true,
+  "rating": null,
+  "reviews": null,
+  "fee_min": 153680,
+  "fee_max": 153680,
+  "address": "Tuikum Rd, Chhingchhip, Mizoram - 796161",
+  "lat": 23.44596002802661,
+  "lng": 92.86675284838374,
+  "phone": "+91-7630010072",
+  "email": "sschhingchhip@sainikschoolsociety.in",
+  "website": "https://sschhingchhip.mizoram.gov.in/",
+  "social": {},
+  "logo": "https://d3bat55ebwjhsf.cloudfront.net/schools/logos/13860/user_root_user%40ezy.com/Screenshot_2025-08-29_171304.png",
+  "images": [
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/cover/13860/user_root_user%40ezy.com/unnamed_15.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2025-08-29_17-24-33/rg90/infra/images/unnamed_25.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2025-08-29_17-33-33/pr5b/infra/images/1672117498747.jpeg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2025-08-29_17-33-10/591s/infra/images/1672117437503.jpeg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2025-08-29_17-23-34/6p2o/infra/images/unnamed_16.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2025-08-29_17-24-19/tpu6/infra/images/unnamed_24.webp"
+  ],
+  "facilities": [
+   "Alumni Association",
+   "Meals",
+   "Boys Hostel",
+   "Girls Hostel",
+   "Wifi",
+   "Smart Classes",
+   "Washrooms",
+   "Ramps",
+   "Debate",
+   "Picnics and excursion",
+   "Music",
+   "Drama",
+   "Art and Craft",
+   "Dance",
+   "Gardening",
+   "Cafeteria/Canteen",
+   "Library/Reading Room",
+   "Playground",
+   "Auditorium/Media Room",
+   "Language Lab",
+   "Science Lab",
+   "Computer Lab",
+   "CCTV",
+   "Medical Room",
+   "Horse Riding",
+   "Swimming Pool",
+   "Gym",
+   "Yoga",
+   "Taekwondo",
+   "Karate",
+   "Outdoor Sports",
+   "Indoor Sports"
+  ],
+  "facility_groups": {
+   "Advanced Facilities": [
+    "Alumni Association",
+    "Meals",
+    "Medical Room"
+   ],
+   "Boarding": [
+    "Boys Hostel",
+    "Girls Hostel"
+   ],
+   "Class": [
+    "Wifi",
+    "Smart Classes"
+   ],
+   "Disabled Friendly": [
+    "Washrooms",
+    "Ramps"
+   ],
+   "Extra Curricular": [
+    "Debate",
+    "Picnics and excursion",
+    "Music",
+    "Drama",
+    "Art and Craft",
+    "Dance",
+    "Gardening"
+   ],
+   "Infrastructure": [
+    "Cafeteria/Canteen",
+    "Library/Reading Room",
+    "Playground",
+    "Auditorium/Media Room"
+   ],
+   "Lab": [
+    "Language Lab",
+    "Science Lab",
+    "Computer Lab"
+   ],
+   "Safety and Security": [
+    "CCTV"
+   ],
+   "Sports and Fitness": [
+    "Horse Riding",
+    "Swimming Pool",
+    "Gym",
+    "Yoga",
+    "Taekwondo",
+    "Karate",
+    "Outdoor Sports",
+    "Indoor Sports"
+   ]
+  },
+  "founded": 2017,
+  "medium": "English",
+  "academic_session": "April To March",
+  "student_teacher_ratio": "21:1",
+  "campus_size": "523 Acres",
+  "languages": [
+   "English",
+   "Hindi"
+  ],
+  "food_options": null,
+  "verified": null,
+  "page_last_updated": "2025-08-29",
+  "affiliation_no": null,
+  "school_timing": null,
+  "student_count": null,
+  "teacher_count": null,
+  "source_site": "ezyschooling.com",
+  "source_url": "https://ezyschooling.com/school/sainik-school-chhingchhip-mizoram",
+  "latest_fee_session": "2025-2026",
+  "current_admission_session": null,
+  "class_fees": [
+   {
+    "class_name": "Class 6",
+    "monthly_fee": null,
+    "annual_fee": 153680,
+    "one_time_fee": 3000,
+    "first_year_total": 156680,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Uniform and Stationary Charges",
+      "frequency": "Annually",
+      "amount": 27000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Caution Money",
+      "frequency": "Onetime",
+      "amount": 3000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Meal Charges",
+      "frequency": "Annually",
+      "amount": 31030,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Charges",
+      "frequency": "Annually",
+      "amount": 2300,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 72600,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 1950,
+      "refundable": null
+     },
+     {
+      "fee_type": "Miscellaneous Charges",
+      "frequency": "Annually",
+      "amount": 16000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Laundry",
+      "frequency": "Annually",
+      "amount": 2800,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 7",
+    "monthly_fee": null,
+    "annual_fee": 153680,
+    "one_time_fee": 3000,
+    "first_year_total": 156680,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Uniform and Stationary Charges",
+      "frequency": "Annually",
+      "amount": 27000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Caution Money",
+      "frequency": "Onetime",
+      "amount": 3000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Meal Charges",
+      "frequency": "Annually",
+      "amount": 31030,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Charges",
+      "frequency": "Annually",
+      "amount": 2300,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 72600,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 1950,
+      "refundable": null
+     },
+     {
+      "fee_type": "Miscellaneous Charges",
+      "frequency": "Annually",
+      "amount": 16000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Laundry",
+      "frequency": "Annually",
+      "amount": 2800,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 8",
+    "monthly_fee": null,
+    "annual_fee": 153680,
+    "one_time_fee": 3000,
+    "first_year_total": 156680,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Uniform and Stationary Charges",
+      "frequency": "Annually",
+      "amount": 27000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Caution Money",
+      "frequency": "Onetime",
+      "amount": 3000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Meal Charges",
+      "frequency": "Annually",
+      "amount": 31030,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Charges",
+      "frequency": "Annually",
+      "amount": 2300,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 72600,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 1950,
+      "refundable": null
+     },
+     {
+      "fee_type": "Miscellaneous Charges",
+      "frequency": "Annually",
+      "amount": 16000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Laundry",
+      "frequency": "Annually",
+      "amount": 2800,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 9",
+    "monthly_fee": null,
+    "annual_fee": 153680,
+    "one_time_fee": 3000,
+    "first_year_total": 156680,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Uniform and Stationary Charges",
+      "frequency": "Annually",
+      "amount": 27000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Caution Money",
+      "frequency": "Onetime",
+      "amount": 3000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Meal Charges",
+      "frequency": "Annually",
+      "amount": 31030,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Charges",
+      "frequency": "Annually",
+      "amount": 2300,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 72600,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 1950,
+      "refundable": null
+     },
+     {
+      "fee_type": "Miscellaneous Charges",
+      "frequency": "Annually",
+      "amount": 16000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Laundry",
+      "frequency": "Annually",
+      "amount": 2800,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 10",
+    "monthly_fee": null,
+    "annual_fee": 153680,
+    "one_time_fee": 3000,
+    "first_year_total": 156680,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Uniform and Stationary Charges",
+      "frequency": "Annually",
+      "amount": 27000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Caution Money",
+      "frequency": "Onetime",
+      "amount": 3000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Meal Charges",
+      "frequency": "Annually",
+      "amount": 31030,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Charges",
+      "frequency": "Annually",
+      "amount": 2300,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 72600,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 1950,
+      "refundable": null
+     },
+     {
+      "fee_type": "Miscellaneous Charges",
+      "frequency": "Annually",
+      "amount": 16000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Laundry",
+      "frequency": "Annually",
+      "amount": 2800,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 11",
+    "monthly_fee": null,
+    "annual_fee": 153680,
+    "one_time_fee": 3000,
+    "first_year_total": 156680,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Uniform and Stationary Charges",
+      "frequency": "Annually",
+      "amount": 27000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Caution Money",
+      "frequency": "Onetime",
+      "amount": 3000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Meal Charges",
+      "frequency": "Annually",
+      "amount": 31030,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Charges",
+      "frequency": "Annually",
+      "amount": 2300,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 72600,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 1950,
+      "refundable": null
+     },
+     {
+      "fee_type": "Miscellaneous Charges",
+      "frequency": "Annually",
+      "amount": 16000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Laundry",
+      "frequency": "Annually",
+      "amount": 2800,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 12",
+    "monthly_fee": null,
+    "annual_fee": 153680,
+    "one_time_fee": 3000,
+    "first_year_total": 156680,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Uniform and Stationary Charges",
+      "frequency": "Annually",
+      "amount": 27000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Caution Money",
+      "frequency": "Onetime",
+      "amount": 3000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Meal Charges",
+      "frequency": "Annually",
+      "amount": 31030,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Charges",
+      "frequency": "Annually",
+      "amount": 2300,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 72600,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 1950,
+      "refundable": null
+     },
+     {
+      "fee_type": "Miscellaneous Charges",
+      "frequency": "Annually",
+      "amount": 16000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Laundry",
+      "frequency": "Annually",
+      "amount": 2800,
+      "refundable": null
+     }
+    ]
+   }
+  ],
+  "admissions": [],
+  "warnings": [
+   "no admission / application-fee table on the page"
+  ],
+  "mongo_extra": {
+   "scraped_at": "2026-10-27",
+   "scraped_from": "ezyschooling.com",
+   "ezy_slug": "sainik-school-chhingchhip-mizoram",
+   "fee_data_sessions": [
+    "2025-2026"
+   ],
+   "page_heading_session": "2027-2028",
+   "listing_fee_range": null,
+   "boarding_type_raw": "Full Boarding",
+   "sessions_clicked": [
+    "2026-2027",
+    "2027-2028"
+   ],
+   "all_facts": {
+    "Board": "CBSE",
+    "Gender": "Coed",
+    "Classes": "6 - 12 Class",
+    "Academic Session": "April To March",
+    "Medium": "English",
+    "Student Teacher Ratio": "21:1",
+    "Day/Boarding": "Full Boarding"
+   },
+   "sources": {
+    "name": "listing card",
+    "city": "breadcrumb (level 1)",
+    "state": "page address",
+    "type": "Quick Facts: Day/Boarding",
+    "boarding_type": "Quick Facts: Day/Boarding",
+    "address": "page header",
+    "pincode": "page header",
+    "classes": "Quick Facts",
+    "boards": "Quick Facts",
+    "gender": "Quick Facts",
+    "medium": "Quick Facts",
+    "academic_session": "Quick Facts",
+    "student_teacher_ratio": "Quick Facts",
+    "founded": "page header",
+    "class_fees": "fees-structure page (site-printed numbers; fee_session = session stated by the page or clicked button)",
+    "fee_min": "lowest / highest annual fee of the newest fee session (2025-2026)",
+    "fee_max": "lowest / highest annual fee of the newest fee session (2025-2026)",
+    "email": "Address And Contact block",
+    "website": "Address And Contact block",
+    "phone": "page data next to the e-mail",
+    "about": "About Us section",
+    "description": "About Us section",
+    "facilities": "Facilities icons marked yes (grouped by the page section)",
+    "facility_groups": "Facilities icons marked yes (grouped by the page section)",
+    "hostel": "Facilities icons (Boys/Girls Hostel)",
+    "lat_lng": "school's own Google-Maps embed",
+    "logo": "image with alt \"<school> Logo\"",
+    "images": "cover + \"<school> Gallery\" images",
+    "campus_size": "Quick Facts",
+    "languages": "Languages Taught section",
+    "page_last_updated": "page footer"
+   },
+   "facilities_not_available": []
+  }
+ }
+]

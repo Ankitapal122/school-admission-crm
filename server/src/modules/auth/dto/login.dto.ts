@@ -12,8 +12,9 @@ export class LoginDto {
   @IsString()
   password: string;
 
+  @IsOptional()
   @IsString()
-  role: string;
+  role?: string;
 
   @IsOptional()
   @IsBoolean()

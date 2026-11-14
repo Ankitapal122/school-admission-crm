@@ -1,49 +1,89 @@
-import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-import { join } from 'path';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import cookieParser from 'cookie-parser';
+import compression from 'compression';
+import helmet from 'helmet';
+import { Request, Response, NextFunction } from 'express';
+import { AppModule } from './app.module';
 import * as fs from 'fs';
-const cookieParser = require('cookie-parser');
+import * as path from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  // Global middleware
+  // Security headers & response compression
+  app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
+  app.use(compression());
   app.use(cookieParser());
 
-  // Global DTO validation pipe with class-validator
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      transform: true,
-      forbidNonWhitelisted: false,
-    }),
-  );
+  // Rewrite /v1/* and /api/v1/* cleanly to /api/* while keeping Swagger docs & static assets intact
+  app.use((req: Request, _res: Response, next: NextFunction) => {
+    if (req.url === '/v1' || req.url.startsWith('/v1/')) {
+      req.url = '/api' + req.url.slice(3);
+    } else if (req.url === '/api/v1' || req.url.startsWith('/api/v1/')) {
+      req.url = '/api' + req.url.slice(7);
+    }
+    next();
+  });
 
-  // CORS Configuration
   app.enableCors({
     origin: true,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   });
 
-  // Global API prefix
   app.setGlobalPrefix('api');
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      forbidUnknownValues: false,
+    }),
+  );
 
-  // Serve built React frontend (client/dist) on port 5000 as well
-  const clientDistPath = join(process.cwd(), '..', 'client', 'dist');
-  if (fs.existsSync(clientDistPath)) {
-    app.useStaticAssets(clientDistPath);
-    const expressApp = app.getHttpAdapter().getInstance();
-    expressApp.use((req: any, res: any, next: any) => {
-      if (req.path.startsWith('/api')) {
-        return next();
-      }
-      const indexFile = join(clientDistPath, 'index.html');
-      if (fs.existsSync(indexFile)) {
-        return res.sendFile(indexFile);
+  // Swagger OpenAPI documentation at /api/docs
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('BoardingEdu Enterprise CRM API')
+    .setDescription('Unified Student CRM & Boarding School Admissions REST API (/api and /v1)')
+    .setVersion('3.0')
+    .addBearerAuth()
+    .build();
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('api/docs', app, document);
+
+  // Serve school_images from Documents/school_images at /school-images
+  const docsImagesA = path.resolve(process.cwd(), '..', 'Documents', 'school_images');
+  const docsImagesB = path.resolve(process.cwd(), 'Documents', 'school_images');
+  const resolvedSchoolImages = fs.existsSync(docsImagesA)
+    ? docsImagesA
+    : fs.existsSync(docsImagesB)
+      ? docsImagesB
+      : null;
+  if (resolvedSchoolImages) {
+    app.useStaticAssets(resolvedSchoolImages, { prefix: '/school-images/' });
+  }
+
+  // Serve built client static files if available (production / single-port deploy)
+  const clientDist = path.resolve(process.cwd(), '..', 'client', 'dist');
+  const clientDistAlt = path.resolve(process.cwd(), 'client', 'dist');
+  const resolvedDist = fs.existsSync(clientDist)
+    ? clientDist
+    : fs.existsSync(clientDistAlt)
+      ? clientDistAlt
+      : null;
+
+  if (resolvedDist) {
+    app.useStaticAssets(resolvedDist);
+    app.use((req: Request, res: Response, next: NextFunction) => {
+      if (
+        !req.url.startsWith('/api') &&
+        !req.url.startsWith('/socket.io') &&
+        !req.url.startsWith('/notifications') &&
+        !req.url.includes('.')
+      ) {
+        return res.sendFile(path.join(resolvedDist, 'index.html'));
       }
       next();
     });
@@ -51,14 +91,6 @@ async function bootstrap() {
 
   const port = process.env.PORT || 5000;
   await app.listen(port);
-  console.log(`\n=============================================================`);
-  console.log(`🚀 NESTJS ENTERPRISE STUDENT CRM (FULL-STACK)`);
-  console.log(`🌐 Frontend + API running at: http://localhost:${port}`);
-  console.log(`⚡ Vite Dev Server running at: http://localhost:5173`);
-  console.log(`📡 REST API Endpoint: http://localhost:${port}/api`);
-  console.log(`🐘 PostgreSQL & Prisma ORM: Ready`);
-  console.log(`⚡ Redis & BullMQ Workers: Active`);
-  console.log(`🔔 Socket.io Real-time Gateway: Listening`);
-  console.log(`=============================================================\n`);
+  console.log(`🚀 BoardingEdu Enterprise CRM Backend listening on http://localhost:${port}/api (Docs: /api/docs, v1: /v1)`);
 }
 bootstrap();

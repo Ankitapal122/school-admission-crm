@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '../../stores/authStore';
+import { apiCall } from '../../lib/api';
+import { normalizeRoleKey } from '../../lib/roles';
 
 interface RoleDashboardProps {
   onNavigateTab: (tab: string) => void;
   onOpenNewLead: () => void;
-  leads: any[];
-  commissions: any[];
-  schools: any[];
-  teams: any[];
+  leads?: any[];
+  commissions?: any[];
+  schools?: any[];
+  teams?: any[];
   kpiStats?: any;
 }
 
@@ -22,104 +24,328 @@ export default function RoleDashboard({
 }: RoleDashboardProps) {
   const { user, previewRole } = useAuthStore();
   const effectiveRole = previewRole || user?.role || 'SUPER_ADMIN';
+  const normKey = normalizeRoleKey(effectiveRole);
+  const role: 'admin' | 'manager' | 'counsellor' =
+    normKey === 'super_admin' ? 'admin' : normKey === 'manager' ? 'manager' : 'counsellor';
 
-  const role =
-    effectiveRole === 'SUPER_ADMIN'
-      ? 'admin'
-      : effectiveRole === 'SENIOR_MANAGER'
-      ? 'manager'
-      : 'counsellor';
+  const [toastMsg, setToastMsg] = useState<{
+    text: string;
+    type: 'success' | 'warning' | 'danger';
+  } | null>(null);
 
-  // Local state for modals & actions
-  const [toastMsg, setToastMsg] = useState<{ text: string; type: 'success' | 'warning' | 'danger' } | null>(null);
+  // Live role-scoped dashboard payloads
+  const [jrData, setJrData] = useState<any>(null);
+  const [srData, setSrData] = useState<any>(null);
+  const [adminData, setAdminData] = useState<any>(null);
+  const [pendingQueue, setPendingQueue] = useState<any[]>([]);
+  const [callOutcomes, setCallOutcomes] = useState<string[]>([
+    'Connected - Interested',
+    'Connected - Needs Callback',
+    'Ringing / No Answer',
+    'Switched Off / Not Reachable',
+    'Call Busy',
+    'Not Interested',
+    'Wrong Number',
+  ]);
+  const [loadingDash, setLoadingDash] = useState(false);
+
+  // Call & WA logging modals
   const [selectedLeadForCall, setSelectedLeadForCall] = useState<any | null>(null);
   const [callWhom, setCallWhom] = useState<'father' | 'mother'>('father');
-  const [callOutcome, setCallOutcome] = useState('Connected & Spoke to Parent');
+  const [callOutcome, setCallOutcome] = useState('Connected - Interested');
   const [callIntent, setCallIntent] = useState<'GENUINE' | 'JUNK'>('GENUINE');
   const [callNotes, setCallNotes] = useState('');
-  const [showForwardModal, setShowForwardModal] = useState(false);
+
+  // Pending Logging Queue Resolution Modal (3-Layer Lock)
+  const [resolvingItem, setResolvingItem] = useState<any | null>(null);
+  const [resolveStatus, setResolveStatus] = useState('sent');
+  const [resolveOutcome, setResolveOutcome] = useState('Spoke with parent / shared school details');
+  const [resolveNotes, setResolveNotes] = useState('');
+
+  // Manager / Admin interactive modals
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportPeriod, setReportPeriod] = useState<'weekly' | 'monthly'>('monthly');
+  const [showFollowUpModal, setShowFollowUpModal] = useState<any | null>(null);
+  const [newFollowUpDate, setNewFollowUpDate] = useState(
+    new Date(Date.now() + 86_400_000).toISOString().split('T')[0]
+  );
+  const [followUpReason, setFollowUpReason] = useState('');
 
-  // Manager specific states
-  const [showRescheduleModal, setShowRescheduleModal] = useState<any | null>(null);
-  const [newVisitDate, setNewVisitDate] = useState('2026-11-28');
   const [showBrochureModal, setShowBrochureModal] = useState<any | null>(null);
-
-  // Admin specific states
+  const [brochureText, setBrochureText] = useState('');
   const [showReassignModal, setShowReassignModal] = useState<any | null>(null);
-  const [targetTeam, setTargetTeam] = useState('Team Uttarakhand Pioneers');
+  const [targetTeamId, setTargetTeamId] = useState('');
 
   const showToast = (text: string, type: 'success' | 'warning' | 'danger' = 'success') => {
     setToastMsg({ text, type });
-    setTimeout(() => setToastMsg(null), 3500);
+    setTimeout(() => setToastMsg(null), 4000);
   };
 
-  const approvedCount = leads.filter((l) => l.verificationStatus === 'Approved').length;
-  const pendingCount = leads.filter((l) => l.verificationStatus === 'Pending Verification').length;
-  const returnedCount = leads.filter((l) => l.verificationStatus === 'Returned').length;
-  const hotCount = leads.filter((l) => (l.leadPriority || 'Hot') === 'Hot').length;
+  const fetchDashboardData = async () => {
+    setLoadingDash(true);
+    try {
+      const [queueRes, outcomesRes] = await Promise.all([
+        apiCall('/pending-logging-queue').catch(() => ({ items: [] })),
+        apiCall('/calls/outcomes').catch(() => ({ outcomes: [] })),
+      ]);
+      const qList = queueRes?.items || queueRes?.queue || queueRes?.data?.items || [];
+      setPendingQueue(Array.isArray(qList) ? qList : []);
+      if (Array.isArray(outcomesRes?.outcomes) && outcomesRes.outcomes.length > 0) {
+        setCallOutcomes(outcomesRes.outcomes);
+      }
 
-  const totalCommAmount = commissions
-    .filter((c) => c.amount > 0 && c.status !== 'Reversed')
-    .reduce((s, c) => s + c.amount, 0);
-  const paidCommAmount = commissions
-    .filter((c) => c.amount > 0 && c.rawStatus === 'PAID')
-    .reduce((s, c) => s + c.amount, 0);
-  const pendingCommAmount = totalCommAmount - paidCommAmount;
+      if (role === 'admin') {
+        const res = await apiCall('/dashboard/admin').catch(() => null);
+        setAdminData(res?.data || res);
+      } else if (role === 'manager') {
+        const res = await apiCall('/dashboard/sr').catch(() => null);
+        setSrData(res?.data || res);
+      } else {
+        const res = await apiCall('/dashboard/jr').catch(() => null);
+        setJrData(res?.data || res);
+      }
+    } finally {
+      setLoadingDash(false);
+    }
+  };
 
-  // Counsellor Specific Counts (Khushi Counsellor)
-  const counsellorLeadsCount = leads.length > 3 ? leads.length : 100;
-  const counsellorCallsCount = 100; // 100 parents contacted
-  const counsellorGenuineCount = 60; // 60 genuine boarding parents
-  const counsellorAdmissionsCount = 30; // 30 confirmed admissions
-  const counsellorCommissionRate = 1000; // ₹1,000 per confirmed student
-  const counsellorTotalCommission = counsellorAdmissionsCount * counsellorCommissionRate; // ₹30,000
+  useEffect(() => {
+    fetchDashboardData();
+  }, [role]);
 
-  const handleSaveCallFeedback = (e: React.FormEvent) => {
-    e.preventDefault();
-    showToast(
-      `Call feedback logged for ${selectedLeadForCall?.studentName || 'Student'}! Status: ${
-        callIntent === 'GENUINE' ? '🌟 Genuine Boarding Enquiry' : '❌ Not Genuine / Junk'
-      }`,
-      'success'
-    );
-    setSelectedLeadForCall(null);
+  // Derived aggregates from live collections + role API
+  const pendingVerifyCount = leads.filter(
+    (l) => String(l.verificationStatus || l.status || '').toLowerCase() === 'pending'
+  ).length;
+  const approvedLeadsCount = leads.filter((l) =>
+    ['verified', 'qualified', 'shortlisted', 'enrolled', 'admission_done'].includes(
+      String(l.status || '').toLowerCase()
+    )
+  ).length;
+  const campusVisitsCount = leads.filter((l) =>
+    ['application_submitted', 'entrance_scheduled', 'interview_scheduled'].includes(
+      String(l.stage || l.current_stage || '').toLowerCase()
+    )
+  ).length;
+
+  const activeCommissions = commissions.filter(
+    (c) => !c.isReversal && !['reversed', 'REVERSED', 'CANCELLED'].includes(c.status)
+  );
+  const totalCommAmount = activeCommissions.reduce((s, c) => s + Number(c.amount || 0), 0);
+  const paidCommAmount = activeCommissions
+    .filter((c) => ['received', 'paid_out', 'PAID', 'APPROVED'].includes(c.status))
+    .reduce((s, c) => s + Number(c.amount || 0), 0);
+
+  const recentLeadsList = (jrData?.recentLeads && jrData.recentLeads.length > 0
+    ? jrData.recentLeads
+    : leads
+  ).slice(0, 8);
+
+  const handleOpenCallLogger = async (lead: any) => {
+    setSelectedLeadForCall(lead);
+    setCallWhom('father');
+    setCallOutcome(callOutcomes[0] || 'Connected - Interested');
+    setCallIntent('GENUINE');
     setCallNotes('');
+    try {
+      await apiCall(`/calls/dial-link/${lead.id}`);
+      window.dispatchEvent(new CustomEvent('crm-logging-queue-updated'));
+    } catch (err: any) {
+      if (err?.status === 409) {
+        showToast(err.message || 'Please resolve your pending logging queue item first!', 'warning');
+      }
+    }
   };
 
-  const handleForwardToManager = () => {
-    showToast(
-      `Batch of ${counsellorGenuineCount} Genuine Boarding Leads successfully forwarded to Priya Manager for Verification!`,
-      'success'
-    );
-    setShowForwardModal(false);
+  const handleSaveCallFeedback = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedLeadForCall) return;
+    try {
+      const targetPhone =
+        callWhom === 'father'
+          ? selectedLeadForCall.fatherPhone || selectedLeadForCall.mobile || ''
+          : selectedLeadForCall.motherPhone || selectedLeadForCall.fatherPhone || '';
+      await apiCall('/calls/log', 'POST', {
+        lead_id: selectedLeadForCall.id,
+        leadId: selectedLeadForCall.id,
+        parentWhom: callWhom,
+        phone: targetPhone,
+        outcome: callOutcome,
+        notes: `${callIntent === 'GENUINE' ? '[GENUINE] ' : '[JUNK] '}${callNotes}`,
+      });
+      showToast(`Call outcome saved for ${selectedLeadForCall.studentName}.`, 'success');
+      setSelectedLeadForCall(null);
+      window.dispatchEvent(new CustomEvent('crm-logging-queue-updated'));
+      await fetchDashboardData();
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to log call feedback.', 'danger');
+    }
   };
 
-  const handleSendReport = () => {
-    showToast(
-      `Official ${reportPeriod.toUpperCase()} Performance & Commission Report (₹${counsellorTotalCommission.toLocaleString('en-IN')}) successfully dispatched to Priya Manager & Super Admin!`,
-      'success'
+  const handleOpenWhatsAppQuick = (lead: any) => {
+    const school = schools[0]?.name || 'Dehradun / Mussoorie Boarding School';
+    setShowBrochureModal(lead);
+    setBrochureText(
+      `Namaste ${lead.fatherName || lead.parentName || 'Parent'}! Sharing admission prospectus & fee details for ${lead.studentName || 'your child'} (${lead.admissionClass || 'Boarding'}) - ${school}.`
     );
-    setShowReportModal(false);
+  };
+
+  const handleSendWhatsAppQuick = async () => {
+    if (!showBrochureModal) return;
+    try {
+      const res = await apiCall('/whatsapp/generate-link', 'POST', {
+        lead_id: showBrochureModal.id,
+        leadId: showBrochureModal.id,
+        message: brochureText.trim(),
+      });
+      const waUrl = res?.waUrl || res?.url || res?.data?.waUrl;
+      if (waUrl) window.open(waUrl, '_blank', 'noopener,noreferrer');
+      showToast('WhatsApp link generated & queued in Layer-3 confirmation tracker!', 'success');
+      setShowBrochureModal(null);
+      window.dispatchEvent(new CustomEvent('crm-logging-queue-updated'));
+      await fetchDashboardData();
+    } catch (err: any) {
+      if (err?.status === 409) {
+        showToast(
+          err.message || 'Unlogged WhatsApp/Call pending for another lead. Confirm it first!',
+          'warning'
+        );
+      } else {
+        showToast(err?.message || 'Could not generate WhatsApp link.', 'danger');
+      }
+    }
+  };
+
+  const handleResolveQueueItem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resolvingItem) return;
+    try {
+      await apiCall(`/pending-logging-queue/${resolvingItem.id}/resolve`, 'POST', {
+        confirmed: true,
+        status: resolveStatus,
+        outcome: resolveOutcome,
+        notes: resolveNotes || resolveOutcome,
+      });
+      showToast('Pending activity resolved & Layer-3 lock cleared!', 'success');
+      setResolvingItem(null);
+      setResolveNotes('');
+      window.dispatchEvent(new CustomEvent('crm-logging-queue-updated'));
+      await fetchDashboardData();
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to resolve queue item.', 'danger');
+    }
+  };
+
+  const handleRescheduleFollowUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!showFollowUpModal) return;
+    if (followUpReason.trim().length < 5) {
+      showToast('Reason must be at least 5 characters.', 'warning');
+      return;
+    }
+    try {
+      await apiCall(`/leads/${showFollowUpModal.id}/follow-up`, 'PUT', {
+        nextFollowUpDate: newFollowUpDate,
+        reason: followUpReason.trim(),
+      });
+      showToast(`Follow-up date updated for ${showFollowUpModal.studentName}!`, 'success');
+      setShowFollowUpModal(null);
+      setFollowUpReason('');
+      await fetchDashboardData();
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to update follow-up date.', 'danger');
+    }
+  };
+
+  const handleReassignUserTeam = async () => {
+    if (!showReassignModal || !targetTeamId) return;
+    try {
+      await apiCall(`/users/${showReassignModal.id}/role`, 'PATCH', {
+        teamId: targetTeamId,
+        reason: 'Dashboard shift monitor reassignment',
+      });
+      showToast(`${showReassignModal.fullName || 'Employee'} team updated cleanly.`, 'success');
+      setShowReassignModal(null);
+      await fetchDashboardData();
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to reassign employee team.', 'danger');
+    }
   };
 
   return (
-    <div>
-      {/* Toast Notification */}
+    <div style={{ position: 'relative' }}>
       {toastMsg && (
-        <div className={`toast ${toastMsg.type}`} style={{ position: 'fixed', top: '70px', right: '20px', zIndex: 9999 }}>
+        <div
+          className={`toast ${toastMsg.type}`}
+          style={{ position: 'fixed', top: '70px', right: '20px', zIndex: 2000 }}
+        >
           <span>{toastMsg.type === 'success' ? '✅' : toastMsg.type === 'danger' ? '❌' : '⚠️'}</span>{' '}
           <span>{toastMsg.text}</span>
         </div>
       )}
 
+      {/* Layer-3 Pending Logging Queue Alert Strip */}
+      {pendingQueue.length > 0 && (
+        <div
+          className="card"
+          style={{
+            marginBottom: '20px',
+            borderColor: '#F59E0B',
+            background: '#FFFBEB',
+            padding: '14px 18px',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '12px',
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  fontWeight: 800,
+                  color: '#92400E',
+                  fontSize: '14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                ⏳ Layer-3 Activity Confirmation Required ({pendingQueue.length} Pending)
+              </div>
+              <div style={{ fontSize: '12.5px', color: '#B45309', marginTop: '2px' }}>
+                Lead: <strong>{pendingQueue[0]?.lead?.studentName || 'Student'}</strong> (
+                {pendingQueue[0]?.lead?.leadNumber || 'CRM Lead'}) via{' '}
+                <strong>{String(pendingQueue[0]?.channel || 'whatsapp').toUpperCase()}</strong> &mdash;
+                Confirm outcome to prevent outgoing contact lock on other leads.
+              </div>
+            </div>
+            <button
+              className="btn btn-navy btn-sm"
+              onClick={() => {
+                setResolvingItem(pendingQueue[0]);
+                setResolveStatus(
+                  String(pendingQueue[0]?.channel || '').toLowerCase() === 'call'
+                    ? 'connected'
+                    : 'sent'
+                );
+              }}
+            >
+              ✓ Confirm &amp; Resolve Now
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ========================================================================= */}
-      {/* 1. COUNSELLOR DASHBOARD (Khushi Counsellor Workspace)                      */}
+      {/* 1. COUNSELLOR DASHBOARD */}
       {/* ========================================================================= */}
       {role === 'counsellor' && (
         <div>
-          {/* Counsellor Live Shift & Status Banner */}
           <div
             className="card"
             style={{
@@ -131,12 +357,20 @@ export default function RoleDashboard({
               boxShadow: '0 10px 25px -5px rgba(18, 59, 112, 0.25)',
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '12px',
+              }}
+            >
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                   <span style={{ fontSize: '20px' }}>👩‍💼</span>
                   <h2 style={{ fontSize: '18px', fontWeight: 800, margin: 0 }}>
-                    {user?.fullName || 'Khushi Sharma'} (EMP-COU-001)
+                    {user?.fullName || 'Counsellor Workspace'} ({user?.employeeId || 'COUNSELLOR'})
                   </h2>
                   <span
                     style={{
@@ -144,19 +378,17 @@ export default function RoleDashboard({
                       color: 'white',
                       fontSize: '11px',
                       fontWeight: 700,
-                      padding: '2px 8px',
+                      padding: '2px 10px',
                       borderRadius: '999px',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px',
                     }}
                   >
-                    <span style={{ width: '6px', height: '6px', background: 'white', borderRadius: '50%' }}></span>
-                    🟢 Online &amp; Active on CRM
+                    🟢 ACTIVE SESSION
                   </span>
                 </div>
                 <div style={{ fontSize: '12.5px', opacity: 0.9 }}>
-                  🕒 <strong>Shift Login Time:</strong> 09:30 AM IST (Logged in by Admin) &bull; 🏢 <strong>Assigned Manager:</strong> Priya Rawat (Team: Uttarakhand Pioneers)
+                  Assigned Portfolio: <strong>{jrData?.totalLeads ?? leads.length}</strong> Leads &bull;
+                  Today Follow-ups: <strong>{jrData?.todayFollowUps ?? 0}</strong> &bull;
+                  Overdue: <strong>{jrData?.overdueFollowUps ?? 0}</strong>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -165,239 +397,153 @@ export default function RoleDashboard({
                   style={{ background: '#FFFFFF', color: '#123B70', fontWeight: 700 }}
                   onClick={onOpenNewLead}
                 >
-                  ➕ New Lead (Dual-Phone)
+                  ➕ New Lead
                 </button>
                 <button
                   className="btn btn-sm"
-                  style={{ background: '#16A34A', color: '#FFFFFF', fontWeight: 700 }}
-                  onClick={() => setShowForwardModal(true)}
+                  style={{ background: '#16A34A', color: 'white', border: 'none', fontWeight: 700 }}
+                  onClick={() => onNavigateTab('followups')}
                 >
-                  📤 Forward {counsellorGenuineCount} Genuine Leads to Manager
+                  📅 Today Follow-ups
                 </button>
                 <button
                   className="btn btn-sm"
-                  style={{ background: '#F59E0B', color: '#FFFFFF', fontWeight: 700 }}
+                  style={{
+                    background: 'rgba(255,255,255,0.18)',
+                    color: 'white',
+                    border: '1px solid rgba(255,255,255,0.3)',
+                    fontWeight: 700,
+                  }}
                   onClick={() => setShowReportModal(true)}
                 >
-                  📄 My Performance &amp; Commission Report
+                  📄 My Performance
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Counsellor 4 Primary Metric Cards */}
           <div className="stats-grid">
             <div className="stat-card blue">
               <div className="stat-card-top">
-                <span className="stat-label">My Total Leads</span>
+                <span className="stat-label">My Assigned Leads</span>
                 <div className="stat-icon">📥</div>
               </div>
-              <div className="stat-value">{counsellorLeadsCount}</div>
-              <div className="stat-trend">Total Assigned in Portfolio</div>
+              <div className="stat-value">{jrData?.totalLeads ?? leads.length}</div>
+              <div className="stat-trend">Live Portfolio Count</div>
             </div>
 
             <div className="stat-card purple">
               <div className="stat-card-top">
-                <span className="stat-label">Parents Spoken With</span>
+                <span className="stat-label">Calls &amp; WhatsApp Logged</span>
                 <div className="stat-icon">📞</div>
               </div>
-              <div className="stat-value">{counsellorCallsCount}</div>
+              <div className="stat-value">
+                {(jrData?.callsMadeCount ?? 0) + (jrData?.waSentCount ?? 0)}
+              </div>
               <div className="stat-trend up">
-                <span>↑</span> 100% Contact Rate
+                {jrData?.callsMadeCount ?? 0} Calls &bull; {jrData?.waSentCount ?? 0} WA
               </div>
             </div>
 
             <div className="stat-card amber">
               <div className="stat-card-top">
-                <span className="stat-label">Genuine Boarding Leads</span>
-                <div className="stat-icon">🌟</div>
+                <span className="stat-label">Follow-ups Due / Overdue</span>
+                <div className="stat-icon">⏰</div>
               </div>
-              <div className="stat-value">{counsellorGenuineCount}</div>
-              <div className="stat-trend up">
-                <span>↑</span> 60 Parents Ready for Boarding
+              <div className="stat-value">
+                {(jrData?.todayFollowUps ?? 0) + (jrData?.overdueFollowUps ?? 0)}
               </div>
-            </div>
-
-            <div className="stat-card green">
-              <div className="stat-card-top">
-                <span className="stat-label">Confirmed Admissions</span>
-                <div className="stat-icon">🎓</div>
-              </div>
-              <div className="stat-value">{counsellorAdmissionsCount}</div>
-              <div className="stat-trend up">
-                <span>↑</span> 30 Enrolled in Residential Schools
+              <div className="stat-trend">
+                {jrData?.todayFollowUps ?? 0} Today &bull; {jrData?.overdueFollowUps ?? 0} Overdue
               </div>
             </div>
 
             <div className="stat-card green">
               <div className="stat-card-top">
-                <span className="stat-label">My Total Commission Earned</span>
+                <span className="stat-label">My Earned Commission</span>
                 <div className="stat-icon">💰</div>
               </div>
-              <div className="stat-value">₹{counsellorTotalCommission.toLocaleString('en-IN')}</div>
-              <div className="stat-trend up">
-                <span>↑</span> ₹{counsellorCommissionRate}/Student confirmed
+              <div className="stat-value">
+                ₹{Number(jrData?.earnedCommission ?? paidCommAmount).toLocaleString('en-IN')}
               </div>
-            </div>
-
-            <div className="stat-card blue">
-              <div className="stat-card-top">
-                <span className="stat-label">Daily Admission Counter</span>
-                <div className="stat-icon">📈</div>
-              </div>
-              <div className="stat-value">+₹1,000 Today</div>
-              <div className="stat-trend">1 New Admission Closed Today</div>
-            </div>
-
-            <div className="stat-card purple">
-              <div className="stat-card-top">
-                <span className="stat-label">Paid Out Commission</span>
-                <div className="stat-icon">🏦</div>
-              </div>
-              <div className="stat-value">₹{(15000).toLocaleString('en-IN')}</div>
-              <div className="stat-trend">Credited via Bank Transfer</div>
-            </div>
-
-            <div className="stat-card amber">
-              <div className="stat-card-top">
-                <span className="stat-label">Pending Commission Approval</span>
-                <div className="stat-icon">⏳</div>
-              </div>
-              <div className="stat-value">₹{(15000).toLocaleString('en-IN')}</div>
-              <div className="stat-trend">With Manager &amp; Admin</div>
+              <div className="stat-trend up">Sub-Stage C Confirmed Payouts</div>
             </div>
           </div>
 
-          {/* Counsellor Leads Worklist Table */}
           <div className="card" style={{ marginBottom: '20px' }}>
             <div className="card-header">
               <div>
-                <h3 className="card-title">📞 My Calling Queue &amp; Feedback Logger (Khushi)</h3>
+                <h3 className="card-title">📞 Active Calling &amp; WhatsApp Queue</h3>
                 <span className="card-subtitle">
-                  Call parents using dual-contacts (Father &amp; Mother), log structured feedback, and mark genuine intent.
+                  Live PostgreSQL student leads with direct Dial &amp; WhatsApp logging
                 </span>
               </div>
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                <span className="badge badge-success">60 Verified Genuine</span>
-                <span className="badge badge-warning">40 Pending Call / Follow-up</span>
-              </div>
+              <button className="btn btn-sm btn-outline" onClick={() => onNavigateTab('leads')}>
+                Open Full Lead Table →
+              </button>
             </div>
-
             <div className="table-container">
               <table className="data-table">
                 <thead>
                   <tr>
                     <th>Lead ID</th>
-                    <th>Student Name</th>
-                    <th>Class</th>
-                    <th>Father Contact</th>
-                    <th>Mother Contact (Mandatory #2)</th>
-                    <th>Budget</th>
-                    <th>Verification</th>
-                    <th>Action</th>
+                    <th>Student &amp; Class</th>
+                    <th>Parent Contact</th>
+                    <th>Stage</th>
+                    <th>Lead Score</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {leads.map((l) => (
-                    <tr key={l._id || l.id}>
-                      <td>
-                        <strong style={{ color: 'var(--primary-navy)' }}>{l.leadId}</strong>
-                      </td>
-                      <td>
-                        <strong>{l.studentId?.name || l.studentName}</strong>
-                      </td>
-                      <td>{l.studentId?.admissionClass || l.applyingForGrade || 'Class 6'}</td>
-                      <td>
-                        <span style={{ color: '#1E293B', fontWeight: 600 }}>
-                          👨 {l.fatherPhone || l.parentId?.mobile || l.parentPhone || '+91 98765 43210'}
-                        </span>
-                      </td>
-                      <td>
-                        <span style={{ color: '#0F766E', fontWeight: 600 }}>
-                          👩 {l.motherPhone || '+91 98765 43211'}
-                        </span>
-                      </td>
-                      <td>{l.annualBudget || '₹5.5L - ₹7.5L'}</td>
-                      <td>
-                        <span
-                          className={`badge ${
-                            l.verificationStatus === 'Approved'
-                              ? 'badge-success'
-                              : l.verificationStatus === 'Pending Verification'
-                              ? 'badge-warning'
-                              : l.verificationStatus === 'Returned'
-                              ? 'badge-danger'
-                              : 'badge-info'
-                          }`}
-                        >
-                          {l.verificationStatus}
-                        </span>
-                      </td>
-                      <td>
-                        <button
-                          className="btn btn-sm btn-primary"
-                          onClick={() => {
-                            setSelectedLeadForCall(l);
-                            setCallWhom('father');
-                          }}
-                        >
-                          📞 Call &amp; Feedback
-                        </button>
+                  {recentLeadsList.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} style={{ textAlign: 'center', color: '#64748B', padding: '20px' }}>
+                        {loadingDash ? 'Loading live portfolio...' : 'No leads assigned yet.'}
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Returned Leads by Manager Section */}
-          <div className="card" style={{ borderColor: '#FCA5A5', background: '#FFF5F5' }}>
-            <div className="card-header">
-              <div>
-                <h3 className="card-title" style={{ color: '#991B1B' }}>
-                  ↩️ Returned by Manager (Priya) – Needs Re-Confirmation
-                </h3>
-                <span className="card-subtitle">
-                  If Manager returns a lead, re-call the parent, confirm boarding budget &amp; re-submit.
-                </span>
-              </div>
-              <span className="badge badge-danger">1 Returned Lead</span>
-            </div>
-
-            <div className="table-container">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Lead ID</th>
-                    <th>Student Name</th>
-                    <th>Parent Details</th>
-                    <th>Manager Priya's Return Remark</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td><strong>UBN-LD-000103</strong></td>
-                    <td>Kabir Singhania (Class 9)</td>
-                    <td>Col. R. Singhania (+91 98111 22334)</td>
-                    <td>
-                      <span style={{ color: '#DC2626', fontWeight: 600 }}>
-                        &quot;Parent budget seems low for Woodstock IB curriculum. Re-confirm if willing to consider Sherwood ICSE Nainital.&quot;
-                      </span>
-                    </td>
-                    <td>
-                      <button
-                        className="btn btn-sm btn-navy"
-                        onClick={() => {
-                          setSelectedLeadForCall(leads[0] || { studentName: 'Kabir Singhania' });
-                          setCallWhom('father');
-                        }}
-                      >
-                        📞 Re-Call &amp; Re-Confirm
-                      </button>
-                    </td>
-                  </tr>
+                  ) : (
+                    recentLeadsList.map((l: any) => (
+                      <tr key={l.id}>
+                        <td>
+                          <strong>{l.leadNumber || l.id?.slice(0, 8)}</strong>
+                        </td>
+                        <td>
+                          <div style={{ fontWeight: 700 }}>{l.studentName}</div>
+                          <div style={{ fontSize: '11px', color: '#64748B' }}>
+                            {l.admissionClass || l.applyingForGrade || 'Class 6'}
+                          </div>
+                        </td>
+                        <td>
+                          <div>{l.fatherName || l.parentName || 'Parent'}</div>
+                          <div style={{ fontSize: '11px', color: '#475569' }}>
+                            {l.fatherPhone || l.mobile || 'N/A'}
+                          </div>
+                        </td>
+                        <td>
+                          <span className="badge badge-info">{l.stage || l.status || 'new'}</span>
+                        </td>
+                        <td>
+                          <span className="badge badge-success">{l.leadScore ?? l.score ?? 0} pts</span>
+                        </td>
+                        <td>
+                          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                            <button
+                              className="btn btn-sm btn-primary"
+                              onClick={() => handleOpenCallLogger(l)}
+                            >
+                              📞 Call &amp; Log
+                            </button>
+                            <button
+                              className="btn btn-sm btn-success"
+                              onClick={() => handleOpenWhatsAppQuick(l)}
+                            >
+                              💬 WhatsApp
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -406,11 +552,10 @@ export default function RoleDashboard({
       )}
 
       {/* ========================================================================= */}
-      {/* 2. SENIOR MANAGER DASHBOARD (Priya Manager Workspace)                      */}
+      {/* 2. SENIOR MANAGER DASHBOARD */}
       {/* ========================================================================= */}
       {role === 'manager' && (
         <div>
-          {/* Manager Header Banner */}
           <div
             className="card"
             style={{
@@ -421,66 +566,54 @@ export default function RoleDashboard({
               marginBottom: '20px',
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '12px',
+              }}
+            >
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ fontSize: '22px' }}>👔</span>
                   <h2 style={{ fontSize: '18px', fontWeight: 800, margin: 0 }}>
-                    Senior Manager: {user?.fullName || 'Priya Rawat'} (Team: Uttarakhand Pioneers)
+                    Senior Manager: {user?.fullName || 'Manager'} ({user?.employeeId || 'SR-MGR'})
                   </h2>
                 </div>
                 <div style={{ fontSize: '12.5px', opacity: 0.9, marginTop: '4px' }}>
-                  Managing <strong>10 Active Counsellors</strong> (Khushi, Rahul, Amit, Sneha, Neha, Rohit, Pooja, Vikas, Anjali, Karan)
+                  Managing <strong>{srData?.teamSize ?? 0} Direct Counsellors</strong> &bull;
+                  Pending Queue Alerts: <strong>{srData?.pendingQueueAlerts?.length ?? pendingQueue.length}</strong>
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <span className="badge" style={{ background: 'white', color: '#16A34A', fontWeight: 800, fontSize: '12px' }}>
-                  Target: 60 Admissions / Month
-                </span>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <button
+                  className="btn btn-sm btn-white"
+                  style={{ background: '#FFFFFF', color: '#0A254A', fontWeight: 700 }}
+                  onClick={() => onNavigateTab('leads')}
+                >
+                  📋 Review Leads
+                </button>
+                <button
+                  className="btn btn-sm"
+                  style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', fontWeight: 700 }}
+                  onClick={() => onNavigateTab('admissions')}
+                >
+                  🎓 Applications
+                </button>
               </div>
             </div>
           </div>
 
-          {/* Inbound Alert from Khushi Counsellor */}
-          <div
-            className="card"
-            style={{
-              background: '#EFF6FF',
-              border: '2px solid #3B82F6',
-              padding: '14px 18px',
-              marginBottom: '20px',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '24px' }}>🔔</span>
-                <div>
-                  <h4 style={{ color: '#1E3A8A', fontWeight: 800, margin: 0 }}>
-                    Inbound Queue: Counsellor Khushi has forwarded 10 Genuine Boarding Leads for Verification!
-                  </h4>
-                  <p style={{ margin: 0, fontSize: '12px', color: '#1E40AF' }}>
-                    All 10 leads have dual contact numbers (Father &amp; Mother) verified with confirmed budget.
-                  </p>
-                </div>
-              </div>
-              <button
-                className="btn btn-sm btn-primary"
-                onClick={() => onNavigateTab('leads')}
-              >
-                Review &amp; Verify 10 Leads →
-              </button>
-            </div>
-          </div>
-
-          {/* Manager Stats */}
           <div className="stats-grid">
             <div className="stat-card blue">
               <div className="stat-card-top">
                 <span className="stat-label">Total Team Leads</span>
                 <div className="stat-icon">📥</div>
               </div>
-              <div className="stat-value">{leads.length || 100}</div>
-              <div className="stat-trend">Across 10 Counsellors</div>
+              <div className="stat-value">{srData?.totalLeads ?? leads.length}</div>
+              <div className="stat-trend">Across {srData?.teamSize ?? 0} Counsellors</div>
             </div>
 
             <div className="stat-card amber">
@@ -488,104 +621,99 @@ export default function RoleDashboard({
                 <span className="stat-label">Pending Verification Queue</span>
                 <div className="stat-icon">⏳</div>
               </div>
-              <div className="stat-value">{pendingCount || 10}</div>
+              <div className="stat-value">{pendingVerifyCount}</div>
               <div className="stat-trend">Needs Manager Quality Check</div>
             </div>
 
             <div className="stat-card green">
               <div className="stat-card-top">
-                <span className="stat-label">Approved Genuine Leads</span>
+                <span className="stat-label">Approved / Qualified Leads</span>
                 <div className="stat-icon">✅</div>
               </div>
-              <div className="stat-value">{approvedCount || 60}</div>
-              <div className="stat-trend">School Brochures Dispatched</div>
+              <div className="stat-value">{approvedLeadsCount}</div>
+              <div className="stat-trend">Active Admission Pipeline</div>
             </div>
 
             <div className="stat-card purple">
               <div className="stat-card-top">
-                <span className="stat-label">Campus Visits Scheduled</span>
+                <span className="stat-label">Applications / Campus Visits</span>
                 <div className="stat-icon">🏫</div>
               </div>
-              <div className="stat-value">18</div>
-              <div className="stat-trend">Dehradun / Mussoorie / Nainital</div>
-            </div>
-
-            <div className="stat-card green">
-              <div className="stat-card-top">
-                <span className="stat-label">Team Admissions</span>
-                <div className="stat-icon">🎓</div>
-              </div>
-              <div className="stat-value">{kpiStats.teamAdmissions || 30}</div>
-              <div className="stat-trend up">
-                <span>↑</span> 50% Conversion Target
+              <div className="stat-value">{srData?.applicationsCount ?? campusVisitsCount}</div>
+              <div className="stat-trend">
+                Expired: {srData?.expiredCount ?? 0} &bull; Merged: {srData?.duplicateLeadsCount ?? 0}
               </div>
             </div>
 
             <div className="stat-card green">
               <div className="stat-card-top">
-                <span className="stat-label">Team Commission</span>
+                <span className="stat-label">Team Commission Ledger</span>
                 <div className="stat-icon">💰</div>
               </div>
-              <div className="stat-value">₹{(totalCommAmount || 60000).toLocaleString('en-IN')}</div>
-              <div className="stat-trend">Manager Override + Team Share</div>
+              <div className="stat-value">₹{totalCommAmount.toLocaleString('en-IN')}</div>
+              <div className="stat-trend">
+                Paid / Realized: ₹{paidCommAmount.toLocaleString('en-IN')}
+              </div>
             </div>
           </div>
 
-          {/* Campus Visit Tracker with Reschedule follow-up */}
           <div className="card" style={{ marginBottom: '20px' }}>
             <div className="card-header">
               <div>
-                <h3 className="card-title">🏫 Campus Visit &amp; School Tour Coordinator (Manager View)</h3>
+                <h3 className="card-title">🏫 Team Pipeline &amp; Follow-up Coordinator</h3>
                 <span className="card-subtitle">
-                  Track upcoming visits, detect missed dates, and reschedule with parent follow-up.
+                  Live leads across your counsellors with direct Brochure &amp; Follow-up scheduling
                 </span>
               </div>
-              <span className="badge badge-navy">Uttarakhand Hub</span>
+              <span className="badge badge-navy">{leads.length} Total</span>
             </div>
-
             <div className="table-container">
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>Student Name</th>
-                    <th>Counsellor</th>
-                    <th>Target School</th>
-                    <th>Scheduled Date</th>
-                    <th>Visit Status</th>
-                    <th>Action</th>
+                    <th>Student</th>
+                    <th>Parent Mobile</th>
+                    <th>Assigned Counsellor</th>
+                    <th>Stage</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td><strong>Arjun Malhotra (Class 6)</strong></td>
-                    <td>Khushi Sharma</td>
-                    <td>The Doon School, Dehradun</td>
-                    <td>25 Nov 2026, 11:00 AM</td>
-                    <td><span className="badge badge-success">Visit Confirmed</span></td>
-                    <td>
-                      <button
-                        className="btn btn-sm btn-outline"
-                        onClick={() => setShowBrochureModal({ name: 'The Doon School', parent: 'Sanjay Malhotra' })}
-                      >
-                        📱 Send WhatsApp Pass
-                      </button>
-                    </td>
-                  </tr>
-                  <tr style={{ background: '#FFFBEB' }}>
-                    <td><strong>Devansh Joshi (Class 9)</strong></td>
-                    <td>Khushi Sharma</td>
-                    <td>Sherwood College, Nainital</td>
-                    <td>12 Nov 2026 (Overdue)</td>
-                    <td><span className="badge badge-danger">⚠️ Missed Visit</span></td>
-                    <td>
-                      <button
-                        className="btn btn-sm btn-warning"
-                        onClick={() => setShowRescheduleModal({ student: 'Devansh Joshi', counsellor: 'Khushi' })}
-                      >
-                        📅 Reschedule Visit Date
-                      </button>
-                    </td>
-                  </tr>
+                  {leads.slice(0, 8).map((l: any) => (
+                    <tr key={l.id}>
+                      <td>
+                        <strong>{l.studentName}</strong> ({l.admissionClass || 'Class 6'})
+                      </td>
+                      <td>{l.fatherPhone || l.mobile || 'N/A'}</td>
+                      <td>{l.assignedTo?.fullName || 'Team Pool'}</td>
+                      <td>
+                        <span className="badge badge-info">{l.stage || l.status}</span>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <button
+                            className="btn btn-sm btn-outline"
+                            onClick={() => handleOpenWhatsAppQuick(l)}
+                          >
+                            📱 Send Brochure
+                          </button>
+                          <button
+                            className="btn btn-sm btn-warning"
+                            onClick={() => setShowFollowUpModal(l)}
+                          >
+                            📅 Reschedule
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {leads.length === 0 && (
+                    <tr>
+                      <td colSpan={5} style={{ textAlign: 'center', color: '#64748B', padding: '20px' }}>
+                        No team leads recorded yet.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -594,11 +722,10 @@ export default function RoleDashboard({
       )}
 
       {/* ========================================================================= */}
-      {/* 3. SUPER ADMIN DASHBOARD (Organization-Wide Master Control)                */}
+      {/* 3. SUPER ADMIN DASHBOARD (LIVE CONTROL & MONITORING) */}
       {/* ========================================================================= */}
       {role === 'admin' && (
         <div>
-          {/* Admin Header */}
           <div
             className="card"
             style={{
@@ -609,46 +736,69 @@ export default function RoleDashboard({
               marginBottom: '20px',
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '12px',
+              }}
+            >
               <div>
                 <h2 style={{ fontSize: '18px', fontWeight: 800, margin: 0 }}>
                   👑 Super Admin Master Operations Control
                 </h2>
                 <div style={{ fontSize: '12.5px', opacity: 0.9, marginTop: '4px' }}>
-                  Managing <strong>100 Managers</strong>, <strong>1,000 Counsellors</strong>, and Global Financial Ledgers.
+                  Managing <strong>{adminData?.managersCount ?? 0} Managers</strong>,{' '}
+                  <strong>{adminData?.counsellorsCount ?? 0} Counsellors</strong>,{' '}
+                  <strong>{adminData?.totalSchools ?? schools.length} Schools</strong> &amp;{' '}
+                  <strong>{adminData?.activeSessions ?? 0} Active Sessions</strong>.
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                <button className="btn btn-sm btn-white" style={{ background: '#FFFFFF', color: '#0F172A', fontWeight: 700 }} onClick={() => onNavigateTab('users')}>
+                <button
+                  className="btn btn-sm btn-white"
+                  style={{ background: '#FFFFFF', color: '#0F172A', fontWeight: 700 }}
+                  onClick={() => onNavigateTab('users')}
+                >
                   👤 Create Manager / Counsellor Account
                 </button>
-                <button className="btn btn-sm btn-success" onClick={() => onNavigateTab('commissions')}>
+                <button
+                  className="btn btn-sm btn-success"
+                  onClick={() => onNavigateTab('commissions')}
+                >
                   🏦 Global Commission Payout Ledger
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Admin KPI Stats */}
           <div className="stats-grid">
             <div className="stat-card blue">
               <div className="stat-card-top">
                 <span className="stat-label">Total School Enquiries</span>
                 <div className="stat-icon">📥</div>
               </div>
-              <div className="stat-value">{kpiStats.totalLeads ?? 1250}</div>
+              <div className="stat-value">
+                {adminData?.totalLeads ?? kpiStats.totalLeads ?? leads.length}
+              </div>
               <div className="stat-trend up">
-                <span>↑</span> +18.4% this session
+                <span>↑</span> Live PostgreSQL Lead Count
               </div>
             </div>
 
             <div className="stat-card purple">
               <div className="stat-card-top">
-                <span className="stat-label">Active Managers</span>
+                <span className="stat-label">Active Managers &amp; Teams</span>
                 <div className="stat-icon">👔</div>
               </div>
-              <div className="stat-value">10 Teams</div>
-              <div className="stat-trend">e.g. Priya Manager Team</div>
+              <div className="stat-value">
+                {adminData?.managersCount ?? teams.length}
+              </div>
+              <div className="stat-trend">
+                {teams.length} Teams &bull; {adminData?.counsellorsCount ?? 0} Counsellors
+              </div>
             </div>
 
             <div className="stat-card green">
@@ -656,7 +806,9 @@ export default function RoleDashboard({
                 <span className="stat-label">Total Confirmed Admissions</span>
                 <div className="stat-icon">🎓</div>
               </div>
-              <div className="stat-value">{kpiStats.confirmedAdmissions || 120}</div>
+              <div className="stat-value">
+                {adminData?.totalAdmissions ?? kpiStats.confirmedAdmissions ?? 0}
+              </div>
               <div className="stat-trend up">
                 <span>↑</span> Uttarakhand Boarding Placements
               </div>
@@ -667,7 +819,9 @@ export default function RoleDashboard({
                 <span className="stat-label">Pending Verification Queue</span>
                 <div className="stat-icon">⏳</div>
               </div>
-              <div className="stat-value">{pendingCount || 15}</div>
+              <div className="stat-value">
+                {adminData?.pendingVerifications ?? pendingVerifyCount}
+              </div>
               <div className="stat-trend">Needs Manager Review</div>
             </div>
 
@@ -676,25 +830,27 @@ export default function RoleDashboard({
                 <span className="stat-label">Total Organization Commission</span>
                 <div className="stat-icon">💰</div>
               </div>
-              <div className="stat-value">₹{(totalCommAmount || 1200000).toLocaleString('en-IN')}</div>
-              <div className="stat-trend">3-Way Split (Counsellor, Manager, Org)</div>
+              <div className="stat-value">
+                ₹{Number(adminData?.totalCommission ?? totalCommAmount).toLocaleString('en-IN')}
+              </div>
+              <div className="stat-trend">
+                Realized: ₹{Number(adminData?.realizedCommission ?? paidCommAmount).toLocaleString('en-IN')}
+              </div>
             </div>
           </div>
 
-          {/* Live Counsellor Activity & Presence Monitoring Wall */}
           <div className="card" style={{ marginBottom: '20px' }}>
             <div className="card-header">
               <div>
-                <h3 className="card-title">🟢 Live Employee Presence &amp; Shift Monitor (Admin View)</h3>
+                <h3 className="card-title">
+                  🟢 Live Employee Presence &amp; Shift Monitor (Admin View)
+                </h3>
                 <span className="card-subtitle">
-                  Real-time login/logout tracking and active work status across all teams.
+                  Real-time employee login timestamps, teams, and account statuses from PostgreSQL.
                 </span>
               </div>
-              <button
-                className="btn btn-sm btn-outline"
-                onClick={() => showToast('Refreshed real-time presence audit logs!')}
-              >
-                🔄 Refresh Live Status
+              <button className="btn btn-sm btn-outline" onClick={fetchDashboardData}>
+                🔄 {loadingDash ? 'Refreshing...' : 'Refresh Live Status'}
               </button>
             </div>
 
@@ -705,68 +861,61 @@ export default function RoleDashboard({
                     <th>Employee Name</th>
                     <th>Role</th>
                     <th>Assigned Team / Manager</th>
-                    <th>Today Login Time</th>
-                    <th>Current Live Status</th>
+                    <th>Last Login Time</th>
+                    <th>Status</th>
                     <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td><strong>Khushi Sharma (EMP-COU-001)</strong></td>
-                    <td><span className="badge badge-info">Counsellor</span></td>
-                    <td>Priya Rawat (UK Pioneers)</td>
-                    <td>09:30 AM</td>
-                    <td>
-                      <span className="badge badge-success" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                        <span style={{ width: '6px', height: '6px', background: 'white', borderRadius: '50%' }}></span>
-                        🟢 Active (Calling Parent)
-                      </span>
-                    </td>
-                    <td>
-                      <button
-                        className="btn btn-sm btn-outline"
-                        onClick={() => setShowReassignModal({ name: 'Khushi Sharma', team: 'Uttarakhand Pioneers' })}
-                      >
-                        🔄 Reassign Team
-                      </button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td><strong>Priya Rawat (EMP-MGR-001)</strong></td>
-                    <td><span className="badge badge-purple">Senior Manager</span></td>
-                    <td>Team Uttarakhand Pioneers</td>
-                    <td>09:15 AM</td>
-                    <td>
-                      <span className="badge badge-success" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                        <span style={{ width: '6px', height: '6px', background: 'white', borderRadius: '50%' }}></span>
-                        🟢 Active (Reviewing Leads)
-                      </span>
-                    </td>
-                    <td>
-                      <button className="btn btn-sm btn-outline" onClick={() => onNavigateTab('teams')}>
-                        👥 Manage Team
-                      </button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td><strong>Rahul Sharma (EMP-COU-002)</strong></td>
-                    <td><span className="badge badge-info">Counsellor</span></td>
-                    <td>Priya Rawat (UK Pioneers)</td>
-                    <td>09:40 AM</td>
-                    <td>
-                      <span className="badge badge-warning">
-                        🟡 Idle (5 mins)
-                      </span>
-                    </td>
-                    <td>
-                      <button
-                        className="btn btn-sm btn-outline"
-                        onClick={() => setShowReassignModal({ name: 'Rahul Sharma', team: 'Uttarakhand Pioneers' })}
-                      >
-                        🔄 Reassign Team
-                      </button>
-                    </td>
-                  </tr>
+                  {(adminData?.presenceMonitor || []).length === 0 ? (
+                    <tr>
+                      <td colSpan={6} style={{ textAlign: 'center', padding: '20px', color: '#64748B' }}>
+                        {loadingDash ? 'Loading employee presence...' : 'No active employees found.'}
+                      </td>
+                    </tr>
+                  ) : (
+                    (adminData?.presenceMonitor || []).map((emp: any) => (
+                      <tr key={emp.id}>
+                        <td>
+                          <strong>{emp.fullName}</strong>{' '}
+                          <span style={{ fontSize: '11px', color: '#64748B' }}>
+                            ({emp.employeeCode || emp.email})
+                          </span>
+                        </td>
+                        <td>
+                          <span className="badge badge-info">{emp.role}</span>
+                        </td>
+                        <td>{emp.team?.name || emp.manager?.fullName || 'Organization Core'}</td>
+                        <td>
+                          {emp.lastLoginAt
+                            ? new Date(emp.lastLoginAt).toLocaleString()
+                            : 'Never logged in'}
+                        </td>
+                        <td>
+                          <span
+                            className={`badge ${
+                              emp.status === 'active' || emp.status === 'ACTIVE'
+                                ? 'badge-success'
+                                : 'badge-warning'
+                            }`}
+                          >
+                            {emp.status || 'active'}
+                          </span>
+                        </td>
+                        <td>
+                          <button
+                            className="btn btn-sm btn-outline"
+                            onClick={() => {
+                              setShowReassignModal(emp);
+                              setTargetTeamId(teams[0]?.id || '');
+                            }}
+                          >
+                            🔄 Reassign Team
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -774,31 +923,37 @@ export default function RoleDashboard({
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* MODALS & ACTION DIALOGS                                                   */}
-      {/* ========================================================================= */}
-
-      {/* Modal 1: Call & Feedback Form for Counsellor */}
+      {/* Modal 1: Phone Call Logger */}
       {selectedLeadForCall && (
         <div className="modal-overlay" onClick={() => setSelectedLeadForCall(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <div>
                 <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--primary-navy)' }}>
-                  📞 Call Parent &amp; Record Feedback
+                  📞 Call Parent &amp; Record Outcome
                 </h3>
                 <span style={{ fontSize: '12px', color: '#64748B' }}>
-                  Student: <strong>{selectedLeadForCall.studentId?.name || selectedLeadForCall.studentName}</strong> ({selectedLeadForCall.studentId?.admissionClass || selectedLeadForCall.applyingForGrade || 'Class 6'})
+                  Student: <strong>{selectedLeadForCall.studentName}</strong> (
+                  {selectedLeadForCall.admissionClass || 'Class 6'})
                 </span>
               </div>
-              <button className="btn btn-sm btn-outline" onClick={() => setSelectedLeadForCall(null)}>✕</button>
+              <button className="btn btn-sm btn-outline" onClick={() => setSelectedLeadForCall(null)}>
+                ✕
+              </button>
             </div>
             <form onSubmit={handleSaveCallFeedback}>
               <div className="modal-body">
-                {/* Dual Contact Picker */}
-                <div style={{ background: '#F8FAFC', padding: '12px', borderRadius: '10px', marginBottom: '14px', border: '1px solid #E2E8F0' }}>
-                  <label className="form-label">Whom are you calling right now?</label>
-                  <div style={{ display: 'flex', gap: '16px', marginTop: '6px' }}>
+                <div
+                  style={{
+                    background: '#F8FAFC',
+                    padding: '12px',
+                    borderRadius: '10px',
+                    marginBottom: '14px',
+                    border: '1px solid #E2E8F0',
+                  }}
+                >
+                  <label className="form-label">Select Contact</label>
+                  <div style={{ display: 'flex', gap: '16px', marginTop: '6px', flexWrap: 'wrap' }}>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
                       <input
                         type="radio"
@@ -806,7 +961,12 @@ export default function RoleDashboard({
                         checked={callWhom === 'father'}
                         onChange={() => setCallWhom('father')}
                       />
-                      <span>👨 Father: <strong>{selectedLeadForCall.fatherPhone || selectedLeadForCall.parentId?.mobile || '+91 98765 43210'}</strong></span>
+                      <span>
+                        👨 Father:{' '}
+                        <strong>
+                          {selectedLeadForCall.fatherPhone || selectedLeadForCall.mobile || 'N/A'}
+                        </strong>
+                      </span>
                     </label>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
                       <input
@@ -815,7 +975,10 @@ export default function RoleDashboard({
                         checked={callWhom === 'mother'}
                         onChange={() => setCallWhom('mother')}
                       />
-                      <span>👩 Mother: <strong>{selectedLeadForCall.motherPhone || '+91 98765 43211'}</strong></span>
+                      <span>
+                        👩 Mother:{' '}
+                        <strong>{selectedLeadForCall.motherPhone || 'Not Provided'}</strong>
+                      </span>
                     </label>
                   </div>
                 </div>
@@ -827,53 +990,58 @@ export default function RoleDashboard({
                     value={callOutcome}
                     onChange={(e) => setCallOutcome(e.target.value)}
                   >
-                    <option value="Connected & Spoke to Parent">Connected &amp; Spoke to Parent</option>
-                    <option value="Ringing / No Answer">Ringing / No Answer (Auto Follow-up +2 hrs)</option>
-                    <option value="Switched Off / Not Reachable">Switched Off / Not Reachable</option>
-                    <option value="Call Busy / Asked to Call Later">Call Busy / Asked to Call Later</option>
+                    {callOutcomes.map((o) => (
+                      <option key={o} value={o}>
+                        {o}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Is this a Genuine Boarding School Enquiry? <span className="req">*</span></label>
-                  <div style={{ display: 'flex', gap: '12px' }}>
+                  <label className="form-label">Lead Quality Classification</label>
+                  <div style={{ display: 'flex', gap: '10px' }}>
                     <button
                       type="button"
                       className={`btn btn-sm ${callIntent === 'GENUINE' ? 'btn-success' : 'btn-outline'}`}
-                      style={{ flex: 1, padding: '10px' }}
+                      style={{ flex: 1 }}
                       onClick={() => setCallIntent('GENUINE')}
                     >
-                      🌟 YES – Genuine Boarding Lead
+                      🌟 Genuine Boarding Lead
                     </button>
                     <button
                       type="button"
                       className={`btn btn-sm ${callIntent === 'JUNK' ? 'btn-danger' : 'btn-outline'}`}
-                      style={{ flex: 1, padding: '10px' }}
+                      style={{ flex: 1 }}
                       onClick={() => setCallIntent('JUNK')}
                     >
-                      ❌ NO – Junk / Day School / Not Interested
+                      ❌ Not Interested / Junk
                     </button>
                   </div>
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Detailed Parent Interaction Notes</label>
+                  <label className="form-label">Interaction Notes (Mandatory)</label>
                   <textarea
                     className="form-control"
                     rows={3}
-                    placeholder="Father confirmed willingness to enrol in Mussoorie/Dehradun. Budget ₹8 Lakhs fits well. Agreed for weekend follow-up..."
                     required
+                    placeholder="Record budget, school preferences, and agreed next steps..."
                     value={callNotes}
                     onChange={(e) => setCallNotes(e.target.value)}
                   />
                 </div>
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn btn-outline" onClick={() => setSelectedLeadForCall(null)}>
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  onClick={() => setSelectedLeadForCall(null)}
+                >
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-primary">
-                  💾 Save Outcome &amp; Add to Genuine Batch
+                  💾 Save Call Log
                 </button>
               </div>
             </form>
@@ -881,218 +1049,295 @@ export default function RoleDashboard({
         </div>
       )}
 
-      {/* Modal 2: Forward Batch of Genuine Leads to Manager */}
-      {showForwardModal && (
-        <div className="modal-overlay" onClick={() => setShowForwardModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--primary-navy)' }}>
-                📤 Forward Genuine Leads to Manager
-              </h3>
-              <button className="btn btn-sm btn-outline" onClick={() => setShowForwardModal(false)}>✕</button>
-            </div>
-            <div className="modal-body">
-              <p style={{ fontSize: '13.5px', color: '#334155' }}>
-                You have marked <strong>{counsellorGenuineCount} Parents</strong> as Genuine Boarding Candidates. Forwarding will notify <strong>Priya Manager</strong> to inspect the dossier, match boarding schools, and dispatch school brochure templates.
-              </p>
-              <div style={{ background: '#F0FDF4', padding: '12px', borderRadius: '8px', border: '1px solid #86EFAC' }}>
-                <div>✅ <strong>Quality Check:</strong> All 60 leads contain both Father &amp; Mother contact numbers.</div>
-                <div>✅ <strong>Target School Match:</strong> The Doon School, Welham, Sherwood, SelaQui.</div>
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-outline" onClick={() => setShowForwardModal(false)}>Cancel</button>
-              <button className="btn btn-success" onClick={handleForwardToManager}>
-                Confirm &amp; Send to Priya Manager
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal 3: Counsellor Performance & Commission Report */}
-      {showReportModal && (
-        <div className="modal-overlay" onClick={() => setShowReportModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--primary-navy)' }}>
-                📄 Counsellor Performance &amp; Commission Report
-              </h3>
-              <button className="btn btn-sm btn-outline" onClick={() => setShowReportModal(false)}>✕</button>
-            </div>
-            <div className="modal-body">
-              <div className="form-group">
-                <label className="form-label">Report Period</label>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button
-                    type="button"
-                    className={`btn btn-sm ${reportPeriod === 'weekly' ? 'btn-navy' : 'btn-outline'}`}
-                    onClick={() => setReportPeriod('weekly')}
-                  >
-                    Weekly Summary
-                  </button>
-                  <button
-                    type="button"
-                    className={`btn btn-sm ${reportPeriod === 'monthly' ? 'btn-navy' : 'btn-outline'}`}
-                    onClick={() => setReportPeriod('monthly')}
-                  >
-                    Monthly Summary (Full Session)
-                  </button>
-                </div>
-              </div>
-
-              <div style={{ background: '#F8FAFC', padding: '14px', borderRadius: '10px', border: '1px solid #E2E8F0', fontSize: '13px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <span>Counsellor Name:</span>
-                  <strong>{user?.fullName || 'Khushi Sharma'} (EMP-COU-001)</strong>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <span>Assigned Manager:</span>
-                  <strong>Priya Rawat (Uttarakhand Pioneers)</strong>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <span>Parents Contacted (Spoken With):</span>
-                  <strong>{counsellorCallsCount} Parents</strong>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <span>Genuine Leads Forwarded:</span>
-                  <strong>{counsellorGenuineCount} Leads</strong>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <span>Confirmed Admissions Closed:</span>
-                  <strong style={{ color: '#16A34A' }}>{counsellorAdmissionsCount} Admissions</strong>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #CBD5E1', paddingTop: '8px', fontSize: '14px' }}>
-                  <span>Total Commission Earned (@ ₹1,000/adm):</span>
-                  <strong style={{ color: '#16A34A', fontSize: '16px' }}>₹{counsellorTotalCommission.toLocaleString('en-IN')}</strong>
-                </div>
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-outline" onClick={() => setShowReportModal(false)}>Close</button>
-              <button className="btn btn-primary" onClick={handleSendReport}>
-                ✉️ Send Report to Manager &amp; Admin
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal 4: Reschedule Campus Visit for Manager */}
-      {showRescheduleModal && (
-        <div className="modal-overlay" onClick={() => setShowRescheduleModal(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--primary-navy)' }}>
-                📅 Reschedule School Campus Visit
-              </h3>
-              <button className="btn btn-sm btn-outline" onClick={() => setShowRescheduleModal(null)}>✕</button>
-            </div>
-            <div className="modal-body">
-              <p style={{ fontSize: '13px' }}>
-                Parent of <strong>{showRescheduleModal.student}</strong> (Counsellor: {showRescheduleModal.counsellor}) missed the previous visit. Select new rescheduled visit date:
-              </p>
-              <div className="form-group">
-                <label className="form-label">New Campus Visit Date</label>
-                <input
-                  type="date"
-                  className="form-control"
-                  value={newVisitDate}
-                  onChange={(e) => setNewVisitDate(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-outline" onClick={() => setShowRescheduleModal(null)}>Cancel</button>
-              <button
-                className="btn btn-warning"
-                onClick={() => {
-                  showToast(`Campus visit for ${showRescheduleModal.student} rescheduled to ${newVisitDate}! Dashboard updated.`, 'success');
-                  setShowRescheduleModal(null);
-                }}
-              >
-                Confirm Reschedule
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal 5: Send Brochure Template for Manager */}
+      {/* Modal 2: Quick WhatsApp Brochure Sender */}
       {showBrochureModal && (
         <div className="modal-overlay" onClick={() => setShowBrochureModal(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--primary-navy)' }}>
-                📱 Dispatch Budget-Matched School Template
+                💬 Send WhatsApp &amp; Prospectus
               </h3>
-              <button className="btn btn-sm btn-outline" onClick={() => setShowBrochureModal(null)}>✕</button>
+              <button className="btn btn-sm btn-outline" onClick={() => setShowBrochureModal(null)}>
+                ✕
+              </button>
             </div>
             <div className="modal-body">
-              <p style={{ fontSize: '13px' }}>
-                Dispatch official prospectus and fee structure for <strong>{showBrochureModal.name}</strong> to Father &amp; Mother contact numbers via WhatsApp Business API:
-              </p>
-              <div style={{ background: '#F8FAFC', padding: '12px', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '12.5px' }}>
-                <p style={{ margin: 0 }}>
-                  &quot;Namaste! Greetings from Uttarakhand Boarding Admission Cell. Sharing official 2026-27 Prospectus, Pastoral Care &amp; Fee Schedule for {showBrochureModal.name}. Campus tour scheduled.&quot;
-                </p>
+              <div className="form-group">
+                <label className="form-label">
+                  Message ({brochureText.length}/2000 characters)
+                </label>
+                <textarea
+                  className="form-control"
+                  rows={4}
+                  maxLength={2000}
+                  value={brochureText}
+                  onChange={(e) => setBrochureText(e.target.value)}
+                />
               </div>
             </div>
             <div className="modal-footer">
-              <button className="btn btn-outline" onClick={() => setShowBrochureModal(null)}>Cancel</button>
-              <button
-                className="btn btn-success"
-                onClick={() => {
-                  showToast(`Official template dispatched to parent via WhatsApp!`, 'success');
-                  setShowBrochureModal(null);
-                }}
-              >
-                Send via WhatsApp &amp; Email
+              <button className="btn btn-outline" onClick={() => setShowBrochureModal(null)}>
+                Cancel
+              </button>
+              <button className="btn btn-success" onClick={handleSendWhatsAppQuick}>
+                📱 Generate wa.me Link &amp; Track
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal 6: Reassign Team for Admin */}
+      {/* Modal 3: Counsellor Performance Summary */}
+      {showReportModal && (
+        <div className="modal-overlay" onClick={() => setShowReportModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--primary-navy)' }}>
+                📄 Live Performance Summary
+              </h3>
+              <button className="btn btn-sm btn-outline" onClick={() => setShowReportModal(false)}>
+                ✕
+              </button>
+            </div>
+            <div className="modal-body">
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                <button
+                  type="button"
+                  className={`btn btn-sm ${reportPeriod === 'weekly' ? 'btn-navy' : 'btn-outline'}`}
+                  onClick={() => setReportPeriod('weekly')}
+                >
+                  Weekly
+                </button>
+                <button
+                  type="button"
+                  className={`btn btn-sm ${reportPeriod === 'monthly' ? 'btn-navy' : 'btn-outline'}`}
+                  onClick={() => setReportPeriod('monthly')}
+                >
+                  Monthly
+                </button>
+              </div>
+              <div
+                style={{
+                  background: '#F8FAFC',
+                  padding: '14px',
+                  borderRadius: '10px',
+                  border: '1px solid #E2E8F0',
+                  fontSize: '13px',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <span>User:</span>
+                  <strong>{user?.fullName}</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <span>Assigned Leads:</span>
+                  <strong>{jrData?.totalLeads ?? leads.length}</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <span>Calls Made / WhatsApp Sent:</span>
+                  <strong>
+                    {jrData?.callsMadeCount ?? 0} Calls / {jrData?.waSentCount ?? 0} WA
+                  </strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #CBD5E1', paddingTop: '8px' }}>
+                  <span>Confirmed Commission Earned:</span>
+                  <strong style={{ color: '#16A34A' }}>
+                    ₹{Number(jrData?.earnedCommission ?? paidCommAmount).toLocaleString('en-IN')}
+                  </strong>
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-outline" onClick={() => setShowReportModal(false)}>
+                Close
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={() => {
+                  setShowReportModal(false);
+                  onNavigateTab('reports');
+                }}
+              >
+                Open Full 20-Report Suite →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal 4: Follow-Up Date Update with Mandatory Reason */}
+      {showFollowUpModal && (
+        <div className="modal-overlay" onClick={() => setShowFollowUpModal(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--primary-navy)' }}>
+                📅 Reschedule Follow-up ({showFollowUpModal.studentName})
+              </h3>
+              <button className="btn btn-sm btn-outline" onClick={() => setShowFollowUpModal(null)}>
+                ✕
+              </button>
+            </div>
+            <form onSubmit={handleRescheduleFollowUp}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label className="form-label">New Follow-up Date</label>
+                  <input
+                    type="date"
+                    className="form-control"
+                    required
+                    value={newFollowUpDate}
+                    onChange={(e) => setNewFollowUpDate(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Reason (Min 5 chars, logged to Audit)</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    required
+                    placeholder="Parent travelling until Thursday..."
+                    value={followUpReason}
+                    onChange={(e) => setFollowUpReason(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  onClick={() => setShowFollowUpModal(null)}
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-warning">
+                  Save Reschedule
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal 5: Team Reassignment */}
       {showReassignModal && (
         <div className="modal-overlay" onClick={() => setShowReassignModal(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--primary-navy)' }}>
-                🔄 Reassign Counsellor to New Manager Team
+                🔄 Reassign Team
               </h3>
-              <button className="btn btn-sm btn-outline" onClick={() => setShowReassignModal(null)}>✕</button>
+              <button className="btn btn-sm btn-outline" onClick={() => setShowReassignModal(null)}>
+                ✕
+              </button>
             </div>
             <div className="modal-body">
               <p style={{ fontSize: '13px' }}>
-                Reassign <strong>{showReassignModal.name}</strong> to a different Manager team:
+                Assign <strong>{showReassignModal.fullName}</strong> to a Manager team:
               </p>
               <div className="form-group">
-                <label className="form-label">Target Manager Team</label>
+                <label className="form-label">Target Team</label>
                 <select
                   className="form-control"
-                  value={targetTeam}
-                  onChange={(e) => setTargetTeam(e.target.value)}
+                  value={targetTeamId}
+                  onChange={(e) => setTargetTeamId(e.target.value)}
                 >
-                  <option value="Team Uttarakhand Pioneers (Priya Manager)">Team Uttarakhand Pioneers (Priya Manager)</option>
-                  <option value="Team Mussoorie Royals (Vikram Manager)">Team Mussoorie Royals (Vikram Manager)</option>
-                  <option value="Team Nainital Scholars (Ramesh Manager)">Team Nainital Scholars (Ramesh Manager)</option>
+                  <option value="">-- Select Team --</option>
+                  {teams.map((t: any) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
             <div className="modal-footer">
-              <button className="btn btn-outline" onClick={() => setShowReassignModal(null)}>Cancel</button>
+              <button className="btn btn-outline" onClick={() => setShowReassignModal(null)}>
+                Cancel
+              </button>
               <button
                 className="btn btn-primary"
-                onClick={() => {
-                  showToast(`${showReassignModal.name} successfully reassigned to ${targetTeam}!`, 'success');
-                  setShowReassignModal(null);
-                }}
+                disabled={!targetTeamId}
+                onClick={handleReassignUserTeam}
               >
                 Confirm Reassignment
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal 6: Resolve Layer-3 Pending Logging Queue Item */}
+      {resolvingItem && (
+        <div className="modal-overlay" onClick={() => setResolvingItem(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px' }}>
+            <div className="modal-header">
+              <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--primary-navy)' }}>
+                ✓ Resolve Pending {String(resolvingItem.channel || 'whatsapp').toUpperCase()} Outcome
+              </h3>
+              <button className="btn btn-sm btn-outline" onClick={() => setResolvingItem(null)}>
+                ✕
+              </button>
+            </div>
+            <form onSubmit={handleResolveQueueItem}>
+              <div className="modal-body">
+                <div
+                  style={{
+                    background: '#F8FAFC',
+                    padding: '10px 12px',
+                    borderRadius: '8px',
+                    marginBottom: '12px',
+                    fontSize: '12px',
+                  }}
+                >
+                  <strong>Student:</strong> {resolvingItem.lead?.studentName || 'Student'} &bull;{' '}
+                  <strong>Phone:</strong> {resolvingItem.targetPhone || 'N/A'}
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Delivery / Contact Status</label>
+                  <select
+                    className="form-control"
+                    value={resolveStatus}
+                    onChange={(e) => setResolveStatus(e.target.value)}
+                  >
+                    <option value="sent">Sent / Delivered Successfully</option>
+                    <option value="connected">Connected &amp; Spoke</option>
+                    <option value="no_answer">No Answer / Pending</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Outcome Summary</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    required
+                    value={resolveOutcome}
+                    onChange={(e) => setResolveOutcome(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Additional Notes</label>
+                  <textarea
+                    className="form-control"
+                    rows={2}
+                    value={resolveNotes}
+                    onChange={(e) => setResolveNotes(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  onClick={() => setResolvingItem(null)}
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  Confirm &amp; Clear Lock
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

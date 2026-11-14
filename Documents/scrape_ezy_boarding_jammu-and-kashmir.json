@@ -1,0 +1,1747 @@
+[
+ {
+  "name": "KC Public School",
+  "slug": null,
+  "city": "Jammu",
+  "state": "Jammu and Kashmir",
+  "area": "Akhnoor Road",
+  "locality": "Akhnoor Road",
+  "pincode": "180001",
+  "type": "Boarding School",
+  "boarding_type": "Full Boarding",
+  "boards": [
+   "CBSE"
+  ],
+  "classes": "6 - 10",
+  "gender": "Co-ed",
+  "description": "About Us We at KCPS believe in the holistic approach towards education. In other words, we constantly endeavour to create and sustain an educational environment that offers the learner the full range of opportunities to perceive, crystallize, sharpen and utilize her/his manifest and latent intelligences, which, according to Professor Howard Gardner, form the foundation for a successful and fulfilling career of an individual, especially in the global community of today.",
+  "about": "About Us We at KCPS believe in the holistic approach towards education. In other words, we constantly endeavour to create and sustain an educational environment that offers the learner the full range of opportunities to perceive, crystallize, sharpen and utilize her/his manifest and latent intelligences, which, according to Professor Howard Gardner, form the foundation for a successful and fulfilling career of an individual, especially in the global community of today.",
+  "hostel": true,
+  "rating": null,
+  "reviews": null,
+  "fee_min": 200000,
+  "fee_max": 200000,
+  "address": "Akhnoor Road, Jammu, Jammu, Jammu and Kashmir - 180001",
+  "lat": 32.7479173693309,
+  "lng": 74.81734598651742,
+  "phone": "+91-8492806423",
+  "email": "kc_publicschool@rediffmail.com",
+  "website": "http://www.kcpublicschool.org/",
+  "social": {},
+  "logo": "https://d3bat55ebwjhsf.cloudfront.net/schools/logos/user_generic_school_user/070c4009-1fe2-4433-80f7-df4b928c8f3c-790f26e2-4b_9Yr5QSP.webp",
+  "images": [
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/cover/user_root_user%40ezy.com/download.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/69_6u5LSxv.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/68_4trQDWc.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/67_DDtFoWZ.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/66_fwvuItX.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/65_LS6ylma.jpg"
+  ],
+  "facilities": [
+   "Day care",
+   "Meals",
+   "Transportation",
+   "Boys Hostel",
+   "Girls Hostel",
+   "Wifi",
+   "Smart Classes",
+   "Art and Craft",
+   "Dance",
+   "Drama",
+   "Music",
+   "Picnics and excursion",
+   "Debate",
+   "Gardening",
+   "Cafeteria/Canteen",
+   "Playground",
+   "Auditorium/Media Room",
+   "Computer Lab",
+   "Science Lab",
+   "Robotics Lab",
+   "CCTV",
+   "Medical Room",
+   "Indoor Sports",
+   "Outdoor Sports",
+   "Yoga"
+  ],
+  "facility_groups": {
+   "Advanced Facilities": [
+    "Day care",
+    "Meals",
+    "Transportation",
+    "Medical Room"
+   ],
+   "Boarding": [
+    "Boys Hostel",
+    "Girls Hostel"
+   ],
+   "Class": [
+    "Wifi",
+    "Smart Classes"
+   ],
+   "Extra Curricular": [
+    "Art and Craft",
+    "Dance",
+    "Drama",
+    "Music",
+    "Picnics and excursion",
+    "Debate",
+    "Gardening"
+   ],
+   "Infrastructure": [
+    "Cafeteria/Canteen",
+    "Playground",
+    "Auditorium/Media Room"
+   ],
+   "Lab": [
+    "Computer Lab",
+    "Science Lab",
+    "Robotics Lab"
+   ],
+   "Safety and Security": [
+    "CCTV"
+   ],
+   "Sports and Fitness": [
+    "Indoor Sports",
+    "Outdoor Sports",
+    "Yoga"
+   ]
+  },
+  "founded": 1997,
+  "medium": "English",
+  "academic_session": "April to March",
+  "student_teacher_ratio": "35:1",
+  "campus_size": null,
+  "languages": [],
+  "food_options": null,
+  "verified": null,
+  "page_last_updated": null,
+  "affiliation_no": null,
+  "school_timing": null,
+  "student_count": null,
+  "teacher_count": null,
+  "source_site": "ezyschooling.com",
+  "source_url": "https://ezyschooling.com/school/kc-public-school-jammu",
+  "latest_fee_session": "2024-2025",
+  "current_admission_session": null,
+  "class_fees": [
+   {
+    "class_name": "Class 6",
+    "monthly_fee": null,
+    "annual_fee": 200000,
+    "one_time_fee": null,
+    "first_year_total": 200000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 200000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 7",
+    "monthly_fee": null,
+    "annual_fee": 200000,
+    "one_time_fee": null,
+    "first_year_total": 200000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 200000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 8",
+    "monthly_fee": null,
+    "annual_fee": 200000,
+    "one_time_fee": null,
+    "first_year_total": 200000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 200000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 9",
+    "monthly_fee": null,
+    "annual_fee": 200000,
+    "one_time_fee": null,
+    "first_year_total": 200000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 200000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 10",
+    "monthly_fee": null,
+    "annual_fee": 200000,
+    "one_time_fee": null,
+    "first_year_total": 200000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 200000,
+      "refundable": null
+     }
+    ]
+   }
+  ],
+  "admissions": [],
+  "warnings": [
+   "no admission / application-fee table on the page"
+  ],
+  "mongo_extra": {
+   "scraped_at": "2026-10-27",
+   "scraped_from": "ezyschooling.com",
+   "ezy_slug": "kc-public-school-jammu",
+   "fee_data_sessions": [
+    "2024-2025"
+   ],
+   "page_heading_session": "2027-2028",
+   "listing_fee_range": null,
+   "boarding_type_raw": "Full Boarding",
+   "sessions_clicked": [
+    "2026-2027",
+    "2027-2028"
+   ],
+   "all_facts": {
+    "Board": "CBSE",
+    "Gender": "Coed",
+    "Classes": "6 - 10 Class",
+    "Academic Session": "April to March",
+    "Medium": "English",
+    "Student Teacher Ratio": "35:1",
+    "Day/Boarding": "Full Boarding"
+   },
+   "sources": {
+    "name": "listing card",
+    "city": "breadcrumb",
+    "state": "listing card",
+    "area": "address: text before the city (the page has no separate area field)",
+    "locality": "address: text before the city (the page has no separate area field)",
+    "type": "Quick Facts: Day/Boarding",
+    "boarding_type": "Quick Facts: Day/Boarding",
+    "address": "page header",
+    "pincode": "page header",
+    "classes": "Quick Facts",
+    "boards": "Quick Facts",
+    "gender": "Quick Facts",
+    "medium": "Quick Facts",
+    "academic_session": "Quick Facts",
+    "student_teacher_ratio": "Quick Facts",
+    "founded": "page header",
+    "class_fees": "fees-structure page (site-printed numbers; fee_session = session stated by the page or clicked button)",
+    "fee_min": "lowest / highest annual fee of the newest fee session (2024-2025)",
+    "fee_max": "lowest / highest annual fee of the newest fee session (2024-2025)",
+    "email": "Address And Contact block",
+    "website": "Address And Contact block",
+    "phone": "page data next to the e-mail",
+    "about": "About Us section",
+    "description": "About Us section",
+    "facilities": "Facilities icons marked yes (grouped by the page section)",
+    "facility_groups": "Facilities icons marked yes (grouped by the page section)",
+    "hostel": "Facilities icons (Boys/Girls Hostel)",
+    "lat_lng": "school's own Google-Maps embed",
+    "logo": "image with alt \"<school> Logo\"",
+    "images": "cover + \"<school> Gallery\" images"
+   },
+   "facilities_not_available": [
+    "Alumni Association",
+    "AC Classes",
+    "Ramps",
+    "Washrooms",
+    "Elevators",
+    "Library/Reading Room",
+    "GPS Bus Tracking App",
+    "Student Tracking App",
+    "Karate",
+    "Taekwondo",
+    "Gym",
+    "Swimming Pool",
+    "Skating",
+    "Horse Riding"
+   ]
+  }
+ },
+ {
+  "name": "Sainik School Nagrota",
+  "slug": null,
+  "city": "Jammu",
+  "state": "Jammu and Kashmir",
+  "area": "Nagrota",
+  "locality": "Nagrota",
+  "pincode": "180001",
+  "type": "Boarding School",
+  "boarding_type": "Full Boarding",
+  "boards": [
+   "CBSE"
+  ],
+  "classes": "1 - 12",
+  "gender": "Co-ed",
+  "description": "About Us Sainik School Nagrota, Jammu & Kashmir is a residential Public School inaugurated on 22 Aug 1970 by the then Defence Minister Late Sh Jagjivan Ram. The Founder Principal was Cdr NN Seth. The school campus is located 18 kms away from the nearest railway station Jammu Tawi and linked with Jammu-Srinagar Highway (NH-1A). The lush green campus is situated at Nagrota in Jammu on the banks of river Tawi and spread over 108 acres of land, comprising playgrounds, courts, obstacle course, mini-stadium, administrative and academic blocks, infirmary, primary wing, hostels, cadets’ mess, guest house, auditorium etc.",
+  "about": "About Us Sainik School Nagrota, Jammu & Kashmir is a residential Public School inaugurated on 22 Aug 1970 by the then Defence Minister Late Sh Jagjivan Ram. The Founder Principal was Cdr NN Seth. The school campus is located 18 kms away from the nearest railway station Jammu Tawi and linked with Jammu-Srinagar Highway (NH-1A). The lush green campus is situated at Nagrota in Jammu on the banks of river Tawi and spread over 108 acres of land, comprising playgrounds, courts, obstacle course, mini-stadium, administrative and academic blocks, infirmary, primary wing, hostels, cadets’ mess, guest house, auditorium etc.",
+  "hostel": true,
+  "rating": 5.0,
+  "reviews": 1,
+  "fee_min": 132850,
+  "fee_max": 132850,
+  "address": "Nagrota, Jammu, Jammu, Jammu and Kashmir - 180001",
+  "lat": 32.785752701612694,
+  "lng": 74.92360625337233,
+  "phone": "+91-1912673060",
+  "email": "jmt.chinar@gmail.com",
+  "website": "http://www.sainikschoolnagrota.com",
+  "social": {},
+  "logo": "https://d3bat55ebwjhsf.cloudfront.net/schools/logos/user_generic_school_user/3b141041-e1d2-4426-bacd-2226d474e9ed-76dd0543-4b_Hs5Njnp.webp",
+  "images": [
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/cover/user_root_user%40ezy.com/ssn-gateway-to-india.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/86_5ecArbs.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/87_4xWTnUt.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/88_nPOJ0sb.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/89_bevNvxk.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/90_mrcQyvh.jpg"
+  ],
+  "facilities": [
+   "Transportation",
+   "Boys Hostel",
+   "Girls Hostel",
+   "AC Classes",
+   "Wifi",
+   "Smart Classes",
+   "Art and Craft",
+   "Dance",
+   "Drama",
+   "Music",
+   "Picnics and excursion",
+   "Debate",
+   "Gardening",
+   "Cafeteria/Canteen",
+   "Library/Reading Room",
+   "Playground",
+   "Auditorium/Media Room",
+   "Computer Lab",
+   "Science Lab",
+   "CCTV",
+   "Medical Room",
+   "Indoor Sports",
+   "Outdoor Sports",
+   "Yoga"
+  ],
+  "facility_groups": {
+   "Advanced Facilities": [
+    "Transportation",
+    "Medical Room"
+   ],
+   "Boarding": [
+    "Boys Hostel",
+    "Girls Hostel"
+   ],
+   "Class": [
+    "AC Classes",
+    "Wifi",
+    "Smart Classes"
+   ],
+   "Extra Curricular": [
+    "Art and Craft",
+    "Dance",
+    "Drama",
+    "Music",
+    "Picnics and excursion",
+    "Debate",
+    "Gardening"
+   ],
+   "Infrastructure": [
+    "Cafeteria/Canteen",
+    "Library/Reading Room",
+    "Playground",
+    "Auditorium/Media Room"
+   ],
+   "Lab": [
+    "Computer Lab",
+    "Science Lab"
+   ],
+   "Safety and Security": [
+    "CCTV"
+   ],
+   "Sports and Fitness": [
+    "Indoor Sports",
+    "Outdoor Sports",
+    "Yoga"
+   ]
+  },
+  "founded": 1966,
+  "medium": "English",
+  "academic_session": "April to March",
+  "student_teacher_ratio": "30:1",
+  "campus_size": null,
+  "languages": [],
+  "food_options": null,
+  "verified": null,
+  "page_last_updated": null,
+  "affiliation_no": null,
+  "school_timing": null,
+  "student_count": null,
+  "teacher_count": null,
+  "source_site": "ezyschooling.com",
+  "source_url": "https://ezyschooling.com/school/sainik-school-nagrota-jammu",
+  "latest_fee_session": "2024-2025",
+  "current_admission_session": null,
+  "class_fees": [
+   {
+    "class_name": "Class 1",
+    "monthly_fee": null,
+    "annual_fee": 132850,
+    "one_time_fee": null,
+    "first_year_total": 132850,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 87850,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 35500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Miscellaneous Charges",
+      "frequency": "Annually",
+      "amount": 9500,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 2",
+    "monthly_fee": null,
+    "annual_fee": 132850,
+    "one_time_fee": null,
+    "first_year_total": 132850,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 87850,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 35500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Miscellaneous Charges",
+      "frequency": "Annually",
+      "amount": 9500,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 3",
+    "monthly_fee": null,
+    "annual_fee": 132850,
+    "one_time_fee": null,
+    "first_year_total": 132850,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 87850,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 35500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Miscellaneous Charges",
+      "frequency": "Annually",
+      "amount": 9500,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 4",
+    "monthly_fee": null,
+    "annual_fee": 132850,
+    "one_time_fee": null,
+    "first_year_total": 132850,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 87850,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 35500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Miscellaneous Charges",
+      "frequency": "Annually",
+      "amount": 9500,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 5",
+    "monthly_fee": null,
+    "annual_fee": 132850,
+    "one_time_fee": null,
+    "first_year_total": 132850,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 87850,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 35500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Miscellaneous Charges",
+      "frequency": "Annually",
+      "amount": 9500,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 6",
+    "monthly_fee": null,
+    "annual_fee": 132850,
+    "one_time_fee": null,
+    "first_year_total": 132850,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 87850,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 35500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Miscellaneous Charges",
+      "frequency": "Annually",
+      "amount": 9500,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 7",
+    "monthly_fee": null,
+    "annual_fee": 132850,
+    "one_time_fee": null,
+    "first_year_total": 132850,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 87850,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 35500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Miscellaneous Charges",
+      "frequency": "Annually",
+      "amount": 9500,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 8",
+    "monthly_fee": null,
+    "annual_fee": 132850,
+    "one_time_fee": null,
+    "first_year_total": 132850,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 87850,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 35500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Miscellaneous Charges",
+      "frequency": "Annually",
+      "amount": 9500,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 9",
+    "monthly_fee": null,
+    "annual_fee": 132850,
+    "one_time_fee": null,
+    "first_year_total": 132850,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 87850,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 35500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Miscellaneous Charges",
+      "frequency": "Annually",
+      "amount": 9500,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 10",
+    "monthly_fee": null,
+    "annual_fee": 132850,
+    "one_time_fee": null,
+    "first_year_total": 132850,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 87850,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 35500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Miscellaneous Charges",
+      "frequency": "Annually",
+      "amount": 9500,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 11",
+    "monthly_fee": null,
+    "annual_fee": 132850,
+    "one_time_fee": null,
+    "first_year_total": 132850,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 87850,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 35500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Miscellaneous Charges",
+      "frequency": "Annually",
+      "amount": 9500,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 12",
+    "monthly_fee": null,
+    "annual_fee": 132850,
+    "one_time_fee": null,
+    "first_year_total": 132850,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 87850,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 35500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Miscellaneous Charges",
+      "frequency": "Annually",
+      "amount": 9500,
+      "refundable": null
+     }
+    ]
+   }
+  ],
+  "admissions": [],
+  "warnings": [
+   "no admission / application-fee table on the page"
+  ],
+  "mongo_extra": {
+   "scraped_at": "2026-10-27",
+   "scraped_from": "ezyschooling.com",
+   "ezy_slug": "sainik-school-nagrota-jammu",
+   "fee_data_sessions": [
+    "2024-2025"
+   ],
+   "page_heading_session": "2027-2028",
+   "listing_fee_range": null,
+   "boarding_type_raw": "Full Boarding",
+   "sessions_clicked": [
+    "2026-2027",
+    "2027-2028"
+   ],
+   "all_facts": {
+    "Board": "CBSE",
+    "Gender": "Coed",
+    "Classes": "1 - 12 Class",
+    "Academic Session": "April to March",
+    "Medium": "English",
+    "Student Teacher Ratio": "30:1",
+    "Day/Boarding": "Full Boarding"
+   },
+   "sources": {
+    "name": "listing card",
+    "city": "breadcrumb",
+    "state": "listing card",
+    "area": "address: text before the city (the page has no separate area field)",
+    "locality": "address: text before the city (the page has no separate area field)",
+    "type": "Quick Facts: Day/Boarding",
+    "boarding_type": "Quick Facts: Day/Boarding",
+    "rating": "page header",
+    "address": "page header",
+    "pincode": "page header",
+    "classes": "Quick Facts",
+    "boards": "Quick Facts",
+    "gender": "Quick Facts",
+    "medium": "Quick Facts",
+    "academic_session": "Quick Facts",
+    "student_teacher_ratio": "Quick Facts",
+    "founded": "page header",
+    "class_fees": "fees-structure page (site-printed numbers; fee_session = session stated by the page or clicked button)",
+    "fee_min": "lowest / highest annual fee of the newest fee session (2024-2025)",
+    "fee_max": "lowest / highest annual fee of the newest fee session (2024-2025)",
+    "email": "Address And Contact block",
+    "website": "Address And Contact block",
+    "phone": "page data next to the e-mail",
+    "about": "About Us section",
+    "description": "About Us section",
+    "facilities": "Facilities icons marked yes (grouped by the page section)",
+    "facility_groups": "Facilities icons marked yes (grouped by the page section)",
+    "hostel": "Facilities icons (Boys/Girls Hostel)",
+    "lat_lng": "school's own Google-Maps embed",
+    "logo": "image with alt \"<school> Logo\"",
+    "images": "cover + \"<school> Gallery\" images"
+   },
+   "facilities_not_available": [
+    "Alumni Association",
+    "Day care",
+    "Meals",
+    "Ramps",
+    "Washrooms",
+    "Elevators",
+    "Robotics Lab",
+    "GPS Bus Tracking App",
+    "Student Tracking App",
+    "Karate",
+    "Taekwondo",
+    "Gym",
+    "Swimming Pool",
+    "Skating",
+    "Horse Riding"
+   ]
+  }
+ },
+ {
+  "name": "BSF Senior Secondary School",
+  "slug": null,
+  "city": "Palaura",
+  "state": "Jammu and Kashmir",
+  "area": "Paloura (Akhnoor Road), Jammu Tawi",
+  "locality": "Jammu Tawi",
+  "pincode": "181121",
+  "type": "Boarding School",
+  "boarding_type": "Full Boarding",
+  "boards": [
+   "CBSE"
+  ],
+  "classes": "6 - 10",
+  "gender": "Co-ed",
+  "description": "About Us BSF School Jammu started as a Primary School in 1972 with 49 students on its Roll and 07 teachers on its staff. The School was re-organised as a Residential Institution, upgraded to the secondary level and got affiliated with CBSE New Delhi in June, 1976. The first batch of boarders was admitted in July, 1976. The school has been running plus Two classes with Medical / Non Medical streams since 1982. Later it added in the curriculum the Commerce and Arts streams also.",
+  "about": "About Us BSF School Jammu started as a Primary School in 1972 with 49 students on its Roll and 07 teachers on its staff. The School was re-organised as a Residential Institution, upgraded to the secondary level and got affiliated with CBSE New Delhi in June, 1976. The first batch of boarders was admitted in July, 1976. The school has been running plus Two classes with Medical / Non Medical streams since 1982. Later it added in the curriculum the Commerce and Arts streams also.",
+  "hostel": true,
+  "rating": null,
+  "reviews": null,
+  "fee_min": 107000,
+  "fee_max": 107000,
+  "address": "Paloura (Akhnoor Road),Jammu Tawi, Palaura, Palaura, Jammu and Kashmir - 181121",
+  "lat": 32.751161291859766,
+  "lng": 74.81913481043368,
+  "phone": "+91-1912586073",
+  "email": "bsfschooljmu@rediffmail.com",
+  "website": "http://www.bsfschooljammu.org",
+  "social": {},
+  "logo": "https://d3bat55ebwjhsf.cloudfront.net/schools/logos/user_generic_school_user/0482c479-520c-470e-bef0-6b45d99d3702-15d67be6-4b_UsTiLrY.webp",
+  "images": [
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/105.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/104.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/103.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/102.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/101.jpg"
+  ],
+  "facilities": [
+   "Transportation",
+   "Boys Hostel",
+   "Girls Hostel",
+   "Wifi",
+   "Smart Classes",
+   "AC Classes",
+   "Art and Craft",
+   "Dance",
+   "Drama",
+   "Music",
+   "Picnics and excursion",
+   "Debate",
+   "Gardening",
+   "Cafeteria/Canteen",
+   "Library/Reading Room",
+   "Playground",
+   "Auditorium/Media Room",
+   "Computer Lab",
+   "Science Lab",
+   "Robotics Lab",
+   "CCTV",
+   "Medical Room",
+   "Indoor Sports",
+   "Outdoor Sports",
+   "Yoga"
+  ],
+  "facility_groups": {
+   "Advanced Facilities": [
+    "Transportation",
+    "Medical Room"
+   ],
+   "Boarding": [
+    "Boys Hostel",
+    "Girls Hostel"
+   ],
+   "Class": [
+    "Wifi",
+    "Smart Classes",
+    "AC Classes"
+   ],
+   "Extra Curricular": [
+    "Art and Craft",
+    "Dance",
+    "Drama",
+    "Music",
+    "Picnics and excursion",
+    "Debate",
+    "Gardening"
+   ],
+   "Infrastructure": [
+    "Cafeteria/Canteen",
+    "Library/Reading Room",
+    "Playground",
+    "Auditorium/Media Room"
+   ],
+   "Lab": [
+    "Computer Lab",
+    "Science Lab",
+    "Robotics Lab"
+   ],
+   "Safety and Security": [
+    "CCTV"
+   ],
+   "Sports and Fitness": [
+    "Indoor Sports",
+    "Outdoor Sports",
+    "Yoga"
+   ]
+  },
+  "founded": 1972,
+  "medium": "English",
+  "academic_session": "April to March",
+  "student_teacher_ratio": "55:1",
+  "campus_size": null,
+  "languages": [],
+  "food_options": null,
+  "verified": null,
+  "page_last_updated": null,
+  "affiliation_no": null,
+  "school_timing": null,
+  "student_count": null,
+  "teacher_count": null,
+  "source_site": "ezyschooling.com",
+  "source_url": "https://ezyschooling.com/school/bsf-senior-secondary-school-palaura",
+  "latest_fee_session": "2024-2025",
+  "current_admission_session": null,
+  "class_fees": [
+   {
+    "class_name": "Class 6",
+    "monthly_fee": null,
+    "annual_fee": 107000,
+    "one_time_fee": 21000,
+    "first_year_total": 128000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 107000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Onetime",
+      "amount": 21000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 7",
+    "monthly_fee": null,
+    "annual_fee": 107000,
+    "one_time_fee": 21000,
+    "first_year_total": 128000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 107000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Onetime",
+      "amount": 21000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 8",
+    "monthly_fee": null,
+    "annual_fee": 107000,
+    "one_time_fee": 21000,
+    "first_year_total": 128000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 107000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Onetime",
+      "amount": 21000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 9",
+    "monthly_fee": null,
+    "annual_fee": 107000,
+    "one_time_fee": 21000,
+    "first_year_total": 128000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 107000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Onetime",
+      "amount": 21000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 10",
+    "monthly_fee": null,
+    "annual_fee": 107000,
+    "one_time_fee": 21000,
+    "first_year_total": 128000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 107000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Onetime",
+      "amount": 21000,
+      "refundable": null
+     }
+    ]
+   }
+  ],
+  "admissions": [],
+  "warnings": [
+   "no admission / application-fee table on the page"
+  ],
+  "mongo_extra": {
+   "scraped_at": "2026-10-27",
+   "scraped_from": "ezyschooling.com",
+   "ezy_slug": "bsf-senior-secondary-school-palaura",
+   "fee_data_sessions": [
+    "2024-2025"
+   ],
+   "page_heading_session": "2027-2028",
+   "listing_fee_range": null,
+   "boarding_type_raw": "Full Boarding",
+   "sessions_clicked": [
+    "2026-2027",
+    "2027-2028"
+   ],
+   "all_facts": {
+    "Board": "CBSE",
+    "Gender": "Coed",
+    "Classes": "6 - 10 Class",
+    "Academic Session": "April to March",
+    "Medium": "English",
+    "Student Teacher Ratio": "55:1",
+    "Day/Boarding": "Full Boarding"
+   },
+   "sources": {
+    "name": "listing card",
+    "city": "breadcrumb",
+    "state": "listing card",
+    "area": "address: text before the city (the page has no separate area field)",
+    "locality": "address: text before the city (the page has no separate area field)",
+    "type": "Quick Facts: Day/Boarding",
+    "boarding_type": "Quick Facts: Day/Boarding",
+    "address": "page header",
+    "pincode": "page header",
+    "classes": "Quick Facts",
+    "boards": "Quick Facts",
+    "gender": "Quick Facts",
+    "medium": "Quick Facts",
+    "academic_session": "Quick Facts",
+    "student_teacher_ratio": "Quick Facts",
+    "founded": "page header",
+    "class_fees": "fees-structure page (site-printed numbers; fee_session = session stated by the page or clicked button)",
+    "fee_min": "lowest / highest annual fee of the newest fee session (2024-2025)",
+    "fee_max": "lowest / highest annual fee of the newest fee session (2024-2025)",
+    "email": "Address And Contact block",
+    "website": "Address And Contact block",
+    "phone": "page data next to the e-mail",
+    "about": "About Us section",
+    "description": "About Us section",
+    "facilities": "Facilities icons marked yes (grouped by the page section)",
+    "facility_groups": "Facilities icons marked yes (grouped by the page section)",
+    "hostel": "Facilities icons (Boys/Girls Hostel)",
+    "lat_lng": "school's own Google-Maps embed",
+    "logo": "image with alt \"<school> Logo\"",
+    "images": "cover + \"<school> Gallery\" images"
+   },
+   "facilities_not_available": [
+    "Alumni Association",
+    "Day care",
+    "Meals",
+    "Ramps",
+    "Washrooms",
+    "Elevators",
+    "GPS Bus Tracking App",
+    "Student Tracking App",
+    "Karate",
+    "Taekwondo",
+    "Gym",
+    "Swimming Pool",
+    "Skating",
+    "Horse Riding"
+   ]
+  }
+ },
+ {
+  "name": "Abhyaas Defence Academy",
+  "slug": null,
+  "city": "Jammu",
+  "state": "Jammu and Kashmir",
+  "area": "Kangar Morh, Kot Bhalwal",
+  "locality": "Kot Bhalwal",
+  "pincode": "181122",
+  "type": "Boarding School",
+  "boarding_type": "Full Boarding",
+  "boards": [
+   "CBSE",
+   "State Board"
+  ],
+  "classes": "3 - 12",
+  "gender": "Co-ed",
+  "description": "About Us Welcome to Abhyaas Defence Academy in Jammu! Abhyaas Defence Academy Jammu stands out as a premier boarding school offering a comprehensive CBSE curriculum tailored for aspiring military leaders. Our institution combines quality schooling with specialized coaching for RIMC, Sainik, and military school preparation, as well as NDA entrance exams. With fully equipped boarding facilities, including a mess, laundry services, and extensive sports programs, we ensure that students have a well-rounded experience. Join us at Abhyaas Defence Academy, where we nurture discipline, leadership, and academic excellence in young minds.",
+  "about": "About Us Welcome to Abhyaas Defence Academy in Jammu! Abhyaas Defence Academy Jammu stands out as a premier boarding school offering a comprehensive CBSE curriculum tailored for aspiring military leaders. Our institution combines quality schooling with specialized coaching for RIMC, Sainik, and military school preparation, as well as NDA entrance exams. With fully equipped boarding facilities, including a mess, laundry services, and extensive sports programs, we ensure that students have a well-rounded experience. Join us at Abhyaas Defence Academy, where we nurture discipline, leadership, and academic excellence in young minds.",
+  "hostel": true,
+  "rating": 5.0,
+  "reviews": 3,
+  "fee_min": 225000,
+  "fee_max": 240000,
+  "address": "Kangar Morh, Kot Bhalwal, Jammu, Jammu and Kashmir - 181122",
+  "lat": 32.8324444,
+  "lng": 74.815878,
+  "phone": "+91-7658883301",
+  "email": "adajammu@gmail.com",
+  "website": "https://www.adajammu.in/",
+  "social": {},
+  "logo": "https://d3bat55ebwjhsf.cloudfront.net/schools/logos/12382/user_info912/f1e8717d-fd1f-410e-9428-f522abe17315_-_Abhyaas_Defence_Academy.jpeg",
+  "images": [
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/cover/12382/user_info912/Screenshot_2025-09-18_182729.png",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2025-09-24_11-29-58/wjdd/infra/images/Screenshot_2025-09-24_110440.png",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2025-09-20_15-26-57/yg0b/infra/images/Screenshot_2025-09-20_152357.png",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2025-10-01_18-52-54/owx3/infra/images/IMG_7156.jpeg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2025-09-20_15-26-32/jbgm/infra/images/Screenshot_2025-09-20_152324.png",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/12382/2026-06-19_22-40-53/bakx/IMG_1588.jpeg"
+  ],
+  "facilities": [
+   "Alumni Association",
+   "Day care",
+   "Meals",
+   "Boys Hostel",
+   "Girls Hostel",
+   "AC Classes",
+   "Wifi",
+   "Washrooms",
+   "Debate",
+   "Picnics and excursion",
+   "Music",
+   "Drama",
+   "Art and Craft",
+   "Dance",
+   "Gardening",
+   "Cafeteria/Canteen",
+   "Library/Reading Room",
+   "Playground",
+   "Auditorium/Media Room",
+   "Science Lab",
+   "Computer Lab",
+   "Language Lab",
+   "Medical Room",
+   "Student Tracking App",
+   "CCTV",
+   "Horse Riding",
+   "Gym",
+   "Yoga",
+   "Taekwondo",
+   "Karate",
+   "Outdoor Sports",
+   "Indoor Sports"
+  ],
+  "facility_groups": {
+   "Advanced Facilities": [
+    "Alumni Association",
+    "Day care",
+    "Meals",
+    "Medical Room"
+   ],
+   "Boarding": [
+    "Boys Hostel",
+    "Girls Hostel"
+   ],
+   "Class": [
+    "AC Classes",
+    "Wifi"
+   ],
+   "Disabled Friendly": [
+    "Washrooms"
+   ],
+   "Extra Curricular": [
+    "Debate",
+    "Picnics and excursion",
+    "Music",
+    "Drama",
+    "Art and Craft",
+    "Dance",
+    "Gardening"
+   ],
+   "Infrastructure": [
+    "Cafeteria/Canteen",
+    "Library/Reading Room",
+    "Playground",
+    "Auditorium/Media Room"
+   ],
+   "Lab": [
+    "Science Lab",
+    "Computer Lab",
+    "Language Lab"
+   ],
+   "Safety and Security": [
+    "Student Tracking App",
+    "CCTV"
+   ],
+   "Sports and Fitness": [
+    "Horse Riding",
+    "Gym",
+    "Yoga",
+    "Taekwondo",
+    "Karate",
+    "Outdoor Sports",
+    "Indoor Sports"
+   ]
+  },
+  "founded": 2014,
+  "medium": "English",
+  "academic_session": "April to March",
+  "student_teacher_ratio": "12:1",
+  "campus_size": "6 Acres",
+  "languages": [
+   "English",
+   "Hindi",
+   "Urdu"
+  ],
+  "food_options": "Vegetarian",
+  "verified": true,
+  "page_last_updated": "2026-06-19",
+  "affiliation_no": null,
+  "school_timing": null,
+  "student_count": null,
+  "teacher_count": null,
+  "source_site": "ezyschooling.com",
+  "source_url": "https://ezyschooling.com/school/abhyaas-defence-academy-jammu-jammu-and-kashmir",
+  "latest_fee_session": "2026-2027",
+  "current_admission_session": "2027-2028",
+  "class_fees": [
+   {
+    "class_name": "Class 3",
+    "monthly_fee": null,
+    "annual_fee": 225000,
+    "one_time_fee": null,
+    "first_year_total": 225000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Composite Fees with Hostel Charges",
+      "frequency": "Annually",
+      "amount": 225000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 4",
+    "monthly_fee": null,
+    "annual_fee": 225000,
+    "one_time_fee": null,
+    "first_year_total": 225000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Composite Fees with Hostel Charges",
+      "frequency": "Annually",
+      "amount": 225000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 5",
+    "monthly_fee": null,
+    "annual_fee": 225000,
+    "one_time_fee": null,
+    "first_year_total": 225000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Composite Fees with Hostel Charges",
+      "frequency": "Annually",
+      "amount": 225000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 6",
+    "monthly_fee": null,
+    "annual_fee": 225000,
+    "one_time_fee": null,
+    "first_year_total": 225000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Composite Fees with Hostel Charges",
+      "frequency": "Annually",
+      "amount": 225000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 7",
+    "monthly_fee": null,
+    "annual_fee": 225000,
+    "one_time_fee": null,
+    "first_year_total": 225000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Composite Fees with Hostel Charges",
+      "frequency": "Annually",
+      "amount": 225000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 8",
+    "monthly_fee": null,
+    "annual_fee": 225000,
+    "one_time_fee": null,
+    "first_year_total": 225000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Composite Fees with Hostel Charges",
+      "frequency": "Annually",
+      "amount": 225000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 9",
+    "monthly_fee": null,
+    "annual_fee": 240000,
+    "one_time_fee": null,
+    "first_year_total": 240000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Composite Fees with Hostel Charges",
+      "frequency": "Annually",
+      "amount": 240000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 10",
+    "monthly_fee": null,
+    "annual_fee": 240000,
+    "one_time_fee": null,
+    "first_year_total": 240000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Composite Fees with Hostel Charges",
+      "frequency": "Annually",
+      "amount": 240000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 11",
+    "monthly_fee": null,
+    "annual_fee": 240000,
+    "one_time_fee": null,
+    "first_year_total": 240000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Composite Fees with Hostel Charges",
+      "frequency": "Annually",
+      "amount": 240000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 12",
+    "monthly_fee": null,
+    "annual_fee": 240000,
+    "one_time_fee": null,
+    "first_year_total": 240000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Composite Fees with Hostel Charges",
+      "frequency": "Annually",
+      "amount": 240000,
+      "refundable": null
+     }
+    ]
+   }
+  ],
+  "admissions": [
+   {
+    "class_name": "Class 3",
+    "session": "2026-2027",
+    "date_type": "Last Date",
+    "date_text": "Nov 15, 2026",
+    "date_iso": "2026-11-15",
+    "status": "Ongoing",
+    "application_fee": 2150,
+    "application_fee_text": "₹2,150"
+   },
+   {
+    "class_name": "Class 4",
+    "session": "2026-2027",
+    "date_type": "Last Date",
+    "date_text": "Nov 15, 2026",
+    "date_iso": "2026-11-15",
+    "status": "Ongoing",
+    "application_fee": 2150,
+    "application_fee_text": "₹2,150"
+   },
+   {
+    "class_name": "Class 5",
+    "session": "2026-2027",
+    "date_type": "Last Date",
+    "date_text": "Nov 15, 2026",
+    "date_iso": "2026-11-15",
+    "status": "Ongoing",
+    "application_fee": 2150,
+    "application_fee_text": "₹2,150"
+   },
+   {
+    "class_name": "Class 6",
+    "session": "2026-2027",
+    "date_type": "Last Date",
+    "date_text": "Nov 15, 2026",
+    "date_iso": "2026-11-15",
+    "status": "Ongoing",
+    "application_fee": 2150,
+    "application_fee_text": "₹2,150"
+   },
+   {
+    "class_name": "Class 7",
+    "session": "2026-2027",
+    "date_type": "Last Date",
+    "date_text": "Nov 15, 2026",
+    "date_iso": "2026-11-15",
+    "status": "Ongoing",
+    "application_fee": 2150,
+    "application_fee_text": "₹2,150"
+   },
+   {
+    "class_name": "Class 8",
+    "session": "2026-2027",
+    "date_type": "Last Date",
+    "date_text": "Nov 15, 2026",
+    "date_iso": "2026-11-15",
+    "status": "Ongoing",
+    "application_fee": 2150,
+    "application_fee_text": "₹2,150"
+   },
+   {
+    "class_name": "Class 9",
+    "session": "2026-2027",
+    "date_type": "Last Date",
+    "date_text": "Nov 15, 2026",
+    "date_iso": "2026-11-15",
+    "status": "Ongoing",
+    "application_fee": 2150,
+    "application_fee_text": "₹2,150"
+   },
+   {
+    "class_name": "Class 10",
+    "session": "2026-2027",
+    "date_type": "Application Date",
+    "date_text": "Not Disclosed",
+    "date_iso": null,
+    "status": "Closed",
+    "application_fee": null,
+    "application_fee_text": null
+   },
+   {
+    "class_name": "Class 11",
+    "session": "2026-2027",
+    "date_type": "Last Date",
+    "date_text": "Nov 15, 2026",
+    "date_iso": "2026-11-15",
+    "status": "Ongoing",
+    "application_fee": 2150,
+    "application_fee_text": "₹2,150"
+   },
+   {
+    "class_name": "Class 12",
+    "session": "2026-2027",
+    "date_type": "Application Date",
+    "date_text": "Not Disclosed",
+    "date_iso": null,
+    "status": "Closed",
+    "application_fee": null,
+    "application_fee_text": null
+   },
+   {
+    "class_name": "Class 3",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Dec 31, 2026",
+    "date_iso": "2026-12-31",
+    "status": "Ongoing",
+    "application_fee": 2150,
+    "application_fee_text": "₹2,150"
+   },
+   {
+    "class_name": "Class 4",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Dec 31, 2026",
+    "date_iso": "2026-12-31",
+    "status": "Ongoing",
+    "application_fee": 2150,
+    "application_fee_text": "₹2,150"
+   },
+   {
+    "class_name": "Class 5",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Dec 31, 2026",
+    "date_iso": "2026-12-31",
+    "status": "Ongoing",
+    "application_fee": 2150,
+    "application_fee_text": "₹2,150"
+   },
+   {
+    "class_name": "Class 6",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Dec 31, 2026",
+    "date_iso": "2026-12-31",
+    "status": "Ongoing",
+    "application_fee": 2150,
+    "application_fee_text": "₹2,150"
+   },
+   {
+    "class_name": "Class 7",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Dec 31, 2026",
+    "date_iso": "2026-12-31",
+    "status": "Ongoing",
+    "application_fee": 2150,
+    "application_fee_text": "₹2,150"
+   },
+   {
+    "class_name": "Class 8",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Dec 31, 2026",
+    "date_iso": "2026-12-31",
+    "status": "Ongoing",
+    "application_fee": 2150,
+    "application_fee_text": "₹2,150"
+   },
+   {
+    "class_name": "Class 9",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Dec 31, 2026",
+    "date_iso": "2026-12-31",
+    "status": "Ongoing",
+    "application_fee": 2150,
+    "application_fee_text": "₹2,150"
+   },
+   {
+    "class_name": "Class 10",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Mar 31, 2027",
+    "date_iso": "2027-03-31",
+    "status": "Yet to Begin",
+    "application_fee": null,
+    "application_fee_text": "₹0"
+   },
+   {
+    "class_name": "Class 11",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Dec 31, 2026",
+    "date_iso": "2026-12-31",
+    "status": "Ongoing",
+    "application_fee": 2150,
+    "application_fee_text": "₹2,150"
+   },
+   {
+    "class_name": "Class 12",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Mar 31, 2027",
+    "date_iso": "2027-03-31",
+    "status": "Yet to Begin",
+    "application_fee": null,
+    "application_fee_text": "₹0"
+   }
+  ],
+  "warnings": [
+   "fees are for session 2026-2027, but admissions are open for 2027-2028 (site has not updated its fees)"
+  ],
+  "mongo_extra": {
+   "scraped_at": "2026-10-27",
+   "scraped_from": "ezyschooling.com",
+   "ezy_slug": "abhyaas-defence-academy-jammu-jammu-and-kashmir",
+   "fee_data_sessions": [
+    "2026-2027"
+   ],
+   "page_heading_session": "2027-2028",
+   "listing_fee_range": null,
+   "boarding_type_raw": "Full Boarding",
+   "sessions_clicked": [
+    "2026-2027",
+    "2027-2028"
+   ],
+   "all_facts": {
+    "Board": "CBSE, State Board",
+    "Gender": "Coed",
+    "Classes": "3 - 12 Class",
+    "Academic Session": "April to March",
+    "Medium": "English",
+    "Student Teacher Ratio": "12:1",
+    "Day/Boarding": "Full Boarding"
+   },
+   "sources": {
+    "name": "listing card",
+    "city": "breadcrumb",
+    "state": "listing card",
+    "area": "address: text before the city (the page has no separate area field)",
+    "locality": "address: text before the city (the page has no separate area field)",
+    "type": "Quick Facts: Day/Boarding",
+    "boarding_type": "Quick Facts: Day/Boarding",
+    "rating": "page header",
+    "address": "page header",
+    "pincode": "page header",
+    "classes": "Quick Facts",
+    "boards": "Quick Facts",
+    "gender": "Quick Facts",
+    "medium": "Quick Facts",
+    "academic_session": "Quick Facts",
+    "student_teacher_ratio": "Quick Facts",
+    "founded": "page header",
+    "class_fees": "fees-structure page (site-printed numbers; fee_session = session stated by the page or clicked button)",
+    "fee_min": "lowest / highest annual fee of the newest fee session (2026-2027)",
+    "fee_max": "lowest / highest annual fee of the newest fee session (2026-2027)",
+    "admissions": "Fill Admission Form table (per session)",
+    "email": "Address And Contact block",
+    "website": "Address And Contact block",
+    "phone": "page data next to the e-mail",
+    "about": "About Us section",
+    "description": "About Us section",
+    "facilities": "Facilities icons marked yes (grouped by the page section)",
+    "facility_groups": "Facilities icons marked yes (grouped by the page section)",
+    "hostel": "Facilities icons (Boys/Girls Hostel)",
+    "lat_lng": "school's own Google-Maps embed",
+    "logo": "image with alt \"<school> Logo\"",
+    "images": "cover + \"<school> Gallery\" images",
+    "campus_size": "Quick Facts",
+    "languages": "Languages Taught section",
+    "food_options": "FAQ: food options",
+    "page_last_updated": "page footer"
+   },
+   "facilities_not_available": [
+    "Transportation",
+    "Smart Classes",
+    "Elevators",
+    "Ramps",
+    "Robotics Lab",
+    "GPS Bus Tracking App",
+    "Skating",
+    "Swimming Pool"
+   ],
+   "travel_info_raw": [
+    "train",
+    "Railway Station",
+    "flightsmode",
+    "Airport",
+    "local_hospital",
+    "Hospital",
+    "Bajalta",
+    "Bajalta Station Rd, Baljata",
+    "Distance",
+    "map",
+    "14 kms",
+    "Withdrawal Policy",
+    "The following policy outlines the terms and conditions for withdrawal from Abhyaas Defence Academy and the applicable fee refund structure. This policy is designed to ensure clarity and fairness for all students and the institution.",
+    "1. Withdrawal Within One Week of Joining",
+    "- If a student withdraws from the academy within 7 days from the date of joining, no deduction will be made, and the full fee paid will be refunded.",
+    "2. Withdrawal After One Week to One Month",
+    "- If a student withdraws after 7 days but within 30 days from the date of joining, a 25% deduction of the total fee paid will be applied, and the remaining amount will be refunded.",
+    "3. Withdrawal After One Month to Two Months",
+    "- If a student withdraws after 30 days but within 60 days from the date of joining, a 50% deduction of the total fee paid will be applied, and the remaining amount will be refunded.",
+    "4. Withdrawal After Two Months"
+   ]
+  }
+ }
+]

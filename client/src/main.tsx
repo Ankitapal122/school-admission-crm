@@ -22,3 +22,10 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     </QueryClientProvider>
   </React.StrictMode>
 );
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    const swUrl = import.meta.env.PROD ? '/sw.js' : '/push-sw.js';
+    navigator.serviceWorker.register(swUrl).catch(() => {});
+  });
+}

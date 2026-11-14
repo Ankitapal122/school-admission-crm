@@ -1,0 +1,3750 @@
+[
+ {
+  "name": "HIM International School",
+  "slug": null,
+  "city": "Itanagar",
+  "state": "Arunachal Pradesh",
+  "area": "Jollang, III) Daath Village",
+  "locality": "III) Daath Village",
+  "pincode": "791113",
+  "type": "Boarding School",
+  "boarding_type": "Day Cum Boarding",
+  "boards": [
+   "CBSE"
+  ],
+  "classes": "Nursery - 12",
+  "gender": "Co-ed",
+  "description": "About Us HIMIS aims at identifying, moulding and developing the talents of the young learners into mature, capable, and authentic next-generation global leaders by instilling in them a sense responsibility and accountability.",
+  "about": "About Us HIMIS aims at identifying, moulding and developing the talents of the young learners into mature, capable, and authentic next-generation global leaders by instilling in them a sense responsibility and accountability.",
+  "hostel": true,
+  "rating": null,
+  "reviews": null,
+  "fee_min": 399300,
+  "fee_max": 570600,
+  "address": "Jollang, III) Daath Village, Itanagar, Arunachal Pradesh - 791113",
+  "lat": 27.07240200941592,
+  "lng": 93.62781031354662,
+  "phone": "+91-8132886528",
+  "email": "principal@himinternationalschool.org",
+  "website": "https://himinternationalschool.org/",
+  "social": {},
+  "logo": "https://d3bat55ebwjhsf.cloudfront.net/schools/logos/user_generic_school_user/f32944a5-bd24-4446-b9f5-5c0d7df19f8d-86bbc0de-4b_RsO9gHc.webp",
+  "images": [
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/cover/5201/user_tech.generated.5201%40ezyschooling.com/unnamed.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/download_48_8BXeUNW.jpeg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/download_49_WjLA3u0.jpeg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/download_50_HMgZLO1.jpeg"
+  ],
+  "facilities": [
+   "Day care",
+   "Meals",
+   "Transportation",
+   "Boys Hostel",
+   "Girls Hostel",
+   "AC Classes",
+   "Wifi",
+   "Smart Classes",
+   "Art and Craft",
+   "Dance",
+   "Drama",
+   "Music",
+   "Picnics and excursion",
+   "Debate",
+   "Gardening",
+   "Cafeteria/Canteen",
+   "Playground",
+   "Auditorium/Media Room",
+   "Computer Lab",
+   "Science Lab",
+   "CCTV",
+   "Medical Room",
+   "Indoor Sports",
+   "Outdoor Sports",
+   "Yoga"
+  ],
+  "facility_groups": {
+   "Advanced Facilities": [
+    "Day care",
+    "Meals",
+    "Transportation",
+    "Medical Room"
+   ],
+   "Boarding": [
+    "Boys Hostel",
+    "Girls Hostel"
+   ],
+   "Class": [
+    "AC Classes",
+    "Wifi",
+    "Smart Classes"
+   ],
+   "Extra Curricular": [
+    "Art and Craft",
+    "Dance",
+    "Drama",
+    "Music",
+    "Picnics and excursion",
+    "Debate",
+    "Gardening"
+   ],
+   "Infrastructure": [
+    "Cafeteria/Canteen",
+    "Playground",
+    "Auditorium/Media Room"
+   ],
+   "Lab": [
+    "Computer Lab",
+    "Science Lab"
+   ],
+   "Safety and Security": [
+    "CCTV"
+   ],
+   "Sports and Fitness": [
+    "Indoor Sports",
+    "Outdoor Sports",
+    "Yoga"
+   ]
+  },
+  "founded": 2017,
+  "medium": "English",
+  "academic_session": "August to June",
+  "student_teacher_ratio": "30:1",
+  "campus_size": null,
+  "languages": [
+   "English",
+   "Hindi",
+   "Kannada"
+  ],
+  "food_options": null,
+  "verified": null,
+  "page_last_updated": "2026-07-18",
+  "affiliation_no": null,
+  "school_timing": null,
+  "student_count": null,
+  "teacher_count": null,
+  "source_site": "ezyschooling.com",
+  "source_url": "https://ezyschooling.com/school/him-international-school-itanagar",
+  "latest_fee_session": "2026-2027",
+  "current_admission_session": null,
+  "class_fees": [
+   {
+    "class_name": "Class 1",
+    "monthly_fee": null,
+    "annual_fee": 399300,
+    "one_time_fee": 83000,
+    "first_year_total": 482300,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Onetime",
+      "amount": 20000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Caution Money",
+      "frequency": "Onetime",
+      "amount": 10000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Application Fees",
+      "frequency": "Onetime",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Sports Fees",
+      "frequency": "Annually",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Quarterly",
+      "amount": 32500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 23100,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 17400,
+      "refundable": null
+     },
+     {
+      "fee_type": "Activity Fees",
+      "frequency": "Annually",
+      "amount": 4500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Boarding Fees",
+      "frequency": "Quarterly",
+      "amount": 58100,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Admission Fees",
+      "frequency": "Onetime",
+      "amount": 28900,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 2",
+    "monthly_fee": null,
+    "annual_fee": 399300,
+    "one_time_fee": 83000,
+    "first_year_total": 482300,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Onetime",
+      "amount": 20000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Caution Money",
+      "frequency": "Onetime",
+      "amount": 10000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Application Fees",
+      "frequency": "Onetime",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Sports Fees",
+      "frequency": "Annually",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Quarterly",
+      "amount": 32500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 23100,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 17400,
+      "refundable": null
+     },
+     {
+      "fee_type": "Activity Fees",
+      "frequency": "Annually",
+      "amount": 4500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Boarding Fees",
+      "frequency": "Quarterly",
+      "amount": 58100,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Admission Fees",
+      "frequency": "Onetime",
+      "amount": 28900,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 3",
+    "monthly_fee": null,
+    "annual_fee": 399300,
+    "one_time_fee": 83000,
+    "first_year_total": 482300,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Onetime",
+      "amount": 20000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Caution Money",
+      "frequency": "Onetime",
+      "amount": 10000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Application Fees",
+      "frequency": "Onetime",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Sports Fees",
+      "frequency": "Annually",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Quarterly",
+      "amount": 32500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 23100,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 17400,
+      "refundable": null
+     },
+     {
+      "fee_type": "Activity Fees",
+      "frequency": "Annually",
+      "amount": 4500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Boarding Fees",
+      "frequency": "Quarterly",
+      "amount": 58100,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Admission Fees",
+      "frequency": "Onetime",
+      "amount": 28900,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 4",
+    "monthly_fee": null,
+    "annual_fee": 464900,
+    "one_time_fee": 88800,
+    "first_year_total": 553700,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Onetime",
+      "amount": 20000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Caution Money",
+      "frequency": "Onetime",
+      "amount": 10000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Application Fees",
+      "frequency": "Onetime",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Sports Fees",
+      "frequency": "Annually",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Quarterly",
+      "amount": 44000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 28900,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 17400,
+      "refundable": null
+     },
+     {
+      "fee_type": "Activity Fees",
+      "frequency": "Annually",
+      "amount": 4500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Boarding Fees",
+      "frequency": "Quarterly",
+      "amount": 63000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Admission Fees",
+      "frequency": "Onetime",
+      "amount": 28900,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 5",
+    "monthly_fee": null,
+    "annual_fee": 467900,
+    "one_time_fee": 88800,
+    "first_year_total": 556700,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Onetime",
+      "amount": 20000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Caution Money",
+      "frequency": "Onetime",
+      "amount": 10000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Application Fees",
+      "frequency": "Onetime",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Sports Fees",
+      "frequency": "Annually",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Exam Fees",
+      "frequency": "Annually",
+      "amount": 3000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Quarterly",
+      "amount": 44000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 28900,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 17400,
+      "refundable": null
+     },
+     {
+      "fee_type": "Activity Fees",
+      "frequency": "Annually",
+      "amount": 4500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Boarding Fees",
+      "frequency": "Quarterly",
+      "amount": 63000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Admission Fees",
+      "frequency": "Onetime",
+      "amount": 28900,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 6",
+    "monthly_fee": null,
+    "annual_fee": 464900,
+    "one_time_fee": 88800,
+    "first_year_total": 553700,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Onetime",
+      "amount": 20000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Caution Money",
+      "frequency": "Onetime",
+      "amount": 10000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Application Fees",
+      "frequency": "Onetime",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Sports Fees",
+      "frequency": "Annually",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Quarterly",
+      "amount": 44000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 28900,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 17400,
+      "refundable": null
+     },
+     {
+      "fee_type": "Activity Fees",
+      "frequency": "Annually",
+      "amount": 4500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Boarding Fees",
+      "frequency": "Quarterly",
+      "amount": 63000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Admission Fees",
+      "frequency": "Onetime",
+      "amount": 28900,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 7",
+    "monthly_fee": null,
+    "annual_fee": 504600,
+    "one_time_fee": 88800,
+    "first_year_total": 593400,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Onetime",
+      "amount": 20000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Caution Money",
+      "frequency": "Onetime",
+      "amount": 10000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Application Fees",
+      "frequency": "Onetime",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Sports Fees",
+      "frequency": "Annually",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Quarterly",
+      "amount": 44000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 28900,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 23100,
+      "refundable": null
+     },
+     {
+      "fee_type": "Activity Fees",
+      "frequency": "Annually",
+      "amount": 4500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Boarding Fees",
+      "frequency": "Quarterly",
+      "amount": 71500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Admission Fees",
+      "frequency": "Onetime",
+      "amount": 28900,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 8",
+    "monthly_fee": null,
+    "annual_fee": 511600,
+    "one_time_fee": 88800,
+    "first_year_total": 600400,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Onetime",
+      "amount": 20000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Caution Money",
+      "frequency": "Onetime",
+      "amount": 10000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Application Fees",
+      "frequency": "Onetime",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Sports Fees",
+      "frequency": "Annually",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Exam Fees",
+      "frequency": "Annually",
+      "amount": 3000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Quarterly",
+      "amount": 44000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 28900,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 23100,
+      "refundable": null
+     },
+     {
+      "fee_type": "Activity Fees",
+      "frequency": "Annually",
+      "amount": 4500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Boarding Fees",
+      "frequency": "Quarterly",
+      "amount": 71500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Admission Fees",
+      "frequency": "Onetime",
+      "amount": 28900,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 4000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 9",
+    "monthly_fee": null,
+    "annual_fee": 532500,
+    "one_time_fee": 88800,
+    "first_year_total": 621300,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Onetime",
+      "amount": 20000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Caution Money",
+      "frequency": "Onetime",
+      "amount": 10000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Application Fees",
+      "frequency": "Onetime",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Sports Fees",
+      "frequency": "Annually",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Exam Fees",
+      "frequency": "Annually",
+      "amount": 3000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Laboratory Fees",
+      "frequency": "Annually",
+      "amount": 9300,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Quarterly",
+      "amount": 46900,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 28900,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 23100,
+      "refundable": null
+     },
+     {
+      "fee_type": "Activity Fees",
+      "frequency": "Annually",
+      "amount": 4500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Boarding Fees",
+      "frequency": "Quarterly",
+      "amount": 71500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Admission Fees",
+      "frequency": "Onetime",
+      "amount": 28900,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 4000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 10",
+    "monthly_fee": null,
+    "annual_fee": 532500,
+    "one_time_fee": 88800,
+    "first_year_total": 621300,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Onetime",
+      "amount": 20000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Caution Money",
+      "frequency": "Onetime",
+      "amount": 10000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Application Fees",
+      "frequency": "Onetime",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Sports Fees",
+      "frequency": "Annually",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Exam Fees",
+      "frequency": "Annually",
+      "amount": 3000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Laboratory Fees",
+      "frequency": "Annually",
+      "amount": 9300,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Quarterly",
+      "amount": 46900,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 28900,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 23100,
+      "refundable": null
+     },
+     {
+      "fee_type": "Activity Fees",
+      "frequency": "Annually",
+      "amount": 4500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Boarding Fees",
+      "frequency": "Quarterly",
+      "amount": 71500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Admission Fees",
+      "frequency": "Onetime",
+      "amount": 28900,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 4000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 11",
+    "monthly_fee": null,
+    "annual_fee": 570600,
+    "one_time_fee": 100400,
+    "first_year_total": 671000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Onetime",
+      "amount": 20000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Caution Money",
+      "frequency": "Onetime",
+      "amount": 10000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Application Fees",
+      "frequency": "Onetime",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Sports Fees",
+      "frequency": "Annually",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Exam Fees",
+      "frequency": "Annually",
+      "amount": 3000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Laboratory Fees",
+      "frequency": "Annually",
+      "amount": 11600,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Quarterly",
+      "amount": 46900,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 34700,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 28900,
+      "refundable": null
+     },
+     {
+      "fee_type": "Activity Fees",
+      "frequency": "Annually",
+      "amount": 4500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Boarding Fees",
+      "frequency": "Quarterly",
+      "amount": 79000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Admission Fees",
+      "frequency": "Onetime",
+      "amount": 34700,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 4000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 12",
+    "monthly_fee": null,
+    "annual_fee": 570600,
+    "one_time_fee": 100400,
+    "first_year_total": 671000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Onetime",
+      "amount": 20000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Caution Money",
+      "frequency": "Onetime",
+      "amount": 10000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Application Fees",
+      "frequency": "Onetime",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Sports Fees",
+      "frequency": "Annually",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Exam Fees",
+      "frequency": "Annually",
+      "amount": 3000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Laboratory Fees",
+      "frequency": "Annually",
+      "amount": 11600,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Quarterly",
+      "amount": 46900,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 34700,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 28900,
+      "refundable": null
+     },
+     {
+      "fee_type": "Activity Fees",
+      "frequency": "Annually",
+      "amount": 4500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Boarding Fees",
+      "frequency": "Quarterly",
+      "amount": 79000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Admission Fees",
+      "frequency": "Onetime",
+      "amount": 34700,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 4000,
+      "refundable": null
+     }
+    ]
+   }
+  ],
+  "admissions": [],
+  "warnings": [
+   "no admission / application-fee table on the page"
+  ],
+  "mongo_extra": {
+   "scraped_at": "2026-10-27",
+   "scraped_from": "ezyschooling.com",
+   "ezy_slug": "him-international-school-itanagar",
+   "fee_data_sessions": [
+    "2026-2027"
+   ],
+   "page_heading_session": "2027-2028",
+   "listing_fee_range": null,
+   "boarding_type_raw": "Day Cum Boarding",
+   "sessions_clicked": [
+    "2026-2027",
+    "2027-2028"
+   ],
+   "all_facts": {
+    "Board": "CBSE",
+    "Gender": "Coed",
+    "Classes": "Nursery - 12 Class",
+    "Academic Session": "August to June",
+    "Medium": "English",
+    "Student Teacher Ratio": "30:1",
+    "Day/Boarding": "Day Cum Boarding"
+   },
+   "sources": {
+    "name": "listing card",
+    "city": "breadcrumb",
+    "state": "listing card",
+    "area": "address: text before the city (the page has no separate area field)",
+    "locality": "address: text before the city (the page has no separate area field)",
+    "type": "Quick Facts: Day/Boarding",
+    "boarding_type": "Quick Facts: Day/Boarding",
+    "address": "page header",
+    "pincode": "page header",
+    "classes": "Quick Facts",
+    "boards": "Quick Facts",
+    "gender": "Quick Facts",
+    "medium": "Quick Facts",
+    "academic_session": "Quick Facts",
+    "student_teacher_ratio": "Quick Facts",
+    "founded": "page header",
+    "class_fees": "fees-structure page (site-printed numbers; fee_session = session stated by the page or clicked button)",
+    "fee_min": "lowest / highest annual fee of the newest fee session (2026-2027)",
+    "fee_max": "lowest / highest annual fee of the newest fee session (2026-2027)",
+    "email": "Address And Contact block",
+    "website": "Address And Contact block",
+    "phone": "page data next to the e-mail",
+    "about": "About Us section",
+    "description": "About Us section",
+    "facilities": "Facilities icons marked yes (grouped by the page section)",
+    "facility_groups": "Facilities icons marked yes (grouped by the page section)",
+    "hostel": "Facilities icons (Boys/Girls Hostel)",
+    "lat_lng": "school's own Google-Maps embed",
+    "logo": "image with alt \"<school> Logo\"",
+    "images": "cover + \"<school> Gallery\" images",
+    "languages": "Languages Taught section",
+    "page_last_updated": "page footer"
+   },
+   "facilities_not_available": [
+    "Alumni Association",
+    "Ramps",
+    "Washrooms",
+    "Elevators",
+    "Library/Reading Room",
+    "Robotics Lab",
+    "GPS Bus Tracking App",
+    "Student Tracking App",
+    "Karate",
+    "Taekwondo",
+    "Gym",
+    "Swimming Pool",
+    "Skating",
+    "Horse Riding"
+   ]
+  }
+ },
+ {
+  "name": "Delhi Public School",
+  "slug": null,
+  "city": "Itanagar",
+  "state": "Arunachal Pradesh",
+  "area": "P.B. 135 Jully Road Dt-Papumpare",
+  "locality": "P.B. 135 Jully Road Dt-Papumpare",
+  "pincode": "791113",
+  "type": "Boarding School",
+  "boarding_type": "Full Boarding",
+  "boards": [
+   "CBSE"
+  ],
+  "classes": "1 - 12",
+  "gender": "Co-ed",
+  "description": "About Us Through the untiring efforts of Eastern Educational Promotional Society the dream project \"Delhi Public School Itanagar\" a co-educational day boarding and residential school (Under the Aegies of DPS Society, New Delhi) was established in the year 2006 in an area of 20 acares of land at Jully Village, Itanagar. Set amidst tall trees and green playground, it provides a serene and unpolluted atmosphere where children can grow and attain their maximum potential. To educate all students, to become lifelong learners and productive citizens in a global society through a program of educational excellence utilizing technology and activities involving parents and the community.",
+  "about": "About Us Through the untiring efforts of Eastern Educational Promotional Society the dream project \"Delhi Public School Itanagar\" a co-educational day boarding and residential school (Under the Aegies of DPS Society, New Delhi) was established in the year 2006 in an area of 20 acares of land at Jully Village, Itanagar. Set amidst tall trees and green playground, it provides a serene and unpolluted atmosphere where children can grow and attain their maximum potential. To educate all students, to become lifelong learners and productive citizens in a global society through a program of educational excellence utilizing technology and activities involving parents and the community.",
+  "hostel": true,
+  "rating": null,
+  "reviews": null,
+  "fee_min": 150000,
+  "fee_max": 245000,
+  "address": "P.B. 135 Jully Road Dt-Papumpare, Itanagar, Itanagar, Arunachal Pradesh - 791113",
+  "lat": 27.07540163863205,
+  "lng": 93.61450777790938,
+  "phone": "+91-8257018137",
+  "email": "dpsitanagar@gmail.com",
+  "website": "http://dpsitanagar.com/",
+  "social": {},
+  "logo": "https://d3bat55ebwjhsf.cloudfront.net/schools/logos/user_generic_school_user/b39a3275-6e18-47fd-bbce-44827837f614-58ca85d5-4b_I6KcSLd.webp",
+  "images": [
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/cover/user_root_user%40ezy.com/GER02861.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/download_-_2022-05-03T152141.629_lsqmWD4.jpeg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/download_-_2022-05-03T152146.292_J31WSYD.jpeg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/download_-_2022-05-03T152149.717_y5mdKVi.jpeg"
+  ],
+  "facilities": [
+   "Day care",
+   "Meals",
+   "Transportation",
+   "Boys Hostel",
+   "Girls Hostel",
+   "Wifi",
+   "Smart Classes",
+   "Art and Craft",
+   "Dance",
+   "Drama",
+   "Music",
+   "Picnics and excursion",
+   "Debate",
+   "Gardening",
+   "Cafeteria/Canteen",
+   "Library/Reading Room",
+   "Auditorium/Media Room",
+   "Computer Lab",
+   "Science Lab",
+   "Robotics Lab",
+   "CCTV",
+   "Medical Room",
+   "Indoor Sports",
+   "Outdoor Sports",
+   "Yoga"
+  ],
+  "facility_groups": {
+   "Advanced Facilities": [
+    "Day care",
+    "Meals",
+    "Transportation",
+    "Medical Room"
+   ],
+   "Boarding": [
+    "Boys Hostel",
+    "Girls Hostel"
+   ],
+   "Class": [
+    "Wifi",
+    "Smart Classes"
+   ],
+   "Extra Curricular": [
+    "Art and Craft",
+    "Dance",
+    "Drama",
+    "Music",
+    "Picnics and excursion",
+    "Debate",
+    "Gardening"
+   ],
+   "Infrastructure": [
+    "Cafeteria/Canteen",
+    "Library/Reading Room",
+    "Auditorium/Media Room"
+   ],
+   "Lab": [
+    "Computer Lab",
+    "Science Lab",
+    "Robotics Lab"
+   ],
+   "Safety and Security": [
+    "CCTV"
+   ],
+   "Sports and Fitness": [
+    "Indoor Sports",
+    "Outdoor Sports",
+    "Yoga"
+   ]
+  },
+  "founded": 2006,
+  "medium": "English",
+  "academic_session": "April to March",
+  "student_teacher_ratio": "30:1",
+  "campus_size": null,
+  "languages": [],
+  "food_options": null,
+  "verified": null,
+  "page_last_updated": null,
+  "affiliation_no": null,
+  "school_timing": null,
+  "student_count": null,
+  "teacher_count": null,
+  "source_site": "ezyschooling.com",
+  "source_url": "https://ezyschooling.com/school/delhi-public-school-dps-itanagar",
+  "latest_fee_session": "2024-2025",
+  "current_admission_session": null,
+  "class_fees": [
+   {
+    "class_name": "Class 1",
+    "monthly_fee": null,
+    "annual_fee": 150000,
+    "one_time_fee": 15000,
+    "first_year_total": 165000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 55000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 95000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 2",
+    "monthly_fee": null,
+    "annual_fee": 150000,
+    "one_time_fee": 15000,
+    "first_year_total": 165000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 55000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 95000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 3",
+    "monthly_fee": null,
+    "annual_fee": 150000,
+    "one_time_fee": 15000,
+    "first_year_total": 165000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 55000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 95000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 4",
+    "monthly_fee": null,
+    "annual_fee": 150000,
+    "one_time_fee": 15000,
+    "first_year_total": 165000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 55000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 95000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 5",
+    "monthly_fee": null,
+    "annual_fee": 175000,
+    "one_time_fee": 15000,
+    "first_year_total": 190000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 75000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 100000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 6",
+    "monthly_fee": null,
+    "annual_fee": 175000,
+    "one_time_fee": 15000,
+    "first_year_total": 190000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 75000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 100000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 7",
+    "monthly_fee": null,
+    "annual_fee": 175000,
+    "one_time_fee": 15000,
+    "first_year_total": 190000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 75000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 100000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 8",
+    "monthly_fee": null,
+    "annual_fee": 175000,
+    "one_time_fee": 15000,
+    "first_year_total": 190000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 75000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 100000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 9",
+    "monthly_fee": null,
+    "annual_fee": 225000,
+    "one_time_fee": 15000,
+    "first_year_total": 240000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 90000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 135000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 10",
+    "monthly_fee": null,
+    "annual_fee": 225000,
+    "one_time_fee": 15000,
+    "first_year_total": 240000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 90000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 135000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 11",
+    "monthly_fee": null,
+    "annual_fee": 245000,
+    "one_time_fee": 15000,
+    "first_year_total": 260000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 101000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 144000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 12",
+    "monthly_fee": null,
+    "annual_fee": 237000,
+    "one_time_fee": 15000,
+    "first_year_total": 252000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 93000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 144000,
+      "refundable": null
+     }
+    ]
+   }
+  ],
+  "admissions": [],
+  "warnings": [
+   "no admission / application-fee table on the page"
+  ],
+  "mongo_extra": {
+   "scraped_at": "2026-10-27",
+   "scraped_from": "ezyschooling.com",
+   "ezy_slug": "delhi-public-school-dps-itanagar",
+   "fee_data_sessions": [
+    "2024-2025"
+   ],
+   "page_heading_session": "2027-2028",
+   "listing_fee_range": null,
+   "boarding_type_raw": "Full Boarding",
+   "sessions_clicked": [
+    "2026-2027",
+    "2027-2028"
+   ],
+   "all_facts": {
+    "Board": "CBSE",
+    "Gender": "Coed",
+    "Classes": "1 - 12 Class",
+    "Academic Session": "April to March",
+    "Medium": "English",
+    "Student Teacher Ratio": "30:1",
+    "Day/Boarding": "Full Boarding"
+   },
+   "sources": {
+    "name": "listing card",
+    "city": "breadcrumb",
+    "state": "listing card",
+    "area": "address: text before the city (the page has no separate area field)",
+    "locality": "address: text before the city (the page has no separate area field)",
+    "type": "Quick Facts: Day/Boarding",
+    "boarding_type": "Quick Facts: Day/Boarding",
+    "address": "page header",
+    "pincode": "page header",
+    "classes": "Quick Facts",
+    "boards": "Quick Facts",
+    "gender": "Quick Facts",
+    "medium": "Quick Facts",
+    "academic_session": "Quick Facts",
+    "student_teacher_ratio": "Quick Facts",
+    "founded": "page header",
+    "class_fees": "fees-structure page (site-printed numbers; fee_session = session stated by the page or clicked button)",
+    "fee_min": "lowest / highest annual fee of the newest fee session (2024-2025)",
+    "fee_max": "lowest / highest annual fee of the newest fee session (2024-2025)",
+    "email": "Address And Contact block",
+    "website": "Address And Contact block",
+    "phone": "page data next to the e-mail",
+    "about": "About Us section",
+    "description": "About Us section",
+    "facilities": "Facilities icons marked yes (grouped by the page section)",
+    "facility_groups": "Facilities icons marked yes (grouped by the page section)",
+    "hostel": "Facilities icons (Boys/Girls Hostel)",
+    "lat_lng": "school's own Google-Maps embed",
+    "logo": "image with alt \"<school> Logo\"",
+    "images": "cover + \"<school> Gallery\" images"
+   },
+   "facilities_not_available": [
+    "Alumni Association",
+    "AC Classes",
+    "Ramps",
+    "Washrooms",
+    "Elevators",
+    "Playground",
+    "GPS Bus Tracking App",
+    "Student Tracking App",
+    "Karate",
+    "Taekwondo",
+    "Gym",
+    "Swimming Pool",
+    "Skating",
+    "Horse Riding"
+   ]
+  }
+ },
+ {
+  "name": "Ramakrishna Mission School",
+  "slug": null,
+  "city": "Tirap",
+  "state": "Arunachal Pradesh",
+  "area": "Narottam Nagar",
+  "locality": "Narottam Nagar",
+  "pincode": "792129",
+  "type": "Boarding School",
+  "boarding_type": "Full Boarding",
+  "boards": [
+   "CBSE"
+  ],
+  "classes": "1 - 12",
+  "gender": "Co-ed",
+  "description": "About Us The Ramakrishna Mission is a unique religio-philanthropic organization established by Swami Vivekananda in 1897 in the hallowed name of his guru Sri Ramakrishna Deva. Echoing the idea of his guru he said, “After so much austerity, I have understood this as the real truth: God is present in every JIVA; there is no other God besides that.” Then the great Swami Vivekananda declared the unique path of spiritual progress: “He who serves JIVA, (man) serves God (Shiva) indeed” (Complete Works of Swami Vivekananda, Vol. 7, p. 247)",
+  "about": "About Us The Ramakrishna Mission is a unique religio-philanthropic organization established by Swami Vivekananda in 1897 in the hallowed name of his guru Sri Ramakrishna Deva. Echoing the idea of his guru he said, “After so much austerity, I have understood this as the real truth: God is present in every JIVA; there is no other God besides that.” Then the great Swami Vivekananda declared the unique path of spiritual progress: “He who serves JIVA, (man) serves God (Shiva) indeed” (Complete Works of Swami Vivekananda, Vol. 7, p. 247)",
+  "hostel": true,
+  "rating": null,
+  "reviews": null,
+  "fee_min": 78000,
+  "fee_max": 78000,
+  "address": "Narottam Nagar, Tirap, Tirap, Arunachal Pradesh - 792129",
+  "lat": 27.243754005291954,
+  "lng": 95.49636366441813,
+  "phone": "+91-9383079583",
+  "email": "narottamnagar@rkmm.org",
+  "website": "http://www.rkmnarottamnagar.org/",
+  "social": {},
+  "logo": "https://d3bat55ebwjhsf.cloudfront.net/schools/logos/user_generic_school_user/6481279c-30c0-44d0-8284-cb42e8586fbb-32f7d1de-4b_LCSjZOn.webp",
+  "images": [
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/cover/user_root_user%40ezy.com/273958278_1558368354549607_1631575444878754449_n.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/download_-_2022-05-04T095125.380.jpeg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/download_-_2022-05-04T095132.455.jpeg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/download_-_2022-05-04T095136.563.jpeg"
+  ],
+  "facilities": [
+   "Day care",
+   "Meals",
+   "Transportation",
+   "Boys Hostel",
+   "Girls Hostel",
+   "Wifi",
+   "Smart Classes",
+   "Art and Craft",
+   "Dance",
+   "Drama",
+   "Music",
+   "Picnics and excursion",
+   "Debate",
+   "Gardening",
+   "Cafeteria/Canteen",
+   "Library/Reading Room",
+   "Playground",
+   "Computer Lab",
+   "Science Lab",
+   "Robotics Lab",
+   "CCTV",
+   "Medical Room",
+   "Indoor Sports",
+   "Outdoor Sports",
+   "Yoga"
+  ],
+  "facility_groups": {
+   "Advanced Facilities": [
+    "Day care",
+    "Meals",
+    "Transportation",
+    "Medical Room"
+   ],
+   "Boarding": [
+    "Boys Hostel",
+    "Girls Hostel"
+   ],
+   "Class": [
+    "Wifi",
+    "Smart Classes"
+   ],
+   "Extra Curricular": [
+    "Art and Craft",
+    "Dance",
+    "Drama",
+    "Music",
+    "Picnics and excursion",
+    "Debate",
+    "Gardening"
+   ],
+   "Infrastructure": [
+    "Cafeteria/Canteen",
+    "Library/Reading Room",
+    "Playground"
+   ],
+   "Lab": [
+    "Computer Lab",
+    "Science Lab",
+    "Robotics Lab"
+   ],
+   "Safety and Security": [
+    "CCTV"
+   ],
+   "Sports and Fitness": [
+    "Indoor Sports",
+    "Outdoor Sports",
+    "Yoga"
+   ]
+  },
+  "founded": 1972,
+  "medium": "English",
+  "academic_session": "April to March",
+  "student_teacher_ratio": "30:1",
+  "campus_size": null,
+  "languages": [],
+  "food_options": null,
+  "verified": null,
+  "page_last_updated": "2026-07-23",
+  "affiliation_no": null,
+  "school_timing": null,
+  "student_count": null,
+  "teacher_count": null,
+  "source_site": "ezyschooling.com",
+  "source_url": "https://ezyschooling.com/school/ramakrishna-mission-school-tirap-arunachal-pradesh",
+  "latest_fee_session": "2024-2025",
+  "current_admission_session": null,
+  "class_fees": [
+   {
+    "class_name": "Class 6",
+    "monthly_fee": null,
+    "annual_fee": 78000,
+    "one_time_fee": 100,
+    "first_year_total": 78100,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 34000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 100,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 44000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 7",
+    "monthly_fee": null,
+    "annual_fee": 78000,
+    "one_time_fee": 100,
+    "first_year_total": 78100,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 34000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 100,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 44000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 8",
+    "monthly_fee": null,
+    "annual_fee": 78000,
+    "one_time_fee": 100,
+    "first_year_total": 78100,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 34000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 100,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 44000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 9",
+    "monthly_fee": null,
+    "annual_fee": 78000,
+    "one_time_fee": 100,
+    "first_year_total": 78100,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 34000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 100,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 44000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 10",
+    "monthly_fee": null,
+    "annual_fee": 78000,
+    "one_time_fee": 100,
+    "first_year_total": 78100,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 34000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 100,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 44000,
+      "refundable": null
+     }
+    ]
+   }
+  ],
+  "admissions": [],
+  "warnings": [
+   "no admission / application-fee table on the page"
+  ],
+  "mongo_extra": {
+   "scraped_at": "2026-10-27",
+   "scraped_from": "ezyschooling.com",
+   "ezy_slug": "ramakrishna-mission-school-tirap-arunachal-pradesh",
+   "fee_data_sessions": [
+    "2024-2025"
+   ],
+   "page_heading_session": "2027-2028",
+   "listing_fee_range": null,
+   "boarding_type_raw": "Full Boarding",
+   "sessions_clicked": [
+    "2026-2027",
+    "2027-2028"
+   ],
+   "all_facts": {
+    "Board": "CBSE",
+    "Gender": "Coed",
+    "Classes": "1 - 12 Class",
+    "Academic Session": "April to March",
+    "Medium": "English",
+    "Student Teacher Ratio": "30:1",
+    "Day/Boarding": "Full Boarding"
+   },
+   "sources": {
+    "name": "listing card",
+    "city": "breadcrumb",
+    "state": "listing card",
+    "area": "address: text before the city (the page has no separate area field)",
+    "locality": "address: text before the city (the page has no separate area field)",
+    "type": "Quick Facts: Day/Boarding",
+    "boarding_type": "Quick Facts: Day/Boarding",
+    "address": "page header",
+    "pincode": "page header",
+    "classes": "Quick Facts",
+    "boards": "Quick Facts",
+    "gender": "Quick Facts",
+    "medium": "Quick Facts",
+    "academic_session": "Quick Facts",
+    "student_teacher_ratio": "Quick Facts",
+    "founded": "page header",
+    "class_fees": "fees-structure page (site-printed numbers; fee_session = session stated by the page or clicked button)",
+    "fee_min": "lowest / highest annual fee of the newest fee session (2024-2025)",
+    "fee_max": "lowest / highest annual fee of the newest fee session (2024-2025)",
+    "email": "Address And Contact block",
+    "website": "Address And Contact block",
+    "phone": "page data next to the e-mail",
+    "about": "About Us section",
+    "description": "About Us section",
+    "facilities": "Facilities icons marked yes (grouped by the page section)",
+    "facility_groups": "Facilities icons marked yes (grouped by the page section)",
+    "hostel": "Facilities icons (Boys/Girls Hostel)",
+    "lat_lng": "school's own Google-Maps embed",
+    "logo": "image with alt \"<school> Logo\"",
+    "images": "cover + \"<school> Gallery\" images",
+    "page_last_updated": "page footer"
+   },
+   "facilities_not_available": [
+    "Alumni Association",
+    "AC Classes",
+    "Ramps",
+    "Washrooms",
+    "Elevators",
+    "Auditorium/Media Room",
+    "GPS Bus Tracking App",
+    "Student Tracking App",
+    "Karate",
+    "Taekwondo",
+    "Gym",
+    "Swimming Pool",
+    "Skating",
+    "Horse Riding"
+   ]
+  }
+ },
+ {
+  "name": "Jawahar Navodaya Vidyalaya",
+  "slug": null,
+  "city": "Tirap",
+  "state": "Arunachal Pradesh",
+  "area": "Tissa, Longding (Tirap)",
+  "locality": "Longding (Tirap)",
+  "pincode": "792131",
+  "type": "Boarding School",
+  "boarding_type": "Full Boarding",
+  "boards": [
+   "CBSE"
+  ],
+  "classes": "6 - 10",
+  "gender": "Co-ed",
+  "description": "About Us The 1st Dec, 1988 was the most auspicious day when the foundation stone of Jawahar Navodaya Vidyalaya, Longding,Tirap was laid down. The school campus covers around 32 Acres of forested hillside with its buildings connected by steep and windy paths and offering spectacular views at every turn. These buildings include the beautiful old Quad, the modern state of art infrastructure and the newly-refurbished student hostels and staff houses. The academic buildings including several classrooms are linked by a computer network. The widespread use of email and an intranet system shrinks the distances and keeps staff, students and administration in quick and easy contact with one another. The Vidyalaya is surrounded by the beautiful trees on the main Khapcho at Longding.",
+  "about": "About Us The 1st Dec, 1988 was the most auspicious day when the foundation stone of Jawahar Navodaya Vidyalaya, Longding,Tirap was laid down. The school campus covers around 32 Acres of forested hillside with its buildings connected by steep and windy paths and offering spectacular views at every turn. These buildings include the beautiful old Quad, the modern state of art infrastructure and the newly-refurbished student hostels and staff houses. The academic buildings including several classrooms are linked by a computer network. The widespread use of email and an intranet system shrinks the distances and keeps staff, students and administration in quick and easy contact with one another. The Vidyalaya is surrounded by the beautiful trees on the main Khapcho at Longding.",
+  "hostel": true,
+  "rating": null,
+  "reviews": null,
+  "fee_min": null,
+  "fee_max": null,
+  "address": "Jnv Khapcho, Tissa, Longding (Tirap), Tirap, Tirap, Arunachal Pradesh - 792131",
+  "lat": 26.88806653120056,
+  "lng": 95.37387307790938,
+  "phone": "+91-9402493202",
+  "email": "jnvtissa@rediffmail.com",
+  "website": "https://navodaya.gov.in/nvs/nvs-school/Tirap/en/home/",
+  "social": {},
+  "logo": "https://d3bat55ebwjhsf.cloudfront.net/schools/logos/user_generic_school_user/04d47229-bdcd-41c7-9d84-55cde04d8f15-089a970c-4b_MY0MWyD.webp",
+  "images": [
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/cover/user_root_user%40ezy.com/2024-01-08.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/download_-_2022-05-03T230056.649.jpeg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/download_-_2022-05-03T230104.265.jpeg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/download_-_2022-05-03T230113.805.jpeg"
+  ],
+  "facilities": [
+   "Day care",
+   "Meals",
+   "Transportation",
+   "Boys Hostel",
+   "Girls Hostel",
+   "Wifi",
+   "Smart Classes",
+   "Art and Craft",
+   "Dance",
+   "Drama",
+   "Music",
+   "Picnics and excursion",
+   "Debate",
+   "Gardening",
+   "Cafeteria/Canteen",
+   "Library/Reading Room",
+   "Playground",
+   "Computer Lab",
+   "Science Lab",
+   "Robotics Lab",
+   "CCTV",
+   "Medical Room",
+   "Indoor Sports",
+   "Outdoor Sports",
+   "Yoga"
+  ],
+  "facility_groups": {
+   "Advanced Facilities": [
+    "Day care",
+    "Meals",
+    "Transportation",
+    "Medical Room"
+   ],
+   "Boarding": [
+    "Boys Hostel",
+    "Girls Hostel"
+   ],
+   "Class": [
+    "Wifi",
+    "Smart Classes"
+   ],
+   "Extra Curricular": [
+    "Art and Craft",
+    "Dance",
+    "Drama",
+    "Music",
+    "Picnics and excursion",
+    "Debate",
+    "Gardening"
+   ],
+   "Infrastructure": [
+    "Cafeteria/Canteen",
+    "Library/Reading Room",
+    "Playground"
+   ],
+   "Lab": [
+    "Computer Lab",
+    "Science Lab",
+    "Robotics Lab"
+   ],
+   "Safety and Security": [
+    "CCTV"
+   ],
+   "Sports and Fitness": [
+    "Indoor Sports",
+    "Outdoor Sports",
+    "Yoga"
+   ]
+  },
+  "founded": 1998,
+  "medium": "English",
+  "academic_session": "April to March",
+  "student_teacher_ratio": "30:1",
+  "campus_size": "210 Acres",
+  "languages": [],
+  "food_options": null,
+  "verified": null,
+  "page_last_updated": "2025-09-30",
+  "affiliation_no": null,
+  "school_timing": null,
+  "student_count": null,
+  "teacher_count": null,
+  "source_site": "ezyschooling.com",
+  "source_url": "https://ezyschooling.com/school/jawahar-navodaya-vidyalaya-tirap",
+  "latest_fee_session": null,
+  "current_admission_session": null,
+  "class_fees": [],
+  "admissions": [],
+  "warnings": [
+   "no fees published",
+   "no admission / application-fee table on the page",
+   "page shows rupee amounts but none were read: HTML saved in debug_html/"
+  ],
+  "mongo_extra": {
+   "scraped_at": "2026-10-27",
+   "scraped_from": "ezyschooling.com",
+   "ezy_slug": "jawahar-navodaya-vidyalaya-tirap",
+   "fee_data_sessions": null,
+   "page_heading_session": "2027-2028",
+   "listing_fee_range": null,
+   "boarding_type_raw": "Full Boarding",
+   "sessions_clicked": [
+    "2026-2027",
+    "2027-2028"
+   ],
+   "all_facts": {
+    "Board": "CBSE",
+    "Gender": "Coed",
+    "Classes": "6 - 10 Class",
+    "Academic Session": "April to March",
+    "Medium": "English",
+    "Student Teacher Ratio": "30:1",
+    "Day/Boarding": "Full Boarding"
+   },
+   "sources": {
+    "name": "listing card",
+    "city": "breadcrumb",
+    "state": "listing card",
+    "area": "address: text before the city (the page has no separate area field)",
+    "locality": "address: text before the city (the page has no separate area field)",
+    "type": "Quick Facts: Day/Boarding",
+    "boarding_type": "Quick Facts: Day/Boarding",
+    "address": "page header",
+    "pincode": "page header",
+    "classes": "Quick Facts",
+    "boards": "Quick Facts",
+    "gender": "Quick Facts",
+    "medium": "Quick Facts",
+    "academic_session": "Quick Facts",
+    "student_teacher_ratio": "Quick Facts",
+    "founded": "page header",
+    "email": "Address And Contact block",
+    "website": "Address And Contact block",
+    "phone": "page data next to the e-mail",
+    "about": "About Us section",
+    "description": "About Us section",
+    "facilities": "Facilities icons marked yes (grouped by the page section)",
+    "facility_groups": "Facilities icons marked yes (grouped by the page section)",
+    "hostel": "Facilities icons (Boys/Girls Hostel)",
+    "lat_lng": "school's own Google-Maps embed",
+    "logo": "image with alt \"<school> Logo\"",
+    "images": "cover + \"<school> Gallery\" images",
+    "campus_size": "Quick Facts",
+    "page_last_updated": "page footer"
+   },
+   "facilities_not_available": [
+    "Alumni Association",
+    "AC Classes",
+    "Ramps",
+    "Washrooms",
+    "Elevators",
+    "Auditorium/Media Room",
+    "GPS Bus Tracking App",
+    "Student Tracking App",
+    "Karate",
+    "Taekwondo",
+    "Gym",
+    "Swimming Pool",
+    "Skating",
+    "Horse Riding"
+   ]
+  }
+ },
+ {
+  "name": "St. Thomas Residential School",
+  "slug": null,
+  "city": "Itanagar",
+  "state": "Arunachal Pradesh",
+  "area": "Nirjuli Ittanagar",
+  "locality": "Nirjuli Ittanagar",
+  "pincode": "791113",
+  "type": "Boarding School",
+  "boarding_type": "Full Boarding",
+  "boards": [
+   "CBSE"
+  ],
+  "classes": "6 - 10",
+  "gender": "Co-ed",
+  "description": "About Us St. Thomas Residential School is a Private, Secondary school and also a Boarding School situated at Itanagar, Arunachal Pradesh, East India.",
+  "about": "About Us St. Thomas Residential School is a Private, Secondary school and also a Boarding School situated at Itanagar, Arunachal Pradesh, East India.",
+  "hostel": true,
+  "rating": 5.0,
+  "reviews": 1,
+  "fee_min": 160000,
+  "fee_max": 160000,
+  "address": "Nirjuli Ittanagar, Itanagar, Itanagar, Arunachal Pradesh - 791113",
+  "lat": 27.097205584719518,
+  "lng": 93.70330297790939,
+  "phone": null,
+  "email": null,
+  "website": null,
+  "social": {},
+  "logo": "https://d3bat55ebwjhsf.cloudfront.net/schools/logos/user_generic_school_user/bd1daba3-f0e3-456a-a1d9-db7e4c0e4be0-d13b3b80-4b_ROEy6ZG.webp",
+  "images": [
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/cover/user_root_user%40ezy.com/2022-08-30.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/download_60_3zf4EQV.jpeg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/download_61_6nmJ7gJ.jpeg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/images_3_NKOxT9Z.jpeg"
+  ],
+  "facilities": [
+   "Transportation",
+   "Boys Hostel",
+   "Girls Hostel",
+   "AC Classes",
+   "Wifi",
+   "Smart Classes",
+   "Art and Craft",
+   "Dance",
+   "Drama",
+   "Music",
+   "Picnics and excursion",
+   "Debate",
+   "Gardening",
+   "Cafeteria/Canteen",
+   "Library/Reading Room",
+   "Playground",
+   "Auditorium/Media Room",
+   "Computer Lab",
+   "Science Lab",
+   "Robotics Lab",
+   "CCTV",
+   "Medical Room",
+   "Indoor Sports",
+   "Outdoor Sports",
+   "Yoga"
+  ],
+  "facility_groups": {
+   "Advanced Facilities": [
+    "Transportation",
+    "Medical Room"
+   ],
+   "Boarding": [
+    "Boys Hostel",
+    "Girls Hostel"
+   ],
+   "Class": [
+    "AC Classes",
+    "Wifi",
+    "Smart Classes"
+   ],
+   "Extra Curricular": [
+    "Art and Craft",
+    "Dance",
+    "Drama",
+    "Music",
+    "Picnics and excursion",
+    "Debate",
+    "Gardening"
+   ],
+   "Infrastructure": [
+    "Cafeteria/Canteen",
+    "Library/Reading Room",
+    "Playground",
+    "Auditorium/Media Room"
+   ],
+   "Lab": [
+    "Computer Lab",
+    "Science Lab",
+    "Robotics Lab"
+   ],
+   "Safety and Security": [
+    "CCTV"
+   ],
+   "Sports and Fitness": [
+    "Indoor Sports",
+    "Outdoor Sports",
+    "Yoga"
+   ]
+  },
+  "founded": null,
+  "medium": "English",
+  "academic_session": "April to March",
+  "student_teacher_ratio": "30:1",
+  "campus_size": null,
+  "languages": [],
+  "food_options": null,
+  "verified": null,
+  "page_last_updated": null,
+  "affiliation_no": null,
+  "school_timing": null,
+  "student_count": null,
+  "teacher_count": null,
+  "source_site": "ezyschooling.com",
+  "source_url": "https://ezyschooling.com/school/st-thomas-residential-school-mukkolakkal-thiruvananthapuram",
+  "latest_fee_session": "2024-2025",
+  "current_admission_session": null,
+  "class_fees": [
+   {
+    "class_name": "Class 6",
+    "monthly_fee": null,
+    "annual_fee": 160000,
+    "one_time_fee": 52000,
+    "first_year_total": 212000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 30000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 52000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 130000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 7",
+    "monthly_fee": null,
+    "annual_fee": 160000,
+    "one_time_fee": 52000,
+    "first_year_total": 212000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 30000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 52000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 130000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 8",
+    "monthly_fee": null,
+    "annual_fee": 160000,
+    "one_time_fee": 52000,
+    "first_year_total": 212000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 30000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 52000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 130000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 9",
+    "monthly_fee": null,
+    "annual_fee": 160000,
+    "one_time_fee": 52000,
+    "first_year_total": 212000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 30000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 52000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 130000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 10",
+    "monthly_fee": null,
+    "annual_fee": 160000,
+    "one_time_fee": 52000,
+    "first_year_total": 212000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 30000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 52000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 130000,
+      "refundable": null
+     }
+    ]
+   }
+  ],
+  "admissions": [],
+  "warnings": [
+   "no admission / application-fee table on the page",
+   "no phone on the overview page",
+   "no email on the overview page",
+   "no website on the overview page"
+  ],
+  "mongo_extra": {
+   "scraped_at": "2026-10-27",
+   "scraped_from": "ezyschooling.com",
+   "ezy_slug": "st-thomas-residential-school-mukkolakkal-thiruvananthapuram",
+   "fee_data_sessions": [
+    "2024-2025"
+   ],
+   "page_heading_session": "2027-2028",
+   "listing_fee_range": null,
+   "boarding_type_raw": "Full Boarding",
+   "sessions_clicked": [
+    "2026-2027",
+    "2027-2028"
+   ],
+   "all_facts": {
+    "Board": "CBSE",
+    "Gender": "Coed",
+    "Classes": "6 - 10 Class",
+    "Academic Session": "April to March",
+    "Medium": "English",
+    "Student Teacher Ratio": "30:1",
+    "Day/Boarding": "Full Boarding"
+   },
+   "sources": {
+    "name": "listing card",
+    "city": "breadcrumb",
+    "state": "listing card",
+    "area": "address: text before the city (the page has no separate area field)",
+    "locality": "address: text before the city (the page has no separate area field)",
+    "type": "Quick Facts: Day/Boarding",
+    "boarding_type": "Quick Facts: Day/Boarding",
+    "rating": "page header",
+    "address": "page header",
+    "pincode": "page header",
+    "classes": "Quick Facts",
+    "boards": "Quick Facts",
+    "gender": "Quick Facts",
+    "medium": "Quick Facts",
+    "academic_session": "Quick Facts",
+    "student_teacher_ratio": "Quick Facts",
+    "class_fees": "fees-structure page (site-printed numbers; fee_session = session stated by the page or clicked button)",
+    "fee_min": "lowest / highest annual fee of the newest fee session (2024-2025)",
+    "fee_max": "lowest / highest annual fee of the newest fee session (2024-2025)",
+    "about": "About Us section",
+    "description": "About Us section",
+    "facilities": "Facilities icons marked yes (grouped by the page section)",
+    "facility_groups": "Facilities icons marked yes (grouped by the page section)",
+    "hostel": "Facilities icons (Boys/Girls Hostel)",
+    "lat_lng": "school's own Google-Maps embed",
+    "logo": "image with alt \"<school> Logo\"",
+    "images": "cover + \"<school> Gallery\" images"
+   },
+   "facilities_not_available": [
+    "Alumni Association",
+    "Day care",
+    "Meals",
+    "Ramps",
+    "Washrooms",
+    "Elevators",
+    "GPS Bus Tracking App",
+    "Student Tracking App",
+    "Karate",
+    "Taekwondo",
+    "Gym",
+    "Swimming Pool",
+    "Skating",
+    "Horse Riding"
+   ]
+  }
+ },
+ {
+  "name": "Donyi Polo Vidya Bhawan",
+  "slug": null,
+  "city": "Itanagar",
+  "state": "Arunachal Pradesh",
+  "area": "Dariya Pahar",
+  "locality": "Dariya Pahar",
+  "pincode": "791111",
+  "type": "Boarding School",
+  "boarding_type": "Full Boarding",
+  "boards": [
+   "CBSE"
+  ],
+  "classes": "1 - 12",
+  "gender": "Co-ed",
+  "description": "About Us Founded on 14th November 1981 under the noble umbrella of the Donyi Polo Mission, Donyi Polo Vidya Bhawan is more than just a school, it is a vision turned into reality. The dream belonged to Shri Gegong Apang, the 3rd Chief Minister of Arunachal Pradesh, who firmly believed that every Arunachalee child deserves access to world-class education within the state itself. With just three students and one teacher, this humble journey began in a serene corner of Itanagar, guided by his principle that an institute must be far from noise, close to nature, and secular in character. Today, after 43 glorious years, the school stands tall on a vast 50-acre lush green campus, proudly affiliated to CBSE, New Delhi (Affiliation No. 223007), and recognized by the Government of Arunachal Pradesh (EED/A/28/2022-23). Catering from Class I to XII, it is the only school in Arunachal Pradesh that holds membership in the prestigious Indian Public Schools’ Conference (IPSC). Here, education goes beyond classrooms. The school blends academic excellence with discipline, leadership, culture, and values, nurturing not just students, but future-ready citizens and leaders. Generations of young minds have walked through its gates, carrying with them the strength of knowledge, confidence, and character.",
+  "about": "About Us Founded on 14th November 1981 under the noble umbrella of the Donyi Polo Mission, Donyi Polo Vidya Bhawan is more than just a school, it is a vision turned into reality. The dream belonged to Shri Gegong Apang, the 3rd Chief Minister of Arunachal Pradesh, who firmly believed that every Arunachalee child deserves access to world-class education within the state itself. With just three students and one teacher, this humble journey began in a serene corner of Itanagar, guided by his principle that an institute must be far from noise, close to nature, and secular in character. Today, after 43 glorious years, the school stands tall on a vast 50-acre lush green campus, proudly affiliated to CBSE, New Delhi (Affiliation No. 223007), and recognized by the Government of Arunachal Pradesh (EED/A/28/2022-23). Catering from Class I to XII, it is the only school in Arunachal Pradesh that holds membership in the prestigious Indian Public Schools’ Conference (IPSC). Here, education goes beyond classrooms. The school blends academic excellence with discipline, leadership, culture, and values, nurturing not just students, but future-ready citizens and leaders. Generations of young minds have walked through its gates, carrying with them the strength of knowledge, confidence, and character.",
+  "hostel": true,
+  "rating": 5.0,
+  "reviews": 1,
+  "fee_min": 210000,
+  "fee_max": 250000,
+  "address": "Dariya Pahar, Itanagar, Arunachal Pradesh - 791111",
+  "lat": 27.109657027871425,
+  "lng": 93.63706994207908,
+  "phone": "+91-9863707188",
+  "email": "info@dpvbitanagar.com",
+  "website": "https://www.dpvbitanagar.com/",
+  "social": {},
+  "logo": "https://d3bat55ebwjhsf.cloudfront.net/schools/logos/14096/user_info2547/DPVB_Logo_-_Space_Miracle_Studios.png",
+  "images": [
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/cover/14096/user_info2547/SchoolPicDonyPolo.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2026-03-24_12-07-39/tiqs/infra/images/538648760_758589990259056_7053141932223306478_n.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2026-03-24_12-10-25/82ei/infra/images/72629988_1255678907946461_333393396083195904_n.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2026-03-24_12-08-40/9fi2/infra/images/541109968_762803246504397_7980807351449653152_n.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2026-04-20_16-44-07/r0nz/infra/images/Screenshot_2026-04-20_164035.png",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2026-04-20_16-45-01/nayr/infra/images/Screenshot_2026-04-20_163949.png"
+  ],
+  "facilities": [
+   "Alumni Association",
+   "Meals",
+   "Boys Hostel",
+   "Girls Hostel",
+   "Wifi",
+   "AC Classes",
+   "Smart Classes",
+   "Debate",
+   "Picnics and excursion",
+   "Music",
+   "Drama",
+   "Art and Craft",
+   "Dance",
+   "Cafeteria/Canteen",
+   "Library/Reading Room",
+   "Playground",
+   "Auditorium/Media Room",
+   "Science Lab",
+   "Computer Lab",
+   "CCTV",
+   "Medical Room",
+   "Gym",
+   "Yoga",
+   "Outdoor Sports",
+   "Indoor Sports"
+  ],
+  "facility_groups": {
+   "Advanced Facilities": [
+    "Alumni Association",
+    "Meals",
+    "Medical Room"
+   ],
+   "Boarding": [
+    "Boys Hostel",
+    "Girls Hostel"
+   ],
+   "Class": [
+    "Wifi",
+    "AC Classes",
+    "Smart Classes"
+   ],
+   "Extra Curricular": [
+    "Debate",
+    "Picnics and excursion",
+    "Music",
+    "Drama",
+    "Art and Craft",
+    "Dance"
+   ],
+   "Infrastructure": [
+    "Cafeteria/Canteen",
+    "Library/Reading Room",
+    "Playground",
+    "Auditorium/Media Room"
+   ],
+   "Lab": [
+    "Science Lab",
+    "Computer Lab"
+   ],
+   "Safety and Security": [
+    "CCTV"
+   ],
+   "Sports and Fitness": [
+    "Gym",
+    "Yoga",
+    "Outdoor Sports",
+    "Indoor Sports"
+   ]
+  },
+  "founded": 1981,
+  "medium": "English",
+  "academic_session": "April to March",
+  "student_teacher_ratio": "20:1",
+  "campus_size": "50 Acres",
+  "languages": [
+   "English",
+   "Hindi"
+  ],
+  "food_options": "Vegetarian, Non Vegetarian & Eggetarian",
+  "verified": true,
+  "page_last_updated": "2026-04-20",
+  "affiliation_no": null,
+  "school_timing": null,
+  "student_count": null,
+  "teacher_count": null,
+  "source_site": "ezyschooling.com",
+  "source_url": "https://ezyschooling.com/school/donyi-polo-vidya-bhawan-itanagar-arunachal-pradesh",
+  "latest_fee_session": "2026-2027",
+  "current_admission_session": "2027-2028",
+  "class_fees": [
+   {
+    "class_name": "Class 1",
+    "monthly_fee": null,
+    "annual_fee": 210000,
+    "one_time_fee": null,
+    "first_year_total": 210000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Annually",
+      "amount": 10000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Composite Fees with Hostel Charges",
+      "frequency": "Annually",
+      "amount": 200000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 2",
+    "monthly_fee": null,
+    "annual_fee": 210000,
+    "one_time_fee": null,
+    "first_year_total": 210000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Annually",
+      "amount": 10000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Composite Fees with Hostel Charges",
+      "frequency": "Annually",
+      "amount": 200000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 3",
+    "monthly_fee": null,
+    "annual_fee": 210000,
+    "one_time_fee": null,
+    "first_year_total": 210000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Annually",
+      "amount": 10000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Composite Fees with Hostel Charges",
+      "frequency": "Annually",
+      "amount": 200000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 4",
+    "monthly_fee": null,
+    "annual_fee": 210000,
+    "one_time_fee": null,
+    "first_year_total": 210000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Annually",
+      "amount": 10000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Composite Fees with Hostel Charges",
+      "frequency": "Annually",
+      "amount": 200000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 5",
+    "monthly_fee": null,
+    "annual_fee": 210000,
+    "one_time_fee": null,
+    "first_year_total": 210000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Annually",
+      "amount": 10000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Composite Fees with Hostel Charges",
+      "frequency": "Annually",
+      "amount": 200000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 6",
+    "monthly_fee": null,
+    "annual_fee": 220000,
+    "one_time_fee": null,
+    "first_year_total": 220000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Annually",
+      "amount": 10000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Composite Fees with Hostel Charges",
+      "frequency": "Annually",
+      "amount": 210000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 7",
+    "monthly_fee": null,
+    "annual_fee": 220000,
+    "one_time_fee": null,
+    "first_year_total": 220000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Annually",
+      "amount": 10000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Composite Fees with Hostel Charges",
+      "frequency": "Annually",
+      "amount": 210000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 8",
+    "monthly_fee": null,
+    "annual_fee": 220000,
+    "one_time_fee": null,
+    "first_year_total": 220000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Annually",
+      "amount": 10000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Composite Fees with Hostel Charges",
+      "frequency": "Annually",
+      "amount": 210000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 9",
+    "monthly_fee": null,
+    "annual_fee": 230000,
+    "one_time_fee": null,
+    "first_year_total": 230000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Annually",
+      "amount": 10000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Composite Fees with Hostel Charges",
+      "frequency": "Annually",
+      "amount": 220000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 10",
+    "monthly_fee": null,
+    "annual_fee": 230000,
+    "one_time_fee": null,
+    "first_year_total": 230000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Annually",
+      "amount": 10000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Composite Fees with Hostel Charges",
+      "frequency": "Annually",
+      "amount": 220000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 11",
+    "monthly_fee": null,
+    "annual_fee": 250000,
+    "one_time_fee": null,
+    "first_year_total": 250000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Annually",
+      "amount": 10000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Composite Fees with Hostel Charges",
+      "frequency": "Annually",
+      "amount": 240000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 12",
+    "monthly_fee": null,
+    "annual_fee": 250000,
+    "one_time_fee": null,
+    "first_year_total": 250000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Annually",
+      "amount": 10000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Composite Fees with Hostel Charges",
+      "frequency": "Annually",
+      "amount": 240000,
+      "refundable": null
+     }
+    ]
+   }
+  ],
+  "admissions": [
+   {
+    "class_name": "Class 1",
+    "session": "2026-2027",
+    "date_type": "Last Date",
+    "date_text": "Nov 15, 2026",
+    "date_iso": "2026-11-15",
+    "status": "Ongoing",
+    "application_fee": null,
+    "application_fee_text": "₹0"
+   },
+   {
+    "class_name": "Class 2",
+    "session": "2026-2027",
+    "date_type": "Last Date",
+    "date_text": "Nov 15, 2026",
+    "date_iso": "2026-11-15",
+    "status": "Ongoing",
+    "application_fee": null,
+    "application_fee_text": "₹0"
+   },
+   {
+    "class_name": "Class 3",
+    "session": "2026-2027",
+    "date_type": "Last Date",
+    "date_text": "Nov 15, 2026",
+    "date_iso": "2026-11-15",
+    "status": "Ongoing",
+    "application_fee": null,
+    "application_fee_text": "₹0"
+   },
+   {
+    "class_name": "Class 4",
+    "session": "2026-2027",
+    "date_type": "Last Date",
+    "date_text": "Nov 15, 2026",
+    "date_iso": "2026-11-15",
+    "status": "Ongoing",
+    "application_fee": null,
+    "application_fee_text": "₹0"
+   },
+   {
+    "class_name": "Class 5",
+    "session": "2026-2027",
+    "date_type": "Last Date",
+    "date_text": "Nov 15, 2026",
+    "date_iso": "2026-11-15",
+    "status": "Ongoing",
+    "application_fee": null,
+    "application_fee_text": "₹0"
+   },
+   {
+    "class_name": "Class 6",
+    "session": "2026-2027",
+    "date_type": "Last Date",
+    "date_text": "Nov 15, 2026",
+    "date_iso": "2026-11-15",
+    "status": "Ongoing",
+    "application_fee": null,
+    "application_fee_text": "₹0"
+   },
+   {
+    "class_name": "Class 7",
+    "session": "2026-2027",
+    "date_type": "Last Date",
+    "date_text": "Nov 15, 2026",
+    "date_iso": "2026-11-15",
+    "status": "Ongoing",
+    "application_fee": null,
+    "application_fee_text": "₹0"
+   },
+   {
+    "class_name": "Class 8",
+    "session": "2026-2027",
+    "date_type": "Last Date",
+    "date_text": "Nov 15, 2026",
+    "date_iso": "2026-11-15",
+    "status": "Ongoing",
+    "application_fee": null,
+    "application_fee_text": "₹0"
+   },
+   {
+    "class_name": "Class 9",
+    "session": "2026-2027",
+    "date_type": "Last Date",
+    "date_text": "Nov 15, 2026",
+    "date_iso": "2026-11-15",
+    "status": "Ongoing",
+    "application_fee": null,
+    "application_fee_text": "₹0"
+   },
+   {
+    "class_name": "Class 10",
+    "session": "2026-2027",
+    "date_type": "Application Date",
+    "date_text": "Not Disclosed",
+    "date_iso": null,
+    "status": "Closed",
+    "application_fee": null,
+    "application_fee_text": null
+   },
+   {
+    "class_name": "Class 11",
+    "session": "2026-2027",
+    "date_type": "Last Date",
+    "date_text": "Nov 15, 2026",
+    "date_iso": "2026-11-15",
+    "status": "Ongoing",
+    "application_fee": null,
+    "application_fee_text": "₹0"
+   },
+   {
+    "class_name": "Class 12",
+    "session": "2026-2027",
+    "date_type": "Application Date",
+    "date_text": "Not Disclosed",
+    "date_iso": null,
+    "status": "Closed",
+    "application_fee": null,
+    "application_fee_text": null
+   },
+   {
+    "class_name": "Class 1",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Dec 31, 2026",
+    "date_iso": "2026-12-31",
+    "status": "Ongoing",
+    "application_fee": null,
+    "application_fee_text": "₹0"
+   },
+   {
+    "class_name": "Class 2",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Dec 31, 2026",
+    "date_iso": "2026-12-31",
+    "status": "Ongoing",
+    "application_fee": null,
+    "application_fee_text": "₹0"
+   },
+   {
+    "class_name": "Class 3",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Dec 31, 2026",
+    "date_iso": "2026-12-31",
+    "status": "Ongoing",
+    "application_fee": null,
+    "application_fee_text": "₹0"
+   },
+   {
+    "class_name": "Class 4",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Dec 31, 2026",
+    "date_iso": "2026-12-31",
+    "status": "Ongoing",
+    "application_fee": null,
+    "application_fee_text": "₹0"
+   },
+   {
+    "class_name": "Class 5",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Dec 31, 2026",
+    "date_iso": "2026-12-31",
+    "status": "Ongoing",
+    "application_fee": null,
+    "application_fee_text": "₹0"
+   },
+   {
+    "class_name": "Class 6",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Dec 31, 2026",
+    "date_iso": "2026-12-31",
+    "status": "Ongoing",
+    "application_fee": null,
+    "application_fee_text": "₹0"
+   },
+   {
+    "class_name": "Class 7",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Dec 31, 2026",
+    "date_iso": "2026-12-31",
+    "status": "Ongoing",
+    "application_fee": null,
+    "application_fee_text": "₹0"
+   },
+   {
+    "class_name": "Class 8",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Dec 31, 2026",
+    "date_iso": "2026-12-31",
+    "status": "Ongoing",
+    "application_fee": null,
+    "application_fee_text": "₹0"
+   },
+   {
+    "class_name": "Class 9",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Dec 31, 2026",
+    "date_iso": "2026-12-31",
+    "status": "Ongoing",
+    "application_fee": null,
+    "application_fee_text": "₹0"
+   },
+   {
+    "class_name": "Class 10",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Mar 31, 2027",
+    "date_iso": "2027-03-31",
+    "status": "Yet to Begin",
+    "application_fee": null,
+    "application_fee_text": "₹0"
+   },
+   {
+    "class_name": "Class 11",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Dec 31, 2026",
+    "date_iso": "2026-12-31",
+    "status": "Ongoing",
+    "application_fee": null,
+    "application_fee_text": "₹0"
+   },
+   {
+    "class_name": "Class 12",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Mar 31, 2027",
+    "date_iso": "2027-03-31",
+    "status": "Yet to Begin",
+    "application_fee": null,
+    "application_fee_text": "₹0"
+   }
+  ],
+  "warnings": [
+   "fees are for session 2026-2027, but admissions are open for 2027-2028 (site has not updated its fees)"
+  ],
+  "mongo_extra": {
+   "scraped_at": "2026-10-27",
+   "scraped_from": "ezyschooling.com",
+   "ezy_slug": "donyi-polo-vidya-bhawan-itanagar-arunachal-pradesh",
+   "fee_data_sessions": [
+    "2026-2027"
+   ],
+   "page_heading_session": "2027-2028",
+   "listing_fee_range": null,
+   "boarding_type_raw": "Full Boarding",
+   "sessions_clicked": [
+    "2026-2027",
+    "2027-2028"
+   ],
+   "all_facts": {
+    "Board": "CBSE",
+    "Gender": "Coed",
+    "Classes": "1 - 12 Class",
+    "Academic Session": "April to March",
+    "Medium": "English",
+    "Student Teacher Ratio": "20:1",
+    "Day/Boarding": "Full Boarding"
+   },
+   "sources": {
+    "name": "listing card",
+    "city": "breadcrumb",
+    "state": "listing card",
+    "area": "address: text before the city (the page has no separate area field)",
+    "locality": "address: text before the city (the page has no separate area field)",
+    "type": "Quick Facts: Day/Boarding",
+    "boarding_type": "Quick Facts: Day/Boarding",
+    "rating": "page header",
+    "address": "page header",
+    "pincode": "page header",
+    "classes": "Quick Facts",
+    "boards": "Quick Facts",
+    "gender": "Quick Facts",
+    "medium": "Quick Facts",
+    "academic_session": "Quick Facts",
+    "student_teacher_ratio": "Quick Facts",
+    "founded": "page header",
+    "class_fees": "fees-structure page (site-printed numbers; fee_session = session stated by the page or clicked button)",
+    "fee_min": "lowest / highest annual fee of the newest fee session (2026-2027)",
+    "fee_max": "lowest / highest annual fee of the newest fee session (2026-2027)",
+    "admissions": "Fill Admission Form table (per session)",
+    "email": "Address And Contact block",
+    "website": "Address And Contact block",
+    "phone": "page data next to the e-mail",
+    "about": "About Us section",
+    "description": "About Us section",
+    "facilities": "Facilities icons marked yes (grouped by the page section)",
+    "facility_groups": "Facilities icons marked yes (grouped by the page section)",
+    "hostel": "Facilities icons (Boys/Girls Hostel)",
+    "lat_lng": "school's own Google-Maps embed",
+    "logo": "image with alt \"<school> Logo\"",
+    "images": "cover + \"<school> Gallery\" images",
+    "campus_size": "Quick Facts",
+    "languages": "Languages Taught section",
+    "food_options": "FAQ: food options",
+    "page_last_updated": "page footer"
+   },
+   "facilities_not_available": [
+    "Day care",
+    "Transportation",
+    "Elevators",
+    "Washrooms",
+    "Ramps",
+    "Gardening",
+    "Language Lab",
+    "Robotics Lab",
+    "GPS Bus Tracking App",
+    "Student Tracking App",
+    "Horse Riding",
+    "Skating",
+    "Swimming Pool",
+    "Taekwondo",
+    "Karate"
+   ],
+   "travel_info_raw": [
+    "train",
+    "Railway Station",
+    "flightsmode",
+    "Airport",
+    "local_hospital",
+    "Hospital",
+    "New Delhi",
+    "Bhavbhuti Marg, Ratan Lal Market, Kamla Market, Ajmeri Gate, New Delhi, Delhi",
+    "Distance",
+    "map",
+    "313 meters",
+    "Withdrawal Policy",
+    "Written notice from parents/guardians (usually 1-3 months in advance, or as per school rules).",
+    "Clearance of all dues (fees, hostel charges, any damages).",
+    "Obtaining a Transfer Certificate (TC) and other no-dues certificates.",
+    "Possible refund policy for fees (often prorated or with deductions for notice period).",
+    "Since no specific policy is published, recommend contacting the school office directly for the exact withdrawal/refund rules to avoid any issues."
+   ]
+  }
+ },
+ {
+  "name": "Sainik School",
+  "slug": null,
+  "city": "East Siang",
+  "state": "Arunachal Pradesh",
+  "area": "Ruksin PO PS, Pasighat HQ",
+  "locality": "Pasighat HQ",
+  "pincode": "791102",
+  "type": "Boarding School",
+  "boarding_type": "Full Boarding",
+  "boards": [
+   "CBSE"
+  ],
+  "classes": "6 - 12",
+  "gender": "Co-ed",
+  "description": "About Us Sainik School East Siang (SSES), Arunachal Pradesh has been raised on 27 August 2018 as a 28 th Sainik School of India. SSES is a residential school for Boys & Girls (Cadets) towards providing Public School Education along with Military orientation an intake at Class VI and Class IX. The aim of Sainik School East Siang is to prepare young boys and girls to join Defence Services, namely National Defence Academy (NDA), Indian Naval Academy (INA) and all other military academies. The School is spread over 100 acres near the banks of Sille River, located at Niglok village. By road 6 kms away from Ruksin, near Arunachal-Assam Boarder. Murkongselek is the nearest railway station, situated approximately 10 kms from the school, and private taxi services are available for commuting. Nearest Airport is Pasighat at a distance of 35 kms from the school.",
+  "about": "About Us Sainik School East Siang (SSES), Arunachal Pradesh has been raised on 27 August 2018 as a 28 th Sainik School of India. SSES is a residential school for Boys & Girls (Cadets) towards providing Public School Education along with Military orientation an intake at Class VI and Class IX. The aim of Sainik School East Siang is to prepare young boys and girls to join Defence Services, namely National Defence Academy (NDA), Indian Naval Academy (INA) and all other military academies. The School is spread over 100 acres near the banks of Sille River, located at Niglok village. By road 6 kms away from Ruksin, near Arunachal-Assam Boarder. Murkongselek is the nearest railway station, situated approximately 10 kms from the school, and private taxi services are available for commuting. Nearest Airport is Pasighat at a distance of 35 kms from the school.",
+  "hostel": true,
+  "rating": null,
+  "reviews": null,
+  "fee_min": 202025,
+  "fee_max": 202025,
+  "address": "Niglok Village, Ruksin PO PS, Pasighat HQ, East Siang, Arunachal Pradesh - 791102",
+  "lat": 27.89565679273134,
+  "lng": 95.23526249668012,
+  "phone": "+91-9436409766",
+  "email": "principal-sses@nic.in",
+  "website": "https://sainikschooleastsiang.com/",
+  "social": {},
+  "logo": "https://d3bat55ebwjhsf.cloudfront.net/schools/logos/13861/user_root_user%40ezy.com/Screenshot_2025-08-30_105202.png",
+  "images": [
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/cover/13861/user_root_user%40ezy.com/unnamed.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2025-08-30_12-34-22/jv5x/infra/images/Screenshot_2025-08-30_122549.png",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2025-08-30_12-28-37/8ray/infra/images/Screenshot_2025-08-30_121620.png",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2025-08-30_11-13-48/3yap/infra/images/unnamed_-_2025-08-30T111334.818.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2025-08-30_11-42-31/gr2r/infra/images/IMG_1010.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2025-08-30_12-30-34/t21o/infra/images/Screenshot_2025-08-30_122354.png"
+  ],
+  "facilities": [
+   "Meals",
+   "Transportation",
+   "Alumni Association",
+   "Boys Hostel",
+   "Girls Hostel",
+   "Wifi",
+   "Smart Classes",
+   "Washrooms",
+   "Ramps",
+   "Music",
+   "Drama",
+   "Art and Craft",
+   "Dance",
+   "Gardening",
+   "Debate",
+   "Picnics and excursion",
+   "Cafeteria/Canteen",
+   "Library/Reading Room",
+   "Playground",
+   "Auditorium/Media Room",
+   "Language Lab",
+   "Science Lab",
+   "Computer Lab",
+   "CCTV",
+   "Medical Room",
+   "Swimming Pool",
+   "Gym",
+   "Yoga",
+   "Taekwondo",
+   "Karate",
+   "Outdoor Sports",
+   "Indoor Sports"
+  ],
+  "facility_groups": {
+   "Advanced Facilities": [
+    "Meals",
+    "Transportation",
+    "Alumni Association",
+    "Medical Room"
+   ],
+   "Boarding": [
+    "Boys Hostel",
+    "Girls Hostel"
+   ],
+   "Class": [
+    "Wifi",
+    "Smart Classes"
+   ],
+   "Disabled Friendly": [
+    "Washrooms",
+    "Ramps"
+   ],
+   "Extra Curricular": [
+    "Music",
+    "Drama",
+    "Art and Craft",
+    "Dance",
+    "Gardening",
+    "Debate",
+    "Picnics and excursion"
+   ],
+   "Infrastructure": [
+    "Cafeteria/Canteen",
+    "Library/Reading Room",
+    "Playground",
+    "Auditorium/Media Room"
+   ],
+   "Lab": [
+    "Language Lab",
+    "Science Lab",
+    "Computer Lab"
+   ],
+   "Safety and Security": [
+    "CCTV"
+   ],
+   "Sports and Fitness": [
+    "Swimming Pool",
+    "Gym",
+    "Yoga",
+    "Taekwondo",
+    "Karate",
+    "Outdoor Sports",
+    "Indoor Sports"
+   ]
+  },
+  "founded": 2018,
+  "medium": "English",
+  "academic_session": "April To March",
+  "student_teacher_ratio": "14:1",
+  "campus_size": "100 Acres",
+  "languages": [
+   "English",
+   "Hindi"
+  ],
+  "food_options": null,
+  "verified": null,
+  "page_last_updated": "2025-08-30",
+  "affiliation_no": null,
+  "school_timing": null,
+  "student_count": null,
+  "teacher_count": null,
+  "source_site": "ezyschooling.com",
+  "source_url": "https://ezyschooling.com/school/sainik-school-east-siang-arunachal-pradesh",
+  "latest_fee_session": "2025-2026",
+  "current_admission_session": null,
+  "class_fees": [
+   {
+    "class_name": "Class 6",
+    "monthly_fee": null,
+    "annual_fee": 202025,
+    "one_time_fee": null,
+    "first_year_total": 202025,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Uniform and Stationary Charges",
+      "frequency": "Annually",
+      "amount": 9000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Meal Charges",
+      "frequency": "Annually",
+      "amount": 68000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 116925,
+      "refundable": null
+     },
+     {
+      "fee_type": "Miscellaneous Charges",
+      "frequency": "Annually",
+      "amount": 8100,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 7",
+    "monthly_fee": null,
+    "annual_fee": 202025,
+    "one_time_fee": null,
+    "first_year_total": 202025,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Uniform and Stationary Charges",
+      "frequency": "Annually",
+      "amount": 9000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Meal Charges",
+      "frequency": "Annually",
+      "amount": 68000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 116925,
+      "refundable": null
+     },
+     {
+      "fee_type": "Miscellaneous Charges",
+      "frequency": "Annually",
+      "amount": 8100,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 8",
+    "monthly_fee": null,
+    "annual_fee": 202025,
+    "one_time_fee": null,
+    "first_year_total": 202025,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Uniform and Stationary Charges",
+      "frequency": "Annually",
+      "amount": 9000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Meal Charges",
+      "frequency": "Annually",
+      "amount": 68000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 116925,
+      "refundable": null
+     },
+     {
+      "fee_type": "Miscellaneous Charges",
+      "frequency": "Annually",
+      "amount": 8100,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 9",
+    "monthly_fee": null,
+    "annual_fee": 202025,
+    "one_time_fee": null,
+    "first_year_total": 202025,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Uniform and Stationary Charges",
+      "frequency": "Annually",
+      "amount": 9000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Meal Charges",
+      "frequency": "Annually",
+      "amount": 68000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 116925,
+      "refundable": null
+     },
+     {
+      "fee_type": "Miscellaneous Charges",
+      "frequency": "Annually",
+      "amount": 8100,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 10",
+    "monthly_fee": null,
+    "annual_fee": 202025,
+    "one_time_fee": null,
+    "first_year_total": 202025,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Uniform and Stationary Charges",
+      "frequency": "Annually",
+      "amount": 9000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Meal Charges",
+      "frequency": "Annually",
+      "amount": 68000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 116925,
+      "refundable": null
+     },
+     {
+      "fee_type": "Miscellaneous Charges",
+      "frequency": "Annually",
+      "amount": 8100,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 11",
+    "monthly_fee": null,
+    "annual_fee": 202025,
+    "one_time_fee": null,
+    "first_year_total": 202025,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Uniform and Stationary Charges",
+      "frequency": "Annually",
+      "amount": 9000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Meal Charges",
+      "frequency": "Annually",
+      "amount": 68000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 116925,
+      "refundable": null
+     },
+     {
+      "fee_type": "Miscellaneous Charges",
+      "frequency": "Annually",
+      "amount": 8100,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 12",
+    "monthly_fee": null,
+    "annual_fee": 202025,
+    "one_time_fee": null,
+    "first_year_total": 202025,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Uniform and Stationary Charges",
+      "frequency": "Annually",
+      "amount": 9000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Meal Charges",
+      "frequency": "Annually",
+      "amount": 68000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 116925,
+      "refundable": null
+     },
+     {
+      "fee_type": "Miscellaneous Charges",
+      "frequency": "Annually",
+      "amount": 8100,
+      "refundable": null
+     }
+    ]
+   }
+  ],
+  "admissions": [],
+  "warnings": [
+   "no admission / application-fee table on the page"
+  ],
+  "mongo_extra": {
+   "scraped_at": "2026-10-27",
+   "scraped_from": "ezyschooling.com",
+   "ezy_slug": "sainik-school-east-siang-arunachal-pradesh",
+   "fee_data_sessions": [
+    "2025-2026"
+   ],
+   "page_heading_session": "2027-2028",
+   "listing_fee_range": null,
+   "boarding_type_raw": "Full Boarding",
+   "sessions_clicked": [
+    "2026-2027",
+    "2027-2028"
+   ],
+   "all_facts": {
+    "Board": "CBSE",
+    "Gender": "Coed",
+    "Classes": "6 - 12 Class",
+    "Academic Session": "April To March",
+    "Medium": "English",
+    "Student Teacher Ratio": "14:1",
+    "Day/Boarding": "Full Boarding"
+   },
+   "sources": {
+    "name": "listing card",
+    "city": "breadcrumb",
+    "state": "listing card",
+    "area": "address: text before the city (the page has no separate area field)",
+    "locality": "address: text before the city (the page has no separate area field)",
+    "type": "Quick Facts: Day/Boarding",
+    "boarding_type": "Quick Facts: Day/Boarding",
+    "address": "page header",
+    "pincode": "page header",
+    "classes": "Quick Facts",
+    "boards": "Quick Facts",
+    "gender": "Quick Facts",
+    "medium": "Quick Facts",
+    "academic_session": "Quick Facts",
+    "student_teacher_ratio": "Quick Facts",
+    "founded": "page header",
+    "class_fees": "fees-structure page (site-printed numbers; fee_session = session stated by the page or clicked button)",
+    "fee_min": "lowest / highest annual fee of the newest fee session (2025-2026)",
+    "fee_max": "lowest / highest annual fee of the newest fee session (2025-2026)",
+    "email": "Address And Contact block",
+    "website": "Address And Contact block",
+    "phone": "page data next to the e-mail",
+    "about": "About Us section",
+    "description": "About Us section",
+    "facilities": "Facilities icons marked yes (grouped by the page section)",
+    "facility_groups": "Facilities icons marked yes (grouped by the page section)",
+    "hostel": "Facilities icons (Boys/Girls Hostel)",
+    "lat_lng": "school's own Google-Maps embed",
+    "logo": "image with alt \"<school> Logo\"",
+    "images": "cover + \"<school> Gallery\" images",
+    "campus_size": "Quick Facts",
+    "languages": "Languages Taught section",
+    "page_last_updated": "page footer"
+   },
+   "facilities_not_available": []
+  }
+ }
+]

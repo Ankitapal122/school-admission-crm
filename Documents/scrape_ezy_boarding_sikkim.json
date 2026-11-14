@@ -1,0 +1,1770 @@
+[
+ {
+  "name": "Tashi Namgyal Academy",
+  "slug": null,
+  "city": "Gangtok",
+  "state": "Sikkim",
+  "area": "Raj Bhawan, Sungava",
+  "locality": "Sungava",
+  "pincode": "737103",
+  "type": "Boarding School",
+  "boarding_type": "Full Boarding",
+  "boards": [
+   "ICSE"
+  ],
+  "classes": "1 - 12",
+  "gender": "Co-ed",
+  "description": "About Us Tashi Namgyal Academy was founded in 1966 by the late Sir Tashi Namgyal, K.C.S.I. & K.C.I.E., the eleventh consecrated Ruler of Sikkim. He was an ardent crusader for education and under his tutelage the portals of learning were established. The present Academy was shaped out of Sir Tashi Namgyal High School which was affiliated with Calcutta University. As a High School it was headed by three headmasters at various times, Mr. C.E. Dudley was the first headmaster. He established the school in the military barracks used by troops of Sir Francis Young Husband in 1903. Mr. A.K. Sarkar took over from Mr. Dudley and Mr. K.L. Kapoor was the last headmaster in the line.",
+  "about": "About Us Tashi Namgyal Academy was founded in 1966 by the late Sir Tashi Namgyal, K.C.S.I. & K.C.I.E., the eleventh consecrated Ruler of Sikkim. He was an ardent crusader for education and under his tutelage the portals of learning were established. The present Academy was shaped out of Sir Tashi Namgyal High School which was affiliated with Calcutta University. As a High School it was headed by three headmasters at various times, Mr. C.E. Dudley was the first headmaster. He established the school in the military barracks used by troops of Sir Francis Young Husband in 1903. Mr. A.K. Sarkar took over from Mr. Dudley and Mr. K.L. Kapoor was the last headmaster in the line.",
+  "hostel": true,
+  "rating": null,
+  "reviews": null,
+  "fee_min": 179000,
+  "fee_max": 217000,
+  "address": "Zero Point,Raj Bhawan,Sungava, Gangtok, Gangtok, Sikkim - 737103",
+  "lat": 27.337171450047613,
+  "lng": 88.6162504490731,
+  "phone": "+91-3592202406",
+  "email": "tnasikkim@gmail.com",
+  "website": "http://www.tashinamgyalacademy.com/",
+  "social": {},
+  "logo": "https://d3bat55ebwjhsf.cloudfront.net/schools/logos/user_generic_school_user/7206d84e-8ac7-4e2e-96a5-634d505f2ba1-3f8ad550-4b_8uDqkR5.webp",
+  "images": [
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/cover/user_root_user%40ezy.com/IMG_20191013_161847.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/download_43_i8ErYQP.jpeg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/download_44_XRBw0ed.jpeg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/download_45_DwsbGcv.jpeg"
+  ],
+  "facilities": [
+   "Day care",
+   "Meals",
+   "Transportation",
+   "Boys Hostel",
+   "Girls Hostel",
+   "AC Classes",
+   "Wifi",
+   "Smart Classes",
+   "Art and Craft",
+   "Dance",
+   "Drama",
+   "Music",
+   "Picnics and excursion",
+   "Debate",
+   "Gardening",
+   "Cafeteria/Canteen",
+   "Library/Reading Room",
+   "Auditorium/Media Room",
+   "Computer Lab",
+   "Science Lab",
+   "Robotics Lab",
+   "CCTV",
+   "Medical Room",
+   "Indoor Sports",
+   "Outdoor Sports",
+   "Yoga"
+  ],
+  "facility_groups": {
+   "Advanced Facilities": [
+    "Day care",
+    "Meals",
+    "Transportation",
+    "Medical Room"
+   ],
+   "Boarding": [
+    "Boys Hostel",
+    "Girls Hostel"
+   ],
+   "Class": [
+    "AC Classes",
+    "Wifi",
+    "Smart Classes"
+   ],
+   "Extra Curricular": [
+    "Art and Craft",
+    "Dance",
+    "Drama",
+    "Music",
+    "Picnics and excursion",
+    "Debate",
+    "Gardening"
+   ],
+   "Infrastructure": [
+    "Cafeteria/Canteen",
+    "Library/Reading Room",
+    "Auditorium/Media Room"
+   ],
+   "Lab": [
+    "Computer Lab",
+    "Science Lab",
+    "Robotics Lab"
+   ],
+   "Safety and Security": [
+    "CCTV"
+   ],
+   "Sports and Fitness": [
+    "Indoor Sports",
+    "Outdoor Sports",
+    "Yoga"
+   ]
+  },
+  "founded": 1926,
+  "medium": "English",
+  "academic_session": "April to March",
+  "student_teacher_ratio": "30:1",
+  "campus_size": null,
+  "languages": [],
+  "food_options": null,
+  "verified": null,
+  "page_last_updated": null,
+  "affiliation_no": null,
+  "school_timing": null,
+  "student_count": null,
+  "teacher_count": null,
+  "source_site": "ezyschooling.com",
+  "source_url": "https://ezyschooling.com/school/tashi-namgyal-academy-gangtok-sikkim",
+  "latest_fee_session": "2024-2025",
+  "current_admission_session": null,
+  "class_fees": [
+   {
+    "class_name": "Class 1",
+    "monthly_fee": null,
+    "annual_fee": 179000,
+    "one_time_fee": 53000,
+    "first_year_total": 232000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 20000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 56000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 33000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 33000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 90000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 2",
+    "monthly_fee": null,
+    "annual_fee": 179000,
+    "one_time_fee": 53000,
+    "first_year_total": 232000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 20000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 56000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 33000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 33000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 90000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 3",
+    "monthly_fee": null,
+    "annual_fee": 179000,
+    "one_time_fee": 53000,
+    "first_year_total": 232000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 20000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 56000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 33000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 33000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 90000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 4",
+    "monthly_fee": null,
+    "annual_fee": 179000,
+    "one_time_fee": 53000,
+    "first_year_total": 232000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 20000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 56000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 33000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 33000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 90000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 5",
+    "monthly_fee": null,
+    "annual_fee": 179000,
+    "one_time_fee": 53000,
+    "first_year_total": 232000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 20000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 56000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 33000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 33000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 90000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 6",
+    "monthly_fee": null,
+    "annual_fee": 189000,
+    "one_time_fee": 53000,
+    "first_year_total": 242000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 20000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 66000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 33000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 33000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 90000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 7",
+    "monthly_fee": null,
+    "annual_fee": 189000,
+    "one_time_fee": 53000,
+    "first_year_total": 242000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 20000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 66000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 33000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 33000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 90000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 8",
+    "monthly_fee": null,
+    "annual_fee": 189000,
+    "one_time_fee": 53000,
+    "first_year_total": 242000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 20000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 66000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 33000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 33000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 90000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 9",
+    "monthly_fee": null,
+    "annual_fee": 205000,
+    "one_time_fee": 53000,
+    "first_year_total": 258000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 20000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 82000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 33000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 33000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 90000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 10",
+    "monthly_fee": null,
+    "annual_fee": 205000,
+    "one_time_fee": 53000,
+    "first_year_total": 258000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 20000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 82000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 33000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 33000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 90000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 11",
+    "monthly_fee": null,
+    "annual_fee": 217000,
+    "one_time_fee": 53000,
+    "first_year_total": 270000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 20000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 94000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 33000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 33000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 90000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 12",
+    "monthly_fee": null,
+    "annual_fee": 217000,
+    "one_time_fee": 53000,
+    "first_year_total": 270000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 20000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 94000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 33000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 33000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 90000,
+      "refundable": null
+     }
+    ]
+   }
+  ],
+  "admissions": [],
+  "warnings": [
+   "no admission / application-fee table on the page"
+  ],
+  "mongo_extra": {
+   "scraped_at": "2026-10-27",
+   "scraped_from": "ezyschooling.com",
+   "ezy_slug": "tashi-namgyal-academy-gangtok-sikkim",
+   "fee_data_sessions": [
+    "2024-2025"
+   ],
+   "page_heading_session": "2027-2028",
+   "listing_fee_range": null,
+   "boarding_type_raw": "Full Boarding",
+   "sessions_clicked": [
+    "2026-2027",
+    "2027-2028"
+   ],
+   "all_facts": {
+    "Board": "ICSE",
+    "Gender": "Coed",
+    "Classes": "1 - 12 Class",
+    "Academic Session": "April to March",
+    "Medium": "English",
+    "Student Teacher Ratio": "30:1",
+    "Day/Boarding": "Full Boarding"
+   },
+   "sources": {
+    "name": "listing card",
+    "city": "breadcrumb",
+    "state": "listing card",
+    "area": "address: text before the city (the page has no separate area field)",
+    "locality": "address: text before the city (the page has no separate area field)",
+    "type": "Quick Facts: Day/Boarding",
+    "boarding_type": "Quick Facts: Day/Boarding",
+    "address": "page header",
+    "pincode": "page header",
+    "classes": "Quick Facts",
+    "boards": "Quick Facts",
+    "gender": "Quick Facts",
+    "medium": "Quick Facts",
+    "academic_session": "Quick Facts",
+    "student_teacher_ratio": "Quick Facts",
+    "founded": "page header",
+    "class_fees": "fees-structure page (site-printed numbers; fee_session = session stated by the page or clicked button)",
+    "fee_min": "lowest / highest annual fee of the newest fee session (2024-2025)",
+    "fee_max": "lowest / highest annual fee of the newest fee session (2024-2025)",
+    "email": "Address And Contact block",
+    "website": "Address And Contact block",
+    "phone": "page data next to the e-mail",
+    "about": "About Us section",
+    "description": "About Us section",
+    "facilities": "Facilities icons marked yes (grouped by the page section)",
+    "facility_groups": "Facilities icons marked yes (grouped by the page section)",
+    "hostel": "Facilities icons (Boys/Girls Hostel)",
+    "lat_lng": "school's own Google-Maps embed",
+    "logo": "image with alt \"<school> Logo\"",
+    "images": "cover + \"<school> Gallery\" images"
+   },
+   "facilities_not_available": [
+    "Alumni Association",
+    "Ramps",
+    "Washrooms",
+    "Elevators",
+    "Playground",
+    "GPS Bus Tracking App",
+    "Student Tracking App",
+    "Karate",
+    "Taekwondo",
+    "Gym",
+    "Swimming Pool",
+    "Skating",
+    "Horse Riding"
+   ]
+  }
+ },
+ {
+  "name": "Namchi Public School",
+  "slug": null,
+  "city": "South Sikkim",
+  "state": "Sikkim",
+  "area": "Namchi",
+  "locality": "Namchi",
+  "pincode": "735101",
+  "type": "Boarding School",
+  "boarding_type": "Full Boarding",
+  "boards": [
+   "ICSE"
+  ],
+  "classes": "6 - 10",
+  "gender": "Co-ed",
+  "description": "About Us Namchi Public School is a Private, Senior Secondary school and also a Boarding School situated at South Sikkim, Sikkim, East India.",
+  "about": "About Us Namchi Public School is a Private, Senior Secondary school and also a Boarding School situated at South Sikkim, Sikkim, East India.",
+  "hostel": true,
+  "rating": 4.0,
+  "reviews": 1,
+  "fee_min": 156080,
+  "fee_max": 156080,
+  "address": "Namchi, South Sikkim, South Sikkim, South Sikkim, Sikkim - 735101",
+  "lat": 27.171654765784712,
+  "lng": 88.36980903558187,
+  "phone": "+91-3595263770",
+  "email": "npsskm@gmail.com",
+  "website": "http://npsskm.in/",
+  "social": {},
+  "logo": "https://d3bat55ebwjhsf.cloudfront.net/schools/logos/user_generic_school_user/94e8a485-8ec4-4f04-904d-6b5c82fa9170-530f01aa-4b_VRgrsIu.webp",
+  "images": [
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/cover/user_root_user%40ezy.com/2016-08-30.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/download_-_2022-05-04T092709.448.jpeg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/download_-_2022-05-04T092713.906.jpeg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/download_-_2022-05-04T092721.269.jpeg"
+  ],
+  "facilities": [
+   "Day care",
+   "Meals",
+   "Transportation",
+   "Boys Hostel",
+   "Girls Hostel",
+   "AC Classes",
+   "Wifi",
+   "Smart Classes",
+   "Art and Craft",
+   "Dance",
+   "Drama",
+   "Music",
+   "Picnics and excursion",
+   "Debate",
+   "Gardening",
+   "Cafeteria/Canteen",
+   "Playground",
+   "Auditorium/Media Room",
+   "Computer Lab",
+   "Science Lab",
+   "CCTV",
+   "Medical Room",
+   "Indoor Sports",
+   "Outdoor Sports",
+   "Yoga"
+  ],
+  "facility_groups": {
+   "Advanced Facilities": [
+    "Day care",
+    "Meals",
+    "Transportation",
+    "Medical Room"
+   ],
+   "Boarding": [
+    "Boys Hostel",
+    "Girls Hostel"
+   ],
+   "Class": [
+    "AC Classes",
+    "Wifi",
+    "Smart Classes"
+   ],
+   "Extra Curricular": [
+    "Art and Craft",
+    "Dance",
+    "Drama",
+    "Music",
+    "Picnics and excursion",
+    "Debate",
+    "Gardening"
+   ],
+   "Infrastructure": [
+    "Cafeteria/Canteen",
+    "Playground",
+    "Auditorium/Media Room"
+   ],
+   "Lab": [
+    "Computer Lab",
+    "Science Lab"
+   ],
+   "Safety and Security": [
+    "CCTV"
+   ],
+   "Sports and Fitness": [
+    "Indoor Sports",
+    "Outdoor Sports",
+    "Yoga"
+   ]
+  },
+  "founded": null,
+  "medium": "English",
+  "academic_session": "April to March",
+  "student_teacher_ratio": "30:1",
+  "campus_size": null,
+  "languages": [],
+  "food_options": null,
+  "verified": null,
+  "page_last_updated": null,
+  "affiliation_no": null,
+  "school_timing": null,
+  "student_count": null,
+  "teacher_count": null,
+  "source_site": "ezyschooling.com",
+  "source_url": "https://ezyschooling.com/school/namchi-public-school-namchi-south-sikkim",
+  "latest_fee_session": "2024-2025",
+  "current_admission_session": null,
+  "class_fees": [
+   {
+    "class_name": "Class 6",
+    "monthly_fee": null,
+    "annual_fee": 156080,
+    "one_time_fee": 26000,
+    "first_year_total": 182080,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 3000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Registration Fees",
+      "frequency": "Onetime",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 34080,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 22000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 120000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 2000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 7",
+    "monthly_fee": null,
+    "annual_fee": 156080,
+    "one_time_fee": 26000,
+    "first_year_total": 182080,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 3000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Registration Fees",
+      "frequency": "Onetime",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 34080,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 22000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 120000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 2000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 8",
+    "monthly_fee": null,
+    "annual_fee": 156080,
+    "one_time_fee": 26000,
+    "first_year_total": 182080,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 3000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Registration Fees",
+      "frequency": "Onetime",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 34080,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 22000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 120000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 2000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 9",
+    "monthly_fee": null,
+    "annual_fee": 156080,
+    "one_time_fee": 26000,
+    "first_year_total": 182080,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 3000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Registration Fees",
+      "frequency": "Onetime",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 34080,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 22000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 120000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 2000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 10",
+    "monthly_fee": null,
+    "annual_fee": 156080,
+    "one_time_fee": 26000,
+    "first_year_total": 182080,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 3000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Registration Fees",
+      "frequency": "Onetime",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 34080,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 22000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 120000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 2000,
+      "refundable": null
+     }
+    ]
+   }
+  ],
+  "admissions": [],
+  "warnings": [
+   "no admission / application-fee table on the page"
+  ],
+  "mongo_extra": {
+   "scraped_at": "2026-10-27",
+   "scraped_from": "ezyschooling.com",
+   "ezy_slug": "namchi-public-school-namchi-south-sikkim",
+   "fee_data_sessions": [
+    "2024-2025"
+   ],
+   "page_heading_session": "2027-2028",
+   "listing_fee_range": null,
+   "boarding_type_raw": "Full Boarding",
+   "sessions_clicked": [
+    "2026-2027",
+    "2027-2028"
+   ],
+   "all_facts": {
+    "Board": "ICSE",
+    "Gender": "Coed",
+    "Classes": "6 - 10 Class",
+    "Academic Session": "April to March",
+    "Medium": "English",
+    "Student Teacher Ratio": "30:1",
+    "Day/Boarding": "Full Boarding"
+   },
+   "sources": {
+    "name": "listing card",
+    "city": "breadcrumb",
+    "state": "listing card",
+    "area": "address: text before the city (the page has no separate area field)",
+    "locality": "address: text before the city (the page has no separate area field)",
+    "type": "Quick Facts: Day/Boarding",
+    "boarding_type": "Quick Facts: Day/Boarding",
+    "rating": "page header",
+    "address": "page header",
+    "pincode": "page header",
+    "classes": "Quick Facts",
+    "boards": "Quick Facts",
+    "gender": "Quick Facts",
+    "medium": "Quick Facts",
+    "academic_session": "Quick Facts",
+    "student_teacher_ratio": "Quick Facts",
+    "class_fees": "fees-structure page (site-printed numbers; fee_session = session stated by the page or clicked button)",
+    "fee_min": "lowest / highest annual fee of the newest fee session (2024-2025)",
+    "fee_max": "lowest / highest annual fee of the newest fee session (2024-2025)",
+    "email": "Address And Contact block",
+    "website": "Address And Contact block",
+    "phone": "page data next to the e-mail",
+    "about": "About Us section",
+    "description": "About Us section",
+    "facilities": "Facilities icons marked yes (grouped by the page section)",
+    "facility_groups": "Facilities icons marked yes (grouped by the page section)",
+    "hostel": "Facilities icons (Boys/Girls Hostel)",
+    "lat_lng": "school's own Google-Maps embed",
+    "logo": "image with alt \"<school> Logo\"",
+    "images": "cover + \"<school> Gallery\" images"
+   },
+   "facilities_not_available": [
+    "Alumni Association",
+    "Ramps",
+    "Washrooms",
+    "Elevators",
+    "Library/Reading Room",
+    "Robotics Lab",
+    "GPS Bus Tracking App",
+    "Student Tracking App",
+    "Karate",
+    "Taekwondo",
+    "Gym",
+    "Swimming Pool",
+    "Skating",
+    "Horse Riding"
+   ]
+  }
+ },
+ {
+  "name": "Manjusri Public School",
+  "slug": null,
+  "city": "Gangtok",
+  "state": "Sikkim",
+  "area": "Mg Marg, Arithang",
+  "locality": "Arithang",
+  "pincode": "737103",
+  "type": "Boarding School",
+  "boarding_type": "Full Boarding",
+  "boards": [
+   "CBSE"
+  ],
+  "classes": "6 - 10",
+  "gender": "Co-ed",
+  "description": "About Us Our vision and mission, as perceived back in 2010, and the way we see our students, still remain steadfast. For me, it has been the most rewarding and inspiring part of my journey thus far. We have together laid a strong foundation, only possible because of a committed team of teachers, cooperative and supportive parents and local community, and an enthusiastic and daring student body!",
+  "about": "About Us Our vision and mission, as perceived back in 2010, and the way we see our students, still remain steadfast. For me, it has been the most rewarding and inspiring part of my journey thus far. We have together laid a strong foundation, only possible because of a committed team of teachers, cooperative and supportive parents and local community, and an enthusiastic and daring student body!",
+  "hostel": true,
+  "rating": null,
+  "reviews": null,
+  "fee_min": 100000,
+  "fee_max": 100000,
+  "address": "Mg Marg, Arithang, Gangtok, Gangtok, Sikkim - 737103",
+  "lat": 27.329290477046076,
+  "lng": 88.61219250674563,
+  "phone": "+91-3592203093",
+  "email": "manjusricityschool@gmail.com",
+  "website": "http://mpssikkim.edu.in/",
+  "social": {},
+  "logo": "https://d3bat55ebwjhsf.cloudfront.net/schools/logos/user_generic_school_user/22532365-d7d4-407a-bbe0-761479dacd4f-de5615c4-4b_qPe5aRI.webp",
+  "images": [
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/cover/user_root_user%40ezy.com/Screenshot_2024-02-13_141335.png",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/download_-_2022-05-03T233333.360.jpeg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/download_-_2022-05-03T233339.427.jpeg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/download_-_2022-05-03T233345.628.jpeg"
+  ],
+  "facilities": [
+   "Day care",
+   "Meals",
+   "Transportation",
+   "Boys Hostel",
+   "Girls Hostel",
+   "AC Classes",
+   "Wifi",
+   "Smart Classes",
+   "Art and Craft",
+   "Dance",
+   "Drama",
+   "Music",
+   "Picnics and excursion",
+   "Debate",
+   "Gardening",
+   "Cafeteria/Canteen",
+   "Library/Reading Room",
+   "Playground",
+   "Computer Lab",
+   "Science Lab",
+   "CCTV",
+   "Medical Room",
+   "Indoor Sports",
+   "Outdoor Sports",
+   "Yoga"
+  ],
+  "facility_groups": {
+   "Advanced Facilities": [
+    "Day care",
+    "Meals",
+    "Transportation",
+    "Medical Room"
+   ],
+   "Boarding": [
+    "Boys Hostel",
+    "Girls Hostel"
+   ],
+   "Class": [
+    "AC Classes",
+    "Wifi",
+    "Smart Classes"
+   ],
+   "Extra Curricular": [
+    "Art and Craft",
+    "Dance",
+    "Drama",
+    "Music",
+    "Picnics and excursion",
+    "Debate",
+    "Gardening"
+   ],
+   "Infrastructure": [
+    "Cafeteria/Canteen",
+    "Library/Reading Room",
+    "Playground"
+   ],
+   "Lab": [
+    "Computer Lab",
+    "Science Lab"
+   ],
+   "Safety and Security": [
+    "CCTV"
+   ],
+   "Sports and Fitness": [
+    "Indoor Sports",
+    "Outdoor Sports",
+    "Yoga"
+   ]
+  },
+  "founded": null,
+  "medium": "English",
+  "academic_session": "April to March",
+  "student_teacher_ratio": "30:1",
+  "campus_size": null,
+  "languages": [],
+  "food_options": null,
+  "verified": null,
+  "page_last_updated": null,
+  "affiliation_no": null,
+  "school_timing": null,
+  "student_count": null,
+  "teacher_count": null,
+  "source_site": "ezyschooling.com",
+  "source_url": "https://ezyschooling.com/school/manjusri-public-school-gangtok",
+  "latest_fee_session": "2024-2025",
+  "current_admission_session": null,
+  "class_fees": [
+   {
+    "class_name": "Class 6",
+    "monthly_fee": null,
+    "annual_fee": 100000,
+    "one_time_fee": 15000,
+    "first_year_total": 115000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 100000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 7",
+    "monthly_fee": null,
+    "annual_fee": 100000,
+    "one_time_fee": 15000,
+    "first_year_total": 115000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 100000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 8",
+    "monthly_fee": null,
+    "annual_fee": 100000,
+    "one_time_fee": 15000,
+    "first_year_total": 115000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 100000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 9",
+    "monthly_fee": null,
+    "annual_fee": 100000,
+    "one_time_fee": 15000,
+    "first_year_total": 115000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 100000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 10",
+    "monthly_fee": null,
+    "annual_fee": 100000,
+    "one_time_fee": 15000,
+    "first_year_total": 115000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 100000,
+      "refundable": null
+     }
+    ]
+   }
+  ],
+  "admissions": [],
+  "warnings": [
+   "no admission / application-fee table on the page"
+  ],
+  "mongo_extra": {
+   "scraped_at": "2026-10-27",
+   "scraped_from": "ezyschooling.com",
+   "ezy_slug": "manjusri-public-school-gangtok",
+   "fee_data_sessions": [
+    "2024-2025"
+   ],
+   "page_heading_session": "2027-2028",
+   "listing_fee_range": null,
+   "boarding_type_raw": "Full Boarding",
+   "sessions_clicked": [
+    "2026-2027",
+    "2027-2028"
+   ],
+   "all_facts": {
+    "Board": "CBSE",
+    "Gender": "Coed",
+    "Classes": "6 - 10 Class",
+    "Academic Session": "April to March",
+    "Medium": "English",
+    "Student Teacher Ratio": "30:1",
+    "Day/Boarding": "Full Boarding"
+   },
+   "sources": {
+    "name": "listing card",
+    "city": "breadcrumb",
+    "state": "listing card",
+    "area": "address: text before the city (the page has no separate area field)",
+    "locality": "address: text before the city (the page has no separate area field)",
+    "type": "Quick Facts: Day/Boarding",
+    "boarding_type": "Quick Facts: Day/Boarding",
+    "address": "page header",
+    "pincode": "page header",
+    "classes": "Quick Facts",
+    "boards": "Quick Facts",
+    "gender": "Quick Facts",
+    "medium": "Quick Facts",
+    "academic_session": "Quick Facts",
+    "student_teacher_ratio": "Quick Facts",
+    "class_fees": "fees-structure page (site-printed numbers; fee_session = session stated by the page or clicked button)",
+    "fee_min": "lowest / highest annual fee of the newest fee session (2024-2025)",
+    "fee_max": "lowest / highest annual fee of the newest fee session (2024-2025)",
+    "email": "Address And Contact block",
+    "website": "Address And Contact block",
+    "phone": "page data next to the e-mail",
+    "about": "About Us section",
+    "description": "About Us section",
+    "facilities": "Facilities icons marked yes (grouped by the page section)",
+    "facility_groups": "Facilities icons marked yes (grouped by the page section)",
+    "hostel": "Facilities icons (Boys/Girls Hostel)",
+    "lat_lng": "school's own Google-Maps embed",
+    "logo": "image with alt \"<school> Logo\"",
+    "images": "cover + \"<school> Gallery\" images"
+   },
+   "facilities_not_available": [
+    "Alumni Association",
+    "Ramps",
+    "Washrooms",
+    "Elevators",
+    "Auditorium/Media Room",
+    "Robotics Lab",
+    "GPS Bus Tracking App",
+    "Student Tracking App",
+    "Karate",
+    "Taekwondo",
+    "Gym",
+    "Swimming Pool",
+    "Skating",
+    "Horse Riding"
+   ]
+  }
+ },
+ {
+  "name": "Woodstock High School",
+  "slug": null,
+  "city": "North Sikkim",
+  "state": "Sikkim",
+  "area": "Jorethang - Sombaria Rd",
+  "locality": "Jorethang - Sombaria Rd",
+  "pincode": "737121",
+  "type": "Boarding School",
+  "boarding_type": "Full Boarding",
+  "boards": [
+   "CBSE"
+  ],
+  "classes": "6 - 10",
+  "gender": "Co-ed",
+  "description": "About Us Woodstock High School was founded in the year 2001 with a view to provide quality education for the students residing in the locality as well as those staying at far distance. The school is located close to Sombarey Bazar having easy access to banking/hospital facilities. The school also provides residential facilities for a limited number of students within the school premises. It is a home away from home for the having achieved cent percent success rate in the class X Board Examination that our two batches of students appeared during the past two academic sessions and the third batch of the students is all set to write their Class X Board Examinations in the near future. The medium of instruction is English with second language options of Nepali and Hindi. More stress is given to spoken English and overall discipline of a child. The school provides computer education from class III and above. Parents/Teachers meetings are scheduled to be held on quarterly basis from the ensuing new academic session onwards with a view to share information with parents and guardians about performance of their wards, whose work profile will be watched on regular basis by the, concerned class teachers and the Principal in the school.",
+  "about": "About Us Woodstock High School was founded in the year 2001 with a view to provide quality education for the students residing in the locality as well as those staying at far distance. The school is located close to Sombarey Bazar having easy access to banking/hospital facilities. The school also provides residential facilities for a limited number of students within the school premises. It is a home away from home for the having achieved cent percent success rate in the class X Board Examination that our two batches of students appeared during the past two academic sessions and the third batch of the students is all set to write their Class X Board Examinations in the near future. The medium of instruction is English with second language options of Nepali and Hindi. More stress is given to spoken English and overall discipline of a child. The school provides computer education from class III and above. Parents/Teachers meetings are scheduled to be held on quarterly basis from the ensuing new academic session onwards with a view to share information with parents and guardians about performance of their wards, whose work profile will be watched on regular basis by the, concerned class teachers and the Principal in the school.",
+  "hostel": true,
+  "rating": null,
+  "reviews": null,
+  "fee_min": 80160,
+  "fee_max": 80160,
+  "address": "Jorethang - Sombaria Rd, North Sikkim, North Sikkim, Sikkim - 737121",
+  "lat": 27.141873574147972,
+  "lng": 88.14810419325437,
+  "phone": "+91-9434384573",
+  "email": "woodstock_sikkim@yahoo.com",
+  "website": "http://www.woodstockschoolsikkim.com/",
+  "social": {},
+  "logo": "https://d3bat55ebwjhsf.cloudfront.net/schools/logos/user_generic_school_user/71583647-7f8a-4ef7-8042-ad618c782a23-d980af17-4b_6rFp0qo.webp",
+  "images": [
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/cover/user_root_user%40ezy.com/2018-09-14.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/download_6_tZsgWqY.jpeg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/download_7_iHBJQGH.jpeg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/download_8_7LtHH3D.jpeg"
+  ],
+  "facilities": [
+   "Day care",
+   "Meals",
+   "Transportation",
+   "Boys Hostel",
+   "Girls Hostel",
+   "AC Classes",
+   "Wifi",
+   "Smart Classes",
+   "Art and Craft",
+   "Dance",
+   "Drama",
+   "Music",
+   "Picnics and excursion",
+   "Debate",
+   "Gardening",
+   "Cafeteria/Canteen",
+   "Library/Reading Room",
+   "Auditorium/Media Room",
+   "Computer Lab",
+   "Science Lab",
+   "CCTV",
+   "Medical Room",
+   "Indoor Sports",
+   "Outdoor Sports",
+   "Yoga"
+  ],
+  "facility_groups": {
+   "Advanced Facilities": [
+    "Day care",
+    "Meals",
+    "Transportation",
+    "Medical Room"
+   ],
+   "Boarding": [
+    "Boys Hostel",
+    "Girls Hostel"
+   ],
+   "Class": [
+    "AC Classes",
+    "Wifi",
+    "Smart Classes"
+   ],
+   "Extra Curricular": [
+    "Art and Craft",
+    "Dance",
+    "Drama",
+    "Music",
+    "Picnics and excursion",
+    "Debate",
+    "Gardening"
+   ],
+   "Infrastructure": [
+    "Cafeteria/Canteen",
+    "Library/Reading Room",
+    "Auditorium/Media Room"
+   ],
+   "Lab": [
+    "Computer Lab",
+    "Science Lab"
+   ],
+   "Safety and Security": [
+    "CCTV"
+   ],
+   "Sports and Fitness": [
+    "Indoor Sports",
+    "Outdoor Sports",
+    "Yoga"
+   ]
+  },
+  "founded": 2002,
+  "medium": "English",
+  "academic_session": "April to March",
+  "student_teacher_ratio": "30:1",
+  "campus_size": null,
+  "languages": [],
+  "food_options": null,
+  "verified": null,
+  "page_last_updated": null,
+  "affiliation_no": null,
+  "school_timing": null,
+  "student_count": null,
+  "teacher_count": null,
+  "source_site": "ezyschooling.com",
+  "source_url": "https://ezyschooling.com/school/woodstock-high-school-north-sikkim-sikkim",
+  "latest_fee_session": "2024-2025",
+  "current_admission_session": null,
+  "class_fees": [
+   {
+    "class_name": "Class 6",
+    "monthly_fee": null,
+    "annual_fee": 80160,
+    "one_time_fee": null,
+    "first_year_total": 80160,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 20000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 59800,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 360,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 7",
+    "monthly_fee": null,
+    "annual_fee": 80160,
+    "one_time_fee": null,
+    "first_year_total": 80160,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 20000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 59800,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 360,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 8",
+    "monthly_fee": null,
+    "annual_fee": 80160,
+    "one_time_fee": null,
+    "first_year_total": 80160,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 20000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 59800,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 360,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 9",
+    "monthly_fee": null,
+    "annual_fee": 80160,
+    "one_time_fee": null,
+    "first_year_total": 80160,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 20000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 59800,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 360,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 10",
+    "monthly_fee": null,
+    "annual_fee": 80160,
+    "one_time_fee": null,
+    "first_year_total": 80160,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 20000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 59800,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Annually",
+      "amount": 360,
+      "refundable": null
+     }
+    ]
+   }
+  ],
+  "admissions": [],
+  "warnings": [
+   "no admission / application-fee table on the page"
+  ],
+  "mongo_extra": {
+   "scraped_at": "2026-10-27",
+   "scraped_from": "ezyschooling.com",
+   "ezy_slug": "woodstock-high-school-north-sikkim-sikkim",
+   "fee_data_sessions": [
+    "2024-2025"
+   ],
+   "page_heading_session": "2027-2028",
+   "listing_fee_range": null,
+   "boarding_type_raw": "Full Boarding",
+   "sessions_clicked": [
+    "2026-2027",
+    "2027-2028"
+   ],
+   "all_facts": {
+    "Board": "CBSE",
+    "Gender": "Coed",
+    "Classes": "6 - 10 Class",
+    "Academic Session": "April to March",
+    "Medium": "English",
+    "Student Teacher Ratio": "30:1",
+    "Day/Boarding": "Full Boarding"
+   },
+   "sources": {
+    "name": "listing card",
+    "city": "breadcrumb",
+    "state": "listing card",
+    "area": "address: text before the city (the page has no separate area field)",
+    "locality": "address: text before the city (the page has no separate area field)",
+    "type": "Quick Facts: Day/Boarding",
+    "boarding_type": "Quick Facts: Day/Boarding",
+    "address": "page header",
+    "pincode": "page header",
+    "classes": "Quick Facts",
+    "boards": "Quick Facts",
+    "gender": "Quick Facts",
+    "medium": "Quick Facts",
+    "academic_session": "Quick Facts",
+    "student_teacher_ratio": "Quick Facts",
+    "founded": "page header",
+    "class_fees": "fees-structure page (site-printed numbers; fee_session = session stated by the page or clicked button)",
+    "fee_min": "lowest / highest annual fee of the newest fee session (2024-2025)",
+    "fee_max": "lowest / highest annual fee of the newest fee session (2024-2025)",
+    "email": "Address And Contact block",
+    "website": "Address And Contact block",
+    "phone": "page data next to the e-mail",
+    "about": "About Us section",
+    "description": "About Us section",
+    "facilities": "Facilities icons marked yes (grouped by the page section)",
+    "facility_groups": "Facilities icons marked yes (grouped by the page section)",
+    "hostel": "Facilities icons (Boys/Girls Hostel)",
+    "lat_lng": "school's own Google-Maps embed",
+    "logo": "image with alt \"<school> Logo\"",
+    "images": "cover + \"<school> Gallery\" images"
+   },
+   "facilities_not_available": [
+    "Alumni Association",
+    "Ramps",
+    "Washrooms",
+    "Elevators",
+    "Playground",
+    "Robotics Lab",
+    "GPS Bus Tracking App",
+    "Student Tracking App",
+    "Karate",
+    "Taekwondo",
+    "Gym",
+    "Swimming Pool",
+    "Skating",
+    "Horse Riding"
+   ]
+  }
+ }
+]

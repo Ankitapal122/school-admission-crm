@@ -1,0 +1,223 @@
+[
+ {
+  "name": "St. Anthony High School",
+  "slug": null,
+  "city": "North Goa",
+  "state": "Goa",
+  "area": "North Goa",
+  "locality": "North Goa",
+  "pincode": null,
+  "type": "Boarding School",
+  "boards": [
+   "State Board"
+  ],
+  "classes": "5 - 9",
+  "gender": "Boys",
+  "description": "About Us The idea of serving the people of Goa was conceived by the Capuchins as early as 1936.The idea was materialized only in 1941 when they pitched their tent on the outskirts of Mapusa (Karasko). They were planning to build their residence at Peddem when Fr. Hippolito da Luna(1909-1942) who was director of “Collegio de Santo Antonio”(a boarding school) approached the Capuchins and offered to hand over to them the school, boarding, Chapel and adjoining property on the hill. Since Monte de Guirim had a long Franciscan history behind it (Most of Bardez was under the Franciscans from 15th to 17th century) the Capuchins readily accepted it. They took over the school in May 1942.",
+  "about": "About Us The idea of serving the people of Goa was conceived by the Capuchins as early as 1936.The idea was materialized only in 1941 when they pitched their tent on the outskirts of Mapusa (Karasko). They were planning to build their residence at Peddem when Fr. Hippolito da Luna(1909-1942) who was director of “Collegio de Santo Antonio”(a boarding school) approached the Capuchins and offered to hand over to them the school, boarding, Chapel and adjoining property on the hill. Since Monte de Guirim had a long Franciscan history behind it (Most of Bardez was under the Franciscans from 15th to 17th century) the Capuchins readily accepted it. They took over the school in May 1942.",
+  "hostel": true,
+  "rating": null,
+  "reviews": null,
+  "fee_min": 95000,
+  "fee_max": 115000,
+  "address": "Monte Guirim, St. Anthony's Boarding de Guirim, Mapusa, North Goa, Goa - 403507 Call School",
+  "lat": 15.5628579,
+  "lng": 73.8000931,
+  "phone": "+91-8322914602",
+  "email": "sas_montedeguirim@yahoo.com",
+  "website": "https://montedeguirim.com/",
+  "social": {},
+  "logo": "https://d3bat55ebwjhsf.cloudfront.net/schools/logos/12634/user_root_user%40ezy.com/images.jpeg",
+  "images": [
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/cover/12634/user_sas_montedeguirim%40yahoo.com/unnamed.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2025-06-06_17-57-31/8m9a/infra/images/Screenshot_2025-06-06_173309-min.png",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2025-06-06_17-57-56/36ex/infra/images/Screenshot_2025-06-06_173344-min.png",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2025-06-06_17-56-33/5bk8/infra/images/Screenshot_2025-06-06_173233-min.png",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2025-06-06_17-57-16/oq14/infra/images/Screenshot_2025-06-06_173206-min.png",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2025-06-06_17-57-47/nk9d/infra/images/Screenshot_2025-06-06_173337-min.png"
+  ],
+  "facilities": [
+   "Day care",
+   "Meals",
+   "Transportation",
+   "Boys Hostel",
+   "Wifi",
+   "Smart Classes",
+   "Debate",
+   "Picnics and excursion",
+   "Music",
+   "Drama",
+   "Art and Craft",
+   "Dance",
+   "Gardening",
+   "Cafeteria/Canteen",
+   "Library/Reading Room",
+   "Playground",
+   "Auditorium/Media Room",
+   "Science Lab",
+   "Computer Lab",
+   "CCTV",
+   "Student Tracking App",
+   "Medical Room",
+   "Yoga",
+   "Outdoor Sports",
+   "Indoor Sports"
+  ],
+  "founded": 1942,
+  "medium": "English",
+  "academic_session": "April to March",
+  "student_teacher_ratio": "30:1",
+  "affiliation_no": null,
+  "school_timing": null,
+  "student_count": null,
+  "teacher_count": null,
+  "source_site": "ezyschooling.com",
+  "source_url": "https://ezyschooling.com/school/st-anthony-high-school-north-goa-goa",
+  "class_fees": [
+   {
+    "class_name": "Class 5",
+    "monthly_fee": null,
+    "annual_fee": 95000,
+    "one_time_fee": null,
+    "first_year_total": 95000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 95000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 6",
+    "monthly_fee": null,
+    "annual_fee": 100000,
+    "one_time_fee": null,
+    "first_year_total": 100000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 100000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 7",
+    "monthly_fee": null,
+    "annual_fee": 105000,
+    "one_time_fee": null,
+    "first_year_total": 105000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 105000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 8",
+    "monthly_fee": null,
+    "annual_fee": 110000,
+    "one_time_fee": null,
+    "first_year_total": 110000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 110000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 9",
+    "monthly_fee": null,
+    "annual_fee": 115000,
+    "one_time_fee": null,
+    "first_year_total": 115000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 115000,
+      "refundable": null
+     }
+    ]
+   }
+  ],
+  "warnings": [
+   "fee numbers are for session 2026-2027, page heading says 2027-2028"
+  ],
+  "mongo_extra": {
+   "scraped_at": "2026-10-27",
+   "scraped_from": "ezyschooling.com",
+   "ezy_slug": "st-anthony-high-school-north-goa-goa",
+   "fee_data_session": [
+    "2026-2027"
+   ],
+   "boarding_type": "Day Cum Boarding",
+   "all_facts": {
+    "Board": "State Board",
+    "Gender": "Boys",
+    "Classes": "5 - 9 Class",
+    "Academic Session": "April to March",
+    "Medium": "English",
+    "Student Teacher Ratio": "30:1",
+    "Day/Boarding": "Day Cum Boarding"
+   },
+   "sources": {
+    "name": "listing card",
+    "city": "listing card",
+    "type": "Quick Facts: Day/Boarding",
+    "address": "page header",
+    "classes": "Quick Facts",
+    "boards": "Quick Facts",
+    "gender": "Quick Facts",
+    "medium": "Quick Facts",
+    "academic_session": "Quick Facts",
+    "student_teacher_ratio": "Quick Facts",
+    "founded": "page header",
+    "class_fees": "fees-structure page (site-printed numbers)",
+    "fee_min": "lowest / highest annual fee of the classes above",
+    "fee_max": "lowest / highest annual fee of the classes above",
+    "area": "breadcrumb",
+    "locality": "breadcrumb",
+    "email": "Address And Contact block",
+    "website": "Address And Contact block",
+    "phone": "page data next to the e-mail",
+    "about": "About Us section",
+    "description": "About Us section",
+    "facilities": "Facilities icons marked yes",
+    "hostel": "Facilities icons (Boys/Girls Hostel)",
+    "lat_lng": "school's own Google-Maps embed",
+    "logo": "image with alt \"<school> Logo\"",
+    "images": "cover + \"<school> Gallery\" images"
+   },
+   "facilities_not_available": [
+    "Alumni Association",
+    "Girls Hostel",
+    "AC Classes",
+    "Elevators",
+    "Washrooms",
+    "Ramps",
+    "GPS Bus Tracking App",
+    "Gym",
+    "Horse Riding",
+    "Skating",
+    "Swimming Pool",
+    "Taekwondo",
+    "Karate"
+   ]
+  }
+ }
+]

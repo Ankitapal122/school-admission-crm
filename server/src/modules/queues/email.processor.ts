@@ -1,28 +1,48 @@
-import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { Job } from 'bullmq';
-import { Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import * as nodemailer from 'nodemailer';
 
-@Processor('communications')
-export class CommunicationProcessor extends WorkerHost {
-  private readonly logger = new Logger(CommunicationProcessor.name);
+@Injectable()
+export class EmailProcessor {
+  private readonly logger = new Logger(EmailProcessor.name);
+  private transporter: nodemailer.Transporter | null = null;
 
-  async process(job: Job<any, any, string>): Promise<any> {
-    this.logger.log(`Processing background job ${job.id} of type ${job.name}...`);
+  private getTransporter(): nodemailer.Transporter | null {
+    if (this.transporter) return this.transporter;
+    const host = process.env.SMTP_HOST || (process.env.BREVO_API_KEY ? 'smtp-relay.brevo.com' : '');
+    const user = process.env.SMTP_USER || process.env.BREVO_SMTP_USER || '';
+    const pass = process.env.SMTP_PASS || process.env.BREVO_API_KEY || '';
+    if (!host || !user || !pass) {
+      return null;
+    }
+    this.transporter = nodemailer.createTransport({
+      host,
+      port: Number(process.env.SMTP_PORT || 587),
+      secure: false,
+      auth: { user, pass },
+    });
+    return this.transporter;
+  }
 
-    switch (job.name) {
-      case 'send-admission-email': {
-        const { to, parentName, studentName, schoolName } = job.data;
-        this.logger.log(`[BullMQ Worker] Email sent successfully to ${to} for student ${studentName} at ${schoolName}.`);
-        return { success: true, deliveredAt: new Date() };
-      }
-      case 'send-whatsapp-followup': {
-        const { phone, message } = job.data;
-        this.logger.log(`[BullMQ Worker] WhatsApp dispatched to ${phone}: ${message}`);
-        return { success: true, dispatchedAt: new Date() };
-      }
-      default:
-        this.logger.warn(`Unknown job name: ${job.name}`);
-        return { status: 'skipped' };
+  async sendEmail(options: { to: string; subject: string; html: string; text?: string }) {
+    const transporter = this.getTransporter();
+    if (!transporter) {
+      this.logger.log(
+        `[DEV SMTP MOCK] To=${options.to} | Subject="${options.subject}" | Body="${(options.text || options.html).slice(0, 140)}"`,
+      );
+      return { delivered: false, mode: 'dev_fallback' };
+    }
+    try {
+      const info = await transporter.sendMail({
+        from: process.env.SMTP_FROM || 'BoardingEdu CRM <no-reply@boardingedu.com>',
+        to: options.to,
+        subject: options.subject,
+        text: options.text,
+        html: options.html,
+      });
+      return { delivered: true, mode: 'smtp', messageId: info.messageId };
+    } catch (e: any) {
+      this.logger.warn(`SMTP send failed (${options.to}): ${e.message}`);
+      return { delivered: false, mode: 'smtp_error', error: e.message };
     }
   }
 }

@@ -4,7 +4,8 @@
   "description": "Enterprise Student CRM for Uttarakhand Boarding Schools with Real MongoDB, JWT Auth, Role-Based Dashboards & Commission Management",
   "main": "server.js",
   "scripts": {
-    "start": "npm --prefix server run start",
+    "build": "npm --prefix client install --include=dev && npm --prefix client run build && npm --prefix server install --include=dev && npm --prefix server exec prisma generate && npm --prefix server run build",
+    "start": "npm --prefix server run start:prod",
     "dev": "npm --prefix server run start:dev",
     "dev:client": "npm --prefix client run dev",
     "dev:server": "npm --prefix server run start:dev",

@@ -1,77 +1,144 @@
-import { Controller, Get, Post, Patch, Param, Body, UseGuards, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
 import { CommissionsService } from './commissions.service';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
-import { Role } from '@prisma/client';
 
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Controller('commissions')
+@ApiTags('Commissions')
+@ApiBearerAuth()
+@UseGuards(AuthGuard('jwt'), RolesGuard)
+@Controller(['commissions', 'commission'])
 export class CommissionsController {
   constructor(private readonly commissionsService: CommissionsService) {}
 
   @Get()
-  async getCommissions(@Req() req: any) {
-    return this.commissionsService.getLedger(req.user.id, req.user.role);
+  getLedgerRoot(@Req() req: any, @Query() query: any) {
+    return this.commissionsService.getLedger(req.user, query);
   }
 
   @Get('ledger')
-  async getLedger(@Req() req: any) {
-    return this.commissionsService.getLedger(req.user.id, req.user.role);
+  getLedger(@Req() req: any, @Query() query: any) {
+    return this.commissionsService.getLedger(req.user, query);
   }
 
-  @Get('rules')
-  async getRules() {
-    return this.commissionsService.getRules();
+  @Get('summary')
+  @Roles('super_admin', 'manager')
+  getSummary(@Req() req: any, @Query() query: any) {
+    return this.commissionsService.getSummary(query, req.user);
   }
 
-  @Roles(Role.SUPER_ADMIN)
-  @Post('rules')
-  async createRule(@Body() body: any, @Req() req: any) {
-    return this.commissionsService.createRule(body, req.user);
+  @Get('pending')
+  getPending(@Req() req: any) {
+    return this.commissionsService.getPendingPayouts(req.user);
   }
 
-  @Roles(Role.SUPER_ADMIN, Role.SENIOR_MANAGER)
+  @Get('school-wise')
+  @Roles('super_admin', 'manager')
+  getSchoolWise() {
+    return this.commissionsService.getSchoolWiseSummary();
+  }
+
+  @Get('jr/:userId')
+  getJrCommissions(@Param('userId') userId: string, @Req() req: any) {
+    return this.commissionsService.getUserCommissions(userId, 'jr', req.user);
+  }
+
+  @Get('sr/:userId')
+  @Roles('super_admin', 'manager')
+  getSrCommissions(@Param('userId') userId: string, @Req() req: any) {
+    return this.commissionsService.getUserCommissions(userId, 'sr', req.user);
+  }
+
+  @Post(':id/receive')
+  @Roles('super_admin')
+  receiveCommission(@Param('id') id: string, @Body() body: any, @Req() req: any) {
+    return this.commissionsService.markAsReceived(id, body, req.user);
+  }
+
   @Patch(':id/approve')
-  async approveCommissionPatch(@Param('id') id: string, @Req() req: any) {
+  @Roles('super_admin', 'manager')
+  approveCommission(@Param('id') id: string, @Req() req: any) {
     return this.commissionsService.approveCommission(id, req.user);
   }
 
-  @Roles(Role.SUPER_ADMIN, Role.SENIOR_MANAGER)
   @Post(':id/approve')
-  async approveCommissionPost(@Param('id') id: string, @Req() req: any) {
+  @Roles('super_admin', 'manager')
+  approveCommissionPost(@Param('id') id: string, @Req() req: any) {
     return this.commissionsService.approveCommission(id, req.user);
   }
 
-  @Roles(Role.SUPER_ADMIN)
+  @Post(':id/payout')
+  @Roles('super_admin')
+  payoutCommission(@Param('id') id: string, @Body() body: any, @Req() req: any) {
+    return this.commissionsService.markAsPaid(
+      id,
+      body.paymentReference || body.payment_reference || body.utrNumber,
+      body.paymentMode || body.payment_mode || 'NEFT/RTGS/IMPS',
+      req.user,
+      body,
+    );
+  }
+
   @Patch(':id/pay')
-  async markAsPaidPatch(
-    @Param('id') id: string,
-    @Body('paymentReference') paymentReference: string,
-    @Body('paymentMode') paymentMode: string,
-    @Req() req: any,
-  ) {
-    return this.commissionsService.markAsPaid(id, paymentReference, paymentMode, req.user);
+  @Roles('super_admin')
+  payCommissionPatch(@Param('id') id: string, @Body() body: any, @Req() req: any) {
+    return this.commissionsService.markAsPaid(
+      id,
+      body.paymentReference || body.payment_reference || body.utrNumber,
+      body.paymentMode || body.payment_mode || 'NEFT/RTGS/IMPS',
+      req.user,
+      body,
+    );
   }
 
-  @Roles(Role.SUPER_ADMIN)
   @Post(':id/pay')
-  async markAsPaidPost(
-    @Param('id') id: string,
-    @Body('paymentReference') paymentReference: string,
-    @Body('paymentMode') paymentMode: string,
-    @Req() req: any,
-  ) {
-    return this.commissionsService.markAsPaid(id, paymentReference, paymentMode, req.user);
+  @Roles('super_admin')
+  payCommission(@Param('id') id: string, @Body() body: any, @Req() req: any) {
+    return this.commissionsService.markAsPaid(
+      id,
+      body.paymentReference || body.payment_reference || body.utrNumber,
+      body.paymentMode || body.payment_mode || 'NEFT/RTGS/IMPS',
+      req.user,
+      body,
+    );
   }
 
-  @Roles(Role.SUPER_ADMIN, Role.SENIOR_MANAGER)
   @Post(':id/reverse')
-  async reverseCommission(
-    @Param('id') id: string,
-    @Body('reason') reason: string,
-    @Req() req: any,
-  ) {
-    return this.commissionsService.reverseCommission(id, reason, req.user);
+  @Roles('super_admin')
+  reverseCommission(@Param('id') id: string, @Body() body: any, @Req() req: any) {
+    return this.commissionsService.reverseCommission(
+      id,
+      body.reason,
+      req.user,
+      body.already_paid ?? body.alreadyPaid,
+    );
+  }
+
+  @Patch(':id/reverse')
+  @Roles('super_admin')
+  reverseCommissionPatch(@Param('id') id: string, @Body() body: any, @Req() req: any) {
+    return this.commissionsService.reverseCommission(
+      id,
+      body.reason,
+      req.user,
+      body.already_paid ?? body.alreadyPaid,
+    );
+  }
+
+  @Post(':id/adjust')
+  @Roles('super_admin')
+  adjustCommission(@Param('id') id: string, @Body() body: any, @Req() req: any) {
+    return this.commissionsService.createAdjustment(id, body, req.user);
   }
 }

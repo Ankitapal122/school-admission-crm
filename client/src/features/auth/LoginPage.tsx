@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useAuthStore, User } from '../../stores/authStore';
 import { apiCall } from '../../lib/api';
 import WireframeExplorer from '../wireframes/WireframeExplorer';
@@ -38,9 +38,20 @@ export default function LoginPage() {
   const [showNewPass, setShowNewPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
 
-  // 2FA State
+  // 2FA & Lockout State
   const [tempToken, setTempToken] = useState('');
-  const [tfaDigits, setTfaDigits] = useState(['4', '8', '2', '9', '1', '5']);
+  const [tfaDigits, setTfaDigits] = useState(['', '', '', '', '', '']);
+  const [showRecoveryInput, setShowRecoveryInput] = useState(false);
+  const [recoveryCode, setRecoveryCode] = useState('');
+  const [lockoutSeconds, setLockoutSeconds] = useState(0);
+
+  useEffect(() => {
+    if (lockoutSeconds <= 0) return;
+    const t = setInterval(() => {
+      setLockoutSeconds((s) => (s > 0 ? s - 1 : 0));
+    }, 1000);
+    return () => clearInterval(t);
+  }, [lockoutSeconds]);
 
   const otpRefs = [
     useRef<HTMLInputElement>(null),
@@ -123,20 +134,25 @@ export default function LoginPage() {
             : 'COUNSELLOR';
 
         const token = res.token || res.accessToken;
-        localStorage.setItem('crm_token', token);
         login(
           {
             id: res.user.id || res.user._id,
             email: res.user.email,
             fullName: res.user.name || res.user.fullName,
             role: roleEnum,
+            rawRole: res.user.backendRole || res.user.role,
             employeeId: res.user.employeeId,
           },
           token,
-          res.refreshToken
+          res.refreshToken,
+          rememberMe
         );
       }
     } catch (err: any) {
+      if (err?.status === 423 || err?.status === 429 || String(err?.message || '').toLowerCase().includes('locked')) {
+        const sec = Number(err?.data?.retryAfterSeconds || 900);
+        setLockoutSeconds(sec > 0 ? sec : 900);
+      }
       showToast(err.message || 'Invalid credentials.', 'danger');
     } finally {
       setIsLoading(false);
@@ -251,28 +267,40 @@ export default function LoginPage() {
     }
   };
 
-  const handleUseBackupCodeLogin = async () => {
-    const code = window.prompt('Enter one of your 8-digit backup recovery codes (e.g. UK26-A1B2-C3D4):');
-    if (!code) return;
+  const handleUseBackupCodeLogin = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const code = recoveryCode.trim();
+    if (!code) {
+      showToast('Enter an 8-character recovery code to continue.', 'danger');
+      return;
+    }
     try {
       const res = await apiCall('/auth/verify-2fa', 'POST', {
         tempToken,
-        code: code.trim(),
+        code,
         isRecoveryCode: true,
       });
       if (res.user) {
         const token = res.token || res.accessToken;
-        localStorage.setItem('crm_token', token);
+        const backendRole = String(res.user.backendRole || res.user.role || '').toUpperCase();
+        const roleEnum: User['role'] =
+          backendRole === 'SUPER_ADMIN' || backendRole === 'ADMIN'
+            ? 'SUPER_ADMIN'
+            : backendRole === 'SENIOR_MANAGER' || backendRole === 'MANAGER'
+            ? 'SENIOR_MANAGER'
+            : 'COUNSELLOR';
         login(
           {
             id: res.user.id || res.user._id,
             email: res.user.email,
             fullName: res.user.name || res.user.fullName,
-            role: 'SUPER_ADMIN',
+            role: roleEnum,
+            rawRole: res.user.backendRole || res.user.role,
             employeeId: res.user.employeeId,
           },
           token,
-          res.refreshToken
+          res.refreshToken,
+          rememberMe
         );
       }
     } catch (err: any) {
@@ -903,16 +931,45 @@ export default function LoginPage() {
             </form>
 
             <div style={{ marginTop: '16px' }}>
-              <a
-                href="#recovery"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleUseBackupCodeLogin();
-                }}
-                style={{ fontSize: '12px', color: 'var(--primary-blue)', fontWeight: 600 }}
-              >
-                Use 8-Character Recovery Code instead →
-              </a>
+              {!showRecoveryInput ? (
+                <a
+                  href="#recovery"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setShowRecoveryInput(true);
+                  }}
+                  style={{ fontSize: '12px', color: 'var(--primary-blue)', fontWeight: 600 }}
+                >
+                  Use 8-Character Recovery Code instead →
+                </a>
+              ) : (
+                <form
+                  onSubmit={handleUseBackupCodeLogin}
+                  style={{
+                    background: '#F8FAFC',
+                    padding: '12px',
+                    borderRadius: '8px',
+                    border: '1px solid #CBD5E1',
+                    textAlign: 'left',
+                  }}
+                >
+                  <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, marginBottom: '6px' }}>
+                    Backup Recovery Code
+                  </label>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="e.g. UK26-A1B2-C3D4"
+                      value={recoveryCode}
+                      onChange={(e) => setRecoveryCode(e.target.value)}
+                    />
+                    <button type="submit" className="btn btn-primary btn-sm">
+                      Verify
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
 
             <div style={{ marginTop: '18px' }}>
@@ -987,6 +1044,27 @@ export default function LoginPage() {
                 Login to Your Account
               </p>
             </div>
+
+            {lockoutSeconds > 0 && (
+              <div
+                style={{
+                  background: '#FEF2F2',
+                  border: '1px solid #FECACA',
+                  color: '#991B1B',
+                  padding: '10px 12px',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  marginBottom: '14px',
+                }}
+              >
+                🔒 Account temporarily locked due to failed attempts. Retry in{' '}
+                <strong>
+                  {Math.floor(lockoutSeconds / 60)}m {String(lockoutSeconds % 60).padStart(2, '0')}s
+                </strong>
+                .
+              </div>
+            )}
 
             <form onSubmit={handleLoginSubmit}>
               <input type="hidden" id="loginRole" value={selectedRole} />

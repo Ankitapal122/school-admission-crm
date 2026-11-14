@@ -1,0 +1,4693 @@
+[
+ {
+  "name": "Livingstone Foundation International School",
+  "slug": null,
+  "city": "Dimapur",
+  "state": "Nagaland",
+  "area": "Thahekhu/Kevijau Colony",
+  "locality": "Thahekhu/Kevijau Colony",
+  "pincode": "797112",
+  "type": "Boarding School",
+  "boarding_type": "Day Cum Boarding",
+  "boards": [
+   "CBSE"
+  ],
+  "classes": "LKG - 12",
+  "gender": "Co-ed",
+  "description": "About Us Established in 1998, Livingstone Foundation International School functions under the patronage of the Livingstone Foundation Society. It is a day-cum-boarding school, offering admissions from LKG to Class 12. The co-educational school is affiliated with the Central Board of Secondary Education and has an impressive student-teacher ratio of 12:1. Situated in Dimapur, the school comfortably houses 1500 students, around 500 of them being boarding students with superb residential facilities. Further, the school boasts a well-qualified set of educators from around the country- all dedicated to providing learning of the highest order. Livingstone Foundation International School emphasizes truly all-round development, believing that bookish knowledge is of no value solely if not complemented with overall growth and development. Going by the motto , the school strives to discover and fuel the talents of the students in preparation for a better tomorrow. “Learn to Serve”",
+  "about": "About Us Established in 1998, Livingstone Foundation International School functions under the patronage of the Livingstone Foundation Society. It is a day-cum-boarding school, offering admissions from LKG to Class 12. The co-educational school is affiliated with the Central Board of Secondary Education and has an impressive student-teacher ratio of 12:1. Situated in Dimapur, the school comfortably houses 1500 students, around 500 of them being boarding students with superb residential facilities. Further, the school boasts a well-qualified set of educators from around the country- all dedicated to providing learning of the highest order. Livingstone Foundation International School emphasizes truly all-round development, believing that bookish knowledge is of no value solely if not complemented with overall growth and development. Going by the motto , the school strives to discover and fuel the talents of the students in preparation for a better tomorrow. “Learn to Serve”",
+  "hostel": true,
+  "rating": null,
+  "reviews": null,
+  "fee_min": 12000,
+  "fee_max": 156000,
+  "address": "Thahekhu/Kevijau Colony, Dimapur, Dimapur, Nagaland - 797112",
+  "lat": 25.88780381427941,
+  "lng": 93.71854679325439,
+  "phone": "+91-9862556507",
+  "email": "livingstone.nagaland@gmail.com",
+  "website": "http://www.livingstonenagaland.com",
+  "social": {},
+  "logo": "https://d3bat55ebwjhsf.cloudfront.net/schools/logos/user_generic_school_user/56233289-4eff-427f-93da-b54c9513c99d-7568663a-4b_NbsHzyU.webp",
+  "images": [
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/cover/user_livingstone.nagaland%40gmail.com/36254931_2099019133692121_8883510716376547328_.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2024-07-02_15-51-08/gcfs/infra/images/DSC_4730.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2024-07-02_15-51-22/tncj/infra/images/2019-09-15.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2024-07-02_15-50-55/s8as/infra/images/2021-12-19.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2024-07-02_15-52-00/h0bw/infra/images/IMG_20181101_112044.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_livingstone.nagaland%40gmail.com/418531246_17991586280582896_179550521379155.webp"
+  ],
+  "facilities": [
+   "Day care",
+   "Meals",
+   "Transportation",
+   "Boys Hostel",
+   "Girls Hostel",
+   "Wifi",
+   "Smart Classes",
+   "Music",
+   "Drama",
+   "Art and Craft",
+   "Dance",
+   "Debate",
+   "Gardening",
+   "Picnics and excursion",
+   "Cafeteria/Canteen",
+   "Library/Reading Room",
+   "Playground",
+   "Computer Lab",
+   "Science Lab",
+   "Robotics Lab",
+   "CCTV",
+   "Medical Room",
+   "Indoor Sports",
+   "Outdoor Sports",
+   "Yoga"
+  ],
+  "facility_groups": {
+   "Advanced Facilities": [
+    "Day care",
+    "Meals",
+    "Transportation",
+    "Medical Room"
+   ],
+   "Boarding": [
+    "Boys Hostel",
+    "Girls Hostel"
+   ],
+   "Class": [
+    "Wifi",
+    "Smart Classes"
+   ],
+   "Extra Curricular": [
+    "Music",
+    "Drama",
+    "Art and Craft",
+    "Dance",
+    "Debate",
+    "Gardening",
+    "Picnics and excursion"
+   ],
+   "Infrastructure": [
+    "Cafeteria/Canteen",
+    "Library/Reading Room",
+    "Playground"
+   ],
+   "Lab": [
+    "Computer Lab",
+    "Science Lab",
+    "Robotics Lab"
+   ],
+   "Safety and Security": [
+    "CCTV"
+   ],
+   "Sports and Fitness": [
+    "Indoor Sports",
+    "Outdoor Sports",
+    "Yoga"
+   ]
+  },
+  "founded": 1988,
+  "medium": "English",
+  "academic_session": "April to March",
+  "student_teacher_ratio": "12:1",
+  "campus_size": null,
+  "languages": [
+   "English",
+   "Hindi"
+  ],
+  "food_options": null,
+  "verified": null,
+  "page_last_updated": "2026-04-30",
+  "affiliation_no": null,
+  "school_timing": null,
+  "student_count": null,
+  "teacher_count": null,
+  "source_site": "ezyschooling.com",
+  "source_url": "https://ezyschooling.com/school/livingstone-foundation-international-school-dimapur-nagaland",
+  "latest_fee_session": "2025-2026",
+  "current_admission_session": "2027-2028",
+  "class_fees": [
+   {
+    "class_name": "LKG",
+    "monthly_fee": null,
+    "annual_fee": 12000,
+    "one_time_fee": 5000,
+    "first_year_total": 17000,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 12000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 5000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "UKG",
+    "monthly_fee": null,
+    "annual_fee": 12000,
+    "one_time_fee": 5000,
+    "first_year_total": 17000,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 12000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 5000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 1",
+    "monthly_fee": null,
+    "annual_fee": 120000,
+    "one_time_fee": 10000,
+    "first_year_total": 130000,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Hostel Charges",
+      "frequency": "Annually",
+      "amount": 120000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 10000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 2",
+    "monthly_fee": null,
+    "annual_fee": 120000,
+    "one_time_fee": 10000,
+    "first_year_total": 130000,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Hostel Charges",
+      "frequency": "Annually",
+      "amount": 120000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 10000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 3",
+    "monthly_fee": null,
+    "annual_fee": 120000,
+    "one_time_fee": 10000,
+    "first_year_total": 130000,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Hostel Charges",
+      "frequency": "Annually",
+      "amount": 120000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 10000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 4",
+    "monthly_fee": null,
+    "annual_fee": 120000,
+    "one_time_fee": 10000,
+    "first_year_total": 130000,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Hostel Charges",
+      "frequency": "Annually",
+      "amount": 120000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 10000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 5",
+    "monthly_fee": null,
+    "annual_fee": 120000,
+    "one_time_fee": 10000,
+    "first_year_total": 130000,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Hostel Charges",
+      "frequency": "Annually",
+      "amount": 120000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 10000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 6",
+    "monthly_fee": null,
+    "annual_fee": 144000,
+    "one_time_fee": 22000,
+    "first_year_total": 166000,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Hostel Charges",
+      "frequency": "Annually",
+      "amount": 144000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 22000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 7",
+    "monthly_fee": null,
+    "annual_fee": 144000,
+    "one_time_fee": 22000,
+    "first_year_total": 166000,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Hostel Charges",
+      "frequency": "Annually",
+      "amount": 144000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 22000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 8",
+    "monthly_fee": null,
+    "annual_fee": 144000,
+    "one_time_fee": 22000,
+    "first_year_total": 166000,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Hostel Charges",
+      "frequency": "Annually",
+      "amount": 144000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 22000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 9",
+    "monthly_fee": null,
+    "annual_fee": 156000,
+    "one_time_fee": 22000,
+    "first_year_total": 178000,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Hostel Charges",
+      "frequency": "Annually",
+      "amount": 156000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 22000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 10",
+    "monthly_fee": null,
+    "annual_fee": 156000,
+    "one_time_fee": 22000,
+    "first_year_total": 178000,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Hostel Charges",
+      "frequency": "Annually",
+      "amount": 156000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 22000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 11",
+    "monthly_fee": null,
+    "annual_fee": 152400,
+    "one_time_fee": 27000,
+    "first_year_total": 179400,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Hostel Charges",
+      "frequency": "Annually",
+      "amount": 152400,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 27000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 12",
+    "monthly_fee": null,
+    "annual_fee": 152400,
+    "one_time_fee": 27000,
+    "first_year_total": 179400,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Hostel Charges",
+      "frequency": "Annually",
+      "amount": 152400,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 27000,
+      "refundable": null
+     }
+    ]
+   }
+  ],
+  "admissions": [
+   {
+    "class_name": "LKG",
+    "session": "2026-2027",
+    "date_type": "Last Date",
+    "date_text": "Nov 15, 2026",
+    "date_iso": "2026-11-15",
+    "status": "Ongoing",
+    "application_fee": 500,
+    "application_fee_text": "₹500"
+   },
+   {
+    "class_name": "UKG",
+    "session": "2026-2027",
+    "date_type": "Last Date",
+    "date_text": "Nov 15, 2026",
+    "date_iso": "2026-11-15",
+    "status": "Ongoing",
+    "application_fee": 500,
+    "application_fee_text": "₹500"
+   },
+   {
+    "class_name": "Class 1",
+    "session": "2026-2027",
+    "date_type": "Last Date",
+    "date_text": "Nov 15, 2026",
+    "date_iso": "2026-11-15",
+    "status": "Ongoing",
+    "application_fee": 500,
+    "application_fee_text": "₹500"
+   },
+   {
+    "class_name": "Class 2",
+    "session": "2026-2027",
+    "date_type": "Last Date",
+    "date_text": "Nov 15, 2026",
+    "date_iso": "2026-11-15",
+    "status": "Ongoing",
+    "application_fee": 500,
+    "application_fee_text": "₹500"
+   },
+   {
+    "class_name": "Class 3",
+    "session": "2026-2027",
+    "date_type": "Last Date",
+    "date_text": "Nov 15, 2026",
+    "date_iso": "2026-11-15",
+    "status": "Ongoing",
+    "application_fee": 500,
+    "application_fee_text": "₹500"
+   },
+   {
+    "class_name": "Class 4",
+    "session": "2026-2027",
+    "date_type": "Last Date",
+    "date_text": "Nov 15, 2026",
+    "date_iso": "2026-11-15",
+    "status": "Ongoing",
+    "application_fee": 500,
+    "application_fee_text": "₹500"
+   },
+   {
+    "class_name": "Class 5",
+    "session": "2026-2027",
+    "date_type": "Last Date",
+    "date_text": "Nov 15, 2026",
+    "date_iso": "2026-11-15",
+    "status": "Ongoing",
+    "application_fee": 500,
+    "application_fee_text": "₹500"
+   },
+   {
+    "class_name": "Class 6",
+    "session": "2026-2027",
+    "date_type": "Last Date",
+    "date_text": "Nov 15, 2026",
+    "date_iso": "2026-11-15",
+    "status": "Ongoing",
+    "application_fee": 500,
+    "application_fee_text": "₹500"
+   },
+   {
+    "class_name": "Class 7",
+    "session": "2026-2027",
+    "date_type": "Last Date",
+    "date_text": "Nov 15, 2026",
+    "date_iso": "2026-11-15",
+    "status": "Ongoing",
+    "application_fee": 500,
+    "application_fee_text": "₹500"
+   },
+   {
+    "class_name": "Class 8",
+    "session": "2026-2027",
+    "date_type": "Last Date",
+    "date_text": "Nov 15, 2026",
+    "date_iso": "2026-11-15",
+    "status": "Ongoing",
+    "application_fee": 500,
+    "application_fee_text": "₹500"
+   },
+   {
+    "class_name": "Class 9",
+    "session": "2026-2027",
+    "date_type": "Last Date",
+    "date_text": "Nov 15, 2026",
+    "date_iso": "2026-11-15",
+    "status": "Ongoing",
+    "application_fee": 500,
+    "application_fee_text": "₹500"
+   },
+   {
+    "class_name": "Class 10",
+    "session": "2026-2027",
+    "date_type": "Application Date",
+    "date_text": "Not Disclosed",
+    "date_iso": null,
+    "status": "Closed",
+    "application_fee": null,
+    "application_fee_text": null
+   },
+   {
+    "class_name": "Class 11",
+    "session": "2026-2027",
+    "date_type": "Last Date",
+    "date_text": "Nov 15, 2026",
+    "date_iso": "2026-11-15",
+    "status": "Ongoing",
+    "application_fee": 500,
+    "application_fee_text": "₹500"
+   },
+   {
+    "class_name": "Class 12",
+    "session": "2026-2027",
+    "date_type": "Application Date",
+    "date_text": "Not Disclosed",
+    "date_iso": null,
+    "status": "Closed",
+    "application_fee": null,
+    "application_fee_text": null
+   },
+   {
+    "class_name": "LKG",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Dec 31, 2026",
+    "date_iso": "2026-12-31",
+    "status": "Ongoing",
+    "application_fee": 500,
+    "application_fee_text": "₹500"
+   },
+   {
+    "class_name": "UKG",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Dec 31, 2026",
+    "date_iso": "2026-12-31",
+    "status": "Ongoing",
+    "application_fee": 500,
+    "application_fee_text": "₹500"
+   },
+   {
+    "class_name": "Class 1",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Dec 31, 2026",
+    "date_iso": "2026-12-31",
+    "status": "Ongoing",
+    "application_fee": 500,
+    "application_fee_text": "₹500"
+   },
+   {
+    "class_name": "Class 2",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Dec 31, 2026",
+    "date_iso": "2026-12-31",
+    "status": "Ongoing",
+    "application_fee": 500,
+    "application_fee_text": "₹500"
+   },
+   {
+    "class_name": "Class 3",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Dec 31, 2026",
+    "date_iso": "2026-12-31",
+    "status": "Ongoing",
+    "application_fee": 500,
+    "application_fee_text": "₹500"
+   },
+   {
+    "class_name": "Class 4",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Dec 31, 2026",
+    "date_iso": "2026-12-31",
+    "status": "Ongoing",
+    "application_fee": 500,
+    "application_fee_text": "₹500"
+   },
+   {
+    "class_name": "Class 5",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Dec 31, 2026",
+    "date_iso": "2026-12-31",
+    "status": "Ongoing",
+    "application_fee": 500,
+    "application_fee_text": "₹500"
+   },
+   {
+    "class_name": "Class 6",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Dec 31, 2026",
+    "date_iso": "2026-12-31",
+    "status": "Ongoing",
+    "application_fee": 500,
+    "application_fee_text": "₹500"
+   },
+   {
+    "class_name": "Class 7",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Dec 31, 2026",
+    "date_iso": "2026-12-31",
+    "status": "Ongoing",
+    "application_fee": 500,
+    "application_fee_text": "₹500"
+   },
+   {
+    "class_name": "Class 8",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Dec 31, 2026",
+    "date_iso": "2026-12-31",
+    "status": "Ongoing",
+    "application_fee": 500,
+    "application_fee_text": "₹500"
+   },
+   {
+    "class_name": "Class 9",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Dec 31, 2026",
+    "date_iso": "2026-12-31",
+    "status": "Ongoing",
+    "application_fee": 500,
+    "application_fee_text": "₹500"
+   },
+   {
+    "class_name": "Class 10",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Mar 31, 2027",
+    "date_iso": "2027-03-31",
+    "status": "Yet to Begin",
+    "application_fee": null,
+    "application_fee_text": "₹0"
+   },
+   {
+    "class_name": "Class 11",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Dec 31, 2026",
+    "date_iso": "2026-12-31",
+    "status": "Ongoing",
+    "application_fee": 500,
+    "application_fee_text": "₹500"
+   },
+   {
+    "class_name": "Class 12",
+    "session": "2027-2028",
+    "date_type": "Last Date",
+    "date_text": "Mar 31, 2027",
+    "date_iso": "2027-03-31",
+    "status": "Yet to Begin",
+    "application_fee": null,
+    "application_fee_text": "₹0"
+   }
+  ],
+  "warnings": [
+   "fees are for session 2025-2026, but admissions are open for 2027-2028 (site has not updated its fees)"
+  ],
+  "mongo_extra": {
+   "scraped_at": "2026-10-27",
+   "scraped_from": "ezyschooling.com",
+   "ezy_slug": "livingstone-foundation-international-school-dimapur-nagaland",
+   "fee_data_sessions": [
+    "2025-2026"
+   ],
+   "page_heading_session": "2027-2028",
+   "listing_fee_range": null,
+   "boarding_type_raw": "Day Cum Boarding",
+   "sessions_clicked": [
+    "2026-2027",
+    "2027-2028"
+   ],
+   "all_facts": {
+    "Board": "CBSE",
+    "Gender": "Coed",
+    "Classes": "LKG - 12 Class",
+    "Academic Session": "April to March",
+    "Medium": "English",
+    "Student Teacher Ratio": "12:1",
+    "Day/Boarding": "Day Cum Boarding"
+   },
+   "sources": {
+    "name": "listing card",
+    "city": "breadcrumb",
+    "state": "listing card",
+    "area": "address: text before the city (the page has no separate area field)",
+    "locality": "address: text before the city (the page has no separate area field)",
+    "type": "Quick Facts: Day/Boarding",
+    "boarding_type": "Quick Facts: Day/Boarding",
+    "address": "page header",
+    "pincode": "page header",
+    "classes": "Quick Facts",
+    "boards": "Quick Facts",
+    "gender": "Quick Facts",
+    "medium": "Quick Facts",
+    "academic_session": "Quick Facts",
+    "student_teacher_ratio": "Quick Facts",
+    "founded": "page header",
+    "class_fees": "fees-structure page (site-printed numbers; fee_session = session stated by the page or clicked button)",
+    "fee_min": "lowest / highest annual fee of the newest fee session (2025-2026)",
+    "fee_max": "lowest / highest annual fee of the newest fee session (2025-2026)",
+    "admissions": "Fill Admission Form table (per session)",
+    "email": "Address And Contact block",
+    "website": "Address And Contact block",
+    "phone": "page data next to the e-mail",
+    "about": "About Us section",
+    "description": "About Us section",
+    "facilities": "Facilities icons marked yes (grouped by the page section)",
+    "facility_groups": "Facilities icons marked yes (grouped by the page section)",
+    "hostel": "Facilities icons (Boys/Girls Hostel)",
+    "lat_lng": "school's own Google-Maps embed",
+    "logo": "image with alt \"<school> Logo\"",
+    "images": "cover + \"<school> Gallery\" images",
+    "languages": "Languages Taught section",
+    "page_last_updated": "page footer"
+   },
+   "facilities_not_available": [
+    "Alumni Association",
+    "AC Classes",
+    "Ramps",
+    "Washrooms",
+    "Elevators",
+    "Auditorium/Media Room",
+    "Language Lab",
+    "GPS Bus Tracking App",
+    "Student Tracking App",
+    "Swimming Pool",
+    "Skating",
+    "Horse Riding",
+    "Karate",
+    "Taekwondo",
+    "Gym"
+   ]
+  }
+ },
+ {
+  "name": "Delhi Public School",
+  "slug": null,
+  "city": "Dimapur",
+  "state": "Nagaland",
+  "area": "21/2 Mile, Darogapathar",
+  "locality": "Darogapathar",
+  "pincode": "793001",
+  "type": "Boarding School",
+  "boarding_type": "Full Boarding",
+  "boards": [
+   "CBSE"
+  ],
+  "classes": "3 - 12",
+  "gender": "Co-ed",
+  "description": "About Us Delhi Public Schools, with the motto \"Service Before Self\", have been serving the Society in the field of education for the last 56 years. There are presently as many as 160 schools under its aegis, both in and outside India. The growing number of schools under this umbrella signifies how the need to provide meaningful education, to a large number of children, desirous of growing into educated and liberated human beings, has been fulfilled. Founded and managed by distinguished members and luminaries of society, hailed from the various walks of life, the organization has always guided its member schools on the path of progress with their visionary approach & lofty ideas. Consequently, Delhi Public Schools have become significant portals of learning and growth for young minds. Our aim is to provide an all round development and a sound moral base. Fostering character building and nurturing the inquisitive spirit of children, encouraging scientific temperament & strengthening social bonds, are our constant endeavors. Surging ahead with a spirit of healthy competition, balancing a successful career teamed with a contented life, is the gift we give to all our children. Guiding us in this effort of ours is Mr. V. K. Shunglu, Chairman DPS Society, who is our constant beacon and source of strength.",
+  "about": "About Us Delhi Public Schools, with the motto \"Service Before Self\", have been serving the Society in the field of education for the last 56 years. There are presently as many as 160 schools under its aegis, both in and outside India. The growing number of schools under this umbrella signifies how the need to provide meaningful education, to a large number of children, desirous of growing into educated and liberated human beings, has been fulfilled. Founded and managed by distinguished members and luminaries of society, hailed from the various walks of life, the organization has always guided its member schools on the path of progress with their visionary approach & lofty ideas. Consequently, Delhi Public Schools have become significant portals of learning and growth for young minds. Our aim is to provide an all round development and a sound moral base. Fostering character building and nurturing the inquisitive spirit of children, encouraging scientific temperament & strengthening social bonds, are our constant endeavors. Surging ahead with a spirit of healthy competition, balancing a successful career teamed with a contented life, is the gift we give to all our children. Guiding us in this effort of ours is Mr. V. K. Shunglu, Chairman DPS Society, who is our constant beacon and source of strength.",
+  "hostel": true,
+  "rating": null,
+  "reviews": null,
+  "fee_min": 165000,
+  "fee_max": 277000,
+  "address": "21/2 Mile, Darogapathar, Dimapur, Dimapur, Dimapur, Nagaland - 793001",
+  "lat": 25.891254424287435,
+  "lng": 93.75517130006236,
+  "phone": null,
+  "email": null,
+  "website": "http://www.dpsdimapur.org",
+  "social": {},
+  "logo": "https://d3bat55ebwjhsf.cloudfront.net/schools/logos/user_generic_school_user/00610051-ddb5-4858-ade2-7f3edc57a65a-258b9835-4b_3TkFtp4.webp",
+  "images": [
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/cover/5238/user_tech.generated.5238%40ezyschooling.com/2020-10-23.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2024-07-02_18-17-31/1gox/infra/images/download_-_2022-05-03T152149.717_yXZ4lwe.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/5238/user_tech.generated.5238%40ezyschooling.com/2024-07-02_18-17-37/download_-_2.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/5238/user_tech.generated.5238%40ezyschooling.com/2024-07-02_18-16-57/2018-11-02_1.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/5238/user_tech.generated.5238%40ezyschooling.com/2024-07-02_18-16-52/2018-11-02.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/user_generic_school_user/download_-_2022-05-03T152146.292_KSLT5We.jpeg"
+  ],
+  "facilities": [
+   "Transportation",
+   "Boys Hostel",
+   "Girls Hostel",
+   "Wifi",
+   "Smart Classes",
+   "Art and Craft",
+   "Dance",
+   "Drama",
+   "Music",
+   "Picnics and excursion",
+   "Debate",
+   "Gardening",
+   "Cafeteria/Canteen",
+   "Library/Reading Room",
+   "Auditorium/Media Room",
+   "Computer Lab",
+   "Science Lab",
+   "Robotics Lab",
+   "CCTV",
+   "Medical Room",
+   "Indoor Sports",
+   "Outdoor Sports",
+   "Yoga"
+  ],
+  "facility_groups": {
+   "Advanced Facilities": [
+    "Transportation",
+    "Medical Room"
+   ],
+   "Boarding": [
+    "Boys Hostel",
+    "Girls Hostel"
+   ],
+   "Class": [
+    "Wifi",
+    "Smart Classes"
+   ],
+   "Extra Curricular": [
+    "Art and Craft",
+    "Dance",
+    "Drama",
+    "Music",
+    "Picnics and excursion",
+    "Debate",
+    "Gardening"
+   ],
+   "Infrastructure": [
+    "Cafeteria/Canteen",
+    "Library/Reading Room",
+    "Auditorium/Media Room"
+   ],
+   "Lab": [
+    "Computer Lab",
+    "Science Lab",
+    "Robotics Lab"
+   ],
+   "Safety and Security": [
+    "CCTV"
+   ],
+   "Sports and Fitness": [
+    "Indoor Sports",
+    "Outdoor Sports",
+    "Yoga"
+   ]
+  },
+  "founded": 2003,
+  "medium": "English",
+  "academic_session": "April to March",
+  "student_teacher_ratio": "30:1",
+  "campus_size": null,
+  "languages": [
+   "English",
+   "Hindi",
+   "Sanskrit"
+  ],
+  "food_options": null,
+  "verified": null,
+  "page_last_updated": null,
+  "affiliation_no": null,
+  "school_timing": null,
+  "student_count": null,
+  "teacher_count": null,
+  "source_site": "ezyschooling.com",
+  "source_url": "https://ezyschooling.com/school/delhi-public-school-dps-darogapathar-dimapur",
+  "latest_fee_session": "2024-2025",
+  "current_admission_session": null,
+  "class_fees": [
+   {
+    "class_name": "Class 3",
+    "monthly_fee": null,
+    "annual_fee": 165000,
+    "one_time_fee": 21000,
+    "first_year_total": 186000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Annually",
+      "amount": 12000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Learning Kit Fees",
+      "frequency": "Annually",
+      "amount": 5000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Caution Money",
+      "frequency": "Onetime",
+      "amount": 6000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Activity Fees",
+      "frequency": "Annually",
+      "amount": 12000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Boarding Fees",
+      "frequency": "Annually",
+      "amount": 136000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 4",
+    "monthly_fee": null,
+    "annual_fee": 165000,
+    "one_time_fee": 21000,
+    "first_year_total": 186000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Annually",
+      "amount": 12000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Learning Kit Fees",
+      "frequency": "Annually",
+      "amount": 5000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Caution Money",
+      "frequency": "Onetime",
+      "amount": 6000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Activity Fees",
+      "frequency": "Annually",
+      "amount": 12000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Boarding Fees",
+      "frequency": "Annually",
+      "amount": 136000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 5",
+    "monthly_fee": null,
+    "annual_fee": 165000,
+    "one_time_fee": 21000,
+    "first_year_total": 186000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Annually",
+      "amount": 12000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Learning Kit Fees",
+      "frequency": "Annually",
+      "amount": 5000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Caution Money",
+      "frequency": "Onetime",
+      "amount": 6000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Activity Fees",
+      "frequency": "Annually",
+      "amount": 12000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Boarding Fees",
+      "frequency": "Annually",
+      "amount": 136000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 6",
+    "monthly_fee": null,
+    "annual_fee": 165000,
+    "one_time_fee": 21000,
+    "first_year_total": 186000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Annually",
+      "amount": 12000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Learning Kit Fees",
+      "frequency": "Annually",
+      "amount": 5000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Caution Money",
+      "frequency": "Onetime",
+      "amount": 6000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Activity Fees",
+      "frequency": "Annually",
+      "amount": 12000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Boarding Fees",
+      "frequency": "Annually",
+      "amount": 136000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 7",
+    "monthly_fee": null,
+    "annual_fee": 165000,
+    "one_time_fee": 21000,
+    "first_year_total": 186000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Annually",
+      "amount": 12000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Learning Kit Fees",
+      "frequency": "Annually",
+      "amount": 5000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Caution Money",
+      "frequency": "Onetime",
+      "amount": 6000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Activity Fees",
+      "frequency": "Annually",
+      "amount": 12000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Boarding Fees",
+      "frequency": "Annually",
+      "amount": 136000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 8",
+    "monthly_fee": null,
+    "annual_fee": 165000,
+    "one_time_fee": 21000,
+    "first_year_total": 186000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Annually",
+      "amount": 12000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Learning Kit Fees",
+      "frequency": "Annually",
+      "amount": 5000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Caution Money",
+      "frequency": "Onetime",
+      "amount": 6000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Activity Fees",
+      "frequency": "Annually",
+      "amount": 12000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Boarding Fees",
+      "frequency": "Annually",
+      "amount": 136000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 9",
+    "monthly_fee": null,
+    "annual_fee": 165000,
+    "one_time_fee": 21000,
+    "first_year_total": 186000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Annually",
+      "amount": 12000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Learning Kit Fees",
+      "frequency": "Annually",
+      "amount": 5000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Caution Money",
+      "frequency": "Onetime",
+      "amount": 6000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Activity Fees",
+      "frequency": "Annually",
+      "amount": 12000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Boarding Fees",
+      "frequency": "Annually",
+      "amount": 136000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 10",
+    "monthly_fee": null,
+    "annual_fee": 165000,
+    "one_time_fee": 21000,
+    "first_year_total": 186000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Annually",
+      "amount": 12000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Learning Kit Fees",
+      "frequency": "Annually",
+      "amount": 5000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Caution Money",
+      "frequency": "Onetime",
+      "amount": 6000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Activity Fees",
+      "frequency": "Annually",
+      "amount": 12000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Boarding Fees",
+      "frequency": "Annually",
+      "amount": 136000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 11",
+    "monthly_fee": null,
+    "annual_fee": 277000,
+    "one_time_fee": 16000,
+    "first_year_total": 293000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Onetime",
+      "amount": 6000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 133000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 10000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 144000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 12",
+    "monthly_fee": null,
+    "annual_fee": 165000,
+    "one_time_fee": 21000,
+    "first_year_total": 186000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Annually",
+      "amount": 12000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Learning Kit Fees",
+      "frequency": "Annually",
+      "amount": 5000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Caution Money",
+      "frequency": "Onetime",
+      "amount": 6000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 15000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Activity Fees",
+      "frequency": "Annually",
+      "amount": 12000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Boarding Fees",
+      "frequency": "Annually",
+      "amount": 136000,
+      "refundable": null
+     }
+    ]
+   }
+  ],
+  "admissions": [],
+  "warnings": [
+   "no admission / application-fee table on the page",
+   "no phone on the overview page",
+   "no email on the overview page"
+  ],
+  "mongo_extra": {
+   "scraped_at": "2026-10-27",
+   "scraped_from": "ezyschooling.com",
+   "ezy_slug": "delhi-public-school-dps-darogapathar-dimapur",
+   "fee_data_sessions": [
+    "2024-2025"
+   ],
+   "page_heading_session": "2027-2028",
+   "listing_fee_range": null,
+   "boarding_type_raw": "Full Boarding",
+   "sessions_clicked": [
+    "2026-2027",
+    "2027-2028"
+   ],
+   "all_facts": {
+    "Board": "CBSE",
+    "Gender": "Coed",
+    "Classes": "3 - 12 Class",
+    "Academic Session": "April to March",
+    "Medium": "English",
+    "Student Teacher Ratio": "30:1",
+    "Day/Boarding": "Full Boarding"
+   },
+   "sources": {
+    "name": "listing card",
+    "city": "breadcrumb",
+    "state": "listing card",
+    "area": "address: text before the city (the page has no separate area field)",
+    "locality": "address: text before the city (the page has no separate area field)",
+    "type": "Quick Facts: Day/Boarding",
+    "boarding_type": "Quick Facts: Day/Boarding",
+    "address": "page header",
+    "pincode": "page header",
+    "classes": "Quick Facts",
+    "boards": "Quick Facts",
+    "gender": "Quick Facts",
+    "medium": "Quick Facts",
+    "academic_session": "Quick Facts",
+    "student_teacher_ratio": "Quick Facts",
+    "founded": "page header",
+    "class_fees": "fees-structure page (site-printed numbers; fee_session = session stated by the page or clicked button)",
+    "fee_min": "lowest / highest annual fee of the newest fee session (2024-2025)",
+    "fee_max": "lowest / highest annual fee of the newest fee session (2024-2025)",
+    "website": "Address And Contact block",
+    "about": "About Us section",
+    "description": "About Us section",
+    "facilities": "Facilities icons marked yes (grouped by the page section)",
+    "facility_groups": "Facilities icons marked yes (grouped by the page section)",
+    "hostel": "Facilities icons (Boys/Girls Hostel)",
+    "lat_lng": "school's own Google-Maps embed",
+    "logo": "image with alt \"<school> Logo\"",
+    "images": "cover + \"<school> Gallery\" images",
+    "languages": "Languages Taught section"
+   },
+   "facilities_not_available": [
+    "Alumni Association",
+    "Day care",
+    "Meals",
+    "AC Classes",
+    "Ramps",
+    "Washrooms",
+    "Elevators",
+    "Playground",
+    "GPS Bus Tracking App",
+    "Student Tracking App",
+    "Karate",
+    "Taekwondo",
+    "Gym",
+    "Swimming Pool",
+    "Skating",
+    "Horse Riding"
+   ]
+  }
+ },
+ {
+  "name": "Hollotoli School",
+  "slug": null,
+  "city": "Dimapur",
+  "state": "Nagaland",
+  "area": "2 ½ Mile, Nh-29",
+  "locality": "Nh-29",
+  "pincode": "793001",
+  "type": "Boarding School",
+  "boarding_type": "Full Boarding",
+  "boards": [
+   "CBSE"
+  ],
+  "classes": "3 - 12",
+  "gender": "Co-ed",
+  "description": "About Us Hollotoli School is a Private, Senior Secondary school and also a Boarding School situated at Dimapur, Nagaland, East India.",
+  "about": "About Us Hollotoli School is a Private, Senior Secondary school and also a Boarding School situated at Dimapur, Nagaland, East India.",
+  "hostel": true,
+  "rating": null,
+  "reviews": null,
+  "fee_min": 221000,
+  "fee_max": 231000,
+  "address": "Padum Pukhuri,2 ½ Mile, Nh-29, Dimapur, Dimapur, Nagaland - 793001",
+  "lat": 25.901304077773755,
+  "lng": 93.75370823558188,
+  "phone": "+91-9971516996",
+  "email": "hollotolischool@gmail.com",
+  "website": "http://www.hollotolischool.org/",
+  "social": {},
+  "logo": "https://d3bat55ebwjhsf.cloudfront.net/schools/logos/user_generic_school_user/b3012171-be29-4752-861c-1f7b5285d947-a3de7252-4b_GjmbyWG.webp",
+  "images": [
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/cover/5267/user_root_user%40ezy.com/About-Us-1536x1024.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2024-07-02_17-10-13/yscx/infra/images/Auditorium-1-1024x682.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2024-07-02_17-08-31/r3bw/infra/images/Library-1-1024x683.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2024-07-02_16-56-39/ytb3/infra/images/PXL_20210407_001143841.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2024-07-02_17-05-54/7g9p/infra/images/1-1024x768.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2024-07-02_17-07-21/bnle/infra/images/Lab-1.webp"
+  ],
+  "facilities": [
+   "Transportation",
+   "Boys Hostel",
+   "Girls Hostel",
+   "AC Classes",
+   "Wifi",
+   "Smart Classes",
+   "Art and Craft",
+   "Dance",
+   "Drama",
+   "Music",
+   "Picnics and excursion",
+   "Debate",
+   "Gardening",
+   "Cafeteria/Canteen",
+   "Playground",
+   "Auditorium/Media Room",
+   "Computer Lab",
+   "Science Lab",
+   "CCTV",
+   "Medical Room",
+   "Indoor Sports",
+   "Outdoor Sports",
+   "Yoga"
+  ],
+  "facility_groups": {
+   "Advanced Facilities": [
+    "Transportation",
+    "Medical Room"
+   ],
+   "Boarding": [
+    "Boys Hostel",
+    "Girls Hostel"
+   ],
+   "Class": [
+    "AC Classes",
+    "Wifi",
+    "Smart Classes"
+   ],
+   "Extra Curricular": [
+    "Art and Craft",
+    "Dance",
+    "Drama",
+    "Music",
+    "Picnics and excursion",
+    "Debate",
+    "Gardening"
+   ],
+   "Infrastructure": [
+    "Cafeteria/Canteen",
+    "Playground",
+    "Auditorium/Media Room"
+   ],
+   "Lab": [
+    "Computer Lab",
+    "Science Lab"
+   ],
+   "Safety and Security": [
+    "CCTV"
+   ],
+   "Sports and Fitness": [
+    "Indoor Sports",
+    "Outdoor Sports",
+    "Yoga"
+   ]
+  },
+  "founded": 2006,
+  "medium": "English",
+  "academic_session": "April to March",
+  "student_teacher_ratio": "30:1",
+  "campus_size": null,
+  "languages": [],
+  "food_options": null,
+  "verified": null,
+  "page_last_updated": null,
+  "affiliation_no": null,
+  "school_timing": null,
+  "student_count": null,
+  "teacher_count": null,
+  "source_site": "ezyschooling.com",
+  "source_url": "https://ezyschooling.com/school/hollotoli-school-dimapur-nagaland",
+  "latest_fee_session": "2024-2025",
+  "current_admission_session": null,
+  "class_fees": [
+   {
+    "class_name": "Class 3",
+    "monthly_fee": null,
+    "annual_fee": 221000,
+    "one_time_fee": null,
+    "first_year_total": 221000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 221000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 4",
+    "monthly_fee": null,
+    "annual_fee": 221000,
+    "one_time_fee": null,
+    "first_year_total": 221000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 221000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 5",
+    "monthly_fee": null,
+    "annual_fee": 221000,
+    "one_time_fee": null,
+    "first_year_total": 221000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 221000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 6",
+    "monthly_fee": null,
+    "annual_fee": 226000,
+    "one_time_fee": null,
+    "first_year_total": 226000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 226000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 7",
+    "monthly_fee": null,
+    "annual_fee": 226000,
+    "one_time_fee": null,
+    "first_year_total": 226000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 226000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 8",
+    "monthly_fee": null,
+    "annual_fee": 226000,
+    "one_time_fee": null,
+    "first_year_total": 226000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 226000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 9",
+    "monthly_fee": null,
+    "annual_fee": 226000,
+    "one_time_fee": null,
+    "first_year_total": 226000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 226000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 10",
+    "monthly_fee": null,
+    "annual_fee": 226000,
+    "one_time_fee": null,
+    "first_year_total": 226000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 226000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 11",
+    "monthly_fee": null,
+    "annual_fee": 231000,
+    "one_time_fee": null,
+    "first_year_total": 231000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 231000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 12",
+    "monthly_fee": null,
+    "annual_fee": 231000,
+    "one_time_fee": null,
+    "first_year_total": 231000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 231000,
+      "refundable": null
+     }
+    ]
+   }
+  ],
+  "admissions": [],
+  "warnings": [
+   "no admission / application-fee table on the page"
+  ],
+  "mongo_extra": {
+   "scraped_at": "2026-10-27",
+   "scraped_from": "ezyschooling.com",
+   "ezy_slug": "hollotoli-school-dimapur-nagaland",
+   "fee_data_sessions": [
+    "2024-2025"
+   ],
+   "page_heading_session": "2027-2028",
+   "listing_fee_range": null,
+   "boarding_type_raw": "Full Boarding",
+   "sessions_clicked": [
+    "2026-2027",
+    "2027-2028"
+   ],
+   "all_facts": {
+    "Board": "CBSE",
+    "Gender": "Coed",
+    "Classes": "3 - 12 Class",
+    "Academic Session": "April to March",
+    "Medium": "English",
+    "Student Teacher Ratio": "30:1",
+    "Day/Boarding": "Full Boarding"
+   },
+   "sources": {
+    "name": "listing card",
+    "city": "breadcrumb",
+    "state": "listing card",
+    "area": "address: text before the city (the page has no separate area field)",
+    "locality": "address: text before the city (the page has no separate area field)",
+    "type": "Quick Facts: Day/Boarding",
+    "boarding_type": "Quick Facts: Day/Boarding",
+    "address": "page header",
+    "pincode": "page header",
+    "classes": "Quick Facts",
+    "boards": "Quick Facts",
+    "gender": "Quick Facts",
+    "medium": "Quick Facts",
+    "academic_session": "Quick Facts",
+    "student_teacher_ratio": "Quick Facts",
+    "founded": "page header",
+    "class_fees": "fees-structure page (site-printed numbers; fee_session = session stated by the page or clicked button)",
+    "fee_min": "lowest / highest annual fee of the newest fee session (2024-2025)",
+    "fee_max": "lowest / highest annual fee of the newest fee session (2024-2025)",
+    "email": "Address And Contact block",
+    "website": "Address And Contact block",
+    "phone": "page data next to the e-mail",
+    "about": "About Us section",
+    "description": "About Us section",
+    "facilities": "Facilities icons marked yes (grouped by the page section)",
+    "facility_groups": "Facilities icons marked yes (grouped by the page section)",
+    "hostel": "Facilities icons (Boys/Girls Hostel)",
+    "lat_lng": "school's own Google-Maps embed",
+    "logo": "image with alt \"<school> Logo\"",
+    "images": "cover + \"<school> Gallery\" images"
+   },
+   "facilities_not_available": [
+    "Alumni Association",
+    "Day care",
+    "Meals",
+    "Ramps",
+    "Washrooms",
+    "Elevators",
+    "Library/Reading Room",
+    "Robotics Lab",
+    "GPS Bus Tracking App",
+    "Student Tracking App",
+    "Karate",
+    "Taekwondo",
+    "Gym",
+    "Swimming Pool",
+    "Skating",
+    "Horse Riding"
+   ]
+  }
+ },
+ {
+  "name": "DMI St. Joseph Global School",
+  "slug": null,
+  "city": "Dimapur",
+  "state": "Nagaland",
+  "area": "Ikishe Model Village, PS Diphupar",
+  "locality": "PS Diphupar",
+  "pincode": "793001",
+  "type": "Boarding School",
+  "boarding_type": "Day Cum Boarding",
+  "boards": [
+   "CBSE"
+  ],
+  "classes": "1 - 12",
+  "gender": "Co-ed",
+  "description": "About Us DMI St. Joseph Global School (CBSE) is affiliated to the Central Board of Secondary Education (CBSE), Delhi, Vide Affiliation No. 1430018, following NCERT syllabus. The School, an offshoot of DMI Foundations, Chennai, is a Catholic co-educational school, situated at 5th Mile, near Nagaland State Cricket Stadium, in the commercial city – Dimapur, Nagaland. It took its shape in 2016, and since inception in 2016, the school has been growing by leaps and bounds and making magnificent strides both in academics and co-curricular activities in Dimapur, setting a trend in education for others to follow. It is run by the Society of Daughters of Mary Immaculate (DMI) Sisters, which is known for its selfless service to mankind through Educational Institutions and Social Service Organizations.",
+  "about": "About Us DMI St. Joseph Global School (CBSE) is affiliated to the Central Board of Secondary Education (CBSE), Delhi, Vide Affiliation No. 1430018, following NCERT syllabus. The School, an offshoot of DMI Foundations, Chennai, is a Catholic co-educational school, situated at 5th Mile, near Nagaland State Cricket Stadium, in the commercial city – Dimapur, Nagaland. It took its shape in 2016, and since inception in 2016, the school has been growing by leaps and bounds and making magnificent strides both in academics and co-curricular activities in Dimapur, setting a trend in education for others to follow. It is run by the Society of Daughters of Mary Immaculate (DMI) Sisters, which is known for its selfless service to mankind through Educational Institutions and Social Service Organizations.",
+  "hostel": null,
+  "rating": null,
+  "reviews": null,
+  "fee_min": 80000,
+  "fee_max": 95000,
+  "address": "Ikishe Model Village, PS Diphupar, Dimapur, Nagaland - 793001",
+  "lat": 25.850346507171547,
+  "lng": 93.7472687257859,
+  "phone": "+91-7629873663",
+  "email": "dmisjgs@gmail.com",
+  "website": "https://dmisjgs.org/",
+  "social": {},
+  "logo": "https://d3bat55ebwjhsf.cloudfront.net/schools/logos/10982/user_root_user%40ezy.com/dmi-st-joseph-global-school-dimapur-nagaland-c6dea87.webp",
+  "images": [
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/cover/10982/user_root_user%40ezy.com/2024-05-18.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2024-07-08_14-59-38/5o1z/infra/images/library1.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2024-07-08_14-37-58/f863/infra/images/2017-11-06.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2024-07-08_14-49-46/k4gg/infra/images/science-lab2.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2024-07-08_14-48-45/qyj1/infra/images/pic3_1.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2024-07-08_14-53-59/lubg/infra/images/pic1_3.webp"
+  ],
+  "facilities": [],
+  "facility_groups": {},
+  "founded": 2016,
+  "medium": "English",
+  "academic_session": "April to march",
+  "student_teacher_ratio": "25:1",
+  "campus_size": null,
+  "languages": [
+   "English",
+   "Hindi"
+  ],
+  "food_options": null,
+  "verified": null,
+  "page_last_updated": "2026-07-20",
+  "affiliation_no": null,
+  "school_timing": null,
+  "student_count": null,
+  "teacher_count": null,
+  "source_site": "ezyschooling.com",
+  "source_url": "https://ezyschooling.com/school/dmi-st-joseph-global-school-dimapur-nagaland",
+  "latest_fee_session": "2026-2027",
+  "current_admission_session": null,
+  "class_fees": [
+   {
+    "class_name": "Class 6",
+    "monthly_fee": null,
+    "annual_fee": 80000,
+    "one_time_fee": null,
+    "first_year_total": 80000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 80000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 7",
+    "monthly_fee": null,
+    "annual_fee": 80000,
+    "one_time_fee": null,
+    "first_year_total": 80000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 80000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 8",
+    "monthly_fee": null,
+    "annual_fee": 80000,
+    "one_time_fee": null,
+    "first_year_total": 80000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 80000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 9",
+    "monthly_fee": null,
+    "annual_fee": 90000,
+    "one_time_fee": null,
+    "first_year_total": 90000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 90000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 10",
+    "monthly_fee": null,
+    "annual_fee": 90000,
+    "one_time_fee": null,
+    "first_year_total": 90000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 90000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 11",
+    "monthly_fee": null,
+    "annual_fee": 95000,
+    "one_time_fee": null,
+    "first_year_total": 95000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 95000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 12",
+    "monthly_fee": null,
+    "annual_fee": 95000,
+    "one_time_fee": null,
+    "first_year_total": 95000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 95000,
+      "refundable": null
+     }
+    ]
+   }
+  ],
+  "admissions": [],
+  "warnings": [
+   "no admission / application-fee table on the page"
+  ],
+  "mongo_extra": {
+   "scraped_at": "2026-10-27",
+   "scraped_from": "ezyschooling.com",
+   "ezy_slug": "dmi-st-joseph-global-school-dimapur-nagaland",
+   "fee_data_sessions": [
+    "2026-2027"
+   ],
+   "page_heading_session": "2027-2028",
+   "listing_fee_range": null,
+   "boarding_type_raw": "Day Cum Boarding",
+   "sessions_clicked": [
+    "2026-2027",
+    "2027-2028"
+   ],
+   "all_facts": {
+    "Board": "CBSE",
+    "Gender": "Coed",
+    "Classes": "1 - 12 Class",
+    "Academic Session": "April to march",
+    "Medium": "English",
+    "Student Teacher Ratio": "25:1",
+    "Day/Boarding": "Day Cum Boarding"
+   },
+   "sources": {
+    "name": "listing card",
+    "city": "breadcrumb",
+    "state": "listing card",
+    "area": "address: text before the city (the page has no separate area field)",
+    "locality": "address: text before the city (the page has no separate area field)",
+    "type": "Quick Facts: Day/Boarding",
+    "boarding_type": "Quick Facts: Day/Boarding",
+    "address": "page header",
+    "pincode": "page header",
+    "classes": "Quick Facts",
+    "boards": "Quick Facts",
+    "gender": "Quick Facts",
+    "medium": "Quick Facts",
+    "academic_session": "Quick Facts",
+    "student_teacher_ratio": "Quick Facts",
+    "founded": "page header",
+    "class_fees": "fees-structure page (site-printed numbers; fee_session = session stated by the page or clicked button)",
+    "fee_min": "lowest / highest annual fee of the newest fee session (2026-2027)",
+    "fee_max": "lowest / highest annual fee of the newest fee session (2026-2027)",
+    "email": "Address And Contact block",
+    "website": "Address And Contact block",
+    "phone": "page data next to the e-mail",
+    "about": "About Us section",
+    "description": "About Us section",
+    "lat_lng": "school's own Google-Maps embed",
+    "logo": "image with alt \"<school> Logo\"",
+    "images": "cover + \"<school> Gallery\" images",
+    "languages": "Languages Taught section",
+    "page_last_updated": "page footer"
+   },
+   "facilities_not_available": []
+  }
+ },
+ {
+  "name": "St. John Higher Secondary Residential School",
+  "slug": null,
+  "city": "Dimapur",
+  "state": "Nagaland",
+  "area": "Indisen Village, Diphu Road",
+  "locality": "Diphu Road",
+  "pincode": "793001",
+  "type": "Boarding School",
+  "boarding_type": "Full Boarding",
+  "boards": [
+   "CBSE"
+  ],
+  "classes": "1 - 12",
+  "gender": "Co-ed",
+  "description": "About Us The school is a Christian Educational Institution providing academic studies from kindergarten to class 12. It is managed by Mr. Moameren Ao and his wife Lt. Mrs. Temsurenla Ao. The school focuses on excellence in results both state level and nationally (JEE) while moulding our youths to walk a righteous life in the teachings of our Lord Jesus Christ. Over the past 29 years our graduating students have successfully achieved high levels of academic and professional qualification all over India and abroad.",
+  "about": "About Us The school is a Christian Educational Institution providing academic studies from kindergarten to class 12. It is managed by Mr. Moameren Ao and his wife Lt. Mrs. Temsurenla Ao. The school focuses on excellence in results both state level and nationally (JEE) while moulding our youths to walk a righteous life in the teachings of our Lord Jesus Christ. Over the past 29 years our graduating students have successfully achieved high levels of academic and professional qualification all over India and abroad.",
+  "hostel": true,
+  "rating": null,
+  "reviews": null,
+  "fee_min": 80000,
+  "fee_max": 120000,
+  "address": "Box-120,Indisen Village,Diphu Road, Dimapur, Nagaland - 793001",
+  "lat": 25.9015625,
+  "lng": 93.68568750000001,
+  "phone": "+91-7005574947",
+  "email": "info@stjohndimapur.in",
+  "website": "https://stjohndimapur.in/",
+  "social": {},
+  "logo": "https://d3bat55ebwjhsf.cloudfront.net/schools/logos/10976/user_root_user%40ezy.com/download_2.jpeg",
+  "images": [
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/cover/10976/user_root_user%40ezy.com/2023-01-06.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2024-07-08_11-21-38/kgnv/infra/images/P1090200.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2024-07-08_11-15-01/2057/infra/images/20201119_120619.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2024-07-08_11-24-06/il5h/infra/images/kitchen.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2024-07-08_11-15-52/h0di/infra/images/2023-01-06_1.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2024-07-08_11-17-19/g6t0/infra/images/2023-01-06_12.webp"
+  ],
+  "facilities": [
+   "Day care",
+   "Meals",
+   "Transportation",
+   "Boys Hostel",
+   "Girls Hostel",
+   "Wifi",
+   "Smart Classes",
+   "Debate",
+   "Picnics and excursion",
+   "Music",
+   "Drama",
+   "Art and Craft",
+   "Dance",
+   "Gardening",
+   "Cafeteria/Canteen",
+   "Library/Reading Room",
+   "Playground",
+   "Auditorium/Media Room",
+   "Robotics Lab",
+   "Science Lab",
+   "Computer Lab",
+   "Language Lab",
+   "CCTV",
+   "Medical Room",
+   "Swimming Pool",
+   "Gym",
+   "Yoga",
+   "Taekwondo",
+   "Karate",
+   "Outdoor Sports",
+   "Indoor Sports"
+  ],
+  "facility_groups": {
+   "Advanced Facilities": [
+    "Day care",
+    "Meals",
+    "Transportation",
+    "Medical Room"
+   ],
+   "Boarding": [
+    "Boys Hostel",
+    "Girls Hostel"
+   ],
+   "Class": [
+    "Wifi",
+    "Smart Classes"
+   ],
+   "Extra Curricular": [
+    "Debate",
+    "Picnics and excursion",
+    "Music",
+    "Drama",
+    "Art and Craft",
+    "Dance",
+    "Gardening"
+   ],
+   "Infrastructure": [
+    "Cafeteria/Canteen",
+    "Library/Reading Room",
+    "Playground",
+    "Auditorium/Media Room"
+   ],
+   "Lab": [
+    "Robotics Lab",
+    "Science Lab",
+    "Computer Lab",
+    "Language Lab"
+   ],
+   "Safety and Security": [
+    "CCTV"
+   ],
+   "Sports and Fitness": [
+    "Swimming Pool",
+    "Gym",
+    "Yoga",
+    "Taekwondo",
+    "Karate",
+    "Outdoor Sports",
+    "Indoor Sports"
+   ]
+  },
+  "founded": 1995,
+  "medium": "English",
+  "academic_session": "April to march",
+  "student_teacher_ratio": "30:1",
+  "campus_size": null,
+  "languages": [
+   "English",
+   "Hindi"
+  ],
+  "food_options": null,
+  "verified": null,
+  "page_last_updated": "2026-07-21",
+  "affiliation_no": null,
+  "school_timing": null,
+  "student_count": null,
+  "teacher_count": null,
+  "source_site": "ezyschooling.com",
+  "source_url": "https://ezyschooling.com/school/st-john-higher-secondary-residential-school-dimapur-nagaland",
+  "latest_fee_session": "2026-2027",
+  "current_admission_session": null,
+  "class_fees": [
+   {
+    "class_name": "Class 1",
+    "monthly_fee": null,
+    "annual_fee": 80000,
+    "one_time_fee": null,
+    "first_year_total": 80000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 80000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 2",
+    "monthly_fee": null,
+    "annual_fee": 80000,
+    "one_time_fee": null,
+    "first_year_total": 80000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 80000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 3",
+    "monthly_fee": null,
+    "annual_fee": 80000,
+    "one_time_fee": null,
+    "first_year_total": 80000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 80000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 4",
+    "monthly_fee": null,
+    "annual_fee": 80000,
+    "one_time_fee": null,
+    "first_year_total": 80000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 80000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 5",
+    "monthly_fee": null,
+    "annual_fee": 80000,
+    "one_time_fee": null,
+    "first_year_total": 80000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 80000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 6",
+    "monthly_fee": null,
+    "annual_fee": 95000,
+    "one_time_fee": null,
+    "first_year_total": 95000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 95000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 7",
+    "monthly_fee": null,
+    "annual_fee": 95000,
+    "one_time_fee": null,
+    "first_year_total": 95000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 95000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 8",
+    "monthly_fee": null,
+    "annual_fee": 95000,
+    "one_time_fee": null,
+    "first_year_total": 95000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 95000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 9",
+    "monthly_fee": null,
+    "annual_fee": 110000,
+    "one_time_fee": null,
+    "first_year_total": 110000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 110000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 10",
+    "monthly_fee": null,
+    "annual_fee": 110000,
+    "one_time_fee": null,
+    "first_year_total": 110000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 110000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 11",
+    "monthly_fee": null,
+    "annual_fee": 120000,
+    "one_time_fee": null,
+    "first_year_total": 120000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 120000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 12",
+    "monthly_fee": null,
+    "annual_fee": 120000,
+    "one_time_fee": null,
+    "first_year_total": 120000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 120000,
+      "refundable": null
+     }
+    ]
+   }
+  ],
+  "admissions": [],
+  "warnings": [
+   "no admission / application-fee table on the page"
+  ],
+  "mongo_extra": {
+   "scraped_at": "2026-10-27",
+   "scraped_from": "ezyschooling.com",
+   "ezy_slug": "st-john-higher-secondary-residential-school-dimapur-nagaland",
+   "fee_data_sessions": [
+    "2026-2027"
+   ],
+   "page_heading_session": "2027-2028",
+   "listing_fee_range": null,
+   "boarding_type_raw": "Full Boarding",
+   "sessions_clicked": [
+    "2026-2027",
+    "2027-2028"
+   ],
+   "all_facts": {
+    "Board": "CBSE",
+    "Gender": "Coed",
+    "Classes": "1 - 12 Class",
+    "Academic Session": "April to march",
+    "Medium": "English",
+    "Student Teacher Ratio": "30:1",
+    "Day/Boarding": "Full Boarding"
+   },
+   "sources": {
+    "name": "listing card",
+    "city": "breadcrumb",
+    "state": "listing card",
+    "area": "address: text before the city (the page has no separate area field)",
+    "locality": "address: text before the city (the page has no separate area field)",
+    "type": "Quick Facts: Day/Boarding",
+    "boarding_type": "Quick Facts: Day/Boarding",
+    "address": "page header",
+    "pincode": "page header",
+    "classes": "Quick Facts",
+    "boards": "Quick Facts",
+    "gender": "Quick Facts",
+    "medium": "Quick Facts",
+    "academic_session": "Quick Facts",
+    "student_teacher_ratio": "Quick Facts",
+    "founded": "page header",
+    "class_fees": "fees-structure page (site-printed numbers; fee_session = session stated by the page or clicked button)",
+    "fee_min": "lowest / highest annual fee of the newest fee session (2026-2027)",
+    "fee_max": "lowest / highest annual fee of the newest fee session (2026-2027)",
+    "email": "Address And Contact block",
+    "website": "Address And Contact block",
+    "phone": "page data next to the e-mail",
+    "about": "About Us section",
+    "description": "About Us section",
+    "facilities": "Facilities icons marked yes (grouped by the page section)",
+    "facility_groups": "Facilities icons marked yes (grouped by the page section)",
+    "hostel": "Facilities icons (Boys/Girls Hostel)",
+    "lat_lng": "school's own Google-Maps embed",
+    "logo": "image with alt \"<school> Logo\"",
+    "images": "cover + \"<school> Gallery\" images",
+    "languages": "Languages Taught section",
+    "page_last_updated": "page footer"
+   },
+   "facilities_not_available": [
+    "Alumni Association",
+    "AC Classes",
+    "Elevators",
+    "Washrooms",
+    "Ramps",
+    "GPS Bus Tracking App",
+    "Student Tracking App",
+    "Horse Riding",
+    "Skating"
+   ]
+  }
+ },
+ {
+  "name": "Greenwood School",
+  "slug": null,
+  "city": "Dimapur",
+  "state": "Nagaland",
+  "area": "Kuda Village",
+  "locality": "Kuda Village",
+  "pincode": "797112",
+  "type": "Boarding School",
+  "boarding_type": "Full Boarding",
+  "boards": [
+   "State Board"
+  ],
+  "classes": "1 - 12",
+  "gender": "Co-ed",
+  "description": "About Us Children Welfare Society (CWS ) was founded in the year 1980 with it’s head Office at Kuda Village ‘B’ Khel Dimapur, Nagaland. With the noble vision and desire to serve God and the people, Children Welfare Society purchased 9 acres of land at Kuda ‘B’ Khel formerly called Nagarjan ‘B’ and established “Child Evangelism Welfare School” in 1981. Rokokerhe Leigise donated 1 acre on which Diechülie Haralu build the first permanent school building in memory of his son late Master Khrieketouzo Haralu. Dr.Shürhozelie Leizietsu inaugurated the school on 7th February, 1981. The school had 59 students including 25 hostellers in it’s first year. The school was renamed Greenwood School in the year 1988 From it’s humble beginning of thatch houses and bamboo walls to the present multi-storied concrete buildings, the school has seen substantial growth in both it’s infrastructure and programs. In it’s journey since 1981, the school has also seen it’s fair share of problems, challenges and also many natural calamities. Through all these the school has persevered, learnt and grown. The sheer determination and conviction of the pioneers and the many contributions of well wishers has seen the school through all this trails and struggles and the school has always come out stronger and more resilient. Greenwood School is a co-educational English medium school which follows the curriculum prescribed by Nagaland Board of School Education (NBSE). Permission for class IX and X was granted in 1987. The school started it’s class 11 Higher secondary section for Arts stream in 1998 and permission was granted for",
+  "about": "About Us Children Welfare Society (CWS ) was founded in the year 1980 with it’s head Office at Kuda Village ‘B’ Khel Dimapur, Nagaland. With the noble vision and desire to serve God and the people, Children Welfare Society purchased 9 acres of land at Kuda ‘B’ Khel formerly called Nagarjan ‘B’ and established “Child Evangelism Welfare School” in 1981. Rokokerhe Leigise donated 1 acre on which Diechülie Haralu build the first permanent school building in memory of his son late Master Khrieketouzo Haralu. Dr.Shürhozelie Leizietsu inaugurated the school on 7th February, 1981. The school had 59 students including 25 hostellers in it’s first year. The school was renamed Greenwood School in the year 1988 From it’s humble beginning of thatch houses and bamboo walls to the present multi-storied concrete buildings, the school has seen substantial growth in both it’s infrastructure and programs. In it’s journey since 1981, the school has also seen it’s fair share of problems, challenges and also many natural calamities. Through all these the school has persevered, learnt and grown. The sheer determination and conviction of the pioneers and the many contributions of well wishers has seen the school through all this trails and struggles and the school has always come out stronger and more resilient. Greenwood School is a co-educational English medium school which follows the curriculum prescribed by Nagaland Board of School Education (NBSE). Permission for class IX and X was granted in 1987. The school started it’s class 11 Higher secondary section for Arts stream in 1998 and permission was granted for",
+  "hostel": true,
+  "rating": null,
+  "reviews": null,
+  "fee_min": 80000,
+  "fee_max": 90000,
+  "address": "Kuda Village, Dimapur, Nagaland - 797112",
+  "lat": 25.88622694002885,
+  "lng": 93.72844582187862,
+  "phone": "+91-3862230328",
+  "email": "gwskuda10@gmail.com",
+  "website": "https://greenwoodschool.edu.in/",
+  "social": {},
+  "logo": "https://d3bat55ebwjhsf.cloudfront.net/schools/logos/10977/user_gwskuda10%40gmail.com/GREEN.png",
+  "images": [
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/cover/10977/user_gwskuda10%40gmail.com/Screenshot_2025-11-04_121420.png",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2025-11-04_12-27-04/mzgw/infra/images/sports-meet-1536x1024.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2025-11-04_12-26-19/wald/infra/images/present-day-greenwood-schoolfifth-1-scaled.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2025-11-04_12-31-02/3fod/infra/images/music-scaled-1536x1024.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2025-11-04_12-29-28/etzm/infra/images/computer-lab-scaled-1536x1024.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2025-11-04_12-30-37/t40k/infra/images/Physics-Lab-2048x1365.jpg"
+  ],
+  "facilities": [],
+  "facility_groups": {},
+  "founded": 1981,
+  "medium": "English",
+  "academic_session": "April to March",
+  "student_teacher_ratio": "20:1",
+  "campus_size": "1 Acre",
+  "languages": [
+   "English",
+   "Hindi"
+  ],
+  "food_options": null,
+  "verified": null,
+  "page_last_updated": "2026-07-20",
+  "affiliation_no": null,
+  "school_timing": null,
+  "student_count": null,
+  "teacher_count": null,
+  "source_site": "ezyschooling.com",
+  "source_url": "https://ezyschooling.com/school/greenwood-school-dimapur-nagaland",
+  "latest_fee_session": "2026-2027",
+  "current_admission_session": null,
+  "class_fees": [
+   {
+    "class_name": "Class 5",
+    "monthly_fee": null,
+    "annual_fee": 80000,
+    "one_time_fee": null,
+    "first_year_total": 80000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 80000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 6",
+    "monthly_fee": null,
+    "annual_fee": 80000,
+    "one_time_fee": null,
+    "first_year_total": 80000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 80000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 7",
+    "monthly_fee": null,
+    "annual_fee": 80000,
+    "one_time_fee": null,
+    "first_year_total": 80000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 80000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 8",
+    "monthly_fee": null,
+    "annual_fee": 80000,
+    "one_time_fee": null,
+    "first_year_total": 80000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 80000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 9",
+    "monthly_fee": null,
+    "annual_fee": 85000,
+    "one_time_fee": null,
+    "first_year_total": 85000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 85000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 10",
+    "monthly_fee": null,
+    "annual_fee": 85000,
+    "one_time_fee": null,
+    "first_year_total": 85000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 85000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 11",
+    "monthly_fee": null,
+    "annual_fee": 90000,
+    "one_time_fee": null,
+    "first_year_total": 90000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 90000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 12",
+    "monthly_fee": null,
+    "annual_fee": 90000,
+    "one_time_fee": null,
+    "first_year_total": 90000,
+    "fee_session": "2026-2027",
+    "items": [
+     {
+      "fee_type": "Estimated Fees",
+      "frequency": "Annually",
+      "amount": 90000,
+      "refundable": null
+     }
+    ]
+   }
+  ],
+  "admissions": [],
+  "warnings": [
+   "no admission / application-fee table on the page"
+  ],
+  "mongo_extra": {
+   "scraped_at": "2026-10-27",
+   "scraped_from": "ezyschooling.com",
+   "ezy_slug": "greenwood-school-dimapur-nagaland",
+   "fee_data_sessions": [
+    "2026-2027"
+   ],
+   "page_heading_session": "2027-2028",
+   "listing_fee_range": null,
+   "boarding_type_raw": "Full Boarding",
+   "sessions_clicked": [
+    "2026-2027",
+    "2027-2028"
+   ],
+   "all_facts": {
+    "Board": "State Board",
+    "Gender": "Coed",
+    "Classes": "1 - 12 Class",
+    "Academic Session": "April to March",
+    "Medium": "English",
+    "Student Teacher Ratio": "20:1",
+    "Day/Boarding": "Full Boarding"
+   },
+   "sources": {
+    "name": "listing card",
+    "city": "breadcrumb",
+    "state": "listing card",
+    "area": "address: text before the city (the page has no separate area field)",
+    "locality": "address: text before the city (the page has no separate area field)",
+    "type": "Quick Facts: Day/Boarding",
+    "boarding_type": "Quick Facts: Day/Boarding",
+    "address": "page header",
+    "pincode": "page header",
+    "classes": "Quick Facts",
+    "boards": "Quick Facts",
+    "gender": "Quick Facts",
+    "medium": "Quick Facts",
+    "academic_session": "Quick Facts",
+    "student_teacher_ratio": "Quick Facts",
+    "founded": "page header",
+    "class_fees": "fees-structure page (site-printed numbers; fee_session = session stated by the page or clicked button)",
+    "fee_min": "lowest / highest annual fee of the newest fee session (2026-2027)",
+    "fee_max": "lowest / highest annual fee of the newest fee session (2026-2027)",
+    "email": "Address And Contact block",
+    "website": "Address And Contact block",
+    "phone": "page data next to the e-mail",
+    "about": "About Us section",
+    "description": "About Us section",
+    "hostel": "Quick Facts: Day/Boarding = Full Boarding",
+    "lat_lng": "school's own Google-Maps embed",
+    "logo": "image with alt \"<school> Logo\"",
+    "images": "cover + \"<school> Gallery\" images",
+    "campus_size": "Quick Facts",
+    "languages": "Languages Taught section",
+    "page_last_updated": "page footer"
+   },
+   "facilities_not_available": []
+  }
+ },
+ {
+  "name": "Maple Tree School",
+  "slug": null,
+  "city": "Dimapur",
+  "state": "Nagaland",
+  "area": "208 Kashiram, Rangapahar Cantonment Road",
+  "locality": "Rangapahar Cantonment Road",
+  "pincode": "793001",
+  "type": "Boarding School",
+  "boarding_type": "Day Cum Boarding",
+  "boards": [
+   "CBSE"
+  ],
+  "classes": "1 - 12",
+  "gender": "Co-ed",
+  "description": "About Us Maple Tree School aims to become a school that is recognized as a National School of Excellence. The Maple Tree, in partnership with parents, students and the community strives to provide a stimulating, child-centred environment that prepares them to become productive and contributing citizens. Each student, faculty and staff will be exposed to quality education experiences that will explore their limitless potential and encourage them to become life-long learners.",
+  "about": "About Us Maple Tree School aims to become a school that is recognized as a National School of Excellence. The Maple Tree, in partnership with parents, students and the community strives to provide a stimulating, child-centred environment that prepares them to become productive and contributing citizens. Each student, faculty and staff will be exposed to quality education experiences that will explore their limitless potential and encourage them to become life-long learners.",
+  "hostel": true,
+  "rating": 3.0,
+  "reviews": 1,
+  "fee_min": null,
+  "fee_max": null,
+  "address": "208 Kashiram,Rangapahar Cantonment Road,, Dimapur, Nagaland - 793001",
+  "lat": 25.8961017,
+  "lng": 93.7022698,
+  "phone": "+91-3862248323",
+  "email": "mapletreedimapur@gmail.com",
+  "website": "https://mapletreeschool.org/",
+  "social": {},
+  "logo": "https://d3bat55ebwjhsf.cloudfront.net/schools/logos/10981/user_Z-mapletreedimapur%40gmail.com/Maple-Tree-Transparent-logo.png",
+  "images": [
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/cover/10981/user_root_user%40ezy.com/2022-03-20.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2024-07-08_13-05-39/jrju/infra/images/IMG_20210519_171848.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2024-07-08_13-05-25/mm2w/infra/images/circle.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2024-07-08_13-06-07/5kwk/infra/images/juniors-kids.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2024-07-08_13-05-59/xf1x/infra/images/Early-Program.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2024-07-08_13-06-52/af19/infra/images/workshops.webp"
+  ],
+  "facilities": [
+   "Meals",
+   "Transportation",
+   "Boys Hostel",
+   "Girls Hostel",
+   "Wifi",
+   "Smart Classes",
+   "Debate",
+   "Picnics and excursion",
+   "Music",
+   "Drama",
+   "Art and Craft",
+   "Dance",
+   "Gardening",
+   "Cafeteria/Canteen",
+   "Library/Reading Room",
+   "Playground",
+   "Auditorium/Media Room",
+   "Science Lab",
+   "Computer Lab",
+   "Language Lab",
+   "CCTV",
+   "Student Tracking App",
+   "Medical Room",
+   "Swimming Pool",
+   "Yoga",
+   "Karate",
+   "Outdoor Sports",
+   "Indoor Sports"
+  ],
+  "facility_groups": {
+   "Advanced Facilities": [
+    "Meals",
+    "Transportation",
+    "Medical Room"
+   ],
+   "Boarding": [
+    "Boys Hostel",
+    "Girls Hostel"
+   ],
+   "Class": [
+    "Wifi",
+    "Smart Classes"
+   ],
+   "Extra Curricular": [
+    "Debate",
+    "Picnics and excursion",
+    "Music",
+    "Drama",
+    "Art and Craft",
+    "Dance",
+    "Gardening"
+   ],
+   "Infrastructure": [
+    "Cafeteria/Canteen",
+    "Library/Reading Room",
+    "Playground",
+    "Auditorium/Media Room"
+   ],
+   "Lab": [
+    "Science Lab",
+    "Computer Lab",
+    "Language Lab"
+   ],
+   "Safety and Security": [
+    "CCTV",
+    "Student Tracking App"
+   ],
+   "Sports and Fitness": [
+    "Swimming Pool",
+    "Yoga",
+    "Karate",
+    "Outdoor Sports",
+    "Indoor Sports"
+   ]
+  },
+  "founded": 2011,
+  "medium": "English",
+  "academic_session": "April to march",
+  "student_teacher_ratio": "20:1",
+  "campus_size": null,
+  "languages": [
+   "English",
+   "Hindi"
+  ],
+  "food_options": null,
+  "verified": null,
+  "page_last_updated": "2026-07-31",
+  "affiliation_no": null,
+  "school_timing": null,
+  "student_count": null,
+  "teacher_count": null,
+  "source_site": "ezyschooling.com",
+  "source_url": "https://ezyschooling.com/school/maple-tree-school-dimapur-nagaland",
+  "latest_fee_session": null,
+  "current_admission_session": null,
+  "class_fees": [],
+  "admissions": [],
+  "warnings": [
+   "no fees published",
+   "no admission / application-fee table on the page",
+   "page shows rupee amounts but none were read: HTML saved in debug_html/"
+  ],
+  "mongo_extra": {
+   "scraped_at": "2026-10-27",
+   "scraped_from": "ezyschooling.com",
+   "ezy_slug": "maple-tree-school-dimapur-nagaland",
+   "fee_data_sessions": null,
+   "page_heading_session": "2027-2028",
+   "listing_fee_range": null,
+   "boarding_type_raw": "Day Cum Boarding",
+   "sessions_clicked": [
+    "2026-2027",
+    "2027-2028"
+   ],
+   "all_facts": {
+    "Board": "CBSE",
+    "Gender": "Coed",
+    "Classes": "1 - 12 Class",
+    "Academic Session": "April to march",
+    "Medium": "English",
+    "Student Teacher Ratio": "20:1",
+    "Day/Boarding": "Day Cum Boarding"
+   },
+   "sources": {
+    "name": "listing card",
+    "city": "breadcrumb",
+    "state": "listing card",
+    "area": "address: text before the city (the page has no separate area field)",
+    "locality": "address: text before the city (the page has no separate area field)",
+    "type": "Quick Facts: Day/Boarding",
+    "boarding_type": "Quick Facts: Day/Boarding",
+    "rating": "page header",
+    "address": "page header",
+    "pincode": "page header",
+    "classes": "Quick Facts",
+    "boards": "Quick Facts",
+    "gender": "Quick Facts",
+    "medium": "Quick Facts",
+    "academic_session": "Quick Facts",
+    "student_teacher_ratio": "Quick Facts",
+    "founded": "page header",
+    "email": "Address And Contact block",
+    "website": "Address And Contact block",
+    "phone": "page data next to the e-mail",
+    "about": "About Us section",
+    "description": "About Us section",
+    "facilities": "Facilities icons marked yes (grouped by the page section)",
+    "facility_groups": "Facilities icons marked yes (grouped by the page section)",
+    "hostel": "Facilities icons (Boys/Girls Hostel)",
+    "lat_lng": "school's own Google-Maps embed",
+    "logo": "image with alt \"<school> Logo\"",
+    "images": "cover + \"<school> Gallery\" images",
+    "languages": "Languages Taught section",
+    "page_last_updated": "page footer"
+   },
+   "facilities_not_available": [
+    "Alumni Association",
+    "Day care",
+    "AC Classes",
+    "Elevators",
+    "Washrooms",
+    "Ramps",
+    "Robotics Lab",
+    "GPS Bus Tracking App",
+    "Horse Riding",
+    "Skating",
+    "Gym",
+    "Taekwondo"
+   ],
+   "travel_info_raw": [
+    "train",
+    "Railway Station",
+    "flightsmode",
+    "Airport",
+    "local_hospital",
+    "Hospital",
+    "Niit_Dimapur_Centre",
+    "Jain temple road near SD Jain college, Dimapur",
+    "Distance",
+    "map",
+    "2 kms"
+   ]
+  }
+ },
+ {
+  "name": "Nazareth Residential School",
+  "slug": null,
+  "city": "Kohima",
+  "state": "Nagaland",
+  "area": "NH-39, Mao",
+  "locality": "Mao",
+  "pincode": "797001",
+  "type": "Boarding School",
+  "boarding_type": "Day Cum Boarding",
+  "boards": [
+   "CBSE"
+  ],
+  "classes": "LKG - 12",
+  "gender": "Co-ed",
+  "description": "About Us NAZARETH SCHOOL PFUTSERO was established in 1985 and it is managed by the Pvt. Unaided. It is located in Rural area. It is located in PFUTSERO block of PHEK district of Nagaland. The school consists of Grades from 1 to 10. The school is Co-educational and it have an attached pre-primary section. The school is N/A in nature and is not using school building as a shift-school. English is the medium of instructions in this school. This school is approachable by all weather road. In this school academic session starts in April.",
+  "about": "About Us NAZARETH SCHOOL PFUTSERO was established in 1985 and it is managed by the Pvt. Unaided. It is located in Rural area. It is located in PFUTSERO block of PHEK district of Nagaland. The school consists of Grades from 1 to 10. The school is Co-educational and it have an attached pre-primary section. The school is N/A in nature and is not using school building as a shift-school. English is the medium of instructions in this school. This school is approachable by all weather road. In this school academic session starts in April.",
+  "hostel": true,
+  "rating": null,
+  "reviews": null,
+  "fee_min": 11300,
+  "fee_max": 19900,
+  "address": "G4FJ+8MJ, NH-39, Mao, Kohima, Nagaland - 797001",
+  "lat": 25.5233373,
+  "lng": 94.13163279999999,
+  "phone": null,
+  "email": null,
+  "website": null,
+  "social": {},
+  "logo": "https://d3bat55ebwjhsf.cloudfront.net/schools/logos/10979/user_tech.generated.10979%40ezyschooling.com/logo_1.jpg",
+  "images": [
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/cover/10979/user_root_user%40ezy.com/450317402_2466137300250234_8451519363495656387_n.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2024-07-08_12-44-30/qkrr/infra/images/2018-04-29.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/10979/user_tech.generated.10979%40ezyschooling.com/2024-07-08_12-44-40/2019-12-20.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/10979/user_tech.generated.10979%40ezyschooling.com/2024-07-08_12-44-40/2021-10-07.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/10979/user_tech.generated.10979%40ezyschooling.com/2024-07-08_12-44-39/2022-05-16.webp"
+  ],
+  "facilities": [
+   "Alumni Association",
+   "Meals",
+   "Transportation",
+   "Boys Hostel",
+   "Girls Hostel",
+   "Debate",
+   "Picnics and excursion",
+   "Music",
+   "Drama",
+   "Art and Craft",
+   "Dance",
+   "Gardening",
+   "Cafeteria/Canteen",
+   "Library/Reading Room",
+   "Playground",
+   "Auditorium/Media Room",
+   "Robotics Lab",
+   "Science Lab",
+   "Computer Lab",
+   "CCTV",
+   "GPS Bus Tracking App",
+   "Student Tracking App",
+   "Medical Room",
+   "Yoga",
+   "Taekwondo",
+   "Karate",
+   "Indoor Sports"
+  ],
+  "facility_groups": {
+   "Advanced Facilities": [
+    "Alumni Association",
+    "Meals",
+    "Transportation",
+    "Medical Room"
+   ],
+   "Boarding": [
+    "Boys Hostel",
+    "Girls Hostel"
+   ],
+   "Extra Curricular": [
+    "Debate",
+    "Picnics and excursion",
+    "Music",
+    "Drama",
+    "Art and Craft",
+    "Dance",
+    "Gardening"
+   ],
+   "Infrastructure": [
+    "Cafeteria/Canteen",
+    "Library/Reading Room",
+    "Playground",
+    "Auditorium/Media Room"
+   ],
+   "Lab": [
+    "Robotics Lab",
+    "Science Lab",
+    "Computer Lab"
+   ],
+   "Safety and Security": [
+    "CCTV",
+    "GPS Bus Tracking App",
+    "Student Tracking App"
+   ],
+   "Sports and Fitness": [
+    "Yoga",
+    "Taekwondo",
+    "Karate",
+    "Indoor Sports"
+   ]
+  },
+  "founded": 2000,
+  "medium": "English",
+  "academic_session": "April to march",
+  "student_teacher_ratio": "25:1",
+  "campus_size": null,
+  "languages": [
+   "English",
+   "Hindi"
+  ],
+  "food_options": null,
+  "verified": null,
+  "page_last_updated": "2026-04-16",
+  "affiliation_no": null,
+  "school_timing": null,
+  "student_count": null,
+  "teacher_count": null,
+  "source_site": "ezyschooling.com",
+  "source_url": "https://ezyschooling.com/school/nazareth-residential-school-kohima-nagaland",
+  "latest_fee_session": "2024-2025",
+  "current_admission_session": null,
+  "class_fees": [
+   {
+    "class_name": "Class 4",
+    "monthly_fee": null,
+    "annual_fee": 11300,
+    "one_time_fee": 2700,
+    "first_year_total": 14000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Uniform and Stationary Charges",
+      "frequency": "Annually",
+      "amount": 200,
+      "refundable": null
+     },
+     {
+      "fee_type": "Session, Administrative, Exam And Allied Service Fees",
+      "frequency": "Annually",
+      "amount": 600,
+      "refundable": null
+     },
+     {
+      "fee_type": "Sports Fees",
+      "frequency": "Monthly",
+      "amount": 300,
+      "refundable": null
+     },
+     {
+      "fee_type": "Exam Fees",
+      "frequency": "Annually",
+      "amount": 500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Laboratory Fees",
+      "frequency": "Annually",
+      "amount": 100,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Charges",
+      "frequency": "Annually",
+      "amount": 1200,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 1700,
+      "refundable": null
+     },
+     {
+      "fee_type": "Development Fees",
+      "frequency": "Annually",
+      "amount": 1500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Admission Fees",
+      "frequency": "Onetime",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Monthly",
+      "amount": 300,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 5",
+    "monthly_fee": null,
+    "annual_fee": 11300,
+    "one_time_fee": 2700,
+    "first_year_total": 14000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Uniform and Stationary Charges",
+      "frequency": "Annually",
+      "amount": 200,
+      "refundable": null
+     },
+     {
+      "fee_type": "Session, Administrative, Exam And Allied Service Fees",
+      "frequency": "Annually",
+      "amount": 600,
+      "refundable": null
+     },
+     {
+      "fee_type": "Sports Fees",
+      "frequency": "Monthly",
+      "amount": 300,
+      "refundable": null
+     },
+     {
+      "fee_type": "Exam Fees",
+      "frequency": "Annually",
+      "amount": 500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Laboratory Fees",
+      "frequency": "Annually",
+      "amount": 100,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Charges",
+      "frequency": "Annually",
+      "amount": 1200,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 1700,
+      "refundable": null
+     },
+     {
+      "fee_type": "Development Fees",
+      "frequency": "Annually",
+      "amount": 1500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Admission Fees",
+      "frequency": "Onetime",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Monthly",
+      "amount": 300,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 6",
+    "monthly_fee": null,
+    "annual_fee": 11300,
+    "one_time_fee": 2700,
+    "first_year_total": 14000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Uniform and Stationary Charges",
+      "frequency": "Annually",
+      "amount": 200,
+      "refundable": null
+     },
+     {
+      "fee_type": "Session, Administrative, Exam And Allied Service Fees",
+      "frequency": "Annually",
+      "amount": 600,
+      "refundable": null
+     },
+     {
+      "fee_type": "Sports Fees",
+      "frequency": "Monthly",
+      "amount": 300,
+      "refundable": null
+     },
+     {
+      "fee_type": "Exam Fees",
+      "frequency": "Annually",
+      "amount": 500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Laboratory Fees",
+      "frequency": "Annually",
+      "amount": 100,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Charges",
+      "frequency": "Annually",
+      "amount": 1200,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 1700,
+      "refundable": null
+     },
+     {
+      "fee_type": "Development Fees",
+      "frequency": "Annually",
+      "amount": 1500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Admission Fees",
+      "frequency": "Onetime",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Monthly",
+      "amount": 300,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 7",
+    "monthly_fee": null,
+    "annual_fee": 11300,
+    "one_time_fee": 2700,
+    "first_year_total": 14000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Uniform and Stationary Charges",
+      "frequency": "Annually",
+      "amount": 200,
+      "refundable": null
+     },
+     {
+      "fee_type": "Session, Administrative, Exam And Allied Service Fees",
+      "frequency": "Annually",
+      "amount": 600,
+      "refundable": null
+     },
+     {
+      "fee_type": "Sports Fees",
+      "frequency": "Monthly",
+      "amount": 300,
+      "refundable": null
+     },
+     {
+      "fee_type": "Exam Fees",
+      "frequency": "Annually",
+      "amount": 500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Laboratory Fees",
+      "frequency": "Annually",
+      "amount": 100,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Charges",
+      "frequency": "Annually",
+      "amount": 1200,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 1700,
+      "refundable": null
+     },
+     {
+      "fee_type": "Development Fees",
+      "frequency": "Annually",
+      "amount": 1500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Admission Fees",
+      "frequency": "Onetime",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Monthly",
+      "amount": 300,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 8",
+    "monthly_fee": null,
+    "annual_fee": 11300,
+    "one_time_fee": 2700,
+    "first_year_total": 14000,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Uniform and Stationary Charges",
+      "frequency": "Annually",
+      "amount": 200,
+      "refundable": null
+     },
+     {
+      "fee_type": "Session, Administrative, Exam And Allied Service Fees",
+      "frequency": "Annually",
+      "amount": 600,
+      "refundable": null
+     },
+     {
+      "fee_type": "Sports Fees",
+      "frequency": "Monthly",
+      "amount": 300,
+      "refundable": null
+     },
+     {
+      "fee_type": "Exam Fees",
+      "frequency": "Annually",
+      "amount": 500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Laboratory Fees",
+      "frequency": "Annually",
+      "amount": 100,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Charges",
+      "frequency": "Annually",
+      "amount": 1200,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 1700,
+      "refundable": null
+     },
+     {
+      "fee_type": "Development Fees",
+      "frequency": "Annually",
+      "amount": 1500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Admission Fees",
+      "frequency": "Onetime",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Monthly",
+      "amount": 300,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 9",
+    "monthly_fee": null,
+    "annual_fee": 11800,
+    "one_time_fee": 2500,
+    "first_year_total": 14300,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Uniform and Stationary Charges",
+      "frequency": "Annually",
+      "amount": 200,
+      "refundable": null
+     },
+     {
+      "fee_type": "Session, Administrative, Exam And Allied Service Fees",
+      "frequency": "Annually",
+      "amount": 600,
+      "refundable": null
+     },
+     {
+      "fee_type": "Sports Fees",
+      "frequency": "Monthly",
+      "amount": 300,
+      "refundable": null
+     },
+     {
+      "fee_type": "Exam Fees",
+      "frequency": "Annually",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Laboratory Fees",
+      "frequency": "Annually",
+      "amount": 100,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Charges",
+      "frequency": "Annually",
+      "amount": 1200,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 1500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Development Fees",
+      "frequency": "Annually",
+      "amount": 1500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Admission Fees",
+      "frequency": "Onetime",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Monthly",
+      "amount": 300,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 10",
+    "monthly_fee": null,
+    "annual_fee": 11800,
+    "one_time_fee": 2500,
+    "first_year_total": 14300,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Uniform and Stationary Charges",
+      "frequency": "Annually",
+      "amount": 200,
+      "refundable": null
+     },
+     {
+      "fee_type": "Session, Administrative, Exam And Allied Service Fees",
+      "frequency": "Annually",
+      "amount": 600,
+      "refundable": null
+     },
+     {
+      "fee_type": "Sports Fees",
+      "frequency": "Monthly",
+      "amount": 300,
+      "refundable": null
+     },
+     {
+      "fee_type": "Exam Fees",
+      "frequency": "Annually",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Laboratory Fees",
+      "frequency": "Annually",
+      "amount": 100,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Charges",
+      "frequency": "Annually",
+      "amount": 1200,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 1500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Development Fees",
+      "frequency": "Annually",
+      "amount": 1500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Admission Fees",
+      "frequency": "Onetime",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Monthly",
+      "amount": 300,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 11",
+    "monthly_fee": null,
+    "annual_fee": 18900,
+    "one_time_fee": 2500,
+    "first_year_total": 21400,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Uniform and Stationary Charges",
+      "frequency": "Annually",
+      "amount": 200,
+      "refundable": null
+     },
+     {
+      "fee_type": "Session, Administrative, Exam And Allied Service Fees",
+      "frequency": "Annually",
+      "amount": 600,
+      "refundable": null
+     },
+     {
+      "fee_type": "Sports Fees",
+      "frequency": "Monthly",
+      "amount": 300,
+      "refundable": null
+     },
+     {
+      "fee_type": "Exam Fees",
+      "frequency": "Annually",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Laboratory Fees",
+      "frequency": "Annually",
+      "amount": 1200,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Charges",
+      "frequency": "Annually",
+      "amount": 1200,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 1500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Development Fees",
+      "frequency": "Annually",
+      "amount": 1500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Admission Fees",
+      "frequency": "Onetime",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Monthly",
+      "amount": 800,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 12",
+    "monthly_fee": null,
+    "annual_fee": 19900,
+    "one_time_fee": 3000,
+    "first_year_total": 22900,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Uniform and Stationary Charges",
+      "frequency": "Annually",
+      "amount": 200,
+      "refundable": null
+     },
+     {
+      "fee_type": "Session, Administrative, Exam And Allied Service Fees",
+      "frequency": "Annually",
+      "amount": 600,
+      "refundable": null
+     },
+     {
+      "fee_type": "Sports Fees",
+      "frequency": "Monthly",
+      "amount": 300,
+      "refundable": null
+     },
+     {
+      "fee_type": "Exam Fees",
+      "frequency": "Annually",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Laboratory Fees",
+      "frequency": "Annually",
+      "amount": 2200,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Charges",
+      "frequency": "Annually",
+      "amount": 1200,
+      "refundable": null
+     },
+     {
+      "fee_type": "Admission Fees",
+      "frequency": "Onetime",
+      "amount": 2000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Development Fees",
+      "frequency": "Annually",
+      "amount": 1500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Hostel Admission Fees",
+      "frequency": "Onetime",
+      "amount": 1000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Other Fees",
+      "frequency": "Monthly",
+      "amount": 800,
+      "refundable": null
+     }
+    ]
+   }
+  ],
+  "admissions": [],
+  "warnings": [
+   "no admission / application-fee table on the page",
+   "no phone on the overview page",
+   "no email on the overview page",
+   "no website on the overview page"
+  ],
+  "mongo_extra": {
+   "scraped_at": "2026-10-27",
+   "scraped_from": "ezyschooling.com",
+   "ezy_slug": "nazareth-residential-school-kohima-nagaland",
+   "fee_data_sessions": [
+    "2024-2025"
+   ],
+   "page_heading_session": "2027-2028",
+   "listing_fee_range": null,
+   "boarding_type_raw": "Day Cum Boarding",
+   "sessions_clicked": [
+    "2026-2027",
+    "2027-2028"
+   ],
+   "all_facts": {
+    "Board": "CBSE",
+    "Gender": "Coed",
+    "Classes": "LKG - 12 Class",
+    "Academic Session": "April to march",
+    "Medium": "English",
+    "Student Teacher Ratio": "25:1",
+    "Day/Boarding": "Day Cum Boarding"
+   },
+   "sources": {
+    "name": "listing card",
+    "city": "breadcrumb",
+    "state": "listing card",
+    "area": "address: text before the city (the page has no separate area field)",
+    "locality": "address: text before the city (the page has no separate area field)",
+    "type": "Quick Facts: Day/Boarding",
+    "boarding_type": "Quick Facts: Day/Boarding",
+    "address": "page header",
+    "pincode": "page header",
+    "classes": "Quick Facts",
+    "boards": "Quick Facts",
+    "gender": "Quick Facts",
+    "medium": "Quick Facts",
+    "academic_session": "Quick Facts",
+    "student_teacher_ratio": "Quick Facts",
+    "founded": "page header",
+    "class_fees": "fees-structure page (site-printed numbers; fee_session = session stated by the page or clicked button)",
+    "fee_min": "lowest / highest annual fee of the newest fee session (2024-2025)",
+    "fee_max": "lowest / highest annual fee of the newest fee session (2024-2025)",
+    "about": "About Us section",
+    "description": "About Us section",
+    "facilities": "Facilities icons marked yes (grouped by the page section)",
+    "facility_groups": "Facilities icons marked yes (grouped by the page section)",
+    "hostel": "Facilities icons (Boys/Girls Hostel)",
+    "lat_lng": "school's own Google-Maps embed",
+    "logo": "image with alt \"<school> Logo\"",
+    "images": "cover + \"<school> Gallery\" images",
+    "languages": "Languages Taught section",
+    "page_last_updated": "page footer"
+   },
+   "facilities_not_available": [
+    "Day care",
+    "AC Classes",
+    "Wifi",
+    "Smart Classes",
+    "Elevators",
+    "Washrooms",
+    "Ramps",
+    "Language Lab",
+    "Horse Riding",
+    "Skating",
+    "Swimming Pool",
+    "Gym"
+   ]
+  }
+ },
+ {
+  "name": "Charity Residential School",
+  "slug": null,
+  "city": "Dimapur",
+  "state": "Nagaland",
+  "area": "5th Mile Model Vill",
+  "locality": "5th Mile Model Vill",
+  "pincode": "793001",
+  "type": "Boarding School",
+  "boarding_type": "Full Boarding",
+  "boards": [
+   "State Board"
+  ],
+  "classes": "6 - 10",
+  "gender": "Co-ed",
+  "description": "About Us Charity Residential School is a Private, Secondary school and also a Boarding School situated at Dimapur, Nagaland, East India.",
+  "about": "About Us Charity Residential School is a Private, Secondary school and also a Boarding School situated at Dimapur, Nagaland, East India.",
+  "hostel": true,
+  "rating": null,
+  "reviews": null,
+  "fee_min": 83400,
+  "fee_max": 83400,
+  "address": "5th Mile Model Vill, Dimapur, Nagaland, Dimapur, Dimapur, Nagaland - 793001",
+  "lat": 25.85389411212628,
+  "lng": 93.76960938471255,
+  "phone": null,
+  "email": null,
+  "website": null,
+  "social": {},
+  "logo": "https://d3bat55ebwjhsf.cloudfront.net/schools/logos/5228/user_root_user%40ezy.com/download.jpeg",
+  "images": [
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/cover/5228/user_tech.generated.5228%40ezyschooling.com/2023-01-06.jpg"
+  ],
+  "facilities": [
+   "Day care",
+   "Meals",
+   "Transportation",
+   "Boys Hostel",
+   "Girls Hostel",
+   "Wifi",
+   "Smart Classes",
+   "Art and Craft",
+   "Dance",
+   "Drama",
+   "Music",
+   "Picnics and excursion",
+   "Debate",
+   "Gardening",
+   "Cafeteria/Canteen",
+   "Library/Reading Room",
+   "Auditorium/Media Room",
+   "Computer Lab",
+   "Science Lab",
+   "Robotics Lab",
+   "Medical Room",
+   "CCTV",
+   "Indoor Sports",
+   "Outdoor Sports",
+   "Yoga"
+  ],
+  "facility_groups": {
+   "Advanced Facilities": [
+    "Day care",
+    "Meals",
+    "Transportation",
+    "Medical Room"
+   ],
+   "Boarding": [
+    "Boys Hostel",
+    "Girls Hostel"
+   ],
+   "Class": [
+    "Wifi",
+    "Smart Classes"
+   ],
+   "Extra Curricular": [
+    "Art and Craft",
+    "Dance",
+    "Drama",
+    "Music",
+    "Picnics and excursion",
+    "Debate",
+    "Gardening"
+   ],
+   "Infrastructure": [
+    "Cafeteria/Canteen",
+    "Library/Reading Room",
+    "Auditorium/Media Room"
+   ],
+   "Lab": [
+    "Computer Lab",
+    "Science Lab",
+    "Robotics Lab"
+   ],
+   "Safety and Security": [
+    "CCTV"
+   ],
+   "Sports and Fitness": [
+    "Indoor Sports",
+    "Outdoor Sports",
+    "Yoga"
+   ]
+  },
+  "founded": 1999,
+  "medium": "English",
+  "academic_session": "April to March",
+  "student_teacher_ratio": "10:1",
+  "campus_size": null,
+  "languages": [],
+  "food_options": null,
+  "verified": null,
+  "page_last_updated": "2026-07-24",
+  "affiliation_no": null,
+  "school_timing": null,
+  "student_count": null,
+  "teacher_count": null,
+  "source_site": "ezyschooling.com",
+  "source_url": "https://ezyschooling.com/school/charity-residential-school-dimapur-nagaland",
+  "latest_fee_session": "2024-2025",
+  "current_admission_session": null,
+  "class_fees": [
+   {
+    "class_name": "Class 6",
+    "monthly_fee": null,
+    "annual_fee": 83400,
+    "one_time_fee": 5500,
+    "first_year_total": 88900,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Registration Fees",
+      "frequency": "Onetime",
+      "amount": 5500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 8400,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 75000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 7",
+    "monthly_fee": null,
+    "annual_fee": 83400,
+    "one_time_fee": 5500,
+    "first_year_total": 88900,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Registration Fees",
+      "frequency": "Onetime",
+      "amount": 5500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 8400,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 75000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 8",
+    "monthly_fee": null,
+    "annual_fee": 83400,
+    "one_time_fee": 5500,
+    "first_year_total": 88900,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Registration Fees",
+      "frequency": "Onetime",
+      "amount": 5500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 8400,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 75000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 9",
+    "monthly_fee": null,
+    "annual_fee": 83400,
+    "one_time_fee": 5500,
+    "first_year_total": 88900,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Registration Fees",
+      "frequency": "Onetime",
+      "amount": 5500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 8400,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 75000,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 10",
+    "monthly_fee": null,
+    "annual_fee": 83400,
+    "one_time_fee": 5500,
+    "first_year_total": 88900,
+    "fee_session": "2024-2025",
+    "items": [
+     {
+      "fee_type": "Registration Fees",
+      "frequency": "Onetime",
+      "amount": 5500,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 8400,
+      "refundable": null
+     },
+     {
+      "fee_type": "Annual Fees",
+      "frequency": "Annually",
+      "amount": 75000,
+      "refundable": null
+     }
+    ]
+   }
+  ],
+  "admissions": [],
+  "warnings": [
+   "no admission / application-fee table on the page",
+   "no phone on the overview page",
+   "no email on the overview page",
+   "no website on the overview page"
+  ],
+  "mongo_extra": {
+   "scraped_at": "2026-10-27",
+   "scraped_from": "ezyschooling.com",
+   "ezy_slug": "charity-residential-school-dimapur-nagaland",
+   "fee_data_sessions": [
+    "2024-2025"
+   ],
+   "page_heading_session": "2027-2028",
+   "listing_fee_range": null,
+   "boarding_type_raw": "Full Boarding",
+   "sessions_clicked": [
+    "2026-2027",
+    "2027-2028"
+   ],
+   "all_facts": {
+    "Board": "State Board",
+    "Gender": "Coed",
+    "Classes": "6 - 10 Class",
+    "Academic Session": "April to March",
+    "Medium": "English",
+    "Student Teacher Ratio": "10:1",
+    "Day/Boarding": "Full Boarding"
+   },
+   "sources": {
+    "name": "listing card",
+    "city": "breadcrumb",
+    "state": "listing card",
+    "area": "address: text before the city (the page has no separate area field)",
+    "locality": "address: text before the city (the page has no separate area field)",
+    "type": "Quick Facts: Day/Boarding",
+    "boarding_type": "Quick Facts: Day/Boarding",
+    "address": "page header",
+    "pincode": "page header",
+    "classes": "Quick Facts",
+    "boards": "Quick Facts",
+    "gender": "Quick Facts",
+    "medium": "Quick Facts",
+    "academic_session": "Quick Facts",
+    "student_teacher_ratio": "Quick Facts",
+    "founded": "page header",
+    "class_fees": "fees-structure page (site-printed numbers; fee_session = session stated by the page or clicked button)",
+    "fee_min": "lowest / highest annual fee of the newest fee session (2024-2025)",
+    "fee_max": "lowest / highest annual fee of the newest fee session (2024-2025)",
+    "about": "About Us section",
+    "description": "About Us section",
+    "facilities": "Facilities icons marked yes (grouped by the page section)",
+    "facility_groups": "Facilities icons marked yes (grouped by the page section)",
+    "hostel": "Facilities icons (Boys/Girls Hostel)",
+    "lat_lng": "school's own Google-Maps embed",
+    "logo": "image with alt \"<school> Logo\"",
+    "images": "cover + \"<school> Gallery\" images",
+    "page_last_updated": "page footer"
+   },
+   "facilities_not_available": [
+    "Alumni Association",
+    "AC Classes",
+    "Ramps",
+    "Washrooms",
+    "Elevators",
+    "Playground",
+    "GPS Bus Tracking App",
+    "Student Tracking App",
+    "Karate",
+    "Taekwondo",
+    "Gym",
+    "Swimming Pool",
+    "Skating",
+    "Horse Riding"
+   ]
+  }
+ },
+ {
+  "name": "Sainik School",
+  "slug": null,
+  "city": "Punglwa",
+  "state": "Nagaland",
+  "area": "Dist, Peren",
+  "locality": "Peren",
+  "pincode": "797106",
+  "type": "Boarding School",
+  "boarding_type": "Full Boarding",
+  "boards": [
+   "CBSE"
+  ],
+  "classes": "6 - 12",
+  "gender": "Boys",
+  "description": "About Us Sainik School Punglwa (Nagaland) was inaugurated by the former Hon'ble Raksha Mantri Shri AK Antony On 12 May 2007. The establishment of the school was the result of the initiative of Nagaland Chapter of the Old Boys Association of Sainik Schools under the able leadership of the Chief Minister of Nagaland, Shri Neiphiu Rio, an alumnus of Sainik School, Purulia (WB). This is a fully residential school for boys only and caters for maximum strength of 600 boys. It is administered by an autonomous body known as Sainik Schools Society having a Board of Governors, with Raksha Rajya Mantri as the Chairman. The Chief Ministers or Education Ministers of States where the Sainik Schools are located are also the members of the Board of Governors. The School has a Local Board of Administration (LBA) which oversees the administration of the School and ensures that the general policies laid down by Board of Governors are implemented aptly. The Chief of Staff, 3 Corps is the Chairman of LBA. The Principal, a senior Defence Officer, is the administrative and the academic head of the institution. He is assisted by Vice Principal and Adm Officer, well-qualified and reasonably experienced academic and administrative staff.",
+  "about": "About Us Sainik School Punglwa (Nagaland) was inaugurated by the former Hon'ble Raksha Mantri Shri AK Antony On 12 May 2007. The establishment of the school was the result of the initiative of Nagaland Chapter of the Old Boys Association of Sainik Schools under the able leadership of the Chief Minister of Nagaland, Shri Neiphiu Rio, an alumnus of Sainik School, Purulia (WB). This is a fully residential school for boys only and caters for maximum strength of 600 boys. It is administered by an autonomous body known as Sainik Schools Society having a Board of Governors, with Raksha Rajya Mantri as the Chairman. The Chief Ministers or Education Ministers of States where the Sainik Schools are located are also the members of the Board of Governors. The School has a Local Board of Administration (LBA) which oversees the administration of the School and ensures that the general policies laid down by Board of Governors are implemented aptly. The Chief of Staff, 3 Corps is the Chairman of LBA. The Principal, a senior Defence Officer, is the administrative and the academic head of the institution. He is assisted by Vice Principal and Adm Officer, well-qualified and reasonably experienced academic and administrative staff.",
+  "hostel": true,
+  "rating": null,
+  "reviews": null,
+  "fee_min": 176624,
+  "fee_max": 176624,
+  "address": "Punglwa BPO, Medziphema, ICAR to Bungsang Village, Dist, Peren, Punglwa, Nagaland - 797106",
+  "lat": 25.659465004539037,
+  "lng": 93.83606522417926,
+  "phone": "+91-9402988735",
+  "email": "sspunglwa@sainikschoolsociety.in",
+  "website": "https://www.sainikschoolpunglwa.nic.in/",
+  "social": {},
+  "logo": "https://d3bat55ebwjhsf.cloudfront.net/schools/logos/13858/user_tech.generated.13858%40ezyschooling.com/Screenshot_2025-08-29_172312.png",
+  "images": [
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/cover/13858/user_tech.generated.13858%40ezyschooling.com/unnamed.jpg",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2025-08-29_18-20-37/y0j9/infra/images/unnamed.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/2025-08-29_18-20-30/fucp/infra/images/unnamed_1.webp",
+   "https://d3bat55ebwjhsf.cloudfront.net/schools/gallery/13858/2025-08-29_17-36-35/olwf/Screenshot_2025-08-29_172950.png"
+  ],
+  "facilities": [
+   "Alumni Association",
+   "Day care",
+   "Meals",
+   "Transportation",
+   "Boys Hostel",
+   "Girls Hostel",
+   "Wifi",
+   "Smart Classes",
+   "Washrooms",
+   "Ramps",
+   "Debate",
+   "Picnics and excursion",
+   "Music",
+   "Drama",
+   "Art and Craft",
+   "Dance",
+   "Gardening",
+   "Cafeteria/Canteen",
+   "Library/Reading Room",
+   "Playground",
+   "Auditorium/Media Room",
+   "Science Lab",
+   "Computer Lab",
+   "CCTV",
+   "GPS Bus Tracking App",
+   "Medical Room",
+   "Student Tracking App",
+   "Skating",
+   "Gym",
+   "Yoga",
+   "Taekwondo",
+   "Karate",
+   "Outdoor Sports",
+   "Indoor Sports"
+  ],
+  "facility_groups": {
+   "Advanced Facilities": [
+    "Alumni Association",
+    "Day care",
+    "Meals",
+    "Transportation",
+    "Medical Room"
+   ],
+   "Boarding": [
+    "Boys Hostel",
+    "Girls Hostel"
+   ],
+   "Class": [
+    "Wifi",
+    "Smart Classes"
+   ],
+   "Disabled Friendly": [
+    "Washrooms",
+    "Ramps"
+   ],
+   "Extra Curricular": [
+    "Debate",
+    "Picnics and excursion",
+    "Music",
+    "Drama",
+    "Art and Craft",
+    "Dance",
+    "Gardening"
+   ],
+   "Infrastructure": [
+    "Cafeteria/Canteen",
+    "Library/Reading Room",
+    "Playground",
+    "Auditorium/Media Room"
+   ],
+   "Lab": [
+    "Science Lab",
+    "Computer Lab"
+   ],
+   "Safety and Security": [
+    "CCTV",
+    "GPS Bus Tracking App",
+    "Student Tracking App"
+   ],
+   "Sports and Fitness": [
+    "Skating",
+    "Gym",
+    "Yoga",
+    "Taekwondo",
+    "Karate",
+    "Outdoor Sports",
+    "Indoor Sports"
+   ]
+  },
+  "founded": 2007,
+  "medium": "English",
+  "academic_session": "April to March",
+  "student_teacher_ratio": "20:1",
+  "campus_size": "210 Acres",
+  "languages": [
+   "English",
+   "Hindi"
+  ],
+  "food_options": null,
+  "verified": null,
+  "page_last_updated": "2025-08-31",
+  "affiliation_no": null,
+  "school_timing": null,
+  "student_count": null,
+  "teacher_count": null,
+  "source_site": "ezyschooling.com",
+  "source_url": "https://ezyschooling.com/school/sainik-school-punglwa-nagaland",
+  "latest_fee_session": "2025-2026",
+  "current_admission_session": null,
+  "class_fees": [
+   {
+    "class_name": "Class 6",
+    "monthly_fee": null,
+    "annual_fee": 176624,
+    "one_time_fee": null,
+    "first_year_total": 176624,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Uniform and Stationary Charges",
+      "frequency": "Annually",
+      "amount": 6000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Annually",
+      "amount": 3000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Annually",
+      "amount": 3000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Meal Charges",
+      "frequency": "Annually",
+      "amount": 32450,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 116924,
+      "refundable": null
+     },
+     {
+      "fee_type": "Miscellaneous Charges",
+      "frequency": "Annually",
+      "amount": 13300,
+      "refundable": null
+     },
+     {
+      "fee_type": "Laundry",
+      "frequency": "Annually",
+      "amount": 1950,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 7",
+    "monthly_fee": null,
+    "annual_fee": 176624,
+    "one_time_fee": null,
+    "first_year_total": 176624,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Uniform and Stationary Charges",
+      "frequency": "Annually",
+      "amount": 6000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Annually",
+      "amount": 3000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Annually",
+      "amount": 3000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Meal Charges",
+      "frequency": "Annually",
+      "amount": 32450,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 116924,
+      "refundable": null
+     },
+     {
+      "fee_type": "Miscellaneous Charges",
+      "frequency": "Annually",
+      "amount": 13300,
+      "refundable": null
+     },
+     {
+      "fee_type": "Laundry",
+      "frequency": "Annually",
+      "amount": 1950,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 8",
+    "monthly_fee": null,
+    "annual_fee": 176624,
+    "one_time_fee": null,
+    "first_year_total": 176624,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Uniform and Stationary Charges",
+      "frequency": "Annually",
+      "amount": 6000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Annually",
+      "amount": 3000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Annually",
+      "amount": 3000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Meal Charges",
+      "frequency": "Annually",
+      "amount": 32450,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 116924,
+      "refundable": null
+     },
+     {
+      "fee_type": "Miscellaneous Charges",
+      "frequency": "Annually",
+      "amount": 13300,
+      "refundable": null
+     },
+     {
+      "fee_type": "Laundry",
+      "frequency": "Annually",
+      "amount": 1950,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 9",
+    "monthly_fee": null,
+    "annual_fee": 176624,
+    "one_time_fee": null,
+    "first_year_total": 176624,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Uniform and Stationary Charges",
+      "frequency": "Annually",
+      "amount": 6000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Annually",
+      "amount": 3000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Annually",
+      "amount": 3000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Meal Charges",
+      "frequency": "Annually",
+      "amount": 32450,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 116924,
+      "refundable": null
+     },
+     {
+      "fee_type": "Miscellaneous Charges",
+      "frequency": "Annually",
+      "amount": 13300,
+      "refundable": null
+     },
+     {
+      "fee_type": "Laundry",
+      "frequency": "Annually",
+      "amount": 1950,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 10",
+    "monthly_fee": null,
+    "annual_fee": 176624,
+    "one_time_fee": null,
+    "first_year_total": 176624,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Uniform and Stationary Charges",
+      "frequency": "Annually",
+      "amount": 6000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Annually",
+      "amount": 3000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Annually",
+      "amount": 3000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Meal Charges",
+      "frequency": "Annually",
+      "amount": 32450,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 116924,
+      "refundable": null
+     },
+     {
+      "fee_type": "Miscellaneous Charges",
+      "frequency": "Annually",
+      "amount": 13300,
+      "refundable": null
+     },
+     {
+      "fee_type": "Laundry",
+      "frequency": "Annually",
+      "amount": 1950,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 11",
+    "monthly_fee": null,
+    "annual_fee": 176624,
+    "one_time_fee": null,
+    "first_year_total": 176624,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Uniform and Stationary Charges",
+      "frequency": "Annually",
+      "amount": 6000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Annually",
+      "amount": 3000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Annually",
+      "amount": 3000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Meal Charges",
+      "frequency": "Annually",
+      "amount": 32450,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 116924,
+      "refundable": null
+     },
+     {
+      "fee_type": "Miscellaneous Charges",
+      "frequency": "Annually",
+      "amount": 13300,
+      "refundable": null
+     },
+     {
+      "fee_type": "Laundry",
+      "frequency": "Annually",
+      "amount": 1950,
+      "refundable": null
+     }
+    ]
+   },
+   {
+    "class_name": "Class 12",
+    "monthly_fee": null,
+    "annual_fee": 176624,
+    "one_time_fee": null,
+    "first_year_total": 176624,
+    "fee_session": "2025-2026",
+    "items": [
+     {
+      "fee_type": "Uniform and Stationary Charges",
+      "frequency": "Annually",
+      "amount": 6000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Imprest Money",
+      "frequency": "Annually",
+      "amount": 3000,
+      "refundable": null
+     },
+     {
+      "fee_type": "Security Fees",
+      "frequency": "Annually",
+      "amount": 3000,
+      "refundable": true
+     },
+     {
+      "fee_type": "Meal Charges",
+      "frequency": "Annually",
+      "amount": 32450,
+      "refundable": null
+     },
+     {
+      "fee_type": "Tuition Fees",
+      "frequency": "Annually",
+      "amount": 116924,
+      "refundable": null
+     },
+     {
+      "fee_type": "Miscellaneous Charges",
+      "frequency": "Annually",
+      "amount": 13300,
+      "refundable": null
+     },
+     {
+      "fee_type": "Laundry",
+      "frequency": "Annually",
+      "amount": 1950,
+      "refundable": null
+     }
+    ]
+   }
+  ],
+  "admissions": [],
+  "warnings": [
+   "no admission / application-fee table on the page"
+  ],
+  "mongo_extra": {
+   "scraped_at": "2026-10-27",
+   "scraped_from": "ezyschooling.com",
+   "ezy_slug": "sainik-school-punglwa-nagaland",
+   "fee_data_sessions": [
+    "2025-2026"
+   ],
+   "page_heading_session": "2027-2028",
+   "listing_fee_range": null,
+   "boarding_type_raw": "Full Boarding",
+   "sessions_clicked": [
+    "2026-2027",
+    "2027-2028"
+   ],
+   "all_facts": {
+    "Board": "CBSE",
+    "Gender": "Boys",
+    "Classes": "6 - 12 Class",
+    "Academic Session": "April to March",
+    "Medium": "English",
+    "Student Teacher Ratio": "20:1",
+    "Day/Boarding": "Full Boarding"
+   },
+   "sources": {
+    "name": "listing card",
+    "city": "breadcrumb",
+    "state": "listing card",
+    "area": "address: text before the city (the page has no separate area field)",
+    "locality": "address: text before the city (the page has no separate area field)",
+    "type": "Quick Facts: Day/Boarding",
+    "boarding_type": "Quick Facts: Day/Boarding",
+    "address": "page header",
+    "pincode": "page header",
+    "classes": "Quick Facts",
+    "boards": "Quick Facts",
+    "gender": "Quick Facts",
+    "medium": "Quick Facts",
+    "academic_session": "Quick Facts",
+    "student_teacher_ratio": "Quick Facts",
+    "founded": "page header",
+    "class_fees": "fees-structure page (site-printed numbers; fee_session = session stated by the page or clicked button)",
+    "fee_min": "lowest / highest annual fee of the newest fee session (2025-2026)",
+    "fee_max": "lowest / highest annual fee of the newest fee session (2025-2026)",
+    "email": "Address And Contact block",
+    "website": "Address And Contact block",
+    "phone": "page data next to the e-mail",
+    "about": "About Us section",
+    "description": "About Us section",
+    "facilities": "Facilities icons marked yes (grouped by the page section)",
+    "facility_groups": "Facilities icons marked yes (grouped by the page section)",
+    "hostel": "Facilities icons (Boys/Girls Hostel)",
+    "lat_lng": "school's own Google-Maps embed",
+    "logo": "image with alt \"<school> Logo\"",
+    "images": "cover + \"<school> Gallery\" images",
+    "campus_size": "Quick Facts",
+    "languages": "Languages Taught section",
+    "page_last_updated": "page footer"
+   },
+   "facilities_not_available": []
+  }
+ }
+]

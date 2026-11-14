@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from './stores/authStore';
 import { apiCall } from './lib/api';
+import { hasRole, normalizeRoleKey } from './lib/roles';
 import LoginPage from './features/auth/LoginPage';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
@@ -24,14 +25,15 @@ import {
 } from './features/views/CrmViews';
 
 export default function App() {
-  const { isAuthenticated, user, previewRole } = useAuthStore();
+  const { isAuthenticated, user, previewRole, lastActivityAt, touchActivity, logout } = useAuthStore();
   const queryClient = useQueryClient();
 
   const [currentTab, setCurrentTab] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
-  const [wireframeScreenNum, setWireframeScreenNum] = useState(1);
+  const [wireframeScreenNum] = useState(1);
+  const [idleWarningSeconds, setIdleWarningSeconds] = useState<number | null>(null);
   const [toastMsg, setToastMsg] = useState<{
     text: string;
     type: 'success' | 'danger' | 'warning';
@@ -45,11 +47,48 @@ export default function App() {
     setTimeout(() => setToastMsg(null), 4000);
   };
 
+  // 15-minute Idle Timeout with 60-second warning modal
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setIdleWarningSeconds(null);
+      return;
+    }
+    const handleActivity = () => {
+      touchActivity();
+      setIdleWarningSeconds(null);
+    };
+    window.addEventListener('mousedown', handleActivity);
+    window.addEventListener('keydown', handleActivity);
+    window.addEventListener('touchstart', handleActivity);
+
+    const timer = setInterval(() => {
+      const elapsed = Date.now() - useAuthStore.getState().lastActivityAt;
+      const limitMs = 15 * 60 * 1000;
+      const warnAtMs = 14 * 60 * 1000;
+      if (elapsed >= limitMs) {
+        apiCall('/auth/logout', 'POST', {}).catch(() => {});
+        logout(true);
+      } else if (elapsed >= warnAtMs) {
+        setIdleWarningSeconds(Math.max(1, Math.ceil((limitMs - elapsed) / 1000)));
+      } else {
+        setIdleWarningSeconds(null);
+      }
+    }, 5000);
+
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener('mousedown', handleActivity);
+      window.removeEventListener('keydown', handleActivity);
+      window.removeEventListener('touchstart', handleActivity);
+    };
+  }, [isAuthenticated, lastActivityAt]);
+
   const effectiveRole = previewRole || user?.role || 'SUPER_ADMIN';
+  const normKey = normalizeRoleKey(effectiveRole);
   const roleParam =
-    effectiveRole === 'SUPER_ADMIN'
+    normKey === 'super_admin'
       ? 'admin'
-      : effectiveRole === 'SENIOR_MANAGER'
+      : normKey === 'manager'
       ? 'manager'
       : 'counsellor';
 
@@ -68,7 +107,7 @@ export default function App() {
 
   const { data: schoolsRes } = useQuery({
     queryKey: ['schools'],
-    queryFn: () => apiCall('/schools'),
+    queryFn: () => apiCall('/schools?limit=1500'),
     enabled: isAuthenticated,
   });
 
@@ -300,6 +339,44 @@ export default function App() {
           onSuccess={refreshAll}
           onShowToast={showToast}
         />
+
+        {idleWarningSeconds !== null && (
+          <div className="modal-overlay" style={{ zIndex: 2500 }}>
+            <div className="modal-content" style={{ maxWidth: '420px' }}>
+              <div className="modal-header">
+                <h3 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--primary-navy)' }}>
+                  ⏳ Session Inactivity Warning
+                </h3>
+              </div>
+              <div className="modal-body">
+                <p style={{ fontSize: '13px', color: '#334155', margin: 0 }}>
+                  For DPDP security compliance, you will be automatically logged out in{' '}
+                  <strong>{idleWarningSeconds}s</strong> due to 15 minutes of inactivity.
+                </p>
+              </div>
+              <div className="modal-footer">
+                <button
+                  className="btn btn-outline"
+                  onClick={() => {
+                    apiCall('/auth/logout', 'POST', {}).catch(() => {});
+                    logout(true);
+                  }}
+                >
+                  Logout Now
+                </button>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => {
+                    touchActivity();
+                    setIdleWarningSeconds(null);
+                  }}
+                >
+                  Stay Logged In
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

@@ -1,20 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["fullTextSearch"]
-}
+// ============================================================================
+// 25 BLUEPRINT ENUMS + COMPATIBLE LEGACY ALIASES
+// ============================================================================
 
 enum Role {
   SUPER_ADMIN
   SENIOR_MANAGER
   COUNSELLOR
+  super_admin
+  manager
+  jr_counsellor
+}
+
+enum UserStatus {
+  active
+  suspended
+  locked
+  inactive
 }
 
 enum LeadStatus {
+  // 17 Blueprint statuses
+  new
+  contacted
+  qualified
+  shortlisted
+  applied
+  conference_call
+  test_interview
+  visit_registration
+  selected
+  admission_done
+  commission_received
+  closed
+  merged
+  expired
+  suspended
+  reopened
+  disqualified
+
+  // Preserved legacy aliases
   NEW_LEAD
   CONTACTED
   SCHOOL_TOUR_SCHEDULED
@@ -23,6 +56,183 @@ enum LeadStatus {
   ADMISSION_CONFIRMED
   ENROLLED
   LOST
+  MERGED
+}
+
+enum BoardType {
+  CBSE
+  ICSE
+  IB
+  State_Board
+  IGCSE
+}
+
+enum SchoolType {
+  boarding
+  semi_boarding
+  online
+  day_cum_boarding
+}
+
+enum GenderPref {
+  male
+  female
+  co_ed
+}
+
+enum SchoolGenderType {
+  boys
+  girls
+  co_ed
+}
+
+enum LeadSource {
+  call
+  whatsapp
+  website
+  referral
+  ad
+  walk_in
+  excel_import
+}
+
+enum PreferredContactTime {
+  morning
+  afternoon
+  evening
+  anytime
+}
+
+enum CallOutcome {
+  interested
+  not_interested
+  not_picked
+  wrong_number
+  callback_later
+  busy
+  switched_off
+}
+
+enum ApplicationStage {
+  applied
+  conference_call
+  test_interview
+  visit_registration
+  selected
+  admission_done
+  closed
+}
+
+enum SubStage {
+  A_waiting
+  B_only_registration
+  C_formalities_done
+}
+
+enum ConferenceCallStatus {
+  done
+  pending
+  school_will_call
+  rescheduled
+}
+
+enum SchoolStatus {
+  active
+  inactive
+}
+
+enum CommissionStatus {
+  pending
+  received
+  paid_out
+  reversed
+  adjusted
+
+  // Preserved legacy aliases
+  PENDING
+  PENDING_APPROVAL
+  APPROVED
+  PAYABLE
+  PAID
+  REVERSED
+  CANCELLED
+}
+
+enum NotificationType {
+  follow_up_reminder
+  weekly_report
+  merge_alert
+  report_ready
+  commission_reversed
+  recalculate_complete
+  lead_assigned
+  follow_up_overdue
+  school_deactivated
+  bulk_import_complete
+  lead_reopened
+  lead_expiry_warning
+  lead_suspended
+  pending_logging_alert
+  system_alert
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  REVERSE
+  AUTO
+  LOGIN
+  LOGOUT
+  MERGE
+  REOPEN
+  RESTORE
+}
+
+enum LifecycleEvent {
+  expired
+  suspended
+  reopened
+  force_expired
+  extended
+}
+
+enum WaDirection {
+  inbound
+  outbound
+}
+
+enum CallDirection {
+  inbound
+  outbound
+}
+
+enum WaRecipientType {
+  parent
+  school_group
+}
+
+enum LogStatus {
+  pending
+  confirmed
+}
+
+enum PendingAction {
+  whatsapp_sent
+  call_made
+}
+
+enum AgeBucket {
+  under_1h
+  bucket_1h_to_4h @map("1h_to_4h")
+  over_4h
+  over_24h
+}
+
+enum Platform {
+  android
+  ios
+  web
 }
 
 enum VerificationStatus {
@@ -47,94 +257,884 @@ enum FollowUpType {
   CAMPUS_VISIT
 }
 
-enum CommissionStatus {
-  PENDING
-  PENDING_APPROVAL
-  APPROVED
-  PAYABLE
-  PAID
-  REVERSED
-  CANCELLED
-}
+// ============================================================================
+// CORE & BLUEPRINT MODELS (ALL 23 TABLES + PRESERVED BRIDGES)
+// ============================================================================
 
-model RoleDefinition {
-  id          String       @id @default(uuid())
-  name        Role         @unique
-  displayName String
-  description String?
-  permissions Permission[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-}
-
-model Permission {
-  id          String         @id @default(uuid())
-  code        String         @unique
-  module      String
-  description String?
-  roleId      String
-  role        RoleDefinition @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  createdAt   DateTime       @default(now())
-
-  @@index([roleId])
-}
-
+// 1. users
 model User {
-  id                 String                @id @default(uuid())
-  email              String                @unique
-  employeeId         String                @unique
-  fullName           String
-  phone              String?
-  role               Role                  @default(COUNSELLOR)
-  passwordHash       String
-  status             String                @default("Active")
-  isTwoFactorEnabled Boolean               @default(false)
-  twoFactorSecret    String?
-  recoveryCodes      String[]              @default([])
-  isActive           Boolean               @default(true)
-  lastLoginAt        DateTime?
+  id                   String    @id @default(uuid())
+  email                String    @unique
+  employeeId           String    @unique @map("employee_id")
+  fullName             String    @map("full_name")
+  phone                String?
+  role                 Role      @default(jr_counsellor)
+  passwordHash         String    @map("password_hash")
+  status               String    @default("active")
+  isTwoFactorEnabled   Boolean   @default(false) @map("two_fa_enabled")
+  twoFactorSecret      String?   @map("two_fa_secret")
+  recoveryCodes        String[]  @map("backup_codes")
+  isActive             Boolean   @default(true) @map("is_active")
+  failedLoginAttempts  Int       @default(0) @map("failed_login_attempts")
+  lockedUntil          DateTime? @map("locked_until")
+  lastLoginAt          DateTime? @map("last_login_at")
+  lastLogoutAt         DateTime? @map("last_logout_at")
+  passwordUpdatedAt    DateTime? @map("password_updated_at")
+  fnfDate              DateTime? @map("fnf_date")
+  fnfSettled           Boolean   @default(false) @map("fnf_settled")
+  bankAccountEncrypted String?   @map("bank_account_encrypted")
+  upiId                String?   @map("upi_id")
+  teamId               String?   @map("team_id")
+  managerId            String?   @map("manager_id")
+  version              Int       @default(1)
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+  deletedAt            DateTime? @map("deleted_at")
 
-  teamId             String?
-  team               Team?                 @relation("TeamMembers", fields: [teamId], references: [id])
-  managedTeams       Team[]                @relation("TeamManager")
+  // Relations
+  team                   Team?                   @relation("TeamMembers", fields: [teamId], references: [id])
+  managedTeams           Team[]                  @relation("TeamManager")
+  manager                User?                   @relation("ManagerHierarchy", fields: [managerId], references: [id])
+  counsellors            User[]                  @relation("ManagerHierarchy")
+  sessions               RefreshTokenSession[]
+  devices                UserDevice[]
+  notificationPreference NotificationPreference?
+  notifications          Notification[]
+  auditLogs              AuditLog[]
+  createdLeads           Lead[]                  @relation("LeadCreatedBy")
+  assignedLeads          Lead[]                  @relation("LeadAssignedTo")
+  managedLeads           Lead[]                  @relation("LeadAssignedManager")
+  verifiedLeads          Lead[]                  @relation("LeadVerifiedBy")
+  leadRemarks            LeadRemark[]
+  shortlistsAdded        Shortlist[]
+  admissionsCreated      Admission[]             @relation("AdmissionCounsellor")
+  admissionsManaged      Admission[]             @relation("AdmissionManager")
+  commissionsBeneficiary Commission[]            @relation("CommissionBeneficiary")
+  commissionsApproved    Commission[]            @relation("CommissionApprovedBy")
+  commissionsReversed    Commission[]            @relation("CommissionReversedBy")
+  whatsappLogs           WhatsappLog[]
+  callLogs               CallLog[]
+  pendingLoggingItems    PendingLoggingQueue[]
+  followUps              FollowUp[]
+  followUpChanges        FollowUpHistory[]
+  lifecycleActions       LeadExpiryLog[]
+  reopenedActions        ReopenedLeadHistory[]   @relation("ReopenedByUser")
+  reopenedAssignments    ReopenedLeadHistory[]   @relation("ReopenedAssignedUser")
+  tasks                  Task[]
+  systemSettingsUpdated  SystemSetting[]
+  activityConfirmations  ActivityConfirmation[]
+  paymentsRecorded       Payment[]
 
-  managerId          String?
-  manager            User?                 @relation("ManagerSubordinates", fields: [managerId], references: [id])
-  subordinates       User[]                @relation("ManagerSubordinates")
-
-  refreshSessions    RefreshTokenSession[]
-  assignedLeads      Lead[]                @relation("AssignedCounsellor")
-  managedLeads       Lead[]                @relation("AssignedManager")
-  followUps          FollowUp[]
-  tasks              Task[]
-  admissions         Admission[]           @relation("CounsellorAdmissions")
-  managedAdmissions  Admission[]           @relation("ManagerAdmissions")
-  commissions        Commission[]          @relation("BeneficiaryCommissions")
-  auditLogs          AuditLog[]
-  notifications      Notification[]
-
-  createdAt          DateTime              @default(now())
-  updatedAt          DateTime              @updatedAt
-
-  @@index([email])
-  @@index([role])
-  @@index([teamId])
+  @@index([role, status])
+  @@index([managerId])
+  @@index([deletedAt])
+  @@map("users")
 }
 
-model RefreshTokenSession {
+// 2. roles_permissions
+model RolePermission {
+  id            String   @id @default(uuid())
+  role          String
+  permissionKey String   @map("permission_key")
+  allowed       Boolean  @default(true)
+  description   String?
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@unique([role, permissionKey])
+  @@index([permissionKey])
+  @@map("roles_permissions")
+}
+
+// 3. system_settings
+model SystemSetting {
   id          String   @id @default(uuid())
-  tokenHash   String   @unique
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  family      String   @default(uuid())
-  isRevoked   Boolean  @default(false)
-  expiresAt   DateTime
-  userAgent   String?
-  ipAddress   String?
-  createdAt   DateTime @default(now())
+  key         String   @unique
+  value       Json
+  category    String   @default("general")
+  description String?
+  updatedById String?  @map("updated_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  updatedBy User? @relation(fields: [updatedById], references: [id])
+
+  @@index([category])
+  @@map("system_settings")
+}
+
+// 4. whatsapp_templates
+model WhatsappTemplate {
+  id            String   @id @default(uuid())
+  templateKey   String   @unique @map("template_key")
+  name          String
+  body          String
+  recipientType String   @default("parent") @map("recipient_type")
+  category      String   @default("general")
+  isActive      Boolean  @default(true) @map("is_active")
+  usageCount    Int      @default(0) @map("usage_count")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  whatsappLogs WhatsappLog[]
+
+  @@index([isActive])
+  @@map("whatsapp_templates")
+}
+
+// 5. leads (37+ Business Fields + 3 System Fields)
+model Lead {
+  id                      String             @id @default(uuid())
+  leadNumber              String             @unique @map("lead_id")
+  academicYear            String?            @default("2026-27") @map("academic_year")
+  admissionSession        String?            @map("admission_session")
+  studentName             String             @map("student_name")
+  studentGender           String?            @map("gender")
+  studentDob              DateTime?          @map("student_dob")
+  currentGrade            String?            @map("current_grade")
+  applyingForGrade        String             @map("applying_for_grade")
+  classGrade              Int                @default(6) @map("class_grade")
+  previousClassPercentage String?            @map("previous_class_percentage")
+  parentName              String             @map("parent_name")
+  fatherName              String?            @map("father_name")
+  fatherOccupation        String?            @map("father_occupation")
+  motherName              String?            @map("mother_name")
+  motherOccupation        String?            @map("mother_occupation")
+  guardianName            String?            @map("guardian_name")
+  guardianMobile          String?            @map("guardian_mobile")
+  parentPhone             String             @map("mobile_primary")
+  alternateMobile         String?            @map("mobile_alternate")
+  whatsappNumber          String?            @map("whatsapp_number")
+  parentEmail             String?            @map("email")
+  preferredContactTime    String?            @default("anytime") @map("preferred_contact_time")
+  city                    String?            @map("city_resident")
+  preferredLocation       String?            @map("city_preferred")
+  boardingPreference      String?            @default("boarding") @map("school_type")
+  annualBudget            String?            @map("budget_range")
+  budgetMin               Float?             @map("budget_min")
+  budgetMax               Float?             @map("budget_max")
+  preferredBoard          String?            @default("CBSE") @map("board")
+  leadSource              String?            @default("call") @map("source")
+  sourceDetail            String?            @map("source_detail")
+  preferredSchoolId       String?            @map("preferred_school_id")
+  status                  LeadStatus         @default(new)
+  verificationStatus      VerificationStatus @default(DRAFT) @map("verification_status")
+  priority                Priority           @default(MEDIUM)
+  score                   Int                @default(0) @map("lead_score")
+  scoreBreakdown          Json?              @map("score_breakdown")
+  dpdpConsent             Boolean            @default(false) @map("consent_given")
+  dpdpConsentAt           DateTime?          @map("consent_at")
+  notes                   String?
+  returnRemarks           String?            @map("return_remarks")
+  remarksJson             Json?              @map("remarks_json")
+  historyJson             Json?              @map("history_json")
+  nextFollowUpDate        DateTime?          @map("follow_up_date")
+  waSentCount             Int                @default(0) @map("wa_sent_count")
+  lastWaAt                DateTime?          @map("last_wa_at")
+  callAttempts            Int                @default(0) @map("call_attempts")
+  lastCallOutcome         String?            @map("last_call_outcome")
+  createdById             String?            @map("created_by")
+  assignedCounsellorId    String?            @map("assigned_to")
+  assignedManagerId       String?            @map("assigned_manager_id")
+  teamId                  String?            @map("team_id")
+  parentId                String?            @map("parent_id")
+  studentId               String?            @map("student_id")
+  verifiedById            String?            @map("verified_by_id")
+  verifiedAt              DateTime?          @map("verified_at")
+  expiryStatus            String?            @default("ACTIVE") @map("expiry_status")
+  expiryDay90Action       String?            @map("expiry_day90_action")
+  expiryExtendedUntil     DateTime?          @map("expiry_extended_until")
+  forceExpired            Boolean            @default(false) @map("force_expired")
+  isMerged                Boolean            @default(false) @map("is_merged")
+  mergedIntoId            String?            @map("merged_into_lead_id")
+  overrideReason          String?            @map("override_reason")
+  disqualifyReason        String?            @map("disqualify_reason")
+  suspendedUntil          DateTime?          @map("suspended_until")
+  version                 Int                @default(1)
+  createdAt               DateTime           @default(now()) @map("created_at")
+  updatedAt               DateTime           @updatedAt @map("updated_at")
+  deletedAt               DateTime?          @map("deleted_at")
+
+  // Relations
+  createdBy             User?                  @relation("LeadCreatedBy", fields: [createdById], references: [id])
+  assignedCounsellor    User?                  @relation("LeadAssignedTo", fields: [assignedCounsellorId], references: [id])
+  assignedManager       User?                  @relation("LeadAssignedManager", fields: [assignedManagerId], references: [id])
+  verifiedBy            User?                  @relation("LeadVerifiedBy", fields: [verifiedById], references: [id])
+  team                  Team?                  @relation(fields: [teamId], references: [id])
+  parent                Parent?                @relation(fields: [parentId], references: [id])
+  student               Student?               @relation(fields: [studentId], references: [id])
+  mergedInto            Lead?                  @relation("LeadMerge", fields: [mergedIntoId], references: [id])
+  mergedFrom            Lead[]                 @relation("LeadMerge")
+  remarks               LeadRemark[]
+  shortlists            Shortlist[]
+  applications          Admission[]
+  commissions           Commission[]
+  whatsappLogs          WhatsappLog[]
+  callLogs              CallLog[]
+  pendingLoggingQueue   PendingLoggingQueue[]
+  followUps             FollowUp[]
+  followUpHistory       FollowUpHistory[]
+  lifecycleHistory      LeadExpiryLog[]
+  reopenedHistory       ReopenedLeadHistory[]
+  tasks                 Task[]
+  communicationLogs     CommunicationLog[]
+  activityConfirmations ActivityConfirmation[]
+
+  @@index([parentPhone, studentName, classGrade])
+  @@index([status])
+  @@index([assignedCounsellorId])
+  @@index([nextFollowUpDate])
+  @@index([score])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@map("leads")
+}
+
+// 6. lead_remarks (Append-only)
+model LeadRemark {
+  id        String   @id @default(uuid())
+  leadId    String   @map("lead_id")
+  userId    String?  @map("added_by")
+  userName  String   @map("user_name")
+  userRole  String   @map("user_role")
+  content   String   @map("remark")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  lead Lead  @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([leadId, createdAt])
+  @@map("lead_remarks")
+}
+
+// 7. schools (500 Partner Schools Master)
+model School {
+  id                String    @id @default(uuid())
+  schoolCode        String    @unique @map("school_code")
+  name              String
+  board             String    @default("CBSE")
+  genderType        String    @default("co_ed") @map("type")
+  category          String    @default("boarding") @map("category")
+  state             String    @default("Uttarakhand")
+  city              String
+  rank              Int       @default(50) @map("ranking")
+  rating            Float     @default(4.5)
+  minFeeAnnual      Float     @default(250000) @map("fees_min")
+  maxFeeAnnual      Float     @default(550000) @map("fees_max")
+  feesDisplay       String?   @map("fees_display")
+  defaultCommission Float     @default(35000) @map("company_commission")
+  jrCommission      Float     @default(5000) @map("jr_commission")
+  srCommission      Float     @default(7000) @map("sr_commission")
+  netProfit         Float     @default(23000) @map("net_profit")
+  paymentTermsDays  Int       @default(30) @map("payment_terms_days")
+  whatsappGroupId   String?   @map("whatsapp_group_id")
+  phone             String?   @map("contact_person")
+  sports            String[]  @map("facilities")
+  hostelQuality     String    @default("Premium") @map("hostel_quality")
+  description       String?
+  website           String?
+  admissionsEmail   String?   @map("admissions_email")
+  isPartner         Boolean   @default(true) @map("is_partner")
+  status            String    @default("active")
+  classesOffered    String?   @default("1-12") @map("classes_offered")
+  version           Int       @default(1)
+  deletedAt         DateTime? @map("deleted_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  applications Admission[]
+  shortlists   Shortlist[]
+  commissions  Commission[]
+
+  @@index([board, state])
+  @@index([status])
+  @@index([rank])
+  @@map("schools")
+}
+
+// 8. applications (Multi-School Application & 12-Stage Pipeline Mapping)
+model Admission {
+  id                   String    @id @default(uuid())
+  admissionNumber      String    @unique @map("app_id")
+  receiptNumber        String    @unique @map("receipt_number")
+  applicationNumber    String?   @map("application_number")
+  leadId               String    @map("lead_id")
+  schoolId             String    @map("school_id")
+  counsellorId         String    @map("counsellor_id")
+  managerId            String?   @map("manager_id")
+  teamId               String?   @map("team_id")
+  studentName          String?   @map("student_name")
+  parentName           String?   @map("parent_name")
+  schoolName           String?   @map("school_name")
+  admissionClass       String    @map("admission_class")
+  academicYear         String    @map("academic_year")
+  feeAgreed            Float     @default(0) @map("fee_agreed")
+  proofDocument        String    @default("pending_proof") @map("proof_document")
+  stage                String    @default("applied")
+  status               String    @default("applied")
+  subStage             String    @default("A_waiting") @map("sub_stage")
+  conferenceCallStatus String?   @map("conference_call_status")
+  conferenceCallNotes  String?   @map("conference_call_notes")
+  conferenceCallAt     DateTime? @map("conference_call_at")
+  testDate             DateTime? @map("test_date")
+  visitDate            DateTime? @map("visit_date")
+  registrationNumber   String?   @map("registration_number")
+  schoolAppNo          String?   @map("school_app_no")
+  selectionStatus      String?   @map("selection_status")
+  selectedDate         DateTime? @map("selected_date")
+  admissionDate        DateTime? @map("admission_date")
+  childDropDate        DateTime? @map("child_drop_date")
+  commissionGenerated  Boolean   @default(false) @map("commission_eligible")
+  nextFollowUpDate     DateTime? @map("next_follow_up_date")
+  receiptPdfUrl        String?   @map("receipt_pdf_url")
+  cancellationReason   String?   @map("cancellation_reason")
+  cancelledAt          DateTime? @map("cancelled_at")
+  confirmedAt          DateTime  @default(now()) @map("confirmed_at")
+  version              Int       @default(1)
+  deletedAt            DateTime? @map("deleted_at")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  lead        Lead         @relation(fields: [leadId], references: [id])
+  school      School       @relation(fields: [schoolId], references: [id])
+  counsellor  User         @relation("AdmissionCounsellor", fields: [counsellorId], references: [id])
+  manager     User?        @relation("AdmissionManager", fields: [managerId], references: [id])
+  team        Team?        @relation(fields: [teamId], references: [id])
+  commissions Commission[]
+
+  @@index([leadId, schoolId])
+  @@index([stage])
+  @@index([subStage])
+  @@index([nextFollowUpDate])
+  @@map("applications")
+}
+
+// 9. commission_ledger
+model Commission {
+  id                 String           @id @default(uuid())
+  commissionCode     String           @unique @map("commission_id")
+  admissionId        String           @map("app_id")
+  leadId             String?          @map("lead_id")
+  schoolId           String?          @map("school_id")
+  parentCommissionId String?          @map("parent_commission_id")
+  schoolName         String?          @map("school_name")
+  studentName        String?          @map("student_name")
+  parentName         String?          @map("parent_name")
+  beneficiaryId      String?          @map("beneficiary_id")
+  beneficiaryName    String           @map("beneficiary_name")
+  beneficiaryType    String           @default("COMPANY") @map("beneficiary_type")
+  beneficiaryRole    Role             @default(COUNSELLOR) @map("beneficiary_role")
+  teamId             String?          @map("team_id")
+  originalAmount     Float            @default(0) @map("original_amount")
+  amount             Float            @map("company_amount")
+  jrAmount           Float            @default(0) @map("jr_amount")
+  jrName             String?          @map("jr_name")
+  srAmount           Float            @default(0) @map("sr_amount")
+  srName             String?          @map("sr_name")
+  netProfit          Float            @default(0) @map("net_profit")
+  status             CommissionStatus @default(pending)
+  ruleVersion        Int              @default(1) @map("rule_version")
+  receivedOn         DateTime?        @map("received_on")
+  paidOn             DateTime?        @map("paid_on")
+  paymentReference   String?          @map("payment_reference")
+  paymentMode        String?          @map("payment_mode")
+  paidAt             DateTime?        @map("paid_at")
+  approvedById       String?          @map("approved_by_id")
+  approvedAt         DateTime?        @map("approved_at")
+  isReversal         Boolean          @default(false) @map("is_reversal")
+  reversalReason     String?          @map("reversal_reason")
+  reversedById       String?          @map("reversed_by")
+  reversedAt         DateTime?        @map("reversed_at")
+  fnfFlag            String?          @map("fnf_flag")
+  fnfCompletedAt     DateTime?        @map("fnf_completed_at")
+  fnfPeriodDays      Int              @default(90) @map("fnf_period_days")
+  fnfStatus          String?          @map("fnf_status")
+  version            Int              @default(1)
+  deletedAt          DateTime?        @map("deleted_at")
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
+
+  admission         Admission    @relation(fields: [admissionId], references: [id])
+  lead              Lead?        @relation(fields: [leadId], references: [id])
+  school            School?      @relation(fields: [schoolId], references: [id])
+  parentCommission  Commission?  @relation("CommissionAdjustment", fields: [parentCommissionId], references: [id])
+  adjustmentEntries Commission[] @relation("CommissionAdjustment")
+  beneficiary       User?        @relation("CommissionBeneficiary", fields: [beneficiaryId], references: [id])
+  approvedBy        User?        @relation("CommissionApprovedBy", fields: [approvedById], references: [id])
+  reversedByUser    User?        @relation("CommissionReversedBy", fields: [reversedById], references: [id])
+  team              Team?        @relation(fields: [teamId], references: [id])
+  payments          Payment[]
+
+  @@index([admissionId])
+  @@index([leadId])
+  @@index([status, createdAt])
+  @@index([schoolId])
+  @@index([parentCommissionId])
+  @@map("commission_ledger")
+}
+
+// 10. whatsapp_log
+model WhatsappLog {
+  id               String    @id @default(uuid())
+  logId            String    @unique @map("log_id")
+  leadId           String    @map("lead_id")
+  direction        String    @default("outbound")
+  templateId       String?   @map("template_id")
+  recipientType    String    @default("parent") @map("recipient_type")
+  recipientMobile  String?   @map("recipient_mobile")
+  recipientGroupId String?   @map("recipient_group_id")
+  sentBy           String    @map("sent_by")
+  messageBody      String?   @map("message_body")
+  notes            String?
+  status           String    @default("pending")
+  sentAt           DateTime  @default(now()) @map("sent_at")
+  confirmedAt      DateTime? @map("confirmed_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  lead     Lead              @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  template WhatsappTemplate? @relation(fields: [templateId], references: [templateKey])
+  sender   User              @relation(fields: [sentBy], references: [id])
+
+  @@index([leadId, sentAt])
+  @@index([sentBy, sentAt])
+  @@index([status])
+  @@index([templateId])
+  @@map("whatsapp_log")
+}
+
+// 11. call_log
+model CallLog {
+  id               String    @id @default(uuid())
+  logId            String    @unique @map("log_id")
+  leadId           String    @map("lead_id")
+  direction        String    @default("outbound")
+  outcome          String    @default("interested")
+  recipientMobile  String    @map("recipient_mobile")
+  calledBy         String    @map("called_by")
+  durationSeconds  Int       @default(0) @map("duration_seconds")
+  recordingLink    String?   @map("recording_link")
+  recordingConsent Boolean   @default(false) @map("recording_consent")
+  notes            String?
+  status           String    @default("pending")
+  calledAt         DateTime  @default(now()) @map("called_at")
+  confirmedAt      DateTime? @map("confirmed_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  lead   Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  caller User @relation(fields: [calledBy], references: [id])
+
+  @@index([leadId, calledAt])
+  @@index([calledBy, calledAt])
+  @@index([status])
+  @@index([outcome])
+  @@map("call_log")
+}
+
+// 12. notifications
+model Notification {
+  id                String    @id @default(uuid())
+  userId            String    @map("user_id")
+  type              String
+  title             String
+  message           String
+  relatedEntityId   String?   @map("related_entity_id")
+  relatedEntityType String?   @map("related_entity_type")
+  link              String?
+  isRead            Boolean   @default(false) @map("is_read")
+  readAt            DateTime? @map("read_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead, createdAt])
+  @@map("notifications")
+}
+
+// 13. audit_log (Month-partitioned in PostgreSQL via apply_blueprint_sql.ts)
+model AuditLog {
+  id            String    @id @default(uuid())
+  userId        String?   @map("user_id")
+  userName      String?   @map("user_name")
+  userRole      String?   @map("user_role")
+  action        String
+  module        String
+  entity        String
+  entityId      String?   @map("entity_id")
+  oldValue      Json?     @map("old_value")
+  newValue      Json?     @map("new_value")
+  details       Json?
+  ipAddress     String?   @map("ip_address")
+  userAgent     String?   @map("user_agent")
+  isSpecialFlag Boolean   @default(false) @map("special_flag")
+  isArchived    Boolean   @default(false) @map("is_archived")
+  archivedAt    DateTime? @map("archived_at")
+  archiveS3Uri  String?   @map("archive_s3_uri")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([module, createdAt])
+  @@index([userId, createdAt])
+  @@index([entityId])
+  @@index([isSpecialFlag])
+  @@map("audit_log")
+}
+
+// 14. sessions
+model RefreshTokenSession {
+  id            String    @id @default(uuid())
+  userId        String    @map("user_id")
+  tokenHash     String    @map("refresh_token_hash")
+  family        String    @default(uuid())
+  deviceInfo    String?   @map("device_info")
+  ipAddress     String?   @map("ip_address")
+  loginAt       DateTime  @default(now()) @map("login_at")
+  logoutAt      DateTime? @map("logout_at")
+  expiresAt     DateTime  @map("expires_at")
+  isActive      Boolean   @default(true) @map("is_active")
+  isRevoked     Boolean   @default(false) @map("is_revoked")
+  revokedAt     DateTime? @map("revoked_at")
+  revokedReason String?   @map("revoked_reason")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isActive])
+  @@index([tokenHash])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+// 15. notification_preferences
+model NotificationPreference {
+  id                String   @id @default(uuid())
+  userId            String   @unique @map("user_id")
+  followUpReminder  Boolean  @default(true) @map("follow_up_reminder")
+  weeklyReport      Boolean  @default(true) @map("weekly_report")
+  mergeAlert        Boolean  @default(true) @map("merge_alert")
+  pushEnabled       Boolean  @default(false) @map("push_enabled")
+  commissionUpdates Boolean  @default(true) @map("commission_updates")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_preferences")
+}
+
+// 16. user_devices
+model UserDevice {
+  id               String    @id @default(uuid())
+  userId           String    @map("user_id")
+  deviceToken      String    @unique @map("device_token")
+  platform         String    @default("web")
+  deviceName       String?   @map("device_name")
+  subscriptionJson Json?     @map("subscription_json")
+  pushEnabled      Boolean   @default(true) @map("push_enabled")
+  lastActiveAt     DateTime? @map("last_active_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@index([family])
+  @@map("user_devices")
+}
+
+// 17. pending_logging_queue (3-Layer Escalation Reminder System)
+model PendingLoggingQueue {
+  id                 String    @id @default(uuid())
+  userId             String    @map("user_id")
+  leadId             String    @map("lead_id")
+  actionType         String    @map("action_type")
+  referenceLogId     String?   @map("reference_log_id")
+  status             String    @default("pending")
+  ageBucket          String    @default("under_1h") @map("age_bucket")
+  reminderSentAt1h   DateTime? @map("reminder_sent_at_1h")
+  reminderSentAt4h   DateTime? @map("reminder_sent_at_4h")
+  reminderSentAt24h  DateTime? @map("reminder_sent_at_24h")
+  resolvedAt         DateTime? @map("resolved_at")
+  createdAt          DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status, createdAt])
+  @@index([status])
+  @@map("pending_logging_queue")
+}
+
+// 18. shortlists (Phase 2)
+model Shortlist {
+  id            String    @id @default(uuid())
+  leadId        String    @map("lead_id")
+  schoolId      String    @map("school_id")
+  matchScore    Int       @default(0) @map("match_score")
+  priorityOrder Int       @default(1) @map("priority_order")
+  notes         String?   @map("note")
+  status        String    @default("SHORTLISTED")
+  addedById     String?   @map("added_by")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  deletedAt     DateTime? @map("deleted_at")
+
+  lead    Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  school  School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  addedBy User?  @relation(fields: [addedById], references: [id])
+
+  @@unique([leadId, schoolId])
+  @@index([leadId, priorityOrder])
+  @@map("shortlists")
+}
+
+// 19. matching_criteria_weights (Phase 2 - 8 Criteria = 100)
+model MatchingCriteriaWeight {
+  id           String   @id @default(uuid())
+  criteriaKey  String   @unique @map("criteria_key")
+  criteriaName String   @map("criteria_name")
+  weight       Int
+  description  String?
+  updatedBy    String?  @map("updated_by")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("matching_criteria_weights")
+}
+
+// 20. lead_scoring_config (Phase 2 - 5 Factors = 100)
+model LeadScoringConfig {
+  id           String   @id @default(uuid())
+  criteriaKey  String   @unique @map("criteria_key")
+  criteriaName String   @map("criteria_name")
+  weight       Int
+  description  String?
+  updatedBy    String?  @map("updated_by")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("lead_scoring_config")
+}
+
+// 21. follow_up_history (Phase 2 - Mandatory Reschedule Reason)
+model FollowUpHistory {
+  id         String    @id @default(uuid())
+  leadId     String    @map("lead_id")
+  followUpId String?   @map("follow_up_id")
+  oldDate    DateTime? @map("old_date")
+  newDate    DateTime  @map("new_date")
+  reason     String
+  changedBy  String    @map("changed_by")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [changedBy], references: [id])
+
+  @@index([leadId, createdAt])
+  @@map("follow_up_history")
+}
+
+// 22. lead_expiry_log (Phase 2 - Lifecycle Events 90-90-90-360)
+model LeadExpiryLog {
+  id                 String   @id @default(uuid())
+  logId              String   @unique @map("log_id")
+  leadId             String   @map("lead_id")
+  eventType          String   @map("event_type")
+  eventDate          DateTime @default(now()) @map("event_date")
+  reason             String
+  previousStatus     String?  @map("previous_status")
+  daysInPrevious     Int      @default(0) @map("days_in_previous")
+  newStatus          String   @map("new_status")
+  actionBy           String?  @map("action_by")
+  notificationSentTo String[] @map("notification_sent_to")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  lead         Lead  @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  actionByUser User? @relation(fields: [actionBy], references: [id])
+
+  @@index([leadId, eventDate])
+  @@index([eventType])
+  @@map("lead_expiry_log")
+}
+
+// 23. reopened_lead_history (Phase 2)
+model ReopenedLeadHistory {
+  id                String   @id @default(uuid())
+  leadId            String   @map("lead_id")
+  previousStatus    String   @map("previous_status")
+  reopenedAt        DateTime @default(now()) @map("reopened_at")
+  reopenedBy        String   @map("reopened_by")
+  reason            String
+  assignedTo        String   @map("assigned_to")
+  recalculatedScore Int      @default(0) @map("recalculated_score")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  lead           Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  reopenedByUser User @relation("ReopenedByUser", fields: [reopenedBy], references: [id])
+  assignedUser   User @relation("ReopenedAssignedUser", fields: [assignedTo], references: [id])
+
+  @@index([leadId, reopenedAt])
+  @@map("reopened_lead_history")
+}
+
+// ============================================================================
+// SUPPORTING / LEGACY COMPATIBILITY MODELS (ZERO BREAKING CHANGES)
+// ============================================================================
+
+model BackgroundJob {
+  id          String    @id @default(uuid())
+  jobId       String    @unique @map("job_id")
+  queueName   String    @map("queue_name")
+  jobType     String    @map("job_type")
+  userId      String?   @map("user_id")
+  status      String    @default("waiting")
+  progress    Int       @default(0)
+  payload     Json?
+  result      Json?
+  downloadUrl String?   @map("download_url")
+  errorText   String?   @map("error_text")
+  expiresAt   DateTime? @map("expires_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@index([userId, createdAt])
+  @@map("background_jobs")
+}
+
+model Team {
+  id                     String   @id @default(uuid())
+  teamCode               String   @unique
+  name                   String
+  description            String?
+  targetAdmissions       Int      @default(10)
+  monthlyAdmissionTarget Int      @default(15)
+  status                 String   @default("ACTIVE")
+  managerId              String?
+  historyJson            Json?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  manager     User?        @relation("TeamManager", fields: [managerId], references: [id])
+  members     User[]       @relation("TeamMembers")
+  leads       Lead[]
+  admissions  Admission[]
+  commissions Commission[]
+}
+
+model Parent {
+  id                   String   @id @default(uuid())
+  name                 String
+  mobile               String   @unique
+  alternateMobile      String?
+  email                String?
+  city                 String   @default("Dehradun")
+  state                String   @default("Uttarakhand")
+  whatsappNumber       String?
+  communicationConsent Boolean  @default(true)
+  occupation           String?
+  annualIncome         String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  students Student[]
+  leads    Lead[]
+}
+
+model Student {
+  id             String   @id @default(uuid())
+  name           String
+  gender         String   @default("Male")
+  currentClass   String?
+  admissionClass String
+  currentSchool  String?
+  academicYear   String   @default("2026-27")
+  parentId       String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  parent Parent @relation(fields: [parentId], references: [id])
+  leads  Lead[]
+}
+
+model FollowUp {
+  id                  String       @id @default(uuid())
+  followUpCode        String       @unique
+  leadId              String
+  counsellorId        String
+  type                FollowUpType @default(PHONE_CALL)
+  status              String       @default("SCHEDULED")
+  notes               String
+  outcome             String?
+  duration            String?
+  recordingLink       String?
+  dpdpConsentRecorded Boolean      @default(false)
+  scheduledAt         DateTime
+  completedAt         DateTime?
+  createdAt           DateTime     @default(now())
+
+  lead       Lead @relation(fields: [leadId], references: [id])
+  counsellor User @relation(fields: [counsellorId], references: [id])
+}
+
+model Task {
+  id           String   @id @default(uuid())
+  title        String
+  description  String?
+  status       String   @default("PENDING")
+  priority     Priority @default(MEDIUM)
+  dueDate      DateTime
+  assignedToId String
+  leadId       String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  assignedTo User  @relation(fields: [assignedToId], references: [id])
+  lead       Lead? @relation(fields: [leadId], references: [id])
+}
+
+model CommunicationLog {
+  id            String   @id @default(uuid())
+  leadId        String?
+  channel       String
+  recipient     String
+  recipientName String
+  subject       String?
+  templateName  String?
+  content       String
+  status        String   @default("SENT")
+  senderName    String?
+  sentAt        DateTime @default(now())
+
+  lead Lead? @relation(fields: [leadId], references: [id])
+}
+
+model CommissionRule {
+  id                    String   @id @default(uuid())
+  ruleCode              String   @unique
+  name                  String
+  type                  String   @default("STANDARD_3WAY")
+  counsellorShare       Float
+  managerShare          Float
+  orgShare              Float
+  totalCommissionAmount Float
+  eligibilityRules      String
+  isActive              Boolean  @default(true)
+  version               Int      @default(1)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model Payment {
+  id           String   @id @default(uuid())
+  paymentCode  String   @unique
+  commissionId String
+  amount       Float
+  utrNumber    String   @unique
+  paymentMode  String
+  status       String   @default("COMPLETED")
+  recordedById String?
+  paidAt       DateTime @default(now())
+  createdAt    DateTime @default(now())
+
+  commission Commission @relation(fields: [commissionId], references: [id])
+  recordedBy User?      @relation(fields: [recordedById], references: [id])
 }
 
 model PasswordReset {
@@ -145,369 +1145,51 @@ model PasswordReset {
   expiresAt DateTime
   used      Boolean  @default(false)
   createdAt DateTime @default(now())
-
-  @@index([email])
-  @@index([token])
 }
 
-model Team {
-  id                     String      @id @default(uuid())
-  teamCode               String      @unique @default("UK-PIONEERS")
-  name                   String      @unique
-  description            String?
-  targetAdmissions       Int         @default(60)
-  monthlyAdmissionTarget Int         @default(15)
-  status                 String      @default("Active")
-  managerId              String?
-  manager                User?       @relation("TeamManager", fields: [managerId], references: [id])
-  members                User[]      @relation("TeamMembers")
-  leads                  Lead[]
-  admissions             Admission[]
-  commissions            Commission[]
-  historyJson            Json?
-  createdAt              DateTime    @default(now())
-  updatedAt              DateTime    @updatedAt
+model RoleDefinition {
+  id          String       @id @default(uuid())
+  name        Role         @unique
+  displayName String
+  description String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  permissions Permission[]
 }
 
-model School {
-  id                String      @id @default(uuid())
-  schoolCode        String      @unique @default(uuid())
-  name              String      @unique
-  city              String      // Dehradun, Mussoorie, Nainital, Ranikhet
-  state             String      @default("Uttarakhand")
-  board             String      // IB, ICSE, CBSE, Cambridge
-  type              String      // Boys, Girls, Co-Ed
-  genderType        String      @default("co_ed") // boys, girls, co_ed
-  minFeeAnnual      Float
-  maxFeeAnnual      Float
-  feesDisplay       String?
-  defaultCommission Float       @default(30000)
-  rank              Int         @default(99)
-  rating            Float       @default(4.8)
-  hostelQuality     String      @default("5 Star")
-  sports            String[]    @default(["Cricket", "Swimming", "Football"])
-  description       String?
-  website           String?
-  admissionsEmail   String?
-  phone             String?
-  isPartner         Boolean     @default(true)
-  deletedAt         DateTime?
-  leads             Lead[]
-  admissions        Admission[]
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
+model Permission {
+  id          String         @id @default(uuid())
+  code        String
+  module      String
+  description String?
+  roleId      String
+  createdAt   DateTime       @default(now())
 
-  @@index([city])
-  @@index([board])
-  @@index([type])
+  role RoleDefinition @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, code])
 }
 
-model Parent {
-  id                   String    @id @default(uuid())
-  name                 String
-  mobile               String    @unique
-  alternateMobile      String?
-  email                String?
-  city                 String    @default("Dehradun")
-  state                String    @default("Uttarakhand")
-  whatsappNumber       String?
-  communicationConsent Boolean   @default(true)
-  occupation           String?
-  annualIncome         String?
-  students             Student[]
-  leads                Lead[]
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+model ActivityConfirmation {
+  id             String    @id @default(uuid())
+  leadId         String
+  counsellorId   String
+  activityType   String
+  notes          String
+  outcome        String?
+  status         String    @default("PENDING")
+  loggedAt       DateTime  @default(now())
+  confirmedAt    DateTime?
+  confirmedById  String?
+  reminder1hSent Boolean   @default(false)
+  reminder4hSent Boolean   @default(false)
+  isRedFlagged   Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
-  @@index([mobile])
-}
+  lead       Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  counsellor User @relation(fields: [counsellorId], references: [id])
 
-model Student {
-  id             String   @id @default(uuid())
-  name           String
-  gender         String   @default("male")
-  currentClass   String?
-  admissionClass String
-  currentSchool  String?
-  academicYear   String   @default("2026-27")
-  parentId       String
-  parent         Parent   @relation(fields: [parentId], references: [id], onDelete: Cascade)
-  leads          Lead[]
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  @@index([parentId])
-  @@index([name])
-}
-
-model Lead {
-  id                   String             @id @default(uuid())
-  leadNumber           String             @unique
-  parentId             String?
-  parent               Parent?            @relation(fields: [parentId], references: [id])
-  studentId            String?
-  student              Student?           @relation(fields: [studentId], references: [id])
-
-  studentName          String
-  studentGender        String?
-  studentDob           DateTime?
-  currentGrade         String?
-  applyingForGrade     String
-  parentName           String
-  parentPhone          String
-  parentEmail          String?
-  city                 String?
-  preferredLocation    String?            @default("Dehradun")
-  boardingPreference   String?            @default("Full Boarding")
-  annualBudget         String?            @default("₹6L - ₹10L")
-  budgetMin            Float?
-  budgetMax            Float?
-  preferredBoard       String?
-  leadSource           String?            @default("Direct Enquiry")
-  admissionSession     String?            @default("2026-27")
-
-  preferredSchoolId    String?
-  preferredSchool      School?            @relation(fields: [preferredSchoolId], references: [id])
-
-  status               LeadStatus         @default(NEW_LEAD)
-  verificationStatus   VerificationStatus @default(PENDING_VERIFICATION)
-  priority             Priority           @default(HIGH)
-  score                Int                @default(85)
-  dpdpConsent          Boolean            @default(true)
-  notes                String?
-  returnRemarks        String?
-  remarksJson          Json?
-  historyJson          Json?
-  nextFollowUpDate     DateTime?
-
-  assignedCounsellorId String?
-  assignedCounsellor   User?              @relation("AssignedCounsellor", fields: [assignedCounsellorId], references: [id])
-
-  assignedManagerId    String?
-  assignedManager      User?              @relation("AssignedManager", fields: [assignedManagerId], references: [id])
-
-  teamId               String?
-  team                 Team?              @relation(fields: [teamId], references: [id])
-
-  verifiedById         String?
-  verifiedAt           DateTime?
-
-  followUps            FollowUp[]
-  tasks                Task[]
-  admissions           Admission[]
-  communications       CommunicationLog[]
-
-  createdAt            DateTime           @default(now())
-  updatedAt            DateTime           @updatedAt
-
-  @@index([parentPhone])
-  @@index([status])
-  @@index([verificationStatus])
-  @@index([assignedCounsellorId])
-  @@index([teamId])
-}
-
-model FollowUp {
-  id                  String       @id @default(uuid())
-  followUpCode        String       @unique @default(uuid())
-  leadId              String
-  lead                Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
-  counsellorId        String
-  counsellor          User         @relation(fields: [counsellorId], references: [id])
-  type                FollowUpType @default(PHONE_CALL)
-  status              String       @default("Completed")
-  notes               String
-  outcome             String?      @default("Call logged")
-  duration            String?      @default("03:45")
-  recordingLink       String?
-  dpdpConsentRecorded Boolean      @default(true)
-  scheduledAt         DateTime     @default(now())
-  completedAt         DateTime?
-  createdAt           DateTime     @default(now())
-
-  @@index([leadId])
-  @@index([scheduledAt])
-  @@index([counsellorId])
-}
-
-model Task {
-  id           String    @id @default(uuid())
-  title        String
-  description  String?
-  status       String    @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED
-  priority     Priority  @default(MEDIUM)
-  dueDate      DateTime
-  assignedToId String
-  assignedTo   User      @relation(fields: [assignedToId], references: [id], onDelete: Cascade)
-  leadId       String?
-  lead         Lead?     @relation(fields: [leadId], references: [id], onDelete: SetNull)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-
-  @@index([assignedToId])
-  @@index([status])
-}
-
-model Admission {
-  id                  String       @id @default(uuid())
-  admissionNumber     String       @unique
-  receiptNumber       String       @unique
-  leadId              String
-  lead                Lead         @relation(fields: [leadId], references: [id])
-  schoolId            String
-  school              School       @relation(fields: [schoolId], references: [id])
-  counsellorId        String
-  counsellor          User         @relation("CounsellorAdmissions", fields: [counsellorId], references: [id])
-  managerId           String?
-  manager             User?        @relation("ManagerAdmissions", fields: [managerId], references: [id])
-  teamId              String?
-  team                Team?        @relation(fields: [teamId], references: [id])
-
-  studentName         String?
-  parentName          String?
-  schoolName          String?
-  admissionClass      String       @default("Class 6")
-  academicYear        String       @default("2026-27")
-  feeAgreed           Float
-  proofDocument       String       @default("admission_fee_receipt_verified.pdf")
-  status              String       @default("Admission Confirmed")
-  cancellationReason  String?
-  cancelledAt         DateTime?
-  commissionGenerated Boolean      @default(false)
-  receiptPdfUrl       String?
-  confirmedAt         DateTime     @default(now())
-  commissions         Commission[]
-  createdAt           DateTime     @default(now())
-  updatedAt           DateTime     @updatedAt
-
-  @@index([leadId])
-  @@index([schoolId])
-  @@index([counsellorId])
-}
-
-model CommissionRule {
-  id                    String   @id @default(uuid())
-  ruleCode              String   @unique
-  name                  String
-  type                  String   @default("Fixed")
-  counsellorShare       Float    @default(5000)
-  managerShare          Float    @default(2000)
-  orgShare              Float    @default(3000)
-  totalCommissionAmount Float    @default(10000)
-  eligibilityRules      String   @default("Confirmed admission with tuition fee receipt submission")
-  isActive              Boolean  @default(true)
-  version               Int      @default(1)
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-}
-
-model Commission {
-  id                 String           @id @default(uuid())
-  commissionCode     String           @unique @default(uuid())
-  admissionId        String
-  admission          Admission        @relation(fields: [admissionId], references: [id])
-  leadId             String?
-  schoolName         String?
-  studentName        String?
-  parentName         String?
-  beneficiaryId      String?
-  beneficiary        User?            @relation("BeneficiaryCommissions", fields: [beneficiaryId], references: [id])
-  beneficiaryName    String           @default("Beneficiary")
-  beneficiaryType    String           @default("Counsellor") // Counsellor, Manager, Organization
-  beneficiaryRole    Role             @default(COUNSELLOR)
-  teamId             String?
-  team               Team?            @relation(fields: [teamId], references: [id])
-  amount             Float
-  status             CommissionStatus @default(PENDING_APPROVAL)
-  ruleVersion        Int              @default(1)
-  paymentReference   String?
-  paymentMode        String?
-  paidAt             DateTime?
-  approvedById       String?
-  approvedAt         DateTime?
-  isReversal         Boolean          @default(false)
-  parentCommissionId String?
-  reversalReason     String?
-  reversedAt         DateTime?
-  payments           Payment[]
-  createdAt          DateTime         @default(now())
-  updatedAt          DateTime         @updatedAt
-
-  @@index([admissionId])
-  @@index([beneficiaryId])
-  @@index([status])
-}
-
-model Payment {
-  id           String     @id @default(uuid())
-  paymentCode  String     @unique @default(uuid())
-  commissionId String
-  commission   Commission @relation(fields: [commissionId], references: [id], onDelete: Cascade)
-  amount       Float
-  utrNumber    String
-  paymentMode  String     @default("NEFT / Bank Transfer")
-  status       String     @default("COMPLETED")
-  recordedById String?
-  paidAt       DateTime   @default(now())
-  createdAt    DateTime   @default(now())
-
-  @@index([commissionId])
-}
-
-model CommunicationLog {
-  id            String   @id @default(uuid())
-  leadId        String?
-  lead          Lead?    @relation(fields: [leadId], references: [id], onDelete: SetNull)
-  channel       String   // whatsapp, email, sms
-  recipient     String
-  recipientName String   @default("Parent")
-  subject       String?
-  templateName  String?
-  content       String
-  status        String   @default("delivered")
-  senderName    String?
-  sentAt        DateTime @default(now())
-
-  @@index([leadId])
-}
-
-model AuditLog {
-  id            String   @id @default(uuid())
-  userId        String?
-  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  userName      String?
-  userRole      String?
-  action        String
-  module        String   @default("System")
-  entity        String   @default("System")
-  entityId      String?
-  details       Json?
-  ipAddress     String?
-  isSpecialFlag Boolean  @default(false)
-  createdAt     DateTime @default(now())
-
-  @@index([entity, entityId])
-  @@index([createdAt])
-}
-
-model Notification {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  title     String
-  message   String
-  type      String   @default("INFO")
-  link      String?
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  @@index([userId, isRead])
-}
-
-model SystemSetting {
-  id        String   @id @default(uuid())
-  key       String   @unique
-  value     Json
-  category  String   @default("general")
-  updatedAt DateTime @updatedAt
+  @@map("activity_confirmations")
 }

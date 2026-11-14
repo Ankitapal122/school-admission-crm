@@ -1,410 +1,474 @@
-import { Injectable, UnauthorizedException, ForbiddenException, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { PrismaService } from '../../prisma/prisma.service';
-import { LoginDto } from './dto/login.dto';
-import { Role } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
+import * as speakeasy from 'speakeasy';
+import * as qrcode from 'qrcode';
+import { PrismaService } from '../../prisma/prisma.service';
+import { EmailProcessor } from '../queues/email.processor';
+import { LoginDto } from './dto/login.dto';
+import {
+  normalizeCanonicalRole,
+  toBlueprintRole,
+} from '../../common/utils/crm.utils';
+import { decryptSensitiveData, encryptSensitiveData } from '../../common/utils/crypto.util';
 
 @Injectable()
 export class AuthService {
-  private readonly BCRYPT_ROUNDS = 10;
-  private userCache = new Map<string, { user: any; cachedAt: number }>();
-
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private emailProcessor: EmailProcessor,
   ) {}
 
-  private getCachedUser(key: string) {
-    const entry = this.userCache.get(key.toLowerCase());
-    if (entry && Date.now() - entry.cachedAt < 5 * 60 * 1000) {
-      return entry.user;
-    }
-    return null;
+  private hashToken(raw: string): string {
+    return crypto.createHash('sha256').update(raw).digest('hex');
   }
 
-  private setCachedUser(key: string, user: any) {
-    const entry = { user, cachedAt: Date.now() };
-    this.userCache.set(key.toLowerCase(), entry);
-    if (user.email) this.userCache.set(user.email.toLowerCase(), entry);
-    if (user.employeeId) this.userCache.set(user.employeeId.toLowerCase(), entry);
+  private getAccessSecret() {
+    return (
+      this.configService.get<string>('JWT_ACCESS_SECRET') ||
+      'super_secret_enterprise_access_token_jwt_2026_key'
+    );
   }
 
-  public clearUserCache(key?: string) {
-    if (key) {
-      this.userCache.delete(key.toLowerCase());
-    } else {
-      this.userCache.clear();
-    }
+  private getRefreshSecret() {
+    return (
+      this.configService.get<string>('JWT_REFRESH_SECRET') ||
+      'super_secret_enterprise_refresh_token_jwt_2026_key'
+    );
   }
 
-  private normalizeRole(roleInput: string): Role {
-    const r = (roleInput || '').trim().toUpperCase();
-    if (r === 'ADMIN' || r === 'SUPER_ADMIN') return Role.SUPER_ADMIN;
-    if (r === 'MANAGER' || r === 'SENIOR_MANAGER') return Role.SENIOR_MANAGER;
-    return Role.COUNSELLOR;
-  }
-
-  private toShortRole(role: Role): 'admin' | 'manager' | 'counsellor' {
-    if (role === Role.SUPER_ADMIN) return 'admin';
-    if (role === Role.SENIOR_MANAGER) return 'manager';
-    return 'counsellor';
-  }
-
-  private formatUser(user: any) {
-    const shortRole = this.toShortRole(user.role);
+  async getPasswordPolicy(): Promise<{
+    minLength: number;
+    requireUppercase: boolean;
+    requireLowercase: boolean;
+    requireNumber: boolean;
+    requireSpecial: boolean;
+    maxFailedAttempts: number;
+    lockDurationMinutes: number;
+  }> {
+    const setting = await this.prisma.systemSetting.findUnique({
+      where: { key: 'password_policy' },
+    });
+    const val = (setting?.value as any) || {};
     return {
-      id: user.id,
-      _id: user.id,
-      email: user.email,
-      name: user.fullName,
-      fullName: user.fullName,
-      role: shortRole,
-      roleEnum: user.role,
-      employeeId: user.employeeId,
-      phone: user.phone,
-      status: user.status || (user.isActive ? 'Active' : 'Suspended'),
-      twoFactorEnabled: user.isTwoFactorEnabled,
-      isTwoFactorEnabled: user.isTwoFactorEnabled,
-      teamId: user.teamId,
-      team: user.team,
-      managerId: user.managerId,
-      manager: user.manager,
+      minLength: Number(val.minLength ?? 8),
+      requireUppercase: val.requireUppercase ?? val.requireUpperLower ?? true,
+      requireLowercase: val.requireLowercase ?? val.requireUpperLower ?? true,
+      requireNumber: val.requireNumber ?? true,
+      requireSpecial: val.requireSpecial ?? true,
+      maxFailedAttempts: Number(val.maxFailedAttempts ?? 5),
+      lockDurationMinutes: Number(val.lockDurationMinutes ?? 15),
     };
   }
 
-  async hashPassword(password: string): Promise<string> {
-    return bcrypt.hash(password, this.BCRYPT_ROUNDS);
-  }
+  async updatePasswordPolicy(body: any, actorId: string) {
+    const current = await this.getPasswordPolicy();
+    const updatedVal = {
+      minLength: Math.max(6, Number(body.minLength ?? body.min_length ?? current.minLength)),
+      requireUppercase: body.requireUppercase ?? body.require_uppercase ?? current.requireUppercase,
+      requireLowercase: body.requireLowercase ?? body.require_lowercase ?? current.requireLowercase,
+      requireNumber: body.requireNumber ?? body.require_number ?? current.requireNumber,
+      requireSpecial: body.requireSpecial ?? body.require_special ?? current.requireSpecial,
+      maxFailedAttempts: Math.max(
+        3,
+        Number(body.maxFailedAttempts ?? body.max_failed_attempts ?? current.maxFailedAttempts),
+      ),
+      lockDurationMinutes: Math.max(
+        1,
+        Number(body.lockDurationMinutes ?? body.lock_duration_minutes ?? current.lockDurationMinutes),
+      ),
+    };
 
-  async validateUser(identifierInput: string, pass: string, targetRoleInput: string) {
-    const identifier = (identifierInput || '').trim();
-    if (!identifier || !pass) {
-      throw new BadRequestException('Please provide Email / Employee ID and Password.');
-    }
-
-    let user = this.getCachedUser(identifier);
-    if (!user) {
-      user = await this.prisma.user.findFirst({
-        where: {
-          OR: [
-            { email: identifier.toLowerCase() },
-            { employeeId: identifier.toUpperCase() },
-          ],
-        },
-        include: {
-          team: true,
-          manager: { select: { id: true, fullName: true, email: true, employeeId: true } },
-        },
-      });
-      if (user) {
-        this.setCachedUser(identifier, user);
-      }
-    }
-
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials. User does not exist.');
-    }
-
-    const isMatch = await bcrypt.compare(pass, user.passwordHash);
-    if (!isMatch) {
-      throw new UnauthorizedException('Invalid credentials. Incorrect password.');
-    }
-
-    if (!user.isActive || user.status === 'Suspended') {
-      throw new ForbiddenException('Account is Suspended. Please contact the Super Administrator.');
-    }
-
-    const targetRole = this.normalizeRole(targetRoleInput);
-    if (user.role !== targetRole) {
-      const actualShort = this.toShortRole(user.role).toUpperCase();
-      const selectedShort = this.toShortRole(targetRole).toUpperCase();
-      throw new ForbiddenException(
-        `Access Denied: Your assigned account role is '${actualShort}', but you selected '${selectedShort}'. Unauthorized role selection is strictly blocked.`,
-      );
-    }
-
-    return user;
-  }
-
-  async login(loginDto: LoginDto, ipAddress?: string, userAgent?: string) {
-    const identifier = loginDto.identifier || loginDto.email || '';
-    const user = await this.validateUser(identifier, loginDto.password, loginDto.role);
-
-    if (user.isTwoFactorEnabled) {
-      const secret = this.configService.get<string>('JWT_ACCESS_SECRET') || 'super_secret_enterprise_access_token_jwt_2026_key';
-      const tempToken = this.jwtService.sign(
-        { sub: user.id, email: user.email, role: user.role, is2FA: true },
-        { secret, expiresIn: '5m' },
-      );
-      return {
-        success: true,
-        require2FA: true,
-        tempToken,
-        method: 'authenticator',
-        message: 'Two-Factor Authentication required. Please enter 6-digit verification code.',
-      };
-    }
-
-    // Instant synchronous token creation in memory
-    const payload = { sub: user.id, email: user.email, role: user.role };
-    const accessSecret = this.configService.get<string>('JWT_ACCESS_SECRET') || 'super_secret_enterprise_access_token_jwt_2026_key';
-    const accessToken = this.jwtService.sign(payload, {
-      secret: accessSecret,
-      expiresIn: '24h',
+    const setting = await this.prisma.systemSetting.upsert({
+      where: { key: 'password_policy' },
+      update: { value: updatedVal, updatedById: actorId },
+      create: {
+        key: 'password_policy',
+        value: updatedVal,
+        category: 'password_policy',
+        description: 'Password complexity and account lockout rules',
+        updatedById: actorId,
+      },
     });
 
-    const rawRefreshToken = crypto.randomBytes(40).toString('hex');
-    const tokenHash = crypto.createHash('sha256').update(rawRefreshToken).digest('hex');
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7);
+    await this.prisma.auditLog.create({
+      data: {
+        userId: actorId,
+        action: 'UPDATE',
+        module: 'security',
+        entity: 'SystemSetting',
+        entityId: setting.id,
+        oldValue: current,
+        newValue: updatedVal,
+      },
+    });
 
-    // Non-blocking fire-and-forget background updates:
-    // User lastLoginAt, session storage, and audit log occur concurrently
-    // so transatlantic database round-trips do not delay the HTTP response
-    Promise.allSettled([
-      this.prisma.user.update({
+    return updatedVal;
+  }
+
+  async assertPasswordMeetsPolicy(password: string) {
+    const policy = await this.getPasswordPolicy();
+    if (!password || password.length < policy.minLength) {
+      throw new BadRequestException(
+        `Password must be at least ${policy.minLength} characters long.`,
+      );
+    }
+    if (policy.requireUppercase && !/[A-Z]/.test(password)) {
+      throw new BadRequestException('Password must include at least one uppercase letter.');
+    }
+    if (policy.requireLowercase && !/[a-z]/.test(password)) {
+      throw new BadRequestException('Password must include at least one lowercase letter.');
+    }
+    if (policy.requireNumber && !/\d/.test(password)) {
+      throw new BadRequestException('Password must include at least one number.');
+    }
+    if (policy.requireSpecial && !/[^A-Za-z0-9]/.test(password)) {
+      throw new BadRequestException('Password must include at least one special character.');
+    }
+  }
+
+  sanitizeUser(user: any) {
+    if (!user) return null;
+    const canonRole = normalizeCanonicalRole(user.role);
+    return {
+      id: user.id,
+      email: user.email,
+      fullName: user.fullName,
+      name: user.fullName,
+      phone: user.phone,
+      role: canonRole,
+      blueprintRole: toBlueprintRole(user.role),
+      employeeId: user.employeeId,
+      status: user.status,
+      isActive: user.isActive,
+      isTwoFactorEnabled: Boolean(user.isTwoFactorEnabled),
+      two_fa_enabled: Boolean(user.isTwoFactorEnabled),
+      teamId: user.teamId,
+      managerId: user.managerId,
+      lastLoginAt: user.lastLoginAt,
+    };
+  }
+
+  private async issueSessionTokens(
+    user: any,
+    ipAddress?: string,
+    userAgent?: string,
+    existingFamily?: string,
+  ) {
+    const family = existingFamily || crypto.randomUUID();
+    const canonRole = normalizeCanonicalRole(user.role);
+    const accessExpires = this.configService.get<string>('JWT_ACCESS_EXPIRES_IN') || '15m';
+    const refreshExpires = this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') || '7d';
+
+    const accessToken = this.jwtService.sign(
+      {
+        sub: user.id,
+        email: user.email,
+        role: canonRole,
+        family,
+      },
+      {
+        secret: this.getAccessSecret(),
+        expiresIn: accessExpires,
+      },
+    );
+
+    const refreshToken = this.jwtService.sign(
+      {
+        sub: user.id,
+        family,
+        jti: crypto.randomUUID(),
+      },
+      {
+        secret: this.getRefreshSecret(),
+        expiresIn: refreshExpires,
+      },
+    );
+
+    await this.prisma.refreshTokenSession.create({
+      data: {
+        userId: user.id,
+        tokenHash: this.hashToken(refreshToken),
+        family,
+        deviceInfo: userAgent || 'Unknown Device',
+        ipAddress: ipAddress || '127.0.0.1',
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        isActive: true,
+        isRevoked: false,
+      },
+    });
+
+    return { accessToken, refreshToken, family };
+  }
+
+  async login(dto: LoginDto, ipAddress?: string, userAgent?: string) {
+    const identifier = (dto.email || dto.identifier || '').trim();
+    if (!identifier || !dto.password) {
+      throw new BadRequestException('Email/ID and password are required.');
+    }
+
+    const user = await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: { equals: identifier, mode: 'insensitive' } },
+          { employeeId: { equals: identifier, mode: 'insensitive' } },
+        ],
+        deletedAt: null,
+      },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid email or password.');
+    }
+
+    // Check temporary lockout expiry
+    const now = new Date();
+    if (user.status === 'locked' && user.lockedUntil && user.lockedUntil <= now) {
+      await this.prisma.user.update({
         where: { id: user.id },
-        data: { lastLoginAt: new Date() },
-      }),
-      this.prisma.refreshTokenSession.create({
+        data: { status: 'active', failedLoginAttempts: 0, lockedUntil: null },
+      });
+      user.status = 'active';
+      user.failedLoginAttempts = 0;
+      user.lockedUntil = null;
+    }
+
+    if (user.status === 'locked' || (user.lockedUntil && user.lockedUntil > now)) {
+      throw new UnauthorizedException(
+        'Account locked due to 5 failed login attempts. Ask Admin to unlock or retry after 15 minutes.',
+      );
+    }
+
+    if (!user.isActive || user.status === 'suspended') {
+      throw new UnauthorizedException('Account is suspended or inactive. Contact Super Admin.');
+    }
+
+    const passwordValid = await bcrypt.compare(dto.password, user.passwordHash);
+    if (!passwordValid) {
+      const policy = await this.getPasswordPolicy();
+      const nextAttempts = (user.failedLoginAttempts || 0) + 1;
+      const shouldLock = nextAttempts >= policy.maxFailedAttempts;
+      const lockedUntil = shouldLock
+        ? new Date(Date.now() + policy.lockDurationMinutes * 60 * 1000)
+        : null;
+
+      await this.prisma.user.update({
+        where: { id: user.id },
         data: {
-          tokenHash,
-          userId: user.id,
-          expiresAt,
-          ipAddress,
-          userAgent,
+          failedLoginAttempts: nextAttempts,
+          ...(shouldLock ? { status: 'locked', lockedUntil } : {}),
         },
-      }),
-      this.prisma.auditLog.create({
+      });
+
+      await this.prisma.auditLog.create({
         data: {
           userId: user.id,
           userName: user.fullName,
-          userRole: this.toShortRole(user.role),
+          userRole: normalizeCanonicalRole(user.role),
           action: 'LOGIN',
-          module: 'Auth',
+          module: 'auth',
           entity: 'User',
           entityId: user.id,
-          details: { note: `High-speed login as ${this.toShortRole(user.role).toUpperCase()} (ID: ${user.employeeId})` },
-          ipAddress: ipAddress || '127.0.0.1',
+          isSpecialFlag: shouldLock,
+          details: { failedAttempt: nextAttempts, locked: shouldLock },
+          ipAddress,
+          userAgent,
         },
-      }),
-    ]).catch((err) => console.error('[AuthService] Background login tasks error:', err));
+      });
 
-    return {
-      success: true,
-      token: accessToken,
-      accessToken,
-      refreshToken: rawRefreshToken,
-      expiresIn: 86400,
-      user: this.formatUser(user),
-    };
-  }
-
-  async verify2FA(body: { tempToken: string; code: string; isRecoveryCode?: boolean }, ipAddress?: string, userAgent?: string) {
-    const { tempToken, code, isRecoveryCode } = body;
-    if (!tempToken || !code) {
-      throw new BadRequestException('Temporary token and verification code required.');
+      if (shouldLock) {
+        throw new UnauthorizedException(
+          `Account locked after ${policy.maxFailedAttempts} failed login attempts for ${policy.lockDurationMinutes} minutes.`,
+        );
+      }
+      throw new UnauthorizedException('Invalid email or password.');
     }
 
-    const secret = this.configService.get<string>('JWT_ACCESS_SECRET') || 'super_secret_enterprise_access_token_jwt_2026_key';
-    let decoded: any;
-    try {
-      decoded = this.jwtService.verify(tempToken, { secret });
-    } catch {
-      throw new UnauthorizedException('2FA session expired. Please log in again.');
+    // Check role match ONLY if role was explicitly selected in Login UI
+    const userCanonRole = normalizeCanonicalRole(user.role);
+    if (dto.role) {
+      const selectedCanon = normalizeCanonicalRole(dto.role);
+      if (selectedCanon !== userCanonRole) {
+        throw new UnauthorizedException(
+          `Role mismatch! This account belongs to ${userCanonRole}, not ${selectedCanon}.`,
+        );
+      }
     }
 
-    const user = await this.prisma.user.findUnique({
-      where: { id: decoded.sub },
-      include: { team: true, manager: { select: { id: true, fullName: true, email: true, employeeId: true } } },
+    // Check 2FA requirement
+    const admin2faPolicy = await this.prisma.systemSetting.findUnique({
+      where: { key: 'require_admin_2fa' },
     });
+    const policyEnabled = Boolean((admin2faPolicy?.value as any)?.enabled);
 
-    if (!user) throw new UnauthorizedException('User not found.');
-
-    const cleanCode = code.trim();
-    let isValid = false;
-
-    if (isRecoveryCode) {
-      const upper = cleanCode.toUpperCase();
-      if (user.recoveryCodes?.includes(upper)) {
-        isValid = true;
-        await this.prisma.user.update({
-          where: { id: user.id },
-          data: { recoveryCodes: user.recoveryCodes.filter((c) => c !== upper) },
-        });
-      }
-    } else {
-      if (cleanCode === '123456' || cleanCode === '482915' || cleanCode.length === 6) {
-        isValid = /^\d{6}$/.test(cleanCode);
-      }
-    }
-
-    if (!isValid) {
-      throw new BadRequestException('Invalid 2FA verification code. Please try again.');
+    if (user.isTwoFactorEnabled) {
+      const tempToken = this.jwtService.sign(
+        { sub: user.id, purpose: '2fa_pending', role: userCanonRole },
+        { secret: this.getAccessSecret(), expiresIn: '5m' },
+      );
+      return {
+        requiresTwoFactor: true,
+        requires_2fa: true,
+        tempToken,
+        temp_token: tempToken,
+        user_id: user.id,
+        userId: user.id,
+        message: '2FA verification code required.',
+      };
     }
 
     await this.prisma.user.update({
       where: { id: user.id },
-      data: { lastLoginAt: new Date() },
+      data: {
+        failedLoginAttempts: 0,
+        lockedUntil: null,
+        lastLoginAt: new Date(),
+      },
     });
 
-    const tokens = await this.generateTokens(user.id, user.email, user.role, ipAddress, userAgent);
+    const { accessToken, refreshToken } = await this.issueSessionTokens(
+      user,
+      ipAddress,
+      userAgent,
+    );
 
     await this.prisma.auditLog.create({
       data: {
         userId: user.id,
         userName: user.fullName,
-        userRole: this.toShortRole(user.role),
-        action: 'LOGIN_2FA',
-        module: 'Auth',
+        userRole: userCanonRole,
+        action: 'LOGIN',
+        module: 'auth',
         entity: 'User',
         entityId: user.id,
-        details: { note: `2FA verification completed (${isRecoveryCode ? 'Recovery Code' : 'TOTP Authenticator'})` },
-        ipAddress: ipAddress || '127.0.0.1',
-      },
-    });
-
-    return {
-      success: true,
-      token: tokens.accessToken,
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-      user: this.formatUser(user),
-    };
-  }
-
-  async forgotPassword(email: string) {
-    if (!email) throw new BadRequestException('Email address is required.');
-    const cleanEmail = email.toLowerCase().trim();
-    const user = await this.prisma.user.findUnique({ where: { email: cleanEmail } });
-
-    if (!user) {
-      throw new NotFoundException(`No registered account found with email '${cleanEmail}'. Please enter a valid registered work email.`);
-    }
-
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const token = `RST-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
-
-    await this.prisma.passwordReset.create({
-      data: {
-        email: cleanEmail,
-        token,
-        otp,
-        expiresAt,
-        used: false,
-      },
-    });
-
-    return {
-      success: true,
-      message: `Password reset verification code sent to ${cleanEmail}. Valid for 15 minutes.`,
-      demoOtp: otp,
-      token,
-      phone: user.phone || '+91 98100 11001',
-    };
-  }
-
-  async verifyResetOTP(email: string, otp: string) {
-    if (!email || !otp) throw new BadRequestException('Email and 6-digit OTP code are required.');
-    const cleanEmail = email.toLowerCase().trim();
-    const cleanOtp = otp.trim();
-
-    const record = await this.prisma.passwordReset.findFirst({
-      where: {
-        email: cleanEmail,
-        otp: cleanOtp,
-        used: false,
-        expiresAt: { gt: new Date() },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    if (!record) {
-      throw new BadRequestException('Invalid or expired OTP code. Please enter the correct verification code.');
-    }
-
-    return {
-      success: true,
-      message: 'OTP verified successfully.',
-      resetToken: record.token,
-    };
-  }
-
-  async resetPassword(body: { resetToken: string; newPassword: string; confirmPassword: string }, ipAddress?: string) {
-    const { resetToken, newPassword, confirmPassword } = body;
-    if (!resetToken || !newPassword) {
-      throw new BadRequestException('Reset token and new password are required.');
-    }
-    if (newPassword !== confirmPassword) {
-      throw new BadRequestException('Passwords do not match.');
-    }
-
-    const has8 = newPassword.length >= 8;
-    const hasUpperLower = /[a-z]/.test(newPassword) && /[A-Z]/.test(newPassword);
-    const hasNumSpec = /[0-9]/.test(newPassword) && /[^A-Za-z0-9]/.test(newPassword);
-    if (!has8 || !hasUpperLower || !hasNumSpec) {
-      throw new BadRequestException(
-        'Password must have minimum 8 characters, at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.',
-      );
-    }
-
-    const record = await this.prisma.passwordReset.findFirst({
-      where: {
-        token: resetToken,
-        used: false,
-        expiresAt: { gt: new Date() },
-      },
-    });
-
-    if (!record) {
-      throw new BadRequestException('Invalid or expired reset token. Please request password reset again.');
-    }
-
-    const user = await this.prisma.user.findUnique({ where: { email: record.email } });
-    if (!user) throw new NotFoundException('User not found.');
-
-    const passwordHash = await this.hashPassword(newPassword);
-
-    await this.prisma.$transaction([
-      this.prisma.user.update({
-        where: { id: user.id },
-        data: { passwordHash },
-      }),
-      this.prisma.refreshTokenSession.updateMany({
-        where: { userId: user.id },
-        data: { isRevoked: true },
-      }),
-      this.prisma.passwordReset.update({
-        where: { id: record.id },
-        data: { used: true },
-      }),
-      this.prisma.auditLog.create({
-        data: {
-          userId: user.id,
-          userName: user.fullName,
-          userRole: this.toShortRole(user.role),
-          action: 'PASSWORD_RESET',
-          module: 'Auth',
-          entity: 'User',
-          entityId: user.id,
-          details: { note: 'Password successfully changed and all active sessions revoked.' },
-          ipAddress: ipAddress || '127.0.0.1',
+        ipAddress,
+        userAgent,
+        details: {
+          loginMethod: 'password',
+          enforce2faRecommended: policyEnabled && userCanonRole === 'SUPER_ADMIN',
         },
-      }),
-    ]);
-
-    // Clear cached user so new password takes effect immediately
-    this.clearUserCache(user.email);
-    if (user.employeeId) this.clearUserCache(user.employeeId);
+      },
+    });
 
     return {
-      success: true,
-      message: 'Password has been successfully reset! You can now log in with your new password.',
+      token: accessToken,
+      accessToken,
+      refreshToken,
+      refresh_token: refreshToken,
+      user: this.sanitizeUser(user),
+      ...(policyEnabled && userCanonRole === 'SUPER_ADMIN'
+        ? { recommendation: 'Super Admin 2FA policy is enabled; please configure 2FA in Profile/Security.' }
+        : {}),
+    };
+  }
+
+  async verify2FALogin(
+    tempToken: string,
+    code: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ) {
+    if (!tempToken || !code) {
+      throw new BadRequestException('temp_token and OTP code are required.');
+    }
+
+    let decoded: any;
+    try {
+      decoded = this.jwtService.verify(tempToken, { secret: this.getAccessSecret() });
+    } catch {
+      throw new UnauthorizedException('2FA challenge token is invalid or expired.');
+    }
+
+    if (decoded?.purpose !== '2fa_pending' || !decoded?.sub) {
+      throw new UnauthorizedException('Invalid 2FA token purpose.');
+    }
+
+    const user = await this.prisma.user.findUnique({ where: { id: decoded.sub } });
+    if (!user || user.deletedAt || !user.isActive) {
+      throw new UnauthorizedException('User account not found or inactive.');
+    }
+
+    const cleanCode = String(code).trim();
+    const secret = decryptSensitiveData<string>(user.twoFactorSecret) || user.twoFactorSecret;
+
+    let verified = false;
+    if (secret && /^\d{6}$/.test(cleanCode)) {
+      verified = speakeasy.totp.verify({
+        secret: String(secret),
+        encoding: 'base32',
+        token: cleanCode,
+        window: 1,
+      });
+    }
+
+    // Allow unused backup code fallback
+    let remainingCodes = [...(user.recoveryCodes || [])];
+    if (!verified && remainingCodes.length > 0) {
+      const normalizedBackup = cleanCode.toUpperCase();
+      for (let i = 0; i < remainingCodes.length; i++) {
+        const stored = remainingCodes[i];
+        const match = stored.startsWith('$2')
+          ? await bcrypt.compare(normalizedBackup, stored)
+          : stored === normalizedBackup;
+        if (match) {
+          verified = true;
+          remainingCodes.splice(i, 1);
+          break;
+        }
+      }
+    }
+
+    if (!verified) {
+      throw new UnauthorizedException('Invalid TOTP code or backup code.');
+    }
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        failedLoginAttempts: 0,
+        lockedUntil: null,
+        lastLoginAt: new Date(),
+        recoveryCodes: remainingCodes,
+      },
+    });
+
+    const { accessToken, refreshToken } = await this.issueSessionTokens(
+      user,
+      ipAddress,
+      userAgent,
+    );
+
+    await this.prisma.auditLog.create({
+      data: {
+        userId: user.id,
+        userName: user.fullName,
+        userRole: normalizeCanonicalRole(user.role),
+        action: 'LOGIN',
+        module: 'auth',
+        entity: 'User',
+        entityId: user.id,
+        ipAddress,
+        userAgent,
+        details: { loginMethod: '2fa' },
+      },
+    });
+
+    return {
+      token: accessToken,
+      accessToken,
+      refreshToken,
+      refresh_token: refreshToken,
+      user: this.sanitizeUser(user),
     };
   }
 
@@ -412,220 +476,484 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found.');
 
-    const secret = 'JBSWY3DPEHPK3PXP' + crypto.randomBytes(4).toString('hex').toUpperCase();
-    const recoveryCodes = [
-      'UK26-A1B2-C3D4',
-      'UK26-E5F6-G7H8',
-      'UK26-J9K0-L1M2',
-      'UK26-N3P4-Q5R6',
-      'UK26-S7T8-U9V0',
-      'UK26-W1X2-Y3Z4',
-    ];
+    const secretObj = speakeasy.generateSecret({
+      length: 20,
+      name: `BoardingEdu CRM (${user.email})`,
+      issuer: 'BoardingEdu',
+    });
+
+    const qrCodeUrl = await qrcode.toDataURL(secretObj.otpauth_url || '');
+    const backupCodes: string[] = [];
+    const hashedBackupCodes: string[] = [];
+    for (let i = 0; i < 8; i++) {
+      const raw = crypto.randomBytes(4).toString('hex').toUpperCase();
+      backupCodes.push(raw);
+      hashedBackupCodes.push(await bcrypt.hash(raw, 8));
+    }
 
     await this.prisma.user.update({
       where: { id: userId },
-      data: { twoFactorSecret: secret, recoveryCodes },
+      data: {
+        twoFactorSecret: encryptSensitiveData(secretObj.base32),
+        recoveryCodes: hashedBackupCodes,
+      },
     });
 
-    const svgQr = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160"><rect width="160" height="160" fill="#ffffff"/><rect x="12" y="12" width="42" height="42" fill="#123B70"/><rect x="18" y="18" width="30" height="30" fill="#ffffff"/><rect x="24" y="24" width="18" height="18" fill="#2563EB"/><rect x="106" y="12" width="42" height="42" fill="#123B70"/><rect x="112" y="18" width="30" height="30" fill="#ffffff"/><rect x="118" y="24" width="18" height="18" fill="#2563EB"/><rect x="12" y="106" width="42" height="42" fill="#123B70"/><rect x="18" y="112" width="30" height="30" fill="#ffffff"/><rect x="24" y="118" width="18" height="18" fill="#2563EB"/><rect x="64" y="20" width="12" height="12" fill="#123B70"/><rect x="82" y="32" width="12" height="24" fill="#123B70"/><rect x="62" y="62" width="36" height="36" fill="#2563EB"/><rect x="70" y="70" width="20" height="20" fill="#ffffff"/><rect x="108" y="68" width="28" height="12" fill="#123B70"/><rect x="24" y="68" width="24" height="18" fill="#123B70"/><rect x="68" y="110" width="20" height="34" fill="#123B70"/><rect x="104" y="104" width="38" height="38" fill="#123B70"/><rect x="114" y="114" width="18" height="18" fill="#ffffff"/></svg>`;
-    const qrCode = `data:image/svg+xml;utf8,${encodeURIComponent(svgQr)}`;
-
     return {
-      success: true,
-      secret,
-      qrCode,
-      recoveryCodes,
+      qrCodeUrl,
+      qr_code_url: qrCodeUrl,
+      secret: secretObj.base32,
+      otpauthUrl: secretObj.otpauth_url,
+      backupCodes,
+      backup_codes: backupCodes,
     };
   }
 
-  async enable2FA(userId: string, code: string) {
-    if (!code || code.trim().length < 6) {
-      throw new BadRequestException('Please enter a valid 6-digit verification code from your Authenticator App.');
+  async verifySetup2FA(userId: string, otp: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user || !user.twoFactorSecret) {
+      throw new BadRequestException('2FA setup has not been initiated.');
+    }
+    const secret = decryptSensitiveData<string>(user.twoFactorSecret) || user.twoFactorSecret;
+    const valid = speakeasy.totp.verify({
+      secret: String(secret),
+      encoding: 'base32',
+      token: String(otp || '').trim(),
+      window: 1,
+    });
+    if (!valid) {
+      throw new BadRequestException('Invalid 6-digit authenticator OTP.');
     }
 
-    const user = await this.prisma.user.update({
+    await this.prisma.user.update({
       where: { id: userId },
       data: { isTwoFactorEnabled: true },
     });
 
     await this.prisma.auditLog.create({
       data: {
-        userId: user.id,
+        userId,
         userName: user.fullName,
-        userRole: this.toShortRole(user.role),
-        action: 'ENABLE_2FA',
-        module: 'Security',
+        userRole: normalizeCanonicalRole(user.role),
+        action: 'UPDATE',
+        module: 'security',
         entity: 'User',
-        entityId: user.id,
-        details: { note: 'Two-Factor Authentication enabled on account.' },
+        entityId: userId,
+        details: { action: '2fa_enabled' },
       },
     });
 
+    return { enabled: true, two_fa_enabled: true };
+  }
+
+  async disable2FA(userId: string, password: string, otp: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found.');
+    const pwOk = await bcrypt.compare(password || '', user.passwordHash);
+    if (!pwOk) {
+      throw new UnauthorizedException('Current password is incorrect.');
+    }
+    if (user.isTwoFactorEnabled) {
+      const secret = decryptSensitiveData<string>(user.twoFactorSecret) || user.twoFactorSecret;
+      const totpOk =
+        secret &&
+        speakeasy.totp.verify({
+          secret: String(secret),
+          encoding: 'base32',
+          token: String(otp || '').trim(),
+          window: 1,
+        });
+      if (!totpOk) {
+        throw new BadRequestException('Valid 6-digit 2FA OTP is required to disable 2FA.');
+      }
+    }
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        isTwoFactorEnabled: false,
+        twoFactorSecret: null,
+        recoveryCodes: [],
+      },
+    });
+
+    return { disabled: true, two_fa_enabled: false };
+  }
+
+  async regenerateBackupCodes(userId: string, password: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found.');
+    if (!(await bcrypt.compare(password || '', user.passwordHash))) {
+      throw new UnauthorizedException('Password verification failed.');
+    }
+    const backupCodes: string[] = [];
+    const hashed: string[] = [];
+    for (let i = 0; i < 8; i++) {
+      const code = crypto.randomBytes(4).toString('hex').toUpperCase();
+      backupCodes.push(code);
+      hashed.push(await bcrypt.hash(code, 8));
+    }
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { recoveryCodes: hashed },
+    });
+    return { backupCodes, backup_codes: backupCodes };
+  }
+
+  async refreshTokens(refreshToken: string, ipAddress?: string, userAgent?: string) {
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token is required.');
+    }
+
+    let payload: any;
+    try {
+      payload = this.jwtService.verify(refreshToken, { secret: this.getRefreshSecret() });
+    } catch {
+      throw new UnauthorizedException('Invalid or expired refresh token.');
+    }
+
+    const tokenHash = this.hashToken(refreshToken);
+    const session = await this.prisma.refreshTokenSession.findFirst({
+      where: { userId: payload.sub, tokenHash },
+    });
+
+    if (!session || session.isRevoked || !session.isActive || session.expiresAt <= new Date()) {
+      // Reuse detection: revoke ALL active sessions of this user immediately
+      await this.prisma.refreshTokenSession.updateMany({
+        where: { userId: payload.sub, isActive: true },
+        data: {
+          isActive: false,
+          isRevoked: true,
+          revokedAt: new Date(),
+          revokedReason: 'token_reuse',
+        },
+      });
+      await this.prisma.auditLog.create({
+        data: {
+          userId: payload.sub,
+          action: 'AUTO',
+          module: 'security',
+          entity: 'Session',
+          isSpecialFlag: true,
+          ipAddress,
+          userAgent,
+          details: { reason: 'Refresh token reuse detected — all user sessions revoked' },
+        },
+      });
+      throw new UnauthorizedException('Refresh token reuse detected. All sessions invalidated.');
+    }
+
+    const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });
+    if (!user || !user.isActive || user.deletedAt) {
+      throw new UnauthorizedException('User account inactive.');
+    }
+
+    // Rotate: invalidate current session token, issue new token pair in same family
+    await this.prisma.refreshTokenSession.update({
+      where: { id: session.id },
+      data: {
+        isRevoked: true,
+        isActive: false,
+        revokedAt: new Date(),
+        revokedReason: 'rotated',
+      },
+    });
+
+    const rotated = await this.issueSessionTokens(user, ipAddress, userAgent, session.family);
     return {
-      success: true,
-      message: 'Two-Factor Authentication successfully enabled!',
+      token: rotated.accessToken,
+      accessToken: rotated.accessToken,
+      refreshToken: rotated.refreshToken,
+      refresh_token: rotated.refreshToken,
+      user: this.sanitizeUser(user),
     };
   }
 
-  async disable2FA(userId: string) {
-    const user = await this.prisma.user.update({
+  async logout(userId: string, family?: string | null) {
+    await this.prisma.refreshTokenSession.updateMany({
+      where: {
+        userId,
+        isActive: true,
+        ...(family ? { family } : {}),
+      },
+      data: {
+        isActive: false,
+        isRevoked: true,
+        logoutAt: new Date(),
+        revokedAt: new Date(),
+        revokedReason: 'user_logout',
+      },
+    });
+
+    await this.prisma.user.update({
       where: { id: userId },
-      data: { isTwoFactorEnabled: false, twoFactorSecret: null },
+      data: { lastLogoutAt: new Date() },
     });
 
     await this.prisma.auditLog.create({
       data: {
-        userId: user.id,
-        userName: user.fullName,
-        userRole: this.toShortRole(user.role),
-        action: 'DISABLE_2FA',
-        module: 'Security',
+        userId,
+        action: 'LOGOUT',
+        module: 'auth',
         entity: 'User',
-        entityId: user.id,
-        details: { note: 'Two-Factor Authentication disabled on account.' },
+        entityId: userId,
       },
     });
 
-    return {
-      success: true,
-      message: 'Two-Factor Authentication disabled.',
-    };
+    return { loggedOut: true };
   }
 
-  async getSessions(userId: string) {
-    const sessions = await this.prisma.refreshTokenSession.findMany({
-      where: { userId, isRevoked: false, expiresAt: { gt: new Date() } },
-      orderBy: { createdAt: 'desc' },
-      take: 10,
+  async changeOwnPassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+    currentFamily?: string | null,
+  ) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found.');
+
+    const matches = await bcrypt.compare(currentPassword || '', user.passwordHash);
+    if (!matches) {
+      throw new BadRequestException('Current password is incorrect.');
+    }
+
+    await this.assertPasswordMeetsPolicy(newPassword);
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        passwordHash,
+        passwordUpdatedAt: new Date(),
+        version: { increment: 1 },
+      },
     });
 
-    return {
-      success: true,
-      sessions: sessions.map((s, idx) => ({
-        id: s.id,
-        device: s.userAgent ? s.userAgent.slice(0, 65) : 'Web Browser (Windows • Chrome)',
-        ip: s.ipAddress || '127.0.0.1',
-        createdAt: s.createdAt,
-        expiresAt: s.expiresAt,
-        isCurrent: idx === 0,
-      })),
-    };
-  }
-
-  async revokeOtherSessions(userId: string) {
-    const latest = await this.prisma.refreshTokenSession.findFirst({
-      where: { userId, isRevoked: false },
-      orderBy: { createdAt: 'desc' },
-    });
-
+    // Invalidate all OTHER sessions on password change
     await this.prisma.refreshTokenSession.updateMany({
       where: {
         userId,
-        isRevoked: false,
-        ...(latest ? { id: { not: latest.id } } : {}),
+        isActive: true,
+        ...(currentFamily ? { family: { not: currentFamily } } : {}),
       },
-      data: { isRevoked: true },
-    });
-
-    return {
-      success: true,
-      message: 'All other active device sessions have been revoked.',
-    };
-  }
-
-  async getMe(userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      include: {
-        team: true,
-        manager: { select: { id: true, fullName: true, email: true, employeeId: true } },
-      },
-    });
-    if (!user) throw new UnauthorizedException('User not found.');
-    return {
-      success: true,
-      user: this.formatUser(user),
-    };
-  }
-
-  async generateTokens(userId: string, email: string, role: Role, ipAddress?: string, userAgent?: string) {
-    const payload = { sub: userId, email, role };
-
-    const accessSecret = this.configService.get<string>('JWT_ACCESS_SECRET') || 'super_secret_enterprise_access_token_jwt_2026_key';
-
-    const accessToken = this.jwtService.sign(payload, {
-      secret: accessSecret,
-      expiresIn: '24h',
-    });
-
-    const rawRefreshToken = crypto.randomBytes(40).toString('hex');
-    const tokenHash = crypto.createHash('sha256').update(rawRefreshToken).digest('hex');
-
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7);
-
-    await this.prisma.refreshTokenSession.create({
       data: {
-        tokenHash,
-        userId,
-        expiresAt,
-        ipAddress,
-        userAgent,
+        isActive: false,
+        isRevoked: true,
+        revokedAt: new Date(),
+        revokedReason: 'password_change',
       },
     });
 
+    await this.prisma.auditLog.create({
+      data: {
+        userId,
+        userName: user.fullName,
+        userRole: normalizeCanonicalRole(user.role),
+        action: 'UPDATE',
+        module: 'security',
+        entity: 'User',
+        entityId: userId,
+        details: { event: 'own_password_changed' },
+      },
+    });
+
+    return { updated: true, otherSessionsInvalidated: true };
+  }
+
+  async forgotPassword(email: string) {
+    const user = await this.prisma.user.findFirst({
+      where: { email: { equals: String(email || '').trim(), mode: 'insensitive' }, deletedAt: null },
+    });
+    if (!user) {
+      throw new NotFoundException('No account found with this email address.');
+    }
+
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    const token = crypto.randomBytes(24).toString('hex');
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+    await this.prisma.passwordReset.create({
+      data: {
+        email: user.email,
+        otp,
+        token,
+        expiresAt,
+      },
+    });
+
+    const mailRes = await this.emailProcessor.sendEmail({
+      to: user.email,
+      subject: 'BoardingEdu CRM Password Reset OTP',
+      html: `<p>Hello ${user.fullName},</p><p>Your single-use password reset OTP is <strong>${otp}</strong> (valid for 15 minutes).</p>`,
+      text: `Your BoardingEdu CRM password reset OTP is ${otp} (valid for 15 minutes).`,
+    });
+
     return {
-      accessToken,
-      refreshToken: rawRefreshToken,
-      expiresIn: 86400,
+      sent: true,
+      email: user.email,
+      message: mailRes.delivered
+        ? 'Verification OTP sent to your registered email address.'
+        : 'Verification OTP generated (check email / dev OTP preview).',
+      ...(!mailRes.delivered ? { devOtp: otp } : {}),
     };
   }
 
-  async rotateRefreshToken(rawRefreshToken: string, ipAddress?: string, userAgent?: string) {
-    const tokenHash = crypto.createHash('sha256').update(rawRefreshToken).digest('hex');
-
-    const session = await this.prisma.refreshTokenSession.findUnique({
-      where: { tokenHash },
-      include: { user: { include: { team: true, manager: true } } },
+  async verifyResetOtp(email: string, otp: string) {
+    const rec = await this.prisma.passwordReset.findFirst({
+      where: {
+        email: { equals: String(email || '').trim(), mode: 'insensitive' },
+        otp: String(otp || '').trim(),
+        used: false,
+        expiresAt: { gt: new Date() },
+      },
+      orderBy: { createdAt: 'desc' },
     });
-
-    if (!session) {
-      throw new UnauthorizedException('Invalid refresh token.');
+    if (!rec) {
+      throw new BadRequestException('Invalid or expired OTP.');
     }
-
-    if (session.isRevoked) {
-      await this.prisma.refreshTokenSession.updateMany({
-        where: { family: session.family },
-        data: { isRevoked: true },
-      });
-      throw new UnauthorizedException('Reused or revoked token detected. Sessions invalidated.');
-    }
-
-    if (new Date() > session.expiresAt) {
-      throw new UnauthorizedException('Refresh token has expired. Please login again.');
-    }
-
-    await this.prisma.refreshTokenSession.update({
-      where: { id: session.id },
-      data: { isRevoked: true },
-    });
-
-    const tokens = await this.generateTokens(session.user.id, session.user.email, session.user.role, ipAddress, userAgent);
-
     return {
-      success: true,
-      user: this.formatUser(session.user),
-      token: tokens.accessToken,
-      ...tokens,
+      verified: true,
+      resetToken: rec.token,
+      email: rec.email,
     };
   }
 
-  async revokeSession(rawRefreshToken: string) {
-    const tokenHash = crypto.createHash('sha256').update(rawRefreshToken).digest('hex');
+  async resetPassword(body: {
+    email?: string;
+    otp?: string;
+    resetToken?: string;
+    token?: string;
+    newPassword: string;
+  }) {
+    const token = body.resetToken || body.token;
+    const rec = token
+      ? await this.prisma.passwordReset.findFirst({
+          where: { token, used: false, expiresAt: { gt: new Date() } },
+        })
+      : await this.prisma.passwordReset.findFirst({
+          where: {
+            email: { equals: String(body.email || '').trim(), mode: 'insensitive' },
+            otp: String(body.otp || '').trim(),
+            used: false,
+            expiresAt: { gt: new Date() },
+          },
+          orderBy: { createdAt: 'desc' },
+        });
+
+    if (!rec) {
+      throw new BadRequestException('Reset token or OTP is invalid or expired.');
+    }
+
+    await this.assertPasswordMeetsPolicy(body.newPassword);
+
+    const user = await this.prisma.user.findFirst({
+      where: { email: { equals: rec.email, mode: 'insensitive' }, deletedAt: null },
+    });
+    if (!user) throw new NotFoundException('Account not found.');
+
+    const passwordHash = await bcrypt.hash(body.newPassword, 10);
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          passwordHash,
+          passwordUpdatedAt: new Date(),
+          failedLoginAttempts: 0,
+          lockedUntil: null,
+          status: user.status === 'locked' ? 'active' : user.status,
+        },
+      }),
+      this.prisma.passwordReset.update({
+        where: { id: rec.id },
+        data: { used: true },
+      }),
+      this.prisma.refreshTokenSession.updateMany({
+        where: { userId: user.id, isActive: true },
+        data: {
+          isActive: false,
+          isRevoked: true,
+          revokedAt: new Date(),
+          revokedReason: 'password_change',
+        },
+      }),
+    ]);
+
+    return { reset: true, message: 'Password updated cleanly. Please log in.' };
+  }
+
+  async listSessions(user: any) {
+    const sessions = await this.prisma.refreshTokenSession.findMany({
+      where: { userId: user.id, expiresAt: { gt: new Date() } },
+      orderBy: { loginAt: 'desc' },
+      take: 25,
+      select: {
+        id: true,
+        family: true,
+        deviceInfo: true,
+        ipAddress: true,
+        loginAt: true,
+        logoutAt: true,
+        expiresAt: true,
+        isActive: true,
+        isRevoked: true,
+        revokedReason: true,
+      },
+    });
+    return sessions.map((s) => ({
+      id: s.id,
+      device_info: s.deviceInfo,
+      deviceInfo: s.deviceInfo,
+      ip_address: s.ipAddress,
+      ipAddress: s.ipAddress,
+      login_at: s.loginAt,
+      loginAt: s.loginAt,
+      expires_at: s.expiresAt,
+      is_active: s.isActive && !s.isRevoked,
+      isActive: s.isActive && !s.isRevoked,
+      is_current: Boolean(user.sessionFamily && s.family === user.sessionFamily && s.isActive),
+      revoked_reason: s.revokedReason,
+    }));
+  }
+
+  async revokeSession(sessionId: string, actor: any) {
+    const session = await this.prisma.refreshTokenSession.findUnique({ where: { id: sessionId } });
+    if (!session) throw new NotFoundException('Session not found.');
+
+    const actorCanon = normalizeCanonicalRole(actor.role);
+    if (session.userId !== actor.id && actorCanon !== 'SUPER_ADMIN') {
+      throw new ForbiddenException('You can only revoke your own sessions.');
+    }
+
     await this.prisma.refreshTokenSession.updateMany({
-      where: { tokenHash },
-      data: { isRevoked: true },
+      where: { userId: session.userId, family: session.family, isActive: true },
+      data: {
+        isActive: false,
+        isRevoked: true,
+        revokedAt: new Date(),
+        revokedReason: actor.id === session.userId ? 'manual_revoke' : 'admin_action',
+      },
     });
-    return { success: true, message: 'Session revoked successfully.' };
+
+    return { revoked: true, sessionId };
+  }
+
+  async revokeOtherSessions(actor: any) {
+    const where: any = {
+      userId: actor.id,
+      isActive: true,
+    };
+    if (actor.sessionFamily) {
+      where.family = { not: actor.sessionFamily };
+    }
+    const result = await this.prisma.refreshTokenSession.updateMany({
+      where,
+      data: {
+        isActive: false,
+        isRevoked: true,
+        revokedAt: new Date(),
+        revokedReason: 'manual_revoke_all_others',
+      },
+    });
+    return { revokedCount: result.count };
   }
 }

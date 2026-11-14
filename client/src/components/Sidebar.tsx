@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuthStore } from '../stores/authStore';
+import { normalizeRoleKey } from '../lib/roles';
 
 interface SidebarProps {
   currentTab: string;
@@ -25,10 +26,11 @@ export default function Sidebar({
   const { user, previewRole, logout } = useAuthStore();
   const effectiveRole = previewRole || user?.role || 'SUPER_ADMIN';
 
+  const norm = normalizeRoleKey(effectiveRole);
   const roleName =
-    effectiveRole === 'SUPER_ADMIN'
+    norm === 'super_admin'
       ? 'admin'
-      : effectiveRole === 'SENIOR_MANAGER'
+      : norm === 'manager'
       ? 'manager'
       : 'counsellor';
 
@@ -150,7 +152,7 @@ export default function Sidebar({
               onClick={() => handleNavClick('schools')}
             >
               <span className="nav-icon">🏫</span>
-              <span>Uttarakhand Schools (500)</span>
+              <span>Partner Schools (1,368)</span>
             </a>
 
             <div className="nav-section-title">AUTOMATION &amp; INTELLIGENCE</div>
@@ -275,6 +277,20 @@ export default function Sidebar({
               <span className="nav-icon">📈</span>
               <span>Team Reports</span>
             </a>
+            <a
+              className={`nav-item ${currentTab === 'authenticator-setup' ? 'active' : ''}`}
+              onClick={() => handleNavClick('authenticator-setup')}
+            >
+              <span className="nav-icon">🛡️</span>
+              <span>2FA &amp; Push Alerts</span>
+            </a>
+            <a
+              className={`nav-item ${currentTab === 'sessions' ? 'active' : ''}`}
+              onClick={() => handleNavClick('sessions')}
+            >
+              <span className="nav-icon">💻</span>
+              <span>Active Sessions</span>
+            </a>
           </>
         )}
 
@@ -340,6 +356,20 @@ export default function Sidebar({
               <span className="nav-icon">📱</span>
               <span>WhatsApp &amp; Templates</span>
             </a>
+            <a
+              className={`nav-item ${currentTab === 'authenticator-setup' ? 'active' : ''}`}
+              onClick={() => handleNavClick('authenticator-setup')}
+            >
+              <span className="nav-icon">🛡️</span>
+              <span>2FA &amp; Push Alerts</span>
+            </a>
+            <a
+              className={`nav-item ${currentTab === 'sessions' ? 'active' : ''}`}
+              onClick={() => handleNavClick('sessions')}
+            >
+              <span className="nav-icon">💻</span>
+              <span>Active Sessions</span>
+            </a>
           </>
         )}
       </nav>
@@ -354,7 +384,7 @@ export default function Sidebar({
         </div>
         <button
           className="btn btn-outline btn-sm"
-          onClick={logout}
+          onClick={() => logout(true)}
           title="Logout"
           style={{ color: '#CBD5E1', borderColor: 'rgba(255,255,255,0.2)' }}
         >
