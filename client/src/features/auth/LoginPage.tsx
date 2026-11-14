@@ -399,6 +399,26 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => {
+                  setForgotMethod('phone');
+                  setForgotEmail('7249417658');
+                }}
+                style={{
+                  padding: '9px 10px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '12.5px',
+                  fontWeight: 700,
+                  background: forgotMethod === 'phone' ? '#FFFFFF' : 'transparent',
+                  color: forgotMethod === 'phone' ? '#2563EB' : '#64748B',
+                  boxShadow: forgotMethod === 'phone' ? '0 1px 3px rgba(15,23,42,0.1)' : 'none',
+                }}
+              >
+                📱 Number Verification
+              </button>
+              <button
+                type="button"
+                onClick={() => {
                   setForgotMethod('email');
                   setForgotEmail('adminboarding123@gmail.com');
                 }}
@@ -415,26 +435,6 @@ export default function LoginPage() {
                 }}
               >
                 📧 Email Verification
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setForgotMethod('phone');
-                  setForgotEmail('7249417658');
-                }}
-                style={{
-                  padding: '9px 10px',
-                  borderRadius: '8px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: '12.5px',
-                  fontWeight: 700,
-                  background: forgotMethod === 'phone' ? '#FFFFFF' : 'transparent',
-                  color: forgotMethod === 'phone' ? '#2563EB' : '#64748B',
-                  boxShadow: forgotMethod === 'phone' ? '0 1px 3px rgba(15,23,42,0.1)' : 'none',
-                }}
-              >
-                📱 Mobile OTP (7249417658)
               </button>
             </div>
 

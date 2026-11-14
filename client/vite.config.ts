@@ -7,25 +7,9 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      selfDestroying: true,
       registerType: 'autoUpdate',
       manifest: false,
-      workbox: {
-        importScripts: ['/push-sw.js'],
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
-        runtimeCaching: [
-          {
-            urlPattern: /^\/api\/(schools|dashboard|leads|reports)/,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'crm-api-runtime-cache',
-              expiration: {
-                maxEntries: 60,
-                maxAgeSeconds: 300,
-              },
-            },
-          },
-        ],
-      },
     }),
   ],
   resolve: {

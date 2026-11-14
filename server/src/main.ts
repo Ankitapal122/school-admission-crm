@@ -75,7 +75,15 @@ async function bootstrap() {
       : null;
 
   if (resolvedDist) {
-    app.useStaticAssets(resolvedDist);
+    app.useStaticAssets(resolvedDist, {
+      setHeaders: (res: Response, filePath: string) => {
+        if (filePath.endsWith('index.html') || filePath.endsWith('sw.js') || filePath.endsWith('registerSW.js')) {
+          res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+          res.setHeader('Pragma', 'no-cache');
+          res.setHeader('Expires', '0');
+        }
+      },
+    });
     app.use((req: Request, res: Response, next: NextFunction) => {
       if (
         !req.url.startsWith('/api') &&
@@ -83,6 +91,7 @@ async function bootstrap() {
         !req.url.startsWith('/notifications') &&
         !req.url.includes('.')
       ) {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
         return res.sendFile(path.join(resolvedDist, 'index.html'));
       }
       next();

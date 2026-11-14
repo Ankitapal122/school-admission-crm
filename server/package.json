@@ -8,7 +8,8 @@
   "scripts": {
     "dev": "nest start --watch",
     "dev:server": "nest start --watch",
-    "build": "nest build",
+    "build": "cd ../client && npm install --include=dev && npm run build && cd ../server && nest build",
+    "build:server-only": "nest build",
     "format": "prettier --write \"src/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",

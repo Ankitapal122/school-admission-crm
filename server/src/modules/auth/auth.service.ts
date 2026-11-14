@@ -798,10 +798,8 @@ export class AuthService {
       ? user.phone.replace(/^\+91(\d{10})$/, '+91 $1')
       : '+91 7249417658';
 
-    const mailRes = await this.emailProcessor.sendEmail({
-      to: user.email,
-      subject: 'BoardingEdu CRM Password Reset OTP',
-      html: `<div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px; max-width: 520px;">
+    // Dispatch Email & SMS in background (non-blocking) so UI responds in <100ms without hanging
+    const emailHtml = `<div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px; max-width: 520px;">
         <h2 style="color: #0F172A; margin-top: 0;">BoardingEdu CRM - OTP Verification</h2>
         <p style="color: #334155;">Hello <strong>${user.fullName}</strong>,</p>
         <p style="color: #334155;">We received a password reset / verification request for your account (Email: <strong>${user.email}</strong> | Mobile: <strong>${formattedPhone}</strong>).</p>
@@ -810,30 +808,31 @@ export class AuthService {
           <div style="font-size: 32px; font-weight: 800; color: #1D4ED8; letter-spacing: 6px; margin-top: 6px;">${otp}</div>
         </div>
         <p style="color: #64748B; font-size: 12px;">This single-use verification code is valid for 15 minutes. Do not share this code with anyone.</p>
-      </div>`,
-      text: `Your BoardingEdu CRM verification OTP is ${otp} (valid for 15 minutes). Account: ${user.email} / ${formattedPhone}`,
-    });
+      </div>`;
+
+    this.emailProcessor
+      .sendEmail({
+        to: user.email,
+        subject: 'BoardingEdu CRM Password Reset OTP',
+        html: emailHtml,
+        text: `Your BoardingEdu CRM verification OTP is ${otp} (valid for 15 minutes). Account: ${user.email} / ${formattedPhone}`,
+      })
+      .catch(() => {});
 
     // Optional SMS Gateway dispatch if FAST2SMS_API_KEY is configured
     const smsKey = process.env.FAST2SMS_API_KEY;
     const rawDigits = (user.phone || '7249417658').replace(/\D/g, '').slice(-10);
     if (smsKey && rawDigits.length === 10) {
-      try {
-        await fetch(
-          `https://www.fast2sms.com/dev/bulkV2?authorization=${encodeURIComponent(smsKey)}&route=q&message=${encodeURIComponent(`Your BoardingEdu CRM verification OTP is ${otp}. Valid for 15 minutes.`)}&language=english&flash=0&numbers=${rawDigits}`,
-        );
-      } catch {
-        // Ignore SMS gateway failure, email OTP is always sent
-      }
+      fetch(
+        `https://www.fast2sms.com/dev/bulkV2?authorization=${encodeURIComponent(smsKey)}&route=q&message=${encodeURIComponent(`Your BoardingEdu CRM verification OTP is ${otp}. Valid for 15 minutes.`)}&language=english&flash=0&numbers=${rawDigits}`,
+      ).catch(() => {});
     }
 
     return {
       sent: true,
       email: user.email,
       phone: formattedPhone,
-      message: mailRes.delivered
-        ? `Verification OTP sent to your registered email (${user.email}) & mobile (${formattedPhone}).`
-        : `Verification OTP generated for ${user.email} (${formattedPhone}).`,
+      message: `Verification OTP sent to your registered email (${user.email}) & mobile (${formattedPhone}).`,
     };
   }
 

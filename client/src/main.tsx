@@ -6,6 +6,22 @@ import './index.css';
 import './styles-original.css';
 import './wireframe-components.css';
 
+// Clear any stale Service Workers & caches so fresh UI updates always appear immediately
+if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    for (const reg of registrations) {
+      reg.unregister();
+    }
+  });
+  if ('caches' in window) {
+    caches.keys().then((keys) => {
+      for (const k of keys) {
+        caches.delete(k);
+      }
+    });
+  }
+}
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

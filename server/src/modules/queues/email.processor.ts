@@ -32,6 +32,9 @@ export class EmailProcessor {
       secure: port === 465,
       auth: { user, pass: pass.replace(/\s+/g, '') },
       tls: { rejectUnauthorized: false },
+      connectionTimeout: 4000,
+      greetingTimeout: 4000,
+      socketTimeout: 5000,
     });
     return this.transporter;
   }
