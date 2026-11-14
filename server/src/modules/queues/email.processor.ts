@@ -20,16 +20,18 @@ export class EmailProcessor {
       '';
     const host =
       process.env.SMTP_HOST ||
+      process.env.EMAIL_HOST ||
       (process.env.BREVO_API_KEY ? 'smtp-relay.brevo.com' : user ? 'smtp.gmail.com' : '');
     if (!host || !user || !pass) {
       return null;
     }
-    const port = Number(process.env.SMTP_PORT || 587);
+    const port = Number(process.env.SMTP_PORT || process.env.EMAIL_PORT || 587);
     this.transporter = nodemailer.createTransport({
       host,
       port,
       secure: port === 465,
       auth: { user, pass: pass.replace(/\s+/g, '') },
+      tls: { rejectUnauthorized: false },
     });
     return this.transporter;
   }
