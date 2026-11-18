@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { AppController } from './app.controller';
 import { PrismaModule } from './prisma/prisma.module';
 import { QueuesModule } from './modules/queues/queues.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
@@ -31,5 +32,6 @@ import { PresenceModule } from './modules/presence/presence.module';
     CrmCoreModule,
     PresenceModule,
   ],
+  controllers: [AppController],
 })
 export class AppModule {}
