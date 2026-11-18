@@ -127,10 +127,10 @@ export class CrmCoreController {
   @Patch('users/:id/role')
   changeUserRole(
     @Param('id') id: string,
-    @Body() body: { role: string },
+    @Body() body: any,
     @Req() req: any,
   ) {
-    return this.crmCoreService.changeUserRole(id, body.role, req.user);
+    return this.crmCoreService.changeUserRole(id, body, req.user);
   }
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)
@@ -138,10 +138,10 @@ export class CrmCoreController {
   @Put('users/:id/role')
   changeUserRolePut(
     @Param('id') id: string,
-    @Body() body: { role: string },
+    @Body() body: any,
     @Req() req: any,
   ) {
-    return this.crmCoreService.changeUserRole(id, body.role, req.user);
+    return this.crmCoreService.changeUserRole(id, body, req.user);
   }
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)

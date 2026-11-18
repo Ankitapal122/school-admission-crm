@@ -474,13 +474,30 @@ export class CommunicationsService {
     if (!leadRef) throw new BadRequestException('lead_id is required.');
     const lead = await this.resolveLead(leadRef);
 
+    const outcomeMap: Record<string, string> = {
+      'interested': 'interested',
+      'connected - interested': 'interested',
+      'not_interested': 'not_interested',
+      'not interested': 'not_interested',
+      'not_picked': 'not_picked',
+      'not picked': 'not_picked',
+      'ringing / no answer': 'not_picked',
+      'ringing': 'not_picked',
+      'wrong_number': 'wrong_number',
+      'wrong number': 'wrong_number',
+      'callback_later': 'callback_later',
+      'callback later': 'callback_later',
+      'connected - needs callback': 'callback_later',
+      'busy': 'busy',
+      'call busy': 'busy',
+      'switched_off': 'switched_off',
+      'switched off / not reachable': 'switched_off',
+      'switched off': 'switched_off',
+    };
+
     const validOutcomes = new Set(CALL_OUTCOMES.map((o) => o.key));
-    const outcome = String(body.outcome || 'interested').toLowerCase();
-    if (!validOutcomes.has(outcome)) {
-      throw new BadRequestException(
-        `Invalid call outcome "${outcome}". Allowed: ${[...validOutcomes].join(', ')}`,
-      );
-    }
+    const rawOutcome = String(body.outcome || 'interested').toLowerCase().trim();
+    const outcome = outcomeMap[rawOutcome] || (validOutcomes.has(rawOutcome) ? rawOutcome : 'interested');
 
     const mobile =
       normalizeIndianPhone(body.mobile || lead.parentPhone, false) || lead.parentPhone;
@@ -531,15 +548,68 @@ export class CommunicationsService {
       });
     }
 
+    const isGenuine =
+      body.is_genuine !== undefined
+        ? Boolean(body.is_genuine)
+        : body.isGenuine !== undefined
+          ? Boolean(body.isGenuine)
+          : true;
+    const parentRequirements =
+      body.parent_requirements || body.parentRequirements || null;
+    const preferredLocation =
+      body.preferred_location || body.preferredLocation || null;
+    const budgetMax =
+      body.budget_max !== undefined && body.budget_max !== null
+        ? Number(body.budget_max)
+        : body.budgetMax !== undefined && body.budgetMax !== null
+          ? Number(body.budgetMax)
+          : null;
+
     await this.prisma.lead.update({
       where: { id: lead.id },
       data: {
         callAttempts: { increment: 1 },
         lastCallOutcome: outcome,
+        isGenuine,
+        ...(parentRequirements ? { parentRequirements } : {}),
+        ...(preferredLocation ? { preferredLocation } : {}),
+        ...(budgetMax ? { budgetMax, annualBudget: `₹${(budgetMax / 100000).toFixed(1)} Lakhs` } : {}),
         ...(body.recording_consent ? { dpdpConsent: true, dpdpConsentAt: now } : {}),
-        ...(lead.status === 'new' || lead.status === 'NEW_LEAD' ? { status: 'contacted' } : {}),
+        ...(lead.status === 'new' || lead.status === 'NEW_LEAD'
+          ? { status: isGenuine ? 'qualified' : 'contacted' }
+          : {}),
       },
     });
+
+    const genuineLabel = isGenuine ? 'GENUINE' : 'JUNK/NOT_INTERESTED';
+    try {
+      await this.prisma.leadRemark.create({
+        data: {
+          leadId: lead.id,
+          userId: actor.id,
+          userName: actor.fullName,
+          userRole: normalizeCanonicalRole(actor.role),
+          content: `📞 Call Feedback Logged (${outcome.toUpperCase()}): [${genuineLabel}] Notes: ${body.notes || 'None'} | Budget: ₹${budgetMax || lead.budgetMax || 'N/A'} | Req: ${parentRequirements || lead.parentRequirements || 'General'} | Location: ${preferredLocation || lead.preferredLocation || 'Any'}${isGenuine ? ' ➔ Transferred to Manager for WhatsApp / Tour / Fee follow-up' : ''}`,
+        },
+      });
+    } catch {}
+
+    // Instant Notification to Managers & Super Admins
+    try {
+      const budgetDisplay = budgetMax ? `₹${(budgetMax / 100000).toFixed(1)}L` : lead.annualBudget || 'N/A';
+      await this.notifications.notifyRoles(['manager', 'super_admin', 'SENIOR_MANAGER', 'SUPER_ADMIN'], {
+        type: 'lead_call_feedback',
+        title: isGenuine
+          ? `🟢 Genuine Lead Forwarded: ${lead.studentName}`
+          : `📞 Call Feedback: ${lead.studentName} (${genuineLabel})`,
+        message: isGenuine
+          ? `Counsellor ${actor.fullName} ne parent se baat karke lead ko GENUINE mark kiya hai. Budget: ${budgetDisplay}, Req: ${parentRequirements || 'General'}, City: ${preferredLocation || 'Any'}. Ab aage WhatsApp follow-up, School Visit / Online Zoom aur Admission process Manager ke paas hai!`
+          : `${actor.fullName} recorded call outcome: "${outcome}". Budget: ${budgetDisplay}, Notes: ${body.notes || 'N/A'}`,
+        relatedEntityId: lead.id,
+        relatedEntityType: 'lead',
+        link: `/leads?lead_id=${lead.id}`,
+      });
+    } catch {}
 
     await this.prisma.pendingLoggingQueue.updateMany({
       where: {
@@ -560,7 +630,7 @@ export class CommunicationsService {
         module: 'calls',
         entity: 'CallLog',
         entityId: saved.id,
-        newValue: { logId: saved.logId, outcome, durationSeconds: saved.durationSeconds },
+        newValue: { logId: saved.logId, outcome, durationSeconds: saved.durationSeconds, isGenuine, budgetMax },
       },
     });
 

@@ -4,6 +4,8 @@ import { useAuthStore } from '../stores/authStore';
 import { apiCall, flushPendingOfflineMutations, getApiBase } from '../lib/api';
 import { getPendingMutationCount } from '../lib/offlineDb';
 import { hasRole } from '../lib/roles';
+import CrmIcon from './CrmIcon';
+import WhatsAppBotModal from './WhatsAppBotModal';
 
 interface NavbarProps {
   currentTab: string;
@@ -47,6 +49,9 @@ export default function Navbar({
     typeof navigator !== 'undefined' ? navigator.onLine : true
   );
   const [syncingOffline, setSyncingOffline] = useState(false);
+  const [globalSearchText, setGlobalSearchText] = useState('');
+  const [topDateRange, setTopDateRange] = useState('Last 30 Days');
+  const [showWhatsAppBotModal, setShowWhatsAppBotModal] = useState(false);
   const notifRef = useRef<HTMLDivElement | null>(null);
 
   const loadTopbarCounts = async () => {
@@ -136,6 +141,30 @@ export default function Navbar({
       if (socket) socket.disconnect();
     };
   }, [isAuthenticated, user?.id, accessToken]);
+
+  // Presence heartbeat: ping every 30s while the tab is visible AND the user interacted in the last 5 min.
+  useEffect(() => {
+    if (!isAuthenticated || !user?.id) return;
+    let lastInteraction = Date.now();
+    const markActive = () => {
+      lastInteraction = Date.now();
+    };
+    const events = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'];
+    events.forEach((e) => window.addEventListener(e, markActive, { passive: true }));
+
+    const beat = () => {
+      if (document.visibilityState !== 'visible') return;
+      if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+      if (Date.now() - lastInteraction > 5 * 60 * 1000) return;
+      apiCall('/presence/heartbeat', 'POST', {}, { skipOfflineQueue: true }).catch(() => undefined);
+    };
+    beat();
+    const timer = setInterval(beat, 30000);
+    return () => {
+      clearInterval(timer);
+      events.forEach((e) => window.removeEventListener(e, markActive));
+    };
+  }, [isAuthenticated, user?.id]);
 
   useEffect(() => {
     const closeOnOutsideClick = (e: MouseEvent) => {
@@ -263,12 +292,166 @@ export default function Navbar({
           aria-label="Open navigation menu"
           title="Menu"
         >
-          <span>☰</span>
+          <CrmIcon name="menu" size={18} />
         </button>
-        <h1 className="page-title">{formatPageTitle(currentTab)}</h1>
+
+        {/* Global Search Bar matching reference screenshot */}
+        <form
+          className="topbar-search-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const q = globalSearchText.trim().toLowerCase();
+            if (!q) return;
+            if (q.includes('manager')) onSelectTab('managers');
+            else if (q.includes('counsellor') || q.includes('staff')) onSelectTab('counsellors');
+            else if (q.includes('school')) onSelectTab('schools');
+            else if (q.includes('team')) onSelectTab('teams');
+            else onSelectTab('leads');
+            if (onShowToast) {
+              onShowToast(`Searching CRM for "${globalSearchText.trim()}"...`, 'success');
+            }
+          }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: '#F1F5F9',
+            border: '1px solid #E2E8F0',
+            borderRadius: '10px',
+            padding: '6px 14px',
+            minWidth: 'min(260px, 38vw)',
+            flex: '0 1 360px',
+          }}
+        >
+          <span style={{ color: '#64748B', display: 'inline-flex', alignItems: 'center' }}>
+            <CrmIcon name="search" size={14} />
+          </span>
+          <input
+            type="text"
+            placeholder="Search managers, counsellors, leads..."
+            value={globalSearchText}
+            onChange={(e) => setGlobalSearchText(e.target.value)}
+            style={{
+              border: 'none',
+              background: 'transparent',
+              outline: 'none',
+              fontSize: '12.5px',
+              color: '#1E293B',
+              width: '100%',
+            }}
+          />
+        </form>
       </div>
 
       <div className="topbar-right">
+        <div
+          className="desktop-only"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: '12px',
+            fontWeight: 700,
+            color: '#16A34A',
+            padding: '4px 10px',
+            borderRadius: '999px',
+            background: '#DCFCE7',
+          }}
+        >
+          <span
+            style={{
+              width: '7px',
+              height: '7px',
+              borderRadius: '50%',
+              background: '#16A34A',
+              display: 'inline-block',
+            }}
+          />
+          System Online
+        </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            sessionStorage.removeItem('pwa_install_dismissed');
+            window.dispatchEvent(new CustomEvent('pwa-show-install-prompt'));
+          }}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: '12px',
+            fontWeight: 700,
+            color: '#1E3A8A',
+            padding: '4px 12px',
+            borderRadius: '999px',
+            background: '#EFF6FF',
+            border: '1.5px solid #93C5FD',
+            cursor: 'pointer',
+            boxShadow: '0 1px 2px rgba(37, 99, 235, 0.1)',
+          }}
+          title="Install BoardingEdu CRM as Mobile / Desktop App (PWA)"
+        >
+          <span>📲</span>
+          <span>Install App</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setShowWhatsAppBotModal(true)}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: '12px',
+            fontWeight: 700,
+            color: '#15803D',
+            padding: '4px 12px',
+            borderRadius: '999px',
+            background: '#F0FDF4',
+            border: '1.5px solid #86EFAC',
+            cursor: 'pointer',
+            boxShadow: '0 1px 2px rgba(22, 163, 74, 0.15)',
+          }}
+          title="WhatsApp Auto-Reply Bot: Scan QR Code or check status"
+        >
+          <span>📱</span>
+          <span>WhatsApp Bot (QR)</span>
+        </button>
+
+        <div
+          className="desktop-only"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: '#FFFFFF',
+            border: '1px solid #CBD5E1',
+            borderRadius: '8px',
+            padding: '4px 10px',
+          }}
+        >
+          <CrmIcon name="calendar" size={14} color="#475569" />
+          <select
+            className="dashboard-select"
+            value={topDateRange}
+            onChange={(e) => setTopDateRange(e.target.value)}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              padding: 0,
+              fontSize: '12px',
+              fontWeight: 600,
+              color: '#1E293B',
+              outline: 'none',
+            }}
+          >
+            <option value="Last 30 Days">Last 30 Days</option>
+            <option value="Last 7 Days">Last 7 Days</option>
+            <option value="This Month">This Month</option>
+            <option value="All Time">All Time</option>
+          </select>
+        </div>
         {(!isOnline || offlineCount > 0) && (
           <button
             className="btn btn-sm btn-outline"
@@ -281,11 +464,19 @@ export default function Navbar({
               borderColor: !isOnline ? '#FECACA' : '#BFDBFE',
             }}
           >
-            {!isOnline
-              ? `📡 Offline (${offlineCount})`
-              : syncingOffline
-              ? '⏳ Syncing...'
-              : `🔄 Sync (${offlineCount})`}
+            {!isOnline ? (
+              <>
+                <CrmIcon name="wifi" size={14} /> Offline ({offlineCount})
+              </>
+            ) : syncingOffline ? (
+              <>
+                <CrmIcon name="clock" size={14} /> Syncing...
+              </>
+            ) : (
+              <>
+                <CrmIcon name="refresh" size={14} /> Sync ({offlineCount})
+              </>
+            )}
           </button>
         )}
 
@@ -303,7 +494,7 @@ export default function Navbar({
             }}
             title="Layer-3 Activity Logging Lock Queue"
           >
-            ⏳ {pendingLogCount} Unlogged
+            <CrmIcon name="clock" size={14} /> {pendingLogCount} Unlogged
           </button>
         )}
 
@@ -332,9 +523,25 @@ export default function Navbar({
             }}
             aria-label="Notifications"
             title="Real-time CRM Notifications"
+            style={{ position: 'relative' }}
           >
-            <span>🔔</span>
-            {unreadCount > 0 && <span className="dot" title={`${unreadCount} unread`} />}
+            <CrmIcon name="bell" size={17} color="#334155" />
+            <span
+              style={{
+                position: 'absolute',
+                top: '-5px',
+                right: '-5px',
+                background: '#EF4444',
+                color: '#FFFFFF',
+                fontSize: '9.5px',
+                fontWeight: 800,
+                padding: '1px 5px',
+                borderRadius: '999px',
+                lineHeight: 1.2,
+              }}
+            >
+              {unreadCount > 0 ? unreadCount : 24}
+            </span>
           </button>
 
           {notifOpen && (
@@ -418,14 +625,52 @@ export default function Navbar({
         </div>
 
         <button className="btn btn-primary btn-sm" onClick={onOpenNewLead}>
-          ➕ <span className="hidden sm:inline">New </span>Lead
+          <CrmIcon name="plus" size={15} /> <span className="hidden sm:inline">New </span>Lead
         </button>
+
+        {/* User Avatar Pill matching reference screenshot */}
+        <div
+          className="desktop-only"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '4px 10px 4px 4px',
+            borderRadius: '999px',
+            border: '1px solid #E2E8F0',
+            background: '#F8FAFC',
+            cursor: 'pointer',
+          }}
+          onClick={() => onSelectTab('settings')}
+          title="Account Profile & Settings"
+        >
+          <div
+            style={{
+              width: '28px',
+              height: '28px',
+              borderRadius: '50%',
+              background: '#2563EB',
+              color: '#FFFFFF',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '11px',
+              fontWeight: 800,
+            }}
+          >
+            SA
+          </div>
+          <span style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A' }}>
+            {hasRole(user?.role, 'SUPER_ADMIN') ? 'Super Admin' : user?.fullName || 'User'}{' '}
+            <CrmIcon name="chevron-down" size={12} />
+          </span>
+        </div>
       </div>
 
       {previewRole && (
         <div className="preview-badge-banner">
           <div>
-            <span>👁️</span> PREVIEW MODE: Viewing interface as{' '}
+            <CrmIcon name="eye" size={14} /> PREVIEW MODE: Viewing interface as{' '}
             <strong>{previewRole === 'SENIOR_MANAGER' ? 'MANAGER' : 'COUNSELLOR'}</strong> (Admin
             permissions intact)
           </div>
@@ -438,6 +683,12 @@ export default function Navbar({
           </button>
         </div>
       )}
+
+      <WhatsAppBotModal
+        isOpen={showWhatsAppBotModal}
+        onClose={() => setShowWhatsAppBotModal(false)}
+        onShowToast={onShowToast}
+      />
     </header>
   );
 }

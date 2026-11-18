@@ -167,6 +167,9 @@ export class AdmissionsService {
           include: { team: { include: { manager: true } } },
         },
         commissions: true,
+        installments: {
+          orderBy: { installmentNumber: 'asc' },
+        },
       },
     });
 
@@ -189,6 +192,9 @@ export class AdmissionsService {
         manager: true,
         counsellor: { include: { team: { include: { manager: true } } } },
         commissions: true,
+        installments: {
+          orderBy: { installmentNumber: 'asc' },
+        },
       },
     });
     if (!adm) throw new NotFoundException('Application not found');
@@ -999,5 +1005,403 @@ export class AdmissionsService {
         `%PDF-1.4\n1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj\n3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >> endobj\n4 0 obj << /Length ${summary.length + 45} >> stream\nBT /F1 12 Tf 40 720 Td (${summary.replace(/[()\\]/g, '')}) Tj ET\nendstream\nendobj\n5 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj\nxref\n0 6\n0000000000 65535 f \ntrailer << /Size 6 /Root 1 0 R >>\nstartxref\n0\n%%EOF`,
       );
     }
+  }
+
+  // =========================================================================
+  // VIRTUAL ZOOM TOURS & CAMPUS VISITS
+  // =========================================================================
+
+  async getUpcomingTours(actor: any) {
+    return this.prisma.schoolTour.findMany({
+      include: {
+        lead: {
+          select: {
+            id: true,
+            leadNumber: true,
+            studentName: true,
+            parentName: true,
+            parentPhone: true,
+            city: true,
+            annualBudget: true,
+            budgetMax: true,
+          },
+        },
+        school: {
+          select: {
+            id: true,
+            name: true,
+            city: true,
+            feesDisplay: true,
+          },
+        },
+      },
+      orderBy: { scheduledAt: 'asc' },
+    });
+  }
+
+  async scheduleTour(body: any, actor: any) {
+    const leadRef = body.leadId || body.lead_id;
+    if (!leadRef) throw new BadRequestException('leadId is required');
+
+    const lead = await this.prisma.lead.findFirst({
+      where: { OR: [{ id: leadRef }, { leadNumber: leadRef }] },
+    });
+    if (!lead) throw new NotFoundException('Lead not found');
+
+    const scheduledAt = body.scheduledAt ? new Date(body.scheduledAt) : new Date(Date.now() + 86400000);
+    const tourType = body.tourType || 'ONLINE_ZOOM';
+    const zoomMeetingUrl =
+      body.zoomMeetingUrl || 'https://zoom.us/j/8492041924?pwd=boardingedu';
+
+    let schoolName = body.schoolName || null;
+    let schoolId = body.schoolId || null;
+
+    if (!schoolName && schoolId) {
+      const s = await this.prisma.school.findUnique({ where: { id: schoolId } });
+      schoolName = s?.name || null;
+    }
+
+    const tour = await this.prisma.schoolTour.create({
+      data: {
+        leadId: lead.id,
+        schoolId,
+        schoolName,
+        tourType,
+        scheduledAt,
+        zoomMeetingUrl,
+        status: 'SCHEDULED',
+      },
+      include: { lead: true, school: true },
+    });
+
+    try {
+      await this.prisma.leadRemark.create({
+        data: {
+          leadId: lead.id,
+          userId: actor?.id || null,
+          userName: actor?.fullName || 'System',
+          userRole: actor?.role || 'SYSTEM',
+          content: `📅 ${tourType === 'ONLINE_ZOOM' ? 'Virtual Zoom Tour' : 'Campus Visit'} Scheduled for ${scheduledAt.toLocaleString('en-IN')} (${schoolName || 'School'}). Zoom URL: ${zoomMeetingUrl}`,
+        },
+      });
+    } catch {}
+
+    try {
+      await this.notifications?.notifyRoles(['manager', 'super_admin', 'SENIOR_MANAGER', 'SUPER_ADMIN'], {
+        type: 'tour_scheduled',
+        title: `📅 New Tour Scheduled: ${lead.studentName}`,
+        message: `${tourType === 'ONLINE_ZOOM' ? 'Virtual Zoom Tour' : 'Campus Visit'} booked for ${lead.studentName} (${schoolName || 'School'}) on ${scheduledAt.toLocaleString('en-IN')}`,
+        relatedEntityId: tour.id,
+        relatedEntityType: 'tour',
+        link: `/tours`,
+      });
+    } catch {}
+
+    return tour;
+  }
+
+  async completeTour(tourId: string, body: any, actor: any) {
+    const tour = await this.prisma.schoolTour.findUnique({
+      where: { id: tourId },
+      include: { lead: true, school: true },
+    });
+    if (!tour) throw new NotFoundException('Tour not found');
+
+    const proceedAdmission = Boolean(body.proceedAdmission ?? body.proceed_admission);
+    const postTourFeedback = body.feedback || body.notes || body.postTourFeedback || '';
+
+    const updatedTour = await this.prisma.schoolTour.update({
+      where: { id: tourId },
+      data: {
+        status: 'COMPLETED',
+        proceedAdmission,
+        postTourFeedback,
+      },
+    });
+
+    let admissionRecord: any = null;
+
+    // If parent agreed to proceed with admission -> auto-generate Admission and 3-Tier Fee Installments!
+    if (proceedAdmission && tour.lead) {
+      const totalFee = Number(
+        body.totalFee ||
+        body.agreedFee ||
+        tour.school?.minFeeAnnual ||
+        tour.lead.budgetMax ||
+        400000,
+      );
+
+      // Check if admission exists or create new
+      admissionRecord = await this.prisma.admission.findFirst({
+        where: {
+          leadId: tour.leadId,
+          ...(tour.schoolId ? { schoolId: tour.schoolId } : {}),
+        },
+      });
+
+      if (!admissionRecord) {
+        const targetSchoolId = tour.schoolId || (await this.prisma.school.findFirst())?.id;
+        if (targetSchoolId) {
+          const appCode = await this.nextAppCode();
+          const fallbackUser = await this.prisma.user.findFirst({ where: { deletedAt: null } });
+          const finalCounsellorId = tour.lead.assignedCounsellorId || actor?.id || fallbackUser?.id;
+          const finalManagerId = tour.lead.assignedManagerId || actor?.id || fallbackUser?.id;
+          admissionRecord = await this.prisma.admission.create({
+            data: {
+              admissionNumber: appCode,
+              receiptNumber: `REC-${appCode}`,
+              leadId: tour.leadId,
+              schoolId: targetSchoolId,
+              counsellorId: finalCounsellorId,
+              managerId: finalManagerId,
+              studentName: tour.lead.studentName,
+              parentName: tour.lead.parentName,
+              schoolName: tour.schoolName || tour.school?.name || 'Partner School',
+              admissionClass: String(tour.lead.applyingForGrade || tour.lead.classGrade || '6'),
+              academicYear: tour.lead.academicYear || '2026-27',
+              feeAgreed: totalFee,
+              stage: 'selected',
+              status: 'selected',
+            },
+          });
+        }
+      }
+
+      // Auto-generate 3-tier milestone installment plan (30%, 50%, 20%)
+      if (admissionRecord) {
+        await this.setupDefaultInstallments(admissionRecord.id, totalFee);
+      }
+    }
+
+    try {
+      await this.prisma.leadRemark.create({
+        data: {
+          leadId: tour.leadId,
+          userId: actor.id,
+          userName: actor.fullName,
+          userRole: actor.role,
+          content: `✅ Virtual Tour Completed! Proceed with Admission: [${proceedAdmission ? 'YES' : 'NO'}]. Feedback: ${postTourFeedback}`,
+        },
+      });
+    } catch {}
+
+    try {
+      await this.notifications?.notifyRoles(['manager', 'super_admin', 'SENIOR_MANAGER', 'SUPER_ADMIN'], {
+        type: 'tour_completed',
+        title: `✅ Tour Completed: ${tour.lead?.studentName} - ${proceedAdmission ? 'ADMISSION PROCEEDING! 🎉' : 'Parent Considering'}`,
+        message: `${actor.fullName} completed tour for ${tour.lead?.studentName}. Decision: ${proceedAdmission ? 'YES (Proceed to Admission & Fee Plan)' : 'NO / Not Ready'}. Feedback: ${postTourFeedback}`,
+        relatedEntityId: tour.id,
+        relatedEntityType: 'tour',
+        link: proceedAdmission && admissionRecord ? `/admissions/${admissionRecord.id}` : `/tours`,
+      });
+    } catch {}
+
+    return {
+      success: true,
+      tour: updatedTour,
+      admission: admissionRecord,
+      message: proceedAdmission
+        ? 'Tour marked completed. Admission record and 3-Tier Fee Installment plan generated!'
+        : 'Tour feedback recorded.',
+    };
+  }
+
+  // =========================================================================
+  // 3-TIER MILESTONE FEE INSTALLMENT TRACKING (MANAGER & ADMIN ONLY)
+  // =========================================================================
+
+  private async setupDefaultInstallments(admissionId: string, totalFee: number) {
+    // Delete existing pending installments if any
+    await this.prisma.admissionInstallment.deleteMany({
+      where: { admissionId, status: 'PENDING' },
+    });
+
+    const now = new Date();
+    const dateM2 = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000); // 2 months
+    const dateM3 = new Date(now.getTime() + 120 * 24 * 60 * 60 * 1000); // 4 months
+
+    const inst1Amount = Math.round(totalFee * 0.3); // 30%
+    const inst2Amount = Math.round(totalFee * 0.5); // 50%
+    const inst3Amount = totalFee - inst1Amount - inst2Amount; // 20% remaining
+
+    await this.prisma.admissionInstallment.createMany({
+      data: [
+        {
+          admissionId,
+          installmentNumber: 1,
+          title: 'Milestone 1: 30% Token & Admission Fee',
+          percentage: 30,
+          amount: inst1Amount,
+          dueDate: now,
+          status: 'PENDING',
+        },
+        {
+          admissionId,
+          installmentNumber: 2,
+          title: 'Milestone 2: 50% 2nd Term (After 2 Months)',
+          percentage: 50,
+          amount: inst2Amount,
+          dueDate: dateM2,
+          status: 'PENDING',
+        },
+        {
+          admissionId,
+          installmentNumber: 3,
+          title: 'Milestone 3: 20% Final Clearance',
+          percentage: 20,
+          amount: inst3Amount,
+          dueDate: dateM3,
+          status: 'PENDING',
+        },
+      ],
+    });
+  }
+
+  async getInstallments(admissionId: string, actor: any) {
+    const admission = await this.prisma.admission.findUnique({
+      where: { id: admissionId },
+      include: {
+        lead: {
+          select: {
+            id: true,
+            studentName: true,
+            parentName: true,
+            parentPhone: true,
+            leadNumber: true,
+          },
+        },
+        school: {
+          select: {
+            id: true,
+            name: true,
+            feesDisplay: true,
+          },
+        },
+        installments: {
+          orderBy: { installmentNumber: 'asc' },
+        },
+      },
+    });
+    if (!admission) throw new NotFoundException('Admission record not found');
+
+    const totalAgreed = Number(admission.feeAgreed || 0);
+    const paidAmount = admission.installments
+      .filter((i) => i.status === 'PAID')
+      .reduce((sum, i) => sum + i.amount, 0);
+    const pendingAmount = totalAgreed - paidAmount;
+    const progressPercent = totalAgreed > 0 ? Math.round((paidAmount / totalAgreed) * 100) : 0;
+
+    return {
+      admission,
+      summary: {
+        totalAgreed,
+        paidAmount,
+        pendingAmount,
+        progressPercent,
+      },
+    };
+  }
+
+  async setupInstallmentPlan(admissionId: string, body: any, actor: any) {
+    const admission = await this.prisma.admission.findUnique({
+      where: { id: admissionId },
+    });
+    if (!admission) throw new NotFoundException('Admission record not found');
+
+    const totalFee = Number(body.totalFee || admission.feeAgreed || 400000);
+    await this.prisma.admission.update({
+      where: { id: admissionId },
+      data: { feeAgreed: totalFee },
+    });
+
+    if (body.customInstallments && Array.isArray(body.customInstallments)) {
+      await this.prisma.admissionInstallment.deleteMany({
+        where: { admissionId, status: 'PENDING' },
+      });
+      await this.prisma.admissionInstallment.createMany({
+        data: body.customInstallments.map((inst: any, idx: number) => ({
+          admissionId,
+          installmentNumber: idx + 1,
+          title: inst.title || `Milestone ${idx + 1}`,
+          percentage: Number(inst.percentage || 0),
+          amount: Number(inst.amount || 0),
+          dueDate: inst.dueDate ? new Date(inst.dueDate) : new Date(),
+          status: 'PENDING',
+        })),
+      });
+    } else {
+      await this.setupDefaultInstallments(admissionId, totalFee);
+    }
+
+    return this.getInstallments(admissionId, actor);
+  }
+
+  async recordInstallmentPayment(
+    admissionId: string,
+    instId: string,
+    body: any,
+    actor: any,
+  ) {
+    const inst = await this.prisma.admissionInstallment.findFirst({
+      where: { id: instId, admissionId },
+    });
+    if (!inst) throw new NotFoundException('Installment milestone not found');
+
+    const now = new Date();
+    const updated = await this.prisma.admissionInstallment.update({
+      where: { id: instId },
+      data: {
+        status: 'PAID',
+        paidAt: now,
+        utrNumber: body.utrNumber || body.utr_number || `UTR-${Date.now()}`,
+        paymentMode: body.paymentMode || body.payment_mode || 'NetBanking',
+        notes: body.notes || null,
+      },
+    });
+
+    // Check if all installments are paid -> mark admission done
+    const remaining = await this.prisma.admissionInstallment.count({
+      where: { admissionId, status: { not: 'PAID' } },
+    });
+
+    if (remaining === 0) {
+      await this.prisma.admission.update({
+        where: { id: admissionId },
+        data: {
+          stage: 'admission_done',
+          status: 'admission_done',
+          admissionDate: now,
+        },
+      });
+    }
+
+    const admission = await this.prisma.admission.findUnique({
+      where: { id: admissionId },
+    });
+
+    try {
+      await this.prisma.leadRemark.create({
+        data: {
+          leadId: admission!.leadId,
+          userId: actor.id,
+          userName: actor.fullName,
+          userRole: actor.role,
+          content: `💰 Installment Payment Recorded: ${inst.title} - ₹${inst.amount.toLocaleString('en-IN')} (UTR: ${updated.utrNumber}, Mode: ${updated.paymentMode}) by ${actor.fullName}. Status: PAID`,
+        },
+      });
+    } catch {}
+
+    try {
+      await this.notifications?.notifyRoles(['manager', 'super_admin', 'SENIOR_MANAGER', 'SUPER_ADMIN'], {
+        type: 'payment_received',
+        title: `💰 Payment Received: ₹${inst.amount.toLocaleString('en-IN')}`,
+        message: `${inst.title} of ₹${inst.amount.toLocaleString('en-IN')} verified for ${admission?.studentName} by ${actor.fullName}. UTR: ${updated.utrNumber}`,
+        relatedEntityId: admissionId,
+        relatedEntityType: 'admission',
+        link: `/admissions/${admissionId}`,
+      });
+    } catch {}
+
+    return this.getInstallments(admissionId, actor);
   }
 }

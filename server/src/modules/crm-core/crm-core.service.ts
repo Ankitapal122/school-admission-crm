@@ -241,18 +241,31 @@ export class CrmCoreService implements OnModuleInit {
       where.status = query.status;
     }
 
-    const users = await this.prisma.user.findMany({
-      where,
-      orderBy: { createdAt: 'asc' },
-      include: {
-        team: true,
-        managedTeams: true,
-        manager: { select: { id: true, fullName: true, employeeId: true } },
-      },
-    });
+    const [users, activeSessionRows] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        orderBy: { createdAt: 'asc' },
+        include: {
+          team: true,
+          managedTeams: true,
+          manager: { select: { id: true, fullName: true, employeeId: true } },
+        },
+      }),
+      this.prisma.refreshTokenSession.findMany({
+        where: { isActive: true, isRevoked: false, expiresAt: { gt: new Date() } },
+        select: { userId: true },
+      }),
+    ]);
+
+    const activeUserIds = new Set(activeSessionRows.map((s) => s.userId));
 
     const formatted = users.map((u) => {
       const managed = u.managedTeams?.[0];
+      const isOnline =
+        activeUserIds.has(u.id) &&
+        Boolean(u.lastLoginAt) &&
+        (!u.lastLogoutAt ||
+          new Date(u.lastLoginAt).getTime() >= new Date(u.lastLogoutAt).getTime());
       return {
         _id: u.id,
         id: u.id,
@@ -266,10 +279,13 @@ export class CrmCoreService implements OnModuleInit {
         canonicalRole: toBlueprintRole(u.role),
         backendRole: u.role,
         status: u.status || (u.isActive ? 'active' : 'suspended'),
+        isOnline,
+        presenceStatus: isOnline ? 'online' : 'offline',
         isActive: u.isActive,
         failedLoginAttempts: u.failedLoginAttempts,
         lockedUntil: u.lockedUntil,
         lastLoginAt: u.lastLoginAt,
+        lastLogoutAt: u.lastLogoutAt,
         fnfDate: u.fnfDate,
         fnfSettled: u.fnfSettled,
         twoFactorEnabled: u.isTwoFactorEnabled,
@@ -289,24 +305,42 @@ export class CrmCoreService implements OnModuleInit {
   }
 
   async getTeamUsers(managerId: string) {
-    const members = await this.prisma.user.findMany({
-      where: {
-        OR: [{ managerId }, { team: { managerId } }],
-        deletedAt: null,
-      },
-      orderBy: { fullName: 'asc' },
-      include: { team: true },
-    });
+    const [members, activeSessionRows] = await Promise.all([
+      this.prisma.user.findMany({
+        where: {
+          OR: [{ managerId }, { team: { managerId } }],
+          deletedAt: null,
+        },
+        orderBy: { fullName: 'asc' },
+        include: { team: true },
+      }),
+      this.prisma.refreshTokenSession.findMany({
+        where: { isActive: true, isRevoked: false, expiresAt: { gt: new Date() } },
+        select: { userId: true },
+      }),
+    ]);
+    const activeUserIds = new Set(activeSessionRows.map((s) => s.userId));
     return apiEnvelope(
-      members.map((u) => ({
-        id: u.id,
-        employeeId: u.employeeId,
-        fullName: u.fullName,
-        email: u.email,
-        phone: u.phone,
-        role: toBlueprintRole(u.role),
-        status: u.status,
-      })),
+      members.map((u) => {
+        const isOnline =
+          activeUserIds.has(u.id) &&
+          Boolean(u.lastLoginAt) &&
+          (!u.lastLogoutAt ||
+            new Date(u.lastLoginAt).getTime() >= new Date(u.lastLogoutAt).getTime());
+        return {
+          id: u.id,
+          employeeId: u.employeeId,
+          fullName: u.fullName,
+          email: u.email,
+          phone: u.phone,
+          role: toBlueprintRole(u.role),
+          status: u.status,
+          isOnline,
+          presenceStatus: isOnline ? 'online' : 'offline',
+          lastLoginAt: u.lastLoginAt,
+          lastLogoutAt: u.lastLogoutAt,
+        };
+      }),
       'Team counsellors fetched',
     );
   }
@@ -368,10 +402,48 @@ export class CrmCoreService implements OnModuleInit {
     const passwordHash = await bcrypt.hash(rawPassword, 12);
 
     let teamId = body.teamId || null;
-    if (teamId) {
-      const team = await this.prisma.team.findFirst({
-        where: { OR: [{ id: teamId }, { teamCode: teamId }] },
+    const manualTeamName = String(body.customTeamName || body.teamName || '').trim();
+    if (manualTeamName) {
+      let existingTeam = await this.prisma.team.findFirst({
+        where: { name: { equals: manualTeamName, mode: 'insensitive' } },
       });
+      if (!existingTeam) {
+        const tCount = await this.prisma.team.count();
+        const mgr = await this.prisma.user.findFirst({
+          where: { role: { in: [Role.manager, Role.SENIOR_MANAGER] }, deletedAt: null },
+        });
+        existingTeam = await this.prisma.team.create({
+          data: {
+            teamCode: `TEAM-UK-${String(tCount + 1).padStart(2, '0')}-${Date.now().toString().slice(-3)}`,
+            name: manualTeamName,
+            description: 'Custom Admin Team',
+            targetAdmissions: 50,
+            status: 'ACTIVE',
+            managerId: mgr?.id || null,
+          },
+        });
+      }
+      teamId = existingTeam.id;
+    } else if (teamId) {
+      let team = await this.prisma.team.findFirst({
+        where: { OR: [{ id: teamId }, { teamCode: teamId }, { name: { equals: String(teamId), mode: 'insensitive' } }] },
+      });
+      if (!team) {
+        const tCount = await this.prisma.team.count();
+        const mgr = await this.prisma.user.findFirst({
+          where: { role: { in: [Role.manager, Role.SENIOR_MANAGER] }, deletedAt: null },
+        });
+        team = await this.prisma.team.create({
+          data: {
+            teamCode: `TEAM-UK-${String(tCount + 1).padStart(2, '0')}-${Date.now().toString().slice(-3)}`,
+            name: String(teamId).trim(),
+            description: 'Custom Admin Team',
+            targetAdmissions: 50,
+            status: 'ACTIVE',
+            managerId: mgr?.id || null,
+          },
+        });
+      }
       teamId = team ? team.id : null;
     }
 
@@ -387,7 +459,7 @@ export class CrmCoreService implements OnModuleInit {
         isActive: true,
         passwordUpdatedAt: new Date(),
         managerId: body.managerId || null,
-        teamId: toBlueprintRole(role) === 'jr_counsellor' ? teamId : null,
+        teamId: teamId || null,
         upiId: body.upiId || null,
         bankAccountEncrypted: body.bankAccount
           ? encryptSensitiveData(String(body.bankAccount))
@@ -395,6 +467,13 @@ export class CrmCoreService implements OnModuleInit {
       },
       include: { team: true },
     });
+
+    if (toBlueprintRole(role) === 'manager' && teamId) {
+      await this.prisma.team.update({
+        where: { id: teamId },
+        data: { managerId: user.id },
+      }).catch(() => {});
+    }
 
     await this.prisma.auditLog.create({
       data: {
@@ -448,6 +527,13 @@ export class CrmCoreService implements OnModuleInit {
     if (body.upiId !== undefined) data.upiId = body.upiId;
     if (body.bankAccount) {
       data.bankAccountEncrypted = encryptSensitiveData(String(body.bankAccount));
+    }
+    if (body.role && body.role !== user.role) {
+      data.role = body.role;
+      await this.prisma.refreshTokenSession.updateMany({
+        where: { userId: user.id, isActive: true },
+        data: { isActive: false, isRevoked: true, revokedAt: new Date(), revokedReason: 'role_changed' },
+      });
     }
 
     const updated = await this.prisma.user.updateMany({
@@ -668,30 +754,93 @@ export class CrmCoreService implements OnModuleInit {
     return apiEnvelope(sessions, 'Login history loaded', { sessions });
   }
 
-  async changeUserRole(id: string, newRoleStr: string, actor?: any) {
+  async changeUserRole(id: string, bodyOrRole: any, actor?: any) {
     const user = await this.prisma.user.findFirst({
       where: { OR: [{ id }, { employeeId: id }], deletedAt: null },
     });
     if (!user) throw new NotFoundException('User not found');
 
-    const newRole = this.mapFrontendToRole(newRoleStr);
+    const payload = typeof bodyOrRole === 'string' ? { role: bodyOrRole } : (bodyOrRole || {});
+    const newRole = payload.role ? this.mapFrontendToRole(payload.role) : user.role;
     const oldRole = user.role;
+
+    let resolvedTeamId = user.teamId;
+    const manualTeamName = String(payload.customTeamName || payload.teamName || '').trim();
+    if (manualTeamName) {
+      let existingTeam = await this.prisma.team.findFirst({
+        where: { name: { equals: manualTeamName, mode: 'insensitive' } },
+      });
+      if (!existingTeam) {
+        const tCount = await this.prisma.team.count();
+        const mgr = await this.prisma.user.findFirst({
+          where: { role: { in: [Role.manager, Role.SENIOR_MANAGER] }, deletedAt: null },
+        });
+        existingTeam = await this.prisma.team.create({
+          data: {
+            teamCode: `TEAM-UK-${String(tCount + 1).padStart(2, '0')}-${Date.now().toString().slice(-3)}`,
+            name: manualTeamName,
+            description: 'Custom Admin Team',
+            targetAdmissions: 50,
+            status: 'ACTIVE',
+            managerId: mgr?.id || null,
+          },
+        });
+      }
+      resolvedTeamId = existingTeam.id;
+    } else if (payload.teamId !== undefined) {
+      if (!payload.teamId) {
+        resolvedTeamId = null;
+      } else {
+        let team = await this.prisma.team.findFirst({
+          where: {
+            OR: [
+              { id: String(payload.teamId) },
+              { teamCode: String(payload.teamId) },
+              { name: { equals: String(payload.teamId), mode: 'insensitive' } },
+            ],
+          },
+        });
+        if (!team) {
+          const tCount = await this.prisma.team.count();
+          const mgr = await this.prisma.user.findFirst({
+            where: { role: { in: [Role.manager, Role.SENIOR_MANAGER] }, deletedAt: null },
+          });
+          team = await this.prisma.team.create({
+            data: {
+              teamCode: `TEAM-UK-${String(tCount + 1).padStart(2, '0')}-${Date.now().toString().slice(-3)}`,
+              name: String(payload.teamId).trim(),
+              description: 'Custom Admin Team',
+              targetAdmissions: 50,
+              status: 'ACTIVE',
+              managerId: mgr?.id || null,
+            },
+          });
+        }
+        resolvedTeamId = team.id;
+      }
+    }
 
     const updated = await this.prisma.$transaction(async (tx) => {
       const upd = await tx.user.update({
         where: { id: user.id },
-        data: { role: newRole, version: { increment: 1 } },
-      });
-
-      await tx.refreshTokenSession.updateMany({
-        where: { userId: user.id, isActive: true },
         data: {
-          isActive: false,
-          isRevoked: true,
-          revokedAt: new Date(),
-          revokedReason: 'role_change',
+          role: newRole,
+          teamId: resolvedTeamId,
+          version: { increment: 1 },
         },
       });
+
+      if (payload.role && newRole !== oldRole) {
+        await tx.refreshTokenSession.updateMany({
+          where: { userId: user.id, isActive: true },
+          data: {
+            isActive: false,
+            isRevoked: true,
+            revokedAt: new Date(),
+            revokedReason: 'role_change',
+          },
+        });
+      }
 
       await tx.auditLog.create({
         data: {
@@ -702,10 +851,10 @@ export class CrmCoreService implements OnModuleInit {
           module: 'users',
           entity: 'User',
           entityId: user.id,
-          oldValue: { role: oldRole },
-          newValue: { role: newRole },
+          oldValue: { role: oldRole, teamId: user.teamId },
+          newValue: { role: newRole, teamId: resolvedTeamId },
           details: {
-            note: `Role changed ${oldRole} -> ${newRole}. Sessions revoked with reason 'role_change'.`,
+            note: `User updated (role: ${oldRole} -> ${newRole}, teamId: ${resolvedTeamId}).`,
           },
           isSpecialFlag: true,
         },
@@ -715,8 +864,8 @@ export class CrmCoreService implements OnModuleInit {
     });
 
     return apiEnvelope(
-      { id: updated.id, role: updated.role, sessionsRevoked: true },
-      `User ${updated.fullName} role updated to ${newRole}. All active sessions revoked with reason 'role_change'.`,
+      { id: updated.id, role: updated.role, teamId: updated.teamId, sessionsRevoked: Boolean(payload.role) },
+      `User ${updated.fullName} role/team updated cleanly.`,
       { user: updated },
     );
   }

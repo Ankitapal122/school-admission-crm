@@ -12,6 +12,7 @@ import { AdmissionsModule } from './modules/admissions/admissions.module';
 import { CommissionsModule } from './modules/commissions/commissions.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { CrmCoreModule } from './modules/crm-core/crm-core.module';
+import { PresenceModule } from './modules/presence/presence.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { CrmCoreModule } from './modules/crm-core/crm-core.module';
     CommissionsModule,
     ReportsModule,
     CrmCoreModule,
+    PresenceModule,
   ],
 })
 export class AppModule {}

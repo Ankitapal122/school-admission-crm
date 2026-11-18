@@ -111,6 +111,17 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   logout: (broadcast = true) => {
     try {
+      const currentToken = localStorage.getItem('crm_token');
+      if (currentToken && broadcast) {
+        fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${currentToken}`,
+          },
+          body: JSON.stringify({}),
+        }).catch(() => {});
+      }
       localStorage.removeItem('crm_token');
       localStorage.removeItem('crm_refresh_token');
       localStorage.removeItem('crm_user');

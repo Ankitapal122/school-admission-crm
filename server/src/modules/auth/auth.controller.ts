@@ -51,7 +51,7 @@ export class AuthController {
 
   @Post('2fa/verify-login')
   async verify2FALogin(
-    @Body() body: { temp_token?: string; tempToken?: string; otp?: string; code?: string },
+    @Body() body: { temp_token?: string; tempToken?: string; otp?: string; code?: string; deviceId?: string; deviceName?: string },
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
@@ -60,6 +60,8 @@ export class AuthController {
       body.otp || body.code || '',
       req.ip || req.socket?.remoteAddress,
       req.headers['user-agent'],
+      body.deviceId,
+      body.deviceName,
     );
     this.setRefreshCookie(res, result.refreshToken);
     return apiEnvelope(result, '2FA verified', result);
@@ -67,7 +69,7 @@ export class AuthController {
 
   @Post('verify-2fa')
   async verify2FALegacy(
-    @Body() body: { temp_token?: string; tempToken?: string; otp?: string; code?: string },
+    @Body() body: { temp_token?: string; tempToken?: string; otp?: string; code?: string; deviceId?: string; deviceName?: string },
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
@@ -76,9 +78,38 @@ export class AuthController {
       body.otp || body.code || '',
       req.ip || req.socket?.remoteAddress,
       req.headers['user-agent'],
+      body.deviceId,
+      body.deviceName,
     );
     this.setRefreshCookie(res, result.refreshToken);
     return apiEnvelope(result, '2FA verified', result);
+  }
+
+  @Post('verify-device-otp')
+  async verifyDeviceOtp(
+    @Body() body: { temp_token?: string; tempToken?: string; otp?: string; code?: string; deviceId?: string; deviceName?: string },
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.verify2FALogin(
+      body.temp_token || body.tempToken || '',
+      body.otp || body.code || '',
+      req.ip || req.socket?.remoteAddress,
+      req.headers['user-agent'],
+      body.deviceId,
+      body.deviceName,
+    );
+    this.setRefreshCookie(res, result.refreshToken);
+    return apiEnvelope(result, 'Device verified and authorized', result);
+  }
+
+  @Post('resend-device-otp')
+  async resendDeviceOtp(
+    @Body() body: { temp_token?: string; tempToken?: string },
+  ) {
+    const token = body.temp_token || body.tempToken || '';
+    const result = await this.authService.resendDeviceOtp(token);
+    return apiEnvelope(result, result.message, result);
   }
 
   @Post('refresh')

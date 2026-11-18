@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import CrmIcon from '../../components/CrmIcon';
 import { School, MapPin, Award, CheckCircle, ExternalLink, IndianRupee } from 'lucide-react';
 
 interface SchoolData {
@@ -131,7 +132,7 @@ export default function SchoolsDirectory() {
                 </div>
                 <div className="text-right">
                   <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                    ★ {school.rating}
+                    <CrmIcon name="star" size={16} /> {school.rating}
                   </span>
                 </div>
               </div>

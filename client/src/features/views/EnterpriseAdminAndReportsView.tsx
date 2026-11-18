@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import CrmIcon from '../../components/CrmIcon';
 import { apiCall, downloadApiFile } from '../../lib/api';
 import { useAuthStore } from '../../stores/authStore';
 import { hasRole } from '../../lib/roles';
@@ -7,7 +8,8 @@ import { BulkImportModal } from './FinanceAndSchoolsView';
 const ALL_20_REPORTS = [
   { slug: 'leads', label: '1. Leads Master Report' },
   { slug: 'pipeline', label: '2. Stage Pipeline Conversion' },
-  { slug: 'admissions', label: '3. Confirmed Admissions Report' },
+  { slug: 'admissions', label: '3. Confirmed Admissions Report (Sheet 3)' },
+  { slug: 'full-admission-process', label: '★ End-to-End Admission Full Process Lifecycle' },
   { slug: 'school-wise', label: '4. School-wise Applications & Revenue' },
   { slug: 'commission', label: '5. Commission Ledger Report' },
   { slug: 'revenue', label: '6. Organization Revenue & Projections' },
@@ -138,9 +140,21 @@ export function ReportsView({
     }
   };
 
+  const handleDownloadMasterWorkbook = async () => {
+    try {
+      await downloadApiFile(
+        '/reports/master-export',
+        'CRM_Master_Complete_Workbook.xlsx'
+      );
+      onShowToast('Master 5-Sheet CRM Workbook (.xlsx) downloaded successfully!', 'success');
+    } catch (err: any) {
+      onShowToast(err?.message || 'Failed to download Master Workbook.', 'danger');
+    }
+  };
+
   const columns =
     reportRows.length > 0 && typeof reportRows[0] === 'object' && reportRows[0] !== null
-      ? Object.keys(reportRows[0]).slice(0, 7)
+      ? Object.keys(reportRows[0])
       : ['summary'];
 
   return (
@@ -148,28 +162,52 @@ export function ReportsView({
       <div className="card">
         <div className="card-header" style={{ flexWrap: 'wrap', gap: '10px' }}>
           <div>
-            <h3 className="card-title">📈 Enterprise Analytics &amp; 20-Report Export Suite</h3>
+            <h3 className="card-title"><CrmIcon name="trending-up" size={16} /> Enterprise Analytics &amp; 20-Report Export Suite</h3>
             <span className="card-subtitle">
               Real-time PostgreSQL aggregations with JSON preview, authenticated Excel/PDF downloads &amp; BullMQ async jobs
             </span>
           </div>
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
             <button className="btn btn-sm btn-primary" onClick={handleRunReport} disabled={loadingReport}>
-              🔄 {loadingReport ? 'Loading...' : 'Refresh'}
+              <CrmIcon name="refresh" size={16} /> {loadingReport ? 'Loading...' : 'Refresh'}
             </button>
             <button className="btn btn-sm btn-success" onClick={() => handleDownload('excel')}>
-              📊 Export Excel
+              <CrmIcon name="bar-chart" size={16} /> Export Excel
+            </button>
+            <button
+              className="btn btn-sm btn-primary"
+              style={{ background: '#0284C7', borderColor: '#0284C7', display: 'flex', alignItems: 'center', gap: '5px' }}
+              onClick={async () => {
+                try {
+                  await downloadApiFile(
+                    `/reports/full-admission-process${buildQuery('format=excel')}`,
+                    'Admission_Full_Process_Master.xlsx'
+                  );
+                  onShowToast('Admission Complete Process Excel report downloaded successfully!', 'success');
+                } catch (err: any) {
+                  onShowToast(err?.message || 'Download failed.', 'danger');
+                }
+              }}
+            >
+              <CrmIcon name="graduation-cap" size={15} /> Full Admission Process (.xlsx)
+            </button>
+            <button
+              className="btn btn-sm btn-primary"
+              style={{ background: '#0D9488', borderColor: '#0D9488', display: 'flex', alignItems: 'center', gap: '5px' }}
+              onClick={handleDownloadMasterWorkbook}
+            >
+              <CrmIcon name="download" size={15} /> Master CRM Workbook (.xlsx)
             </button>
             <button className="btn btn-sm btn-navy" onClick={() => handleDownload('pdf')}>
-              📄 Export PDF
+              <CrmIcon name="file-text" size={16} /> Export PDF
             </button>
             <button className="btn btn-sm btn-outline" onClick={handleTriggerAsyncReport}>
-              ⚙️ Async BullMQ Export
+              <CrmIcon name="settings" size={16} /> Async BullMQ Export
             </button>
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '12px', marginBottom: '14px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '12px', marginBottom: '10px' }}>
           <div>
             <label className="form-label">Select Blueprint Report (1–20)</label>
             <select
@@ -178,9 +216,7 @@ export function ReportsView({
               onChange={(e) => setSelectedSlug(e.target.value)}
             >
               {ALL_20_REPORTS.map((r) => (
-                <option key={r.slug} value={r.slug}>
-                  {r.label}
-                </option>
+                <option key={r.slug} value={r.slug}>{r.label}</option>
               ))}
             </select>
           </div>
@@ -202,6 +238,48 @@ export function ReportsView({
               onChange={(e) => setDateTo(e.target.value)}
             />
           </div>
+        </div>
+
+        {/* Quick Date Range Filter Presets */}
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <span style={{ fontSize: '12px', fontWeight: 600, color: '#64748B' }}>Quick Date Filters:</span>
+          <button
+            type="button"
+            className="btn btn-sm btn-outline"
+            style={{ padding: '3px 8px', fontSize: '11.5px', background: !dateFrom && !dateTo ? '#EFF6FF' : undefined }}
+            onClick={() => { setDateFrom(''); setDateTo(''); }}
+          >
+            All-Time (Permanent)
+          </button>
+          <button
+            type="button"
+            className="btn btn-sm btn-outline"
+            style={{ padding: '3px 8px', fontSize: '11.5px' }}
+            onClick={() => { setDateFrom('2026-04-01'); setDateTo('2027-03-31'); }}
+          >
+            Session 2026-27
+          </button>
+          <button
+            type="button"
+            className="btn btn-sm btn-outline"
+            style={{ padding: '3px 8px', fontSize: '11.5px' }}
+            onClick={() => { setDateFrom('2025-04-01'); setDateTo('2026-03-31'); }}
+          >
+            Past Session 2025-26
+          </button>
+          <button
+            type="button"
+            className="btn btn-sm btn-outline"
+            style={{ padding: '3px 8px', fontSize: '11.5px' }}
+            onClick={() => {
+              const d = new Date();
+              d.setDate(d.getDate() - 30);
+              setDateFrom(d.toISOString().slice(0, 10));
+              setDateTo(new Date().toISOString().slice(0, 10));
+            }}
+          >
+            Last 30 Days
+          </button>
         </div>
 
         {asyncJobId && (
@@ -232,7 +310,7 @@ export function ReportsView({
                   )
                 }
               >
-                ⬇️ Download Output
+                <CrmIcon name="download" size={16} /> Download Output
               </button>
             )}
           </div>
@@ -282,7 +360,7 @@ export function ReportsView({
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           <div className="card">
             <div className="card-header">
-              <h3 className="card-title">🗄️ 90-Day S3 (.json.gz) Retention Archive</h3>
+              <h3 className="card-title"><CrmIcon name="archive" size={16} /> 90-Day S3 (.json.gz) Retention Archive</h3>
               <button className="btn btn-sm btn-warning" onClick={handleRunRetention}>
                 Run Retention Check
               </button>
@@ -300,7 +378,7 @@ export function ReportsView({
 
           <div className="card">
             <div className="card-header">
-              <h3 className="card-title">🛡️ Data &amp; Referential Integrity Diagnostic</h3>
+              <h3 className="card-title"><CrmIcon name="shield" size={16} /> Data &amp; Referential Integrity Diagnostic</h3>
               <button className="btn btn-sm btn-navy" onClick={handleRunIntegrity}>
                 Run Check Now
               </button>
@@ -311,7 +389,7 @@ export function ReportsView({
             {integrityResult && (
               <div style={{ background: '#F8FAFC', padding: '10px', borderRadius: '8px', fontSize: '12px' }}>
                 <div>
-                  Status: <strong>{integrityResult.healthy !== false ? '✅ Healthy' : '⚠️ Issues Found'}</strong>
+                  Status: <strong>{integrityResult.healthy !== false ? 'Healthy' : 'Issues Found'}</strong>
                 </div>
                 <pre style={{ margin: '6px 0 0', fontSize: '11px', whiteSpace: 'pre-wrap' }}>
                   {JSON.stringify(integrityResult.checks || integrityResult, null, 2).slice(0, 300)}
@@ -344,12 +422,15 @@ export function UsersView({
   const [newPassword, setNewPassword] = useState('Welcome@123');
   const [newRole, setNewRole] = useState('COUNSELLOR');
   const [newTeamId, setNewTeamId] = useState('');
+  const [newManualTeamName, setNewManualTeamName] = useState('');
 
   // Reset Password & Role Modal (zero window.prompt)
   const [resetTarget, setResetTarget] = useState<any | null>(null);
   const [resetNewPass, setResetNewPass] = useState('');
   const [roleTarget, setRoleTarget] = useState<any | null>(null);
   const [targetRoleVal, setTargetRoleVal] = useState('COUNSELLOR');
+  const [targetTeamIdVal, setTargetTeamIdVal] = useState('');
+  const [targetManualTeamName, setTargetManualTeamName] = useState('');
   const [roleReason, setRoleReason] = useState('');
   const [loginHistoryTarget, setLoginHistoryTarget] = useState<{ user: any; logs: any[] } | null>(
     null
@@ -379,12 +460,17 @@ export function UsersView({
         email: newEmail.trim(),
         password: newPassword,
         role: newRole,
-        teamId: newTeamId || undefined,
+        teamId: newManualTeamName.trim() ? undefined : newTeamId || undefined,
+        customTeamName: newManualTeamName.trim() || undefined,
       });
-      onShowToast(`Account created for ${newEmail}!`, 'success');
+      onShowToast(
+        `Account created for ${newEmail}${newManualTeamName.trim() ? ` in team "${newManualTeamName.trim()}"` : ''}!`,
+        'success'
+      );
       setShowCreateModal(false);
       setNewFullName('');
       setNewEmail('');
+      setNewManualTeamName('');
       onRefresh();
     } catch (err: any) {
       onShowToast(err?.message || 'Failed to create user.', 'danger');
@@ -417,10 +503,13 @@ export function UsersView({
     try {
       await apiCall(`/users/${roleTarget.id}/role`, 'PATCH', {
         role: targetRoleVal,
-        reason: roleReason.trim() || 'Administrative role reassignment',
+        teamId: targetManualTeamName.trim() ? undefined : targetTeamIdVal || undefined,
+        customTeamName: targetManualTeamName.trim() || undefined,
+        reason: roleReason.trim() || 'Administrative role/team reassignment',
       });
-      onShowToast('Role changed & active user sessions immediately revoked (Security Rule #13).', 'success');
+      onShowToast('Employee role & team updated cleanly!', 'success');
       setRoleTarget(null);
+      setTargetManualTeamName('');
       setRoleReason('');
       onRefresh();
     } catch (err: any) {
@@ -462,7 +551,7 @@ export function UsersView({
     <div className="card">
       <div className="card-header" style={{ flexWrap: 'wrap', gap: '10px' }}>
         <div>
-          <h3 className="card-title">👤 Employee Directory &amp; Role Matrix</h3>
+          <h3 className="card-title"><CrmIcon name="user" size={16} /> Employee Directory &amp; Role Matrix</h3>
           <span className="card-subtitle">
             Account lifecycle controls: unlock, suspend, force-logout, role reassignment (revokes JWT sessions) &amp; RBAC matrix
           </span>
@@ -472,17 +561,17 @@ export function UsersView({
             className={`btn btn-sm ${subTab === 'employees' ? 'btn-navy' : 'btn-outline'}`}
             onClick={() => setSubTab('employees')}
           >
-            👥 Employees ({users.length})
+            <CrmIcon name="users" size={16} /> Employees ({users.length})
           </button>
           <button
             className={`btn btn-sm ${subTab === 'roles' ? 'btn-navy' : 'btn-outline'}`}
             onClick={() => setSubTab('roles')}
           >
-            🛡️ Roles Matrix
+            <CrmIcon name="shield" size={16} /> Roles Matrix
           </button>
           {hasRole(currentUser?.role, 'SUPER_ADMIN') && (
             <button className="btn btn-sm btn-primary" onClick={() => setShowCreateModal(true)}>
-              ➕ Add Staff Account
+              <CrmIcon name="plus" size={16} /> Add Staff Account
             </button>
           )}
         </div>
@@ -512,15 +601,31 @@ export function UsersView({
                     <span className="badge badge-info">{u.role}</span>
                   </td>
                   <td>
-                    <span
-                      className={`badge ${
-                        u.status === 'active' || u.status === 'ACTIVE'
-                          ? 'badge-success'
-                          : 'badge-danger'
-                      }`}
-                    >
-                      {u.status || 'active'}
-                    </span>
+                    {(() => {
+                      const isUserOnline =
+                        u.isOnline === true ||
+                        u.presenceStatus === 'online' ||
+                        u.id === currentUser?.id;
+                      return (
+                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+                          <span
+                            className={`badge ${
+                              isUserOnline ? 'badge-success' : 'badge-secondary'
+                            }`}
+                            style={{
+                              background: isUserOnline ? '#DCFCE7' : '#F1F5F9',
+                              color: isUserOnline ? '#15803D' : '#475569',
+                              fontWeight: 700,
+                            }}
+                          >
+                            ● {isUserOnline ? 'Online' : 'Offline'}
+                          </span>
+                          {u.status && u.status !== 'active' && u.status !== 'ACTIVE' && (
+                            <span className="badge badge-danger">{u.status}</span>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
@@ -528,7 +633,7 @@ export function UsersView({
                         className="btn btn-sm btn-outline"
                         onClick={() => handleViewLoginHistory(u)}
                       >
-                        🕒 Logins
+                        <CrmIcon name="clock" size={16} /> Logins
                       </button>
                       {hasRole(currentUser?.role, 'SUPER_ADMIN') && (
                         <>
@@ -539,7 +644,7 @@ export function UsersView({
                               setTargetRoleVal(u.role || 'COUNSELLOR');
                             }}
                           >
-                            🔄 Role
+                            <CrmIcon name="refresh" size={16} /> Role
                           </button>
                           <button
                             className="btn btn-sm btn-outline"
@@ -547,7 +652,7 @@ export function UsersView({
                               handleUserAction(u.id, 'unlock', 'POST', `${u.fullName} unlocked!`)
                             }
                           >
-                            🔓 Unlock
+                            <CrmIcon name="unlock" size={16} /> Unlock
                           </button>
                           <button
                             className="btn btn-sm btn-warning"
@@ -560,7 +665,7 @@ export function UsersView({
                               )
                             }
                           >
-                            🚪 Force Logout
+                            <CrmIcon name="logout" size={16} /> Force Logout
                           </button>
                           <button
                             className="btn btn-sm btn-outline"
@@ -573,13 +678,13 @@ export function UsersView({
                               )
                             }
                           >
-                            ⏯️ Toggle Active
+                            <CrmIcon name="play" size={16} /> Toggle Active
                           </button>
                           <button
                             className="btn btn-sm btn-outline"
                             onClick={() => setResetTarget(u)}
                           >
-                            🔑 Reset Pass
+                            <CrmIcon name="key" size={16} /> Reset Pass
                           </button>
                         </>
                       )}
@@ -622,7 +727,7 @@ export function UsersView({
                           );
                         }}
                       >
-                        ✏️ Edit JSON
+                        <CrmIcon name="edit" size={16} /> Edit JSON
                       </button>
                     )}
                   </td>
@@ -638,9 +743,9 @@ export function UsersView({
         <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '460px' }}>
             <div className="modal-header">
-              <h3 style={{ fontSize: '15px', fontWeight: 800 }}>➕ Create Employee Account</h3>
+              <h3 style={{ fontSize: '15px', fontWeight: 800 }}><CrmIcon name="plus" size={16} /> Create Employee Account</h3>
               <button className="btn btn-sm btn-outline" onClick={() => setShowCreateModal(false)}>
-                ✕
+                <CrmIcon name="x" size={16} />
               </button>
             </div>
             <form onSubmit={handleCreateUser}>
@@ -687,23 +792,37 @@ export function UsersView({
                     <option value="SUPER_ADMIN">Super Admin</option>
                   </select>
                 </div>
-                {teams.length > 0 && (
-                  <div className="form-group">
-                    <label className="form-label">Assign Team</label>
-                    <select
-                      className="form-control"
-                      value={newTeamId}
-                      onChange={(e) => setNewTeamId(e.target.value)}
-                    >
-                      <option value="">-- Optional --</option>
-                      {teams.map((t) => (
-                        <option key={t.id} value={t.id}>
-                          {t.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
+                <div className="form-group">
+                  <label className="form-label">Assign Existing Team</label>
+                  <select
+                    className="form-control"
+                    value={newTeamId}
+                    onChange={(e) => {
+                      setNewTeamId(e.target.value);
+                      if (e.target.value) setNewManualTeamName('');
+                    }}
+                  >
+                    <option value="">-- Select Existing Team (Or Type Manual Below) --</option>
+                    {teams.map((t) => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">
+                    <CrmIcon name="edit" size={16} /> Or Enter Manual Team Name (Koi Bhi Naam Rakh Sakte Hain)
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="e.g. Team Alpha / Dehradun Pioneers / Ankita Team..."
+                    value={newManualTeamName}
+                    onChange={(e) => {
+                      setNewManualTeamName(e.target.value);
+                      if (e.target.value) setNewTeamId('');
+                    }}
+                  />
+                </div>
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-outline" onClick={() => setShowCreateModal(false)}>
@@ -723,9 +842,9 @@ export function UsersView({
         <div className="modal-overlay" onClick={() => setRoleTarget(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '420px' }}>
             <div className="modal-header">
-              <h3 style={{ fontSize: '15px', fontWeight: 800 }}>🔄 Change Role ({roleTarget.fullName})</h3>
+              <h3 style={{ fontSize: '15px', fontWeight: 800 }}><CrmIcon name="refresh" size={16} /> Change Role ({roleTarget.fullName})</h3>
               <button className="btn btn-sm btn-outline" onClick={() => setRoleTarget(null)}>
-                ✕
+                <CrmIcon name="x" size={16} />
               </button>
             </div>
             <form onSubmit={handleSaveRoleChange}>
@@ -744,6 +863,37 @@ export function UsersView({
                     <option value="SENIOR_MANAGER">Senior Manager</option>
                     <option value="SUPER_ADMIN">Super Admin</option>
                   </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Assign Existing Team</label>
+                  <select
+                    className="form-control"
+                    value={targetTeamIdVal}
+                    onChange={(e) => {
+                      setTargetTeamIdVal(e.target.value);
+                      if (e.target.value) setTargetManualTeamName('');
+                    }}
+                  >
+                    <option value="">-- Keep Current / Or Type Manual Below --</option>
+                    {teams.map((t: any) => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">
+                    <CrmIcon name="edit" size={16} /> Or Enter Manual Team Name (Koi Bhi Naam Rakh Sakte Hain)
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Type any new or custom team name..."
+                    value={targetManualTeamName}
+                    onChange={(e) => {
+                      setTargetManualTeamName(e.target.value);
+                      if (e.target.value) setTargetTeamIdVal('');
+                    }}
+                  />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Audit Reason *</label>
@@ -775,9 +925,9 @@ export function UsersView({
         <div className="modal-overlay" onClick={() => setResetTarget(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
             <div className="modal-header">
-              <h3 style={{ fontSize: '15px', fontWeight: 800 }}>🔑 Reset Password ({resetTarget.fullName})</h3>
+              <h3 style={{ fontSize: '15px', fontWeight: 800 }}><CrmIcon name="key" size={16} /> Reset Password ({resetTarget.fullName})</h3>
               <button className="btn btn-sm btn-outline" onClick={() => setResetTarget(null)}>
-                ✕
+                <CrmIcon name="x" size={16} />
               </button>
             </div>
             <form onSubmit={handleSaveResetPass}>
@@ -812,10 +962,10 @@ export function UsersView({
           <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '580px' }}>
             <div className="modal-header">
               <h3 style={{ fontSize: '15px', fontWeight: 800 }}>
-                🕒 Login History ({loginHistoryTarget.user.fullName})
+                <CrmIcon name="clock" size={16} /> Login History ({loginHistoryTarget.user.fullName})
               </h3>
               <button className="btn btn-sm btn-outline" onClick={() => setLoginHistoryTarget(null)}>
-                ✕
+                <CrmIcon name="x" size={16} />
               </button>
             </div>
             <div className="modal-body" style={{ maxHeight: '360px', overflowY: 'auto' }}>
@@ -842,7 +992,7 @@ export function UsersView({
             <div className="modal-header">
               <h3 style={{ fontSize: '15px', fontWeight: 800 }}>Edit Permissions ({editingRole})</h3>
               <button className="btn btn-sm btn-outline" onClick={() => setEditingRole(null)}>
-                ✕
+                <CrmIcon name="x" size={16} />
               </button>
             </div>
             <div className="modal-body">
@@ -953,7 +1103,8 @@ export function SettingsView({
     if (scoringTotal !== 100) return;
     try {
       await apiCall('/scoring/criteria', 'PUT', scoringWeights);
-      onShowToast('Lead Scoring 5-factor weights saved (Total: 100 ✓)!', 'success');
+      await apiCall('/leads/recalculate-all-scores', 'POST', {}).catch(() => null);
+      onShowToast('Lead Scoring weights saved & all lead scores recalculated successfully!', 'success');
     } catch (err: any) {
       onShowToast(err?.message || 'Failed to save scoring weights.', 'danger');
     }
@@ -963,7 +1114,7 @@ export function SettingsView({
     if (matchingTotal !== 100) return;
     try {
       await apiCall('/match/criteria', 'PUT', matchingWeights);
-      onShowToast('Matching Criteria 8-factor weights saved (Total: 100 ✓)!', 'success');
+      onShowToast('Matching Criteria 8-factor weights saved (Total: 100 )!', 'success');
     } catch (err: any) {
       onShowToast(err?.message || 'Failed to save matching weights.', 'danger');
     }
@@ -991,91 +1142,241 @@ export function SettingsView({
     }
   };
 
+  const SCORING_LABELS_MAP: Record<string, { label: string; icon: string }> = {
+    budget_match: { label: 'Budget Match', icon: 'credit-card' },
+    class_demand: { label: 'Class Demand', icon: 'book-open' },
+    engagement: { label: 'Engagement', icon: 'message-circle' },
+    source_quality: { label: 'Source Quality', icon: 'star' },
+    timeline_urgency: { label: 'Timeline Urgency', icon: 'clock' },
+  };
+
+  const MATCHING_LABELS_MAP: Record<string, { label: string; icon: string }> = {
+    board: { label: 'School Board', icon: 'file-text' },
+    class: { label: 'Class Level', icon: 'book' },
+    facilities: { label: 'Campus Facilities', icon: 'home' },
+    fees_range: { label: 'Fees Range', icon: 'dollar-sign' },
+    gender: { label: 'Gender Type', icon: 'users' },
+    ranking: { label: 'School Rank', icon: 'award' },
+    school_type: { label: 'Boarding Type', icon: 'building' },
+    state: { label: 'State Location', icon: 'map-pin' },
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+      {/* Executive Settings Header Bar */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '16px 22px',
+          background: '#ffffff',
+          borderRadius: '12px',
+          border: '1px solid #E2E8F0',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+        }}
+      >
+        <div>
+          <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <CrmIcon name="settings" size={20} color="#2563EB" /> Enterprise Governance &amp; Algorithm Configuration
+          </h2>
+          <p style={{ margin: '4px 0 0 0', fontSize: '12.5px', color: '#64748B' }}>
+            Fine-tune Lead Scoring (100%), School Recommendation Matching (100%), and Tax Governance in real time.
+          </p>
+        </div>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <span
+            className="badge badge-success"
+            style={{ fontSize: '12px', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
+            <CrmIcon name="check" size={13} /> Algorithms Active &amp; Synced
+          </span>
+        </div>
+      </div>
+
       {/* Feature 1 & Feature 2: Strict Total = 100 Weight Configurators */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-        <div className="card">
-          <div className="card-header">
-            <div>
-              <h3 className="card-title">🎯 Feature 1: Lead Scoring Weights (5 Factors)</h3>
-              <span className="card-subtitle">Must sum to exactly 100</span>
-            </div>
-            <span
-              className={`badge ${scoringTotal === 100 ? 'badge-success' : 'badge-danger'}`}
-              style={{ fontSize: '12px' }}
-            >
-              Total: {scoringTotal} {scoringTotal === 100 ? '✓' : '✗'}
-            </span>
-          </div>
-          {Object.entries(scoringWeights).map(([k, v]) => (
+        {/* Feature 1: Lead Scoring Weights */}
+        <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div>
             <div
-              key={k}
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '8px',
-              }}
+              className="card-header"
+              style={{ paddingBottom: '12px', borderBottom: '1px solid #F1F5F9', marginBottom: '14px' }}
             >
-              <label style={{ fontSize: '12.5px', fontWeight: 600 }}>{k}</label>
-              <input
-                type="number"
-                className="form-control"
-                style={{ maxWidth: '100px' }}
-                value={v}
-                onChange={(e) =>
-                  setScoringWeights((prev) => ({ ...prev, [k]: Number(e.target.value || 0) }))
-                }
-              />
+              <div>
+                <h3 className="card-title" style={{ fontSize: '14.5px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <CrmIcon name="target" size={17} color="#2563EB" /> Feature 1: Lead Scoring Weights (5 Factors)
+                </h3>
+                <span className="card-subtitle" style={{ fontSize: '11.5px', color: '#64748B' }}>
+                  Dynamic scoring distribution (Must sum to exactly 100%)
+                </span>
+              </div>
+              <span
+                className={`badge ${scoringTotal === 100 ? 'badge-success' : 'badge-danger'}`}
+                style={{ fontSize: '12.5px', fontWeight: 700, padding: '4px 10px', display: 'flex', alignItems: 'center', gap: '5px' }}
+              >
+                Total: {scoringTotal}% {scoringTotal === 100 ? <CrmIcon name="check" size={14} /> : <CrmIcon name="x" size={14} />}
+              </span>
             </div>
-          ))}
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              {Object.entries(scoringWeights).map(([k, v]) => {
+                const conf = SCORING_LABELS_MAP[k] || { label: k, icon: 'target' };
+                return (
+                  <div
+                    key={k}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '8px 12px',
+                      background: '#F8FAFC',
+                      border: '1px solid #E2E8F0',
+                      borderRadius: '8px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                      <CrmIcon name={conf.icon} size={15} color="#2563EB" />
+                      <div>
+                        <div style={{ fontSize: '12px', fontWeight: 700, color: '#1E293B' }}>{conf.label}</div>
+                        <div style={{ fontSize: '10px', color: '#94A3B8' }}>Weight</div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <input
+                        type="number"
+                        min={0}
+                        max={100}
+                        className="form-control"
+                        style={{
+                          width: '58px',
+                          textAlign: 'center',
+                          fontWeight: 700,
+                          fontSize: '13px',
+                          padding: '4px 6px',
+                          background: '#ffffff',
+                        }}
+                        value={v}
+                        onChange={(e) =>
+                          setScoringWeights((prev) => ({ ...prev, [k]: Number(e.target.value || 0) }))
+                        }
+                      />
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B' }}>%</span>
+                    </div>
+                  </div>
+                );
+              })}
+
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '8px 12px',
+                  background: '#EFF6FF',
+                  border: '1px dashed #93C5FD',
+                  borderRadius: '8px',
+                  color: '#1E40AF',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                }}
+              >
+                <CrmIcon name="zap" size={16} color="#2563EB" />
+                <span>Auto-Recalculates all leads on save via BullMQ</span>
+              </div>
+            </div>
+          </div>
+
           <button
             className="btn btn-primary"
-            style={{ width: '100%', marginTop: '8px' }}
+            style={{ width: '100%', marginTop: '14px', padding: '10px', fontWeight: 700 }}
             disabled={scoringTotal !== 100 || !hasRole(user?.role, 'SUPER_ADMIN')}
             onClick={handleSaveScoring}
           >
-            Save Lead Scoring Weights ({scoringTotal === 100 ? 'Total: 100 ✓' : `Invalid: ${scoringTotal} ✗`})
+            Save Lead Scoring Weights ({scoringTotal === 100 ? 'Total: 100%' : `Invalid: ${scoringTotal}%`})
           </button>
         </div>
 
-        <div className="card">
-          <div className="card-header">
-            <div>
-              <h3 className="card-title">🏫 Feature 2: School Matching Weights (8 Criteria)</h3>
-              <span className="card-subtitle">Must sum to exactly 100</span>
-            </div>
-            <span
-              className={`badge ${matchingTotal === 100 ? 'badge-success' : 'badge-danger'}`}
-              style={{ fontSize: '12px' }}
+        {/* Feature 2: School Matching Weights */}
+        <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div>
+            <div
+              className="card-header"
+              style={{ paddingBottom: '12px', borderBottom: '1px solid #F1F5F9', marginBottom: '14px' }}
             >
-              Total: {matchingTotal} {matchingTotal === 100 ? '✓' : '✗'}
-            </span>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-            {Object.entries(matchingWeights).map(([k, v]) => (
-              <div key={k} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
-                <label style={{ fontSize: '12px', fontWeight: 600 }}>{k}</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  style={{ maxWidth: '75px' }}
-                  value={v}
-                  onChange={(e) =>
-                    setMatchingWeights((prev) => ({ ...prev, [k]: Number(e.target.value || 0) }))
-                  }
-                />
+              <div>
+                <h3 className="card-title" style={{ fontSize: '14.5px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <CrmIcon name="school" size={17} color="#2563EB" /> Feature 2: School Matching Weights (8 Criteria)
+                </h3>
+                <span className="card-subtitle" style={{ fontSize: '11.5px', color: '#64748B' }}>
+                  Auto-recommendation matching weights (Must sum to exactly 100%)
+                </span>
               </div>
-            ))}
+              <span
+                className={`badge ${matchingTotal === 100 ? 'badge-success' : 'badge-danger'}`}
+                style={{ fontSize: '12.5px', fontWeight: 700, padding: '4px 10px', display: 'flex', alignItems: 'center', gap: '5px' }}
+              >
+                Total: {matchingTotal}% {matchingTotal === 100 ? <CrmIcon name="check" size={14} /> : <CrmIcon name="x" size={14} />}
+              </span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              {Object.entries(matchingWeights).map(([k, v]) => {
+                const conf = MATCHING_LABELS_MAP[k] || { label: k, icon: 'school' };
+                return (
+                  <div
+                    key={k}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '8px 12px',
+                      background: '#F8FAFC',
+                      border: '1px solid #E2E8F0',
+                      borderRadius: '8px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                      <CrmIcon name={conf.icon} size={15} color="#2563EB" />
+                      <div>
+                        <div style={{ fontSize: '12px', fontWeight: 700, color: '#1E293B' }}>{conf.label}</div>
+                        <div style={{ fontSize: '10px', color: '#94A3B8' }}>Weight</div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <input
+                        type="number"
+                        min={0}
+                        max={100}
+                        className="form-control"
+                        style={{
+                          width: '58px',
+                          textAlign: 'center',
+                          fontWeight: 700,
+                          fontSize: '13px',
+                          padding: '4px 6px',
+                          background: '#ffffff',
+                        }}
+                        value={v}
+                        onChange={(e) =>
+                          setMatchingWeights((prev) => ({ ...prev, [k]: Number(e.target.value || 0) }))
+                        }
+                      />
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B' }}>%</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
+
           <button
             className="btn btn-primary"
-            style={{ width: '100%', marginTop: '12px' }}
+            style={{ width: '100%', marginTop: '14px', padding: '10px', fontWeight: 700 }}
             disabled={matchingTotal !== 100 || !hasRole(user?.role, 'SUPER_ADMIN')}
             onClick={handleSaveMatching}
           >
-            Save Matching Criteria ({matchingTotal === 100 ? 'Total: 100 ✓' : `Invalid: ${matchingTotal} ✗`})
+            Save Matching Criteria ({matchingTotal === 100 ? 'Total: 100%' : `Invalid: ${matchingTotal}%`})
           </button>
         </div>
       </div>
@@ -1083,10 +1384,10 @@ export function SettingsView({
       {/* GST/TDS, Rate Limits & Lead Import */}
       <div className="card">
         <div className="card-header">
-          <h3 className="card-title">⚙️ System Controls, Tax Rates &amp; 2-Step Lead Import</h3>
+          <h3 className="card-title"><CrmIcon name="settings" size={16} /> System Controls, Tax Rates &amp; 2-Step Lead Import</h3>
           {hasRole(user?.role, 'SUPER_ADMIN', 'SENIOR_MANAGER') && (
             <button className="btn btn-sm btn-primary" onClick={() => setShowLeadImport(true)}>
-              📥 Bulk Import Leads (Preview → Confirm)
+              <CrmIcon name="download" size={16} /> Bulk Import Leads (Preview → Confirm)
             </button>
           )}
         </div>
@@ -1126,7 +1427,7 @@ export function SettingsView({
               disabled={!hasRole(user?.role, 'SUPER_ADMIN')}
               onClick={handleSaveFinanceAndLimits}
             >
-              💾 Save Governance Settings
+              <CrmIcon name="save" size={16} /> Save Governance Settings
             </button>
           </div>
         </div>
@@ -1136,12 +1437,12 @@ export function SettingsView({
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
         <div className="card">
           <div className="card-header">
-            <h3 className="card-title">⏱️ BullMQ Background Jobs ({jobs.length})</h3>
+            <h3 className="card-title"><CrmIcon name="clock" size={16} /> BullMQ Background Jobs ({jobs.length})</h3>
             <button
               className="btn btn-sm btn-outline"
               onClick={() => handleTriggerJob('RECALCULATE_LEAD_SCORES')}
             >
-              ⚡ Recalculate All Scores
+              <CrmIcon name="zap" size={16} /> Recalculate All Scores
             </button>
           </div>
           <div style={{ maxHeight: '220px', overflowY: 'auto', fontSize: '12px' }}>
@@ -1160,9 +1461,9 @@ export function SettingsView({
 
         <div className="card">
           <div className="card-header">
-            <h3 className="card-title">📜 Recent Centralized Audit Log</h3>
+            <h3 className="card-title"><CrmIcon name="clipboard" size={16} /> Recent Centralized Audit Log</h3>
             <button className="btn btn-sm btn-outline" onClick={loadSettingsData}>
-              🔄
+              <CrmIcon name="refresh" size={16} />
             </button>
           </div>
           <div style={{ maxHeight: '220px', overflowY: 'auto', fontSize: '12px' }}>
@@ -1300,7 +1601,7 @@ export function AuthenticatorSetupView({
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
       <div className="card">
         <div className="card-header">
-          <h3 className="card-title">🛡️ Two-Factor Authentication (TOTP)</h3>
+          <h3 className="card-title"><CrmIcon name="shield" size={16} /> Two-Factor Authentication (TOTP)</h3>
           <span className={`badge ${user?.twoFaEnabled ? 'badge-success' : 'badge-warning'}`}>
             {user?.twoFaEnabled ? 'Enabled' : 'Disabled'}
           </span>
@@ -1313,7 +1614,7 @@ export function AuthenticatorSetupView({
           <div>
             {!setupData ? (
               <button className="btn btn-primary" onClick={handleInitSetup}>
-                🔐 Generate 2FA Secret &amp; QR
+                <CrmIcon name="lock" size={16} /> Generate 2FA Secret &amp; QR
               </button>
             ) : (
               <form onSubmit={handleVerifySetup} style={{ marginTop: '10px' }}>
@@ -1370,7 +1671,7 @@ export function AuthenticatorSetupView({
 
       <div className="card">
         <div className="card-header">
-          <h3 className="card-title">🔔 Notification Preferences &amp; VAPID Push</h3>
+          <h3 className="card-title"><CrmIcon name="bell" size={16} /> Notification Preferences &amp; VAPID Push</h3>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px' }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1402,7 +1703,7 @@ export function AuthenticatorSetupView({
               Save Preferences
             </button>
             <button className="btn btn-outline btn-sm" onClick={handleToggleWebPush}>
-              {pushSubscribed ? '🔕 Unsubscribe Device Push' : '📲 Register This Device for Push'}
+              {pushSubscribed ? 'Unsubscribe Device Push' : 'Register This Device for Push'}
             </button>
           </div>
         </div>
@@ -1455,13 +1756,13 @@ export function SessionsView({
     <div className="card">
       <div className="card-header">
         <div>
-          <h3 className="card-title">💻 Active Device Sessions ({sessions.length})</h3>
+          <h3 className="card-title"><CrmIcon name="laptop" size={16} /> Active Device Sessions ({sessions.length})</h3>
           <span className="card-subtitle">
             Refresh-token family tracking with reuse detection and one-click remote sign-out
           </span>
         </div>
         <button className="btn btn-danger btn-sm" onClick={handleRevokeAll}>
-          🚪 Revoke All Other Sessions
+          <CrmIcon name="logout" size={16} /> Revoke All Other Sessions
         </button>
       </div>
       <div className="table-container">

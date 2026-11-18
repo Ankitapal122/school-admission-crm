@@ -1,8 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { apiCall } from '../../lib/api';
+import CrmIcon from '../../components/CrmIcon';
+import { apiCall, downloadApiFile } from '../../lib/api';
 import { useAuthStore } from '../../stores/authStore';
 import { BLUEPRINT_KANBAN_STAGES, hasRole } from '../../lib/roles';
 import KanbanBoard from '../kanban/KanbanBoard';
+import LeadReportModal from '../leads/LeadReportModal';
+import EditLeadModal from '../leads/EditLeadModal';
 
 export function LeadsView({
   leads = [],
@@ -27,6 +30,8 @@ export function LeadsView({
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredBucketLeads, setFilteredBucketLeads] = useState<any[] | null>(null);
   const [selectedLead, setSelectedLead] = useState<any | null>(null);
+  const [editingLead, setEditingLead] = useState<any | null>(null);
+  const [selectedReportLead, setSelectedReportLead] = useState<any | null>(null);
   const [showMergeModal, setShowMergeModal] = useState(false);
   const [mergePrimaryId, setMergePrimaryId] = useState('');
   const [mergeSecondaryId, setMergeSecondaryId] = useState('');
@@ -152,7 +157,7 @@ export function LeadsView({
       <div className="card">
         <div className="card-header" style={{ flexWrap: 'wrap', gap: '10px' }}>
           <div>
-            <h3 className="card-title">📋 Student &amp; Parent Lead Management</h3>
+            <h3 className="card-title"><CrmIcon name="clipboard" size={16} /> Student &amp; Parent Lead Management</h3>
             <span className="card-subtitle">
               Full lead dossier, 8-criteria school matching, 12-stage Kanban pipeline, ACID merge &amp; 90-90-90-360 lifecycle
             </span>
@@ -162,24 +167,60 @@ export function LeadsView({
               className={`btn btn-sm ${viewMode === 'table' ? 'btn-navy' : 'btn-outline'}`}
               onClick={() => setViewMode('table')}
             >
-              📄 Table View
+              <CrmIcon name="file-text" size={16} /> Table View
             </button>
             <button
               className={`btn btn-sm ${viewMode === 'kanban' ? 'btn-navy' : 'btn-outline'}`}
               onClick={() => setViewMode('kanban')}
             >
-              🗂️ 12-Stage Kanban
+              <CrmIcon name="folder-open" size={16} /> 12-Stage Kanban
             </button>
             {hasRole(user?.role, 'SUPER_ADMIN', 'SENIOR_MANAGER') && (
               <button
                 className="btn btn-sm btn-warning"
                 onClick={() => setShowMergeModal(true)}
               >
-                🔀 ACID Merge Duplicates
+                <CrmIcon name="git-merge" size={16} /> ACID Merge Duplicates
               </button>
             )}
+            <button
+              className="btn btn-sm btn-success"
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+              title="Download Leads Excel (Image 2 format with 0 duplicates)"
+              onClick={async () => {
+                try {
+                  await downloadApiFile(
+                    '/reports/leads?format=excel',
+                    'Student_Leads_Master.xlsx'
+                  );
+                  onShowToast('Student Leads Excel report downloaded successfully!', 'success');
+                } catch (err: any) {
+                  onShowToast(err?.message || 'Failed to download Leads Excel.', 'danger');
+                }
+              }}
+            >
+              <CrmIcon name="download" size={15} /> Export Leads (.xlsx)
+            </button>
+            <button
+              className="btn btn-sm btn-primary"
+              style={{ background: '#0D9488', borderColor: '#0D9488', display: 'flex', alignItems: 'center', gap: '6px' }}
+              title="Download All-Time Permanent Database of Leads"
+              onClick={async () => {
+                try {
+                  await downloadApiFile(
+                    '/reports/leads?format=excel&all_time=true',
+                    'Student_Leads_AllTime_Permanent.xlsx'
+                  );
+                  onShowToast('All-Time Permanent Leads Excel downloaded successfully!', 'success');
+                } catch (err: any) {
+                  onShowToast(err?.message || 'Failed to download All-Time Leads.', 'danger');
+                }
+              }}
+            >
+              <CrmIcon name="database" size={15} /> All-Time Leads (.xlsx)
+            </button>
             <button className="btn btn-sm btn-primary" onClick={onOpenNewLead}>
-              ➕ Add Student Lead
+              <CrmIcon name="plus" size={16} /> Add Student Lead
             </button>
           </div>
         </div>
@@ -261,12 +302,24 @@ export function LeadsView({
                       <td>
                         <div>{l.fatherName || l.parentName || 'Parent'}</div>
                         <div style={{ fontSize: '11.5px', color: '#475569' }}>
-                          {l.fatherPhone || l.mobile || 'N/A'}
+                          {l.fatherPhone || l.parentPhone || l.mobile || 'N/A'}
                         </div>
                       </td>
                       <td>
                         <span className="badge badge-info">{l.stage || l.current_stage || 'new'}</span>{' '}
                         <span className="badge badge-success">{l.leadScore ?? l.score ?? 0} pts</span>
+                        {l.verificationStatus === 'RETURNED' && (
+                          <div style={{ marginTop: '4px' }}>
+                            <span className="badge badge-danger" title={l.returnRemarks || ''}>
+                              <CrmIcon name="alert" size={16} /> Correction Required: {l.returnRemarks || 'Fix Info'}
+                            </span>
+                          </div>
+                        )}
+                        {l.verificationStatus === 'APPROVED' && (
+                          <div style={{ marginTop: '4px' }}>
+                            <span className="badge badge-success"><CrmIcon name="check-circle" size={16} /> Verified Genuine</span>
+                          </div>
+                        )}
                       </td>
                       <td>
                         <span
@@ -283,11 +336,54 @@ export function LeadsView({
                       </td>
                       <td>
                         <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                          <a
+                            href={`tel:${(l.fatherPhone || l.parentPhone || l.mobile || '').replace(/\s+/g, '')}`}
+                            className="btn btn-sm btn-outline"
+                            style={{ textDecoration: 'none' }}
+                            title="Direct Call Parent"
+                          >
+                            <CrmIcon name="phone" size={16} /> Call
+                          </a>
+                          <button
+                            className="btn btn-sm btn-success"
+                            onClick={async () => {
+                              const tpl = `Namaste ${l.fatherName || l.parentName || 'Parent'}! Sharing BoardingEdu admission details for ${l.studentName} (${l.admissionClass || l.applyingForGrade || 'Class 6'}, Budget: ₹${Number(l.budgetMax || 450000).toLocaleString('en-IN')}). Documents upload & school brochure link: https://boardingedu.com/docs/${l.leadNumber || l.id?.slice(0, 6)}`;
+                              try {
+                                const res = await apiCall('/whatsapp/generate-link', 'POST', {
+                                  lead_id: l.id,
+                                  message: tpl,
+                                });
+                                const url = res?.waUrl || res?.url || res?.data?.waUrl;
+                                if (url) window.open(url, '_blank', 'noopener,noreferrer');
+                                onShowToast('WhatsApp template with student details & document link opened!', 'success');
+                              } catch (err: any) {
+                                const ph = String(l.fatherPhone || l.parentPhone || l.mobile || '').replace(/\D/g, '').slice(-10);
+                                window.open(`https://wa.me/91${ph}?text=${encodeURIComponent(tpl)}`, '_blank');
+                              }
+                            }}
+                          >
+                            <CrmIcon name="message-square" size={16} /> WhatsApp
+                          </button>
+                          <button
+                            className="btn btn-sm btn-navy"
+                            onClick={() => setSelectedReportLead(l)}
+                            title="Student Admission Report & Budget Match"
+                          >
+                            <CrmIcon name="file-text" size={16} /> Report
+                          </button>
+                          <button
+                            className="btn btn-sm btn-warning"
+                            style={{ background: '#F59E0B', borderColor: '#D97706', color: '#fff', display: 'flex', alignItems: 'center', gap: '4px' }}
+                            onClick={() => setEditingLead(l)}
+                            title="Edit Student & Parent Details"
+                          >
+                            <CrmIcon name="edit" size={15} /> Edit
+                          </button>
                           <button
                             className="btn btn-sm btn-primary"
                             onClick={() => setSelectedLead(l)}
                           >
-                            📂 Open Dossier
+                            <CrmIcon name="folder-open" size={16} /> Open Dossier
                           </button>
                           {(l.status === 'expired' || l.forceExpired) && (
                             <button
@@ -303,7 +399,7 @@ export function LeadsView({
                                 })
                               }
                             >
-                              🔓 Reopen
+                              <CrmIcon name="unlock" size={16} /> Reopen
                             </button>
                           )}
                           {hasRole(user?.role, 'SUPER_ADMIN', 'SENIOR_MANAGER') && (
@@ -318,7 +414,7 @@ export function LeadsView({
                                 })
                               }
                             >
-                              {l.deletedAt ? '♻️' : '🗑️'}
+                              {l.deletedAt ? <CrmIcon name="refresh" size={15} /> : <CrmIcon name="trash" size={15} />}
                             </button>
                           )}
                         </div>
@@ -352,6 +448,27 @@ export function LeadsView({
         />
       )}
 
+      {/* Student Lead Report Modal (Matches Image 2) */}
+      {selectedReportLead && (
+        <LeadReportModal
+          lead={selectedReportLead}
+          schools={schools}
+          onClose={() => setSelectedReportLead(null)}
+          onRefresh={onRefresh}
+          onShowToast={onShowToast}
+        />
+      )}
+
+      {/* Lead Edit Modal */}
+      {editingLead && (
+        <EditLeadModal
+          lead={editingLead}
+          onClose={() => setEditingLead(null)}
+          onRefresh={onRefresh}
+          onShowToast={onShowToast}
+        />
+      )}
+
       {/* Styled Reason Modal (Zero window.prompt) */}
       {reasonModal && (
         <div className="modal-overlay" style={{ zIndex: 2200 }} onClick={() => setReasonModal(null)}>
@@ -361,7 +478,7 @@ export function LeadsView({
                 {reasonModal.title}
               </h3>
               <button className="btn btn-sm btn-outline" onClick={() => setReasonModal(null)}>
-                ✕
+                <CrmIcon name="x" size={16} />
               </button>
             </div>
             <form onSubmit={handleConfirmReasonAction}>
@@ -382,7 +499,7 @@ export function LeadsView({
                       marginBottom: '10px',
                     }}
                   >
-                    ⚠️ This lead was <strong>Force-Expired at Day 360</strong>. Server business rule #4 rejects reopening and returns: &quot;Please create a new lead.&quot;
+                    <CrmIcon name="alert" size={16} /> This lead was <strong>Force-Expired at Day 360</strong>. Server business rule #4 rejects reopening and returns: &quot;Please create a new lead.&quot;
                   </div>
                 )}
                 <div className="form-group">
@@ -424,10 +541,10 @@ export function LeadsView({
           >
             <div className="modal-header">
               <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--primary-navy)' }}>
-                🔀 ACID Duplicate Lead Merge ($transaction)
+                <CrmIcon name="git-merge" size={16} /> ACID Duplicate Lead Merge ($transaction)
               </h3>
               <button className="btn btn-sm btn-outline" onClick={() => setShowMergeModal(false)}>
-                ✕
+                <CrmIcon name="x" size={16} />
               </button>
             </div>
             <form onSubmit={handleConfirmMerge}>
@@ -448,9 +565,7 @@ export function LeadsView({
                       {leads
                         .filter((l) => l.status !== 'merged')
                         .map((l) => (
-                          <option key={l.id} value={l.id}>
-                            {l.leadNumber || l.id.slice(0, 8)} - {l.studentName} ({l.fatherPhone || l.mobile})
-                          </option>
+                          <option key={l.id} value={l.id}>{l.leadNumber || l.id.slice(0, 8)} - {l.studentName} ({l.fatherPhone || l.mobile})</option>
                         ))}
                     </select>
                   </div>
@@ -466,9 +581,7 @@ export function LeadsView({
                       {leads
                         .filter((l) => l.status !== 'merged' && l.id !== mergePrimaryId)
                         .map((l) => (
-                          <option key={l.id} value={l.id}>
-                            {l.leadNumber || l.id.slice(0, 8)} - {l.studentName} ({l.fatherPhone || l.mobile})
-                          </option>
+                          <option key={l.id} value={l.id}>{l.leadNumber || l.id.slice(0, 8)} - {l.studentName} ({l.fatherPhone || l.mobile})</option>
                         ))}
                     </select>
                   </div>
@@ -589,13 +702,18 @@ function LeadDetailModal({
   );
   const [followUpReason, setFollowUpReason] = useState('');
 
-  // Communications
+  // Communications & Verification
   const [waMessage, setWaMessage] = useState(
-    `Namaste ${lead.fatherName || lead.parentName || 'Parent'}! Following up regarding ${lead.studentName}'s Uttarakhand boarding admission.`
+    `Namaste ${lead.fatherName || lead.parentName || 'Parent'}! Sharing BoardingEdu admission details for ${lead.studentName} (${lead.admissionClass || lead.applyingForGrade || 'Class 6'}, Budget: ₹${Number(lead.budgetMax || 450000).toLocaleString('en-IN')}). Upload documents & view shortlisted schools here: https://boardingedu.com/docs/${lead.leadNumber || lead.id?.slice(0, 6)}`
   );
   const [callOutcome, setCallOutcome] = useState('Connected - Interested');
   const [callNotes, setCallNotes] = useState('');
   const [pendingBlockMsg, setPendingBlockMsg] = useState<string | null>(null);
+  const [returnReasonText, setReturnReasonText] = useState(lead.returnRemarks || '');
+  const [manualSchoolName, setManualSchoolName] = useState('');
+  const [manualSchoolCity, setManualSchoolCity] = useState('Dehradun');
+  const [manualSchoolBoard, setManualSchoolBoard] = useState('CBSE');
+  const [manualSchoolFee, setManualSchoolFee] = useState('450000');
 
   useEffect(() => {
     setEditStudentName(lead.studentName || '');
@@ -825,7 +943,7 @@ function LeadDetailModal({
         <div className="modal-header">
           <div>
             <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--primary-navy)' }}>
-              📂 {lead.studentName} ({lead.leadNumber || lead.id?.slice(0, 8)}) &bull; v{lead.version || 1}
+              <CrmIcon name="folder-open" size={16} /> {lead.studentName} ({lead.leadNumber || lead.id?.slice(0, 8)}) &bull; v{lead.version || 1}
             </h3>
             <span style={{ fontSize: '12px', color: '#64748B' }}>
               Score: <strong>{lead.leadScore ?? lead.score ?? 0}</strong> &bull; Class:{' '}
@@ -833,7 +951,7 @@ function LeadDetailModal({
             </span>
           </div>
           <button className="btn btn-sm btn-outline" onClick={onClose}>
-            ✕
+            <CrmIcon name="x" size={16} />
           </button>
         </div>
 
@@ -841,12 +959,12 @@ function LeadDetailModal({
         <div style={{ display: 'flex', gap: '6px', padding: '10px 20px', borderBottom: '1px solid #E2E8F0', flexWrap: 'wrap', background: '#F8FAFC' }}>
           {(
             [
-              ['profile', '👤 Profile (v' + (lead.version || 1) + ')'],
-              ['remarks', `💬 Remarks (${remarks.length})`],
-              ['shortlist', `🏫 AI Match & Shortlist (${shortlists.length})`],
-              ['applications', `🎓 Applications (${applications.length})`],
-              ['lifecycle', '⏳ Lifecycle & Follow-up'],
-              ['comms', '📱 WA & Call (3-Layer)'],
+              ['profile', 'Profile (v' + (lead.version || 1) + ')'],
+              ['remarks', `Remarks (${remarks.length})`],
+              ['shortlist', `AI Match & Shortlist (${shortlists.length})`],
+              ['applications', `Applications (${applications.length})`],
+              ['lifecycle', 'Lifecycle & Follow-up'],
+              ['comms', 'WA & Call (3-Layer)'],
             ] as const
           ).map(([k, lbl]) => (
             <button
@@ -861,6 +979,7 @@ function LeadDetailModal({
 
         <div className="modal-body">
           {activeTab === 'profile' && (
+            <div>
             <form onSubmit={handleSaveProfile}>
               {conflictAlert && (
                 <div
@@ -876,13 +995,13 @@ function LeadDetailModal({
                     alignItems: 'center',
                   }}
                 >
-                  <span>⚠️ 409 Conflict: Someone else updated this lead. Refresh version before saving!</span>
+                  <span><CrmIcon name="alert" size={16} /> 409 Conflict: Someone else updated this lead. Refresh version before saving!</span>
                   <button type="button" className="btn btn-sm btn-warning" onClick={onRefresh}>
-                    🔄 Reload Latest Version
+                    <CrmIcon name="refresh" size={16} /> Reload Latest Version
                   </button>
                 </div>
               )}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div className="grid-2" style={{ gap: '12px' }}>
                 <div className="form-group">
                   <label className="form-label">Student Name</label>
                   <input
@@ -918,22 +1037,122 @@ function LeadDetailModal({
                     onChange={(e) => setEditStage(e.target.value)}
                   >
                     {BLUEPRINT_KANBAN_STAGES.map((s) => (
-                      <option key={s.key} value={s.key}>
-                        {s.label}
-                      </option>
+                      <option key={s.key} value={s.key}>{s.label}</option>
                     ))}
                   </select>
                 </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', flexWrap: 'wrap', gap: '8px' }}>
                 <span style={{ fontSize: '12px', color: '#475569' }}>
-                  DPDP Consent: {lead.dpdpConsent || lead.dpdp_consent ? '✅ Recorded' : '⏳ Pending'} &bull; Optimistic Lock Version: <strong>v{lead.version || 1}</strong>
+                  DPDP Consent: {lead.dpdpConsent || lead.dpdp_consent ? 'Recorded' : 'Pending'} &bull; Optimistic Lock Version: <strong>v{lead.version || 1}</strong>
                 </span>
-                <button type="submit" className="btn btn-primary">
-                  💾 Save Profile (Optimistic Lock)
-                </button>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline"
+                    onClick={async () => {
+                      try {
+                        await apiCall(`/leads/${lead.id}/submit`, 'POST', {});
+                        onShowToast('Lead submitted to Manager for verification!', 'success');
+                        onRefresh();
+                      } catch (err: any) {
+                        onShowToast(err?.message || 'Could not submit for verification.', 'danger');
+                      }
+                    }}
+                  >
+                    <CrmIcon name="upload" size={16} /> Submit to Manager
+                  </button>
+                  <button type="submit" className="btn btn-primary">
+                    <CrmIcon name="save" size={16} /> Save Profile (Optimistic Lock)
+                  </button>
+                </div>
               </div>
             </form>
+
+            {/* Manager Lead Verification Panel (Genuine / Return with Reason / Pending Follow-up) */}
+            {hasRole(user?.role, 'SUPER_ADMIN', 'SENIOR_MANAGER') && (
+              <div
+                style={{
+                  marginTop: '16px',
+                  background: '#F8FAFC',
+                  border: '1px solid #CBD5E1',
+                  borderRadius: '10px',
+                  padding: '14px',
+                }}
+              >
+                <div style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', marginBottom: '8px' }}>
+                  <CrmIcon name="shield" size={16} /> Manager Lead Verification (Genuine vs Fake / Correction Required)
+                </div>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '10px' }}>
+                  <input
+                    type="text"
+                    className="form-control"
+                    style={{ flex: 1, minWidth: '220px' }}
+                    placeholder="Reason if returning to Counsellor (e.g. Wrong mobile / Fake info / Incomplete budget)..."
+                    value={returnReasonText}
+                    onChange={(e) => setReturnReasonText(e.target.value)}
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-success"
+                    onClick={async () => {
+                      try {
+                        await apiCall(`/leads/${lead.id}/verify`, 'POST', { decision: 'APPROVE' });
+                        onShowToast('Lead marked GENUINE! Ready for School Shortlist & Visit.', 'success');
+                        onRefresh();
+                      } catch (err: any) {
+                        onShowToast(err?.message || 'Verification failed.', 'danger');
+                      }
+                    }}
+                  >
+                    <CrmIcon name="check-circle" size={16} /> Mark Genuine (Approve Lead)
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-danger"
+                    onClick={async () => {
+                      if (!returnReasonText.trim()) {
+                        onShowToast('Please enter a reason before returning lead to Counsellor.', 'warning');
+                        return;
+                      }
+                      try {
+                        await apiCall(`/leads/${lead.id}/verify`, 'POST', {
+                          decision: 'RETURN',
+                          returnRemarks: returnReasonText.trim(),
+                        });
+                        onShowToast('Lead returned to Counsellor with correction reason!', 'warning');
+                        onRefresh();
+                      } catch (err: any) {
+                        onShowToast(err?.message || 'Return failed.', 'danger');
+                      }
+                    }}
+                  >
+                    <CrmIcon name="rotate-ccw" size={16} /> Return to Counsellor (With Reason)
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-warning"
+                    onClick={async () => {
+                      try {
+                        await apiCall(`/leads/${lead.id}/verify`, 'POST', {
+                          decision: 'PENDING_FOLLOWUP',
+                          returnRemarks: 'Parent did not pick call — kept in Pending Follow-up (Not Fake)',
+                        });
+                        onShowToast('Parent did not pick call → Kept in Pending Follow-up (Not marked fake)!', 'success');
+                        onRefresh();
+                      } catch (err: any) {
+                        onShowToast(err?.message || 'Could not set pending follow-up.', 'danger');
+                      }
+                    }}
+                  >
+                    <CrmIcon name="phone-off" size={16} /> Call Not Picked → Keep in Pending Follow-up
+                  </button>
+                </div>
+              </div>
+            )}
+            </div>
           )}
 
           {activeTab === 'remarks' && (
@@ -979,7 +1198,7 @@ function LeadDetailModal({
             <div>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
                 <button className="btn btn-primary btn-sm" onClick={handleRunSuggestions}>
-                  ✨ Run 8-Criteria AI School Match
+                  <CrmIcon name="sparkles" size={16} /> Run 8-Criteria AI School Match
                 </button>
                 <select
                   className="form-control"
@@ -988,23 +1207,21 @@ function LeadDetailModal({
                   onChange={(e) => setAddSchoolId(e.target.value)}
                 >
                   {schools.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name} ({s.city})
-                    </option>
+                    <option key={s.id} value={s.id}>{s.name} ({s.city})</option>
                   ))}
                 </select>
                 <button
                   className="btn btn-success btn-sm"
                   onClick={() => handleAddShortlist(addSchoolId)}
                 >
-                  ➕ Shortlist School
+                  <CrmIcon name="plus" size={16} /> Shortlist School
                 </button>
               </div>
 
               {suggestions.length > 0 && (
                 <div style={{ marginBottom: '14px', background: '#EFF6FF', padding: '10px', borderRadius: '8px' }}>
                   <div style={{ fontSize: '12px', fontWeight: 700, color: '#1E3A8A', marginBottom: '6px' }}>
-                    Top Weighted Matches:
+                    Top Weighted Matches (Alternative School Suggestions):
                   </div>
                   {suggestions.slice(0, 5).map((m: any) => (
                     <div
@@ -1020,7 +1237,7 @@ function LeadDetailModal({
                     >
                       <span>
                         <strong>{m.school?.name || m.name}</strong> ({m.school?.city || m.city}) &mdash; Score:{' '}
-                        <strong>{Math.round(Number(m.matchScore ?? m.score ?? 0))}%</strong>
+                        <strong>{Math.round(Number(m.matchScore ?? m.match_score ?? m.score ?? 85))}%</strong>
                       </span>
                       <button
                         className="btn btn-sm btn-outline"
@@ -1032,6 +1249,88 @@ function LeadDetailModal({
                   ))}
                 </div>
               )}
+
+              {/* Quick Add Manual School if Parent wants a different school not yet in shortlist */}
+              <div
+                style={{
+                  background: '#F8FAFC',
+                  border: '1px dashed #CBD5E1',
+                  borderRadius: '8px',
+                  padding: '10px 12px',
+                  marginBottom: '12px',
+                }}
+              >
+                <div style={{ fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                  <CrmIcon name="school" size={16} /> Parent wants another school? Add Manual School &amp; Shortlist Immediately:
+                </div>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <input
+                    type="text"
+                    className="form-control"
+                    style={{ flex: 2, minWidth: '160px' }}
+                    placeholder="Manual School Name..."
+                    value={manualSchoolName}
+                    onChange={(e) => setManualSchoolName(e.target.value)}
+                  />
+                  <input
+                    type="text"
+                    className="form-control"
+                    style={{ flex: 1, minWidth: '110px' }}
+                    placeholder="City"
+                    value={manualSchoolCity}
+                    onChange={(e) => setManualSchoolCity(e.target.value)}
+                  />
+                  <select
+                    className="form-control"
+                    style={{ width: '95px' }}
+                    value={manualSchoolBoard}
+                    onChange={(e) => setManualSchoolBoard(e.target.value)}
+                  >
+                    <option value="CBSE">CBSE</option>
+                    <option value="ICSE">ICSE</option>
+                    <option value="IB">IB</option>
+                  </select>
+                  <input
+                    type="number"
+                    className="form-control"
+                    style={{ width: '115px' }}
+                    placeholder="Annual Fee ₹"
+                    value={manualSchoolFee}
+                    onChange={(e) => setManualSchoolFee(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-navy"
+                    onClick={async () => {
+                      if (!manualSchoolName.trim()) {
+                        onShowToast('Enter manual school name first.', 'warning');
+                        return;
+                      }
+                      try {
+                        const created = await apiCall('/schools', 'POST', {
+                          name: manualSchoolName.trim(),
+                          city: manualSchoolCity.trim() || 'Dehradun',
+                          state: 'Uttarakhand',
+                          board: manualSchoolBoard,
+                          minFeeAnnual: Number(manualSchoolFee || 350000),
+                          maxFeeAnnual: Number(manualSchoolFee || 350000),
+                        });
+                        const newId = created?.school?.id || created?.data?.id || created?.id;
+                        if (newId) {
+                          await handleAddShortlist(newId);
+                        }
+                        setManualSchoolName('');
+                        onShowToast('Manual school added & shortlisted for parent!', 'success');
+                        onRefresh();
+                      } catch (err: any) {
+                        onShowToast(err?.message || 'Could not add manual school.', 'danger');
+                      }
+                    }}
+                  >
+                    <CrmIcon name="plus" size={16} /> Add Manual School
+                  </button>
+                </div>
+              </div>
 
               <div className="table-container">
                 <table className="data-table">
@@ -1082,9 +1381,7 @@ function LeadDetailModal({
                   onChange={(e) => setNewAppSchoolId(e.target.value)}
                 >
                   {schools.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name} ({s.city})
-                    </option>
+                    <option key={s.id} value={s.id}>{s.name} ({s.city})</option>
                   ))}
                 </select>
                 <input
@@ -1096,7 +1393,7 @@ function LeadDetailModal({
                   onChange={(e) => setNewAppFee(e.target.value)}
                 />
                 <button type="submit" className="btn btn-primary">
-                  🎓 Apply to School
+                  <CrmIcon name="graduation-cap" size={16} /> Apply to School
                 </button>
               </form>
 
@@ -1133,24 +1430,32 @@ function LeadDetailModal({
                       </div>
                     </div>
                     <div style={{ display: 'flex', gap: '8px', marginTop: '10px', flexWrap: 'wrap' }}>
-                      <button
-                        className="btn btn-sm btn-outline"
-                        onClick={() => handleUpdateSubStage(app, 'A_waiting')}
-                      >
-                        Set A (Waiting)
-                      </button>
-                      <button
-                        className="btn btn-sm btn-outline"
-                        onClick={() => handleUpdateSubStage(app, 'B_only_registration')}
-                      >
-                        Set B (Registration Only)
-                      </button>
-                      <button
-                        className="btn btn-sm btn-success"
-                        onClick={() => handleUpdateSubStage(app, 'C_formalities_done')}
-                      >
-                        ✓ Set C (Formalities Done → Generate Commission)
-                      </button>
+                      {hasRole(user?.role, 'SUPER_ADMIN', 'SENIOR_MANAGER') ? (
+                        <>
+                          <button
+                            className="btn btn-sm btn-outline"
+                            onClick={() => handleUpdateSubStage(app, 'A_waiting')}
+                          >
+                            Set A (Waiting)
+                          </button>
+                          <button
+                            className="btn btn-sm btn-outline"
+                            onClick={() => handleUpdateSubStage(app, 'B_only_registration')}
+                          >
+                            Set B (Registration Only)
+                          </button>
+                          <button
+                            className="btn btn-sm btn-success"
+                            onClick={() => handleUpdateSubStage(app, 'C_formalities_done')}
+                          >
+                            <CrmIcon name="check" size={16} /> Confirm Final Admission (Sub-Stage C → Auto Commission)
+                          </button>
+                        </>
+                      ) : (
+                        <span style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 600 }}>
+                          <CrmIcon name="lock" size={16} /> Only Manager / Admin can confirm final admission (Sub-Stage C).
+                        </span>
+                      )}
                     </div>
                   </div>
                 ))
@@ -1168,6 +1473,43 @@ function LeadDetailModal({
               </div>
 
               <form onSubmit={handleUpdateFollowUp} style={{ marginBottom: '16px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 700, color: '#1E3A8A', marginBottom: '6px' }}>
+                  <CrmIcon name="zap" size={16} /> Parent Reply Quick Follow-up Reminder (1-Click):
+                </div>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
+                  {[
+                    { label: '2 Din Baad (+2 Days)', days: 2, reason: 'Parent replied: Call back after 2 days' },
+                    { label: '3 Din Baad (+3 Days)', days: 3, reason: 'Parent replied: Call back after 3 days' },
+                    { label: 'Agle Hafte (+7 Days)', days: 7, reason: 'Parent replied: Discuss next week with family' },
+                    { label: '15 Din Baad (+15 Days)', days: 15, reason: 'Parent replied: Follow up after 15 days' },
+                  ].map((preset) => (
+                    <button
+                      key={preset.days}
+                      type="button"
+                      className="btn btn-sm btn-outline"
+                      onClick={async () => {
+                        const targetDate = new Date(Date.now() + preset.days * 86_400_000)
+                          .toISOString()
+                          .slice(0, 10);
+                        setNextFollowUpDate(targetDate);
+                        setFollowUpReason(preset.reason);
+                        try {
+                          await apiCall(`/leads/${lead.id}/follow-up`, 'PUT', {
+                            nextFollowUpDate: targetDate,
+                            reason: preset.reason,
+                          });
+                          onShowToast(`Follow-up reminder set for ${targetDate} (${preset.label})!`, 'success');
+                          loadDossierData();
+                          onRefresh();
+                        } catch (err: any) {
+                          onShowToast(err?.message || 'Failed to set quick reminder.', 'danger');
+                        }
+                      }}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr auto', gap: '8px', alignItems: 'end' }}>
                   <div>
                     <label className="form-label">Follow-up Date</label>
@@ -1198,7 +1540,7 @@ function LeadDetailModal({
 
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 <button className="btn btn-sm btn-success" onClick={handleExtendCycle}>
-                  ⏩ Extend 90-Day Cycle
+                  <CrmIcon name="zap" size={16} /> Extend 90-Day Cycle
                 </button>
                 <button
                   className="btn btn-sm btn-warning"
@@ -1206,7 +1548,7 @@ function LeadDetailModal({
                     onOpenReasonModal('suspend', 'Suspend Lead', 'Parent travelling abroad for 3 months...')
                   }
                 >
-                  ⏸️ Suspend
+                  <CrmIcon name="pause" size={16} /> Suspend
                 </button>
                 <button
                   className="btn btn-sm btn-outline"
@@ -1227,7 +1569,7 @@ function LeadDetailModal({
                       )
                     }
                   >
-                    🔒 Force-Expire (360d)
+                    <CrmIcon name="lock" size={16} /> Force-Expire (360d)
                   </button>
                 )}
               </div>
@@ -1248,7 +1590,7 @@ function LeadDetailModal({
                     fontSize: '12px',
                   }}
                 >
-                  🔒 <strong>409 Layer-3 Lock Active:</strong> {pendingBlockMsg}
+                  <CrmIcon name="lock" size={16} /> <strong>409 Layer-3 Lock Active:</strong> {pendingBlockMsg}
                 </div>
               )}
               <div style={{ marginBottom: '16px' }}>
@@ -1266,7 +1608,7 @@ function LeadDetailModal({
                   style={{ marginTop: '8px' }}
                   onClick={handleGenerateWaLink}
                 >
-                  💬 Open wa.me &amp; Queue Confirmation
+                  <CrmIcon name="message-square" size={16} /> Open wa.me &amp; Queue Confirmation
                 </button>
               </div>
               <form onSubmit={handleLogCall} style={{ borderTop: '1px solid #E2E8F0', paddingTop: '12px' }}>
@@ -1295,7 +1637,7 @@ function LeadDetailModal({
                   />
                 </div>
                 <button type="submit" className="btn btn-primary btn-sm">
-                  📞 Log Call Outcome
+                  <CrmIcon name="phone" size={16} /> Log Call Outcome
                 </button>
               </form>
             </div>
@@ -1305,6 +1647,30 @@ function LeadDetailModal({
     </div>
   );
 }
+
+const LEAD_CLASSES = [
+  'Nursery', 'LKG', 'UKG',
+  'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6',
+  'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11', 'Class 12',
+];
+const LEAD_STATES = [
+  'Uttarakhand', 'Himachal Pradesh', 'Rajasthan', 'Maharashtra', 'Karnataka', 'Delhi NCR',
+  'Uttar Pradesh', 'Punjab', 'Haryana', 'Gujarat', 'Madhya Pradesh', 'Tamil Nadu',
+  'West Bengal', 'Bihar', 'Jharkhand', 'Odisha', 'Telangana', 'Kerala', 'Other',
+];
+const LEAD_BUDGETS = [
+  { value: '1L-2L', label: '₹1L – ₹2L', min: 100000, max: 200000 },
+  { value: '2L-4L', label: '₹2L – ₹4L', min: 200000, max: 400000 },
+  { value: '4L-5L', label: '₹4L – ₹5L', min: 400000, max: 500000 },
+  { value: '5L-6L', label: '₹5L – ₹6L', min: 500000, max: 600000 },
+  { value: '6L-8L', label: '₹6L – ₹8L', min: 600000, max: 800000 },
+  { value: '8L-12L', label: '₹8L – ₹12L', min: 800000, max: 1200000 },
+  { value: '12L+', label: '₹12L and above', min: 1200000, max: 2500000 },
+];
+const LEAD_SOURCES = [
+  'Call', 'Website', 'WhatsApp', 'Referral', 'Walk-in', 'Social Media Ad',
+  'Facebook', 'Instagram', 'Google Ads', 'Education Fair',
+];
 
 export function CreateLeadModal({
   isOpen,
@@ -1316,39 +1682,87 @@ export function CreateLeadModal({
   isOpen: boolean;
   onClose: () => void;
   schools?: any[];
-  onSuccess: () => void;
+  onSuccess: (lead?: any) => void;
   onShowToast: (m: string, t?: 'success' | 'danger' | 'warning') => void;
 }) {
-  const [studentName, setStudentName] = useState('');
-  const [fatherName, setFatherName] = useState('');
-  const [fatherPhone, setFatherPhone] = useState('');
-  const [motherPhone, setMotherPhone] = useState('');
-  const [admissionClass, setAdmissionClass] = useState('Class 6');
-  const [preferredBoard, setPreferredBoard] = useState('CBSE');
-  const [city, setCity] = useState('Dehradun');
-  const [budgetMax, setBudgetMax] = useState('800000');
-  const [leadSource, setLeadSource] = useState('Website');
-  const [dpdpConsent, setDpdpConsent] = useState(true);
+  const [f, setF] = useState<Record<string, string>>({
+    studentName: '',
+    academicYear: '2026-27',
+    admissionClass: '',
+    fatherName: '',
+    fatherOccupation: '',
+    motherName: '',
+    motherOccupation: '',
+    guardianName: '',
+    guardianMobile: '',
+    mobile: '',
+    altMobile: '',
+    whatsapp: '',
+    email: '',
+    contactTime: 'morning',
+    board: 'CBSE',
+    schoolType: 'boarding',
+    cityResident: '',
+    cityPreferred: '',
+    state: 'Uttarakhand',
+    budget: '4L-5L',
+    studentGender: 'male',
+    schoolGenderPref: 'co_ed',
+    prevClassPct: '',
+    source: 'Call',
+    sourceDetail: '',
+    remark: '',
+  });
+  const [dpdpConsent, setDpdpConsent] = useState(false);
   const [dupWarning, setDupWarning] = useState<any>(null);
   const [expiredMatch, setExpiredMatch] = useState<any>(null);
+  const [phoneAlreadyRegistered, setPhoneAlreadyRegistered] = useState<{
+    id?: string;
+    leadNumber?: string;
+    studentName?: string;
+    parentPhone?: string;
+    counsellor?: string;
+  } | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [activeSection, setActiveSection] = useState('sec-student');
 
   if (!isOpen) return null;
 
+  const set = (k: string) => (e: React.ChangeEvent<any>) =>
+    setF((p) => ({ ...p, [k]: e.target.value }));
+
+  const goSection = (id: string) => {
+    setActiveSection(id);
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   const runDuplicateAndExpiredChecks = async () => {
-    if (!fatherPhone.trim()) return;
+    const rawMobile = f.mobile.replace(/\D/g, '');
+    if (rawMobile.length < 10) {
+      setPhoneAlreadyRegistered(null);
+      setDupWarning(null);
+      return;
+    }
     try {
       const [dRes, eRes] = await Promise.all([
         apiCall('/leads/check-duplicate', 'POST', {
-          mobile: fatherPhone.trim(),
-          studentName: studentName.trim(),
+          mobile: f.mobile.trim(),
+          studentName: f.studentName.trim(),
         }).catch(() => null),
         apiCall('/leads/check-expired-match', 'POST', {
-          mobile: fatherPhone.trim(),
-          studentName: studentName.trim(),
+          mobile: f.mobile.trim(),
+          studentName: f.studentName.trim(),
         }).catch(() => null),
       ]);
-      const dups = dRes?.duplicates || dRes?.matches || dRes?.data?.duplicates || [];
+      const dups = dRes?.duplicates || dRes?.matches || dRes?.data?.duplicates || dRes?.data?.matches || [];
+      const matched = dRes?.phoneMatchedLead || (Array.isArray(dups)
+        ? dups.find((m: any) => (m.parentPhone || '').replace(/\D/g, '').slice(-10) === rawMobile.slice(-10))
+        : null);
+      if (dRes?.phoneAlreadyExists || matched) {
+        setPhoneAlreadyRegistered(matched || { leadNumber: 'LD-EXISTING', studentName: 'Registered Student' });
+      } else {
+        setPhoneAlreadyRegistered(null);
+      }
       setDupWarning(Array.isArray(dups) && dups.length > 0 ? dups[0] : null);
       const exp = eRes?.expiredLead || eRes?.match || eRes?.data?.expiredLead || null;
       setExpiredMatch(exp);
@@ -1357,36 +1771,99 @@ export function CreateLeadModal({
     }
   };
 
+  const resetForm = () => {
+    setF((p) => ({
+      ...p,
+      studentName: '', admissionClass: '', fatherName: '', fatherOccupation: '',
+      motherName: '', motherOccupation: '', guardianName: '', guardianMobile: '',
+      mobile: '', altMobile: '', whatsapp: '', email: '', cityResident: '',
+      cityPreferred: '', prevClassPct: '', sourceDetail: '', remark: '',
+    }));
+    setDpdpConsent(false);
+    setDupWarning(null);
+    setExpiredMatch(null);
+    setPhoneAlreadyRegistered(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!/^\d{10}$/.test(f.mobile.replace(/\D/g, '').slice(-10))) {
+      onShowToast('Valid 10-digit primary mobile number is required.', 'warning');
+      return;
+    }
+    if (phoneAlreadyRegistered) {
+      onShowToast(
+        `Pehle se is number se lead register ho chuki hai! (Lead ID: ${
+          phoneAlreadyRegistered.leadNumber || 'Existing'
+        }${phoneAlreadyRegistered.studentName ? `, Student: "${phoneAlreadyRegistered.studentName}"` : ''}). Duplicate lead submit nahi ho sakti.`,
+        'danger'
+      );
+      return;
+    }
     if (!dpdpConsent) {
       onShowToast('DPDP parent data consent checkbox is required.', 'warning');
       return;
     }
+    const budget = LEAD_BUDGETS.find((b) => b.value === f.budget) || LEAD_BUDGETS[2];
     setSubmitting(true);
     try {
-      await apiCall('/leads', 'POST', {
-        studentName: studentName.trim(),
-        fatherName: fatherName.trim(),
-        parentName: fatherName.trim(),
-        mobile: fatherPhone.trim(),
-        fatherPhone: fatherPhone.trim(),
-        motherPhone: motherPhone.trim() || undefined,
-        admissionClass,
-        preferredBoard,
-        city,
-        budgetMax: Number(budgetMax || 800000),
-        leadSource,
+      const res = await apiCall('/leads', 'POST', {
+        studentName: f.studentName.trim(),
+        academicYear: f.academicYear.trim() || '2026-27',
+        admissionClass: f.admissionClass,
+        applyingForGrade: f.admissionClass,
+        fatherName: f.fatherName.trim() || undefined,
+        fatherOccupation: f.fatherOccupation.trim() || undefined,
+        motherName: f.motherName.trim() || undefined,
+        motherOccupation: f.motherOccupation.trim() || undefined,
+        guardianName: f.guardianName.trim() || undefined,
+        guardianMobile: f.guardianMobile.trim() || undefined,
+        parentName: f.fatherName.trim() || f.motherName.trim() || f.guardianName.trim() || undefined,
+        mobile: f.mobile.trim(),
+        fatherPhone: f.mobile.trim(),
+        alternateMobile: f.altMobile.trim() || undefined,
+        whatsappNumber: f.whatsapp.trim() || undefined,
+        email: f.email.trim() || undefined,
+        parentEmail: f.email.trim() || undefined,
+        preferredContactTime: f.contactTime,
+        board: f.board,
+        preferredBoard: f.board,
+        schoolType: f.schoolType,
+        city: f.cityResident.trim() || undefined,
+        preferredLocation: f.cityPreferred.trim() || f.state,
+        state: f.state,
+        budget_range: budget.value,
+        annualBudget: budget.value,
+        budgetMin: budget.min,
+        budgetMax: budget.max,
+        gender: f.studentGender,
+        studentGender: f.studentGender,
+        schoolGenderPref: f.schoolGenderPref,
+        previousClassPercentage: f.prevClassPct.trim() || undefined,
+        leadSource: f.source,
+        sourceDetail: f.sourceDetail.trim() || undefined,
+        initial_remark: f.remark.trim() || undefined,
         dpdpConsent,
       });
-      onShowToast(`New lead ${studentName} created cleanly!`, 'success');
-      setStudentName('');
-      setFatherName('');
-      setFatherPhone('');
-      setMotherPhone('');
-      setDupWarning(null);
-      setExpiredMatch(null);
-      onSuccess();
+      const createdLead = res?.lead || res?.data?.lead || res?.data || {
+        studentName: f.studentName.trim(),
+        admissionClass: f.admissionClass,
+        fatherName: f.fatherName.trim(),
+        motherName: f.motherName.trim(),
+        mobile: f.mobile.trim(),
+        fatherPhone: f.mobile.trim(),
+        alternateMobile: f.altMobile.trim(),
+        email: f.email.trim(),
+        annualBudget: budget.value,
+        budget_range: budget.value,
+        score: 85,
+      };
+      onShowToast(
+        `Lead "${f.studentName}" submitted & verified! Opening Student Report for Call/WhatsApp.`,
+        'success'
+      );
+      resetForm();
+      onSuccess(createdLead);
       onClose();
     } catch (err: any) {
       onShowToast(err?.message || 'Lead creation failed.', 'danger');
@@ -1409,183 +1886,389 @@ export function CreateLeadModal({
     }
   };
 
+  const grid: React.CSSProperties = {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
+    gap: '12px',
+  };
+  const secTitle: React.CSSProperties = {
+    fontSize: '12.5px',
+    fontWeight: 800,
+    color: '#123B70',
+    margin: '16px 0 8px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    textTransform: 'uppercase',
+    letterSpacing: '0.4px',
+  };
+  const tabs: Array<[string, string, string]> = [
+    ['sec-student', 'Student & Family', 'users'],
+    ['sec-academic', 'Academic', 'graduation-cap'],
+    ['sec-contact', 'Contact', 'phone'],
+    ['sec-source', 'Source', 'target'],
+  ];
+
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '580px' }}>
+      <div
+        className="modal-content"
+        onClick={(e) => e.stopPropagation()}
+        style={{ maxWidth: '900px', width: '96vw' }}
+      >
         <div className="modal-header">
           <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--primary-navy)' }}>
-            ➕ Create Student &amp; Parent Enquiry
+            <CrmIcon name="plus" size={16} /> Create Student & Parent Lead
           </h3>
-          <button className="btn btn-sm btn-outline" onClick={onClose}>
-            ✕
+          <button type="button" className="btn btn-sm btn-outline" onClick={onClose}>
+            <CrmIcon name="x" size={16} />
           </button>
         </div>
+
+        <div
+          style={{
+            display: 'flex',
+            gap: '6px',
+            padding: '8px 16px',
+            borderBottom: '1px solid #E2E8F0',
+            overflowX: 'auto',
+          }}
+        >
+          {tabs.map(([id, label, icon]) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => goSection(id)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                border: 'none',
+                background: activeSection === id ? '#EFF6FF' : 'transparent',
+                color: activeSection === id ? '#1D4ED8' : '#475569',
+                fontWeight: 700,
+                fontSize: '12px',
+                padding: '6px 12px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <CrmIcon name={icon} size={14} /> {label}
+            </button>
+          ))}
+        </div>
+
         <form onSubmit={handleSubmit}>
-          <div className="modal-body">
-            {dupWarning && (
+          <div className="modal-body" style={{ maxHeight: '62vh', overflowY: 'auto' }}>
+            {phoneAlreadyRegistered && (
               <div
                 style={{
-                  background: '#FFFBEB',
-                  border: '1px solid #F59E0B',
-                  color: '#92400E',
-                  padding: '10px',
-                  borderRadius: '8px',
-                  fontSize: '12px',
-                  marginBottom: '12px',
+                  background: '#FEF2F2',
+                  border: '1.5px solid #EF4444',
+                  color: '#991B1B',
+                  padding: '12px 14px',
+                  borderRadius: '10px',
+                  fontSize: '12.5px',
+                  marginBottom: '14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
                 }}
               >
-                ⚠️ Possible duplicate found: <strong>{dupWarning.studentName}</strong> ({dupWarning.leadNumber})
+                <CrmIcon name="alert" size={20} />
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: '13px' }}>
+                    ⛔ Pehle se is number se lead register ho chuki hai!
+                  </div>
+                  <div style={{ marginTop: '2px', lineHeight: '1.4' }}>
+                    Yeh mobile number already registered hai: Lead ID <strong>{phoneAlreadyRegistered.leadNumber}</strong>
+                    {phoneAlreadyRegistered.studentName && <> (Student: <strong>{phoneAlreadyRegistered.studentName}</strong>)</>}
+                    {phoneAlreadyRegistered.counsellor && <> — Counsellor: <strong>{phoneAlreadyRegistered.counsellor}</strong></>}.
+                    <br />
+                    Duplicate lead submit nahi ki ja sakti. Please check existing lead.
+                  </div>
+                </div>
+              </div>
+            )}
+            {dupWarning && !phoneAlreadyRegistered && (
+              <div
+                style={{
+                  background: '#FFFBEB', border: '1px solid #F59E0B', color: '#92400E',
+                  padding: '10px', borderRadius: '8px', fontSize: '12px', marginBottom: '12px',
+                }}
+              >
+                <CrmIcon name="alert" size={16} /> Possible duplicate found:{' '}
+                <strong>{dupWarning.studentName}</strong> ({dupWarning.leadNumber})
               </div>
             )}
             {expiredMatch && (
               <div
                 style={{
-                  background: '#EFF6FF',
-                  border: '1px solid #93C5FD',
-                  color: '#1E3A8A',
-                  padding: '10px',
-                  borderRadius: '8px',
-                  fontSize: '12px',
-                  marginBottom: '12px',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
+                  background: '#EFF6FF', border: '1px solid #93C5FD', color: '#1E3A8A',
+                  padding: '10px', borderRadius: '8px', fontSize: '12px', marginBottom: '12px',
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px',
                 }}
               >
                 <span>
                   {expiredMatch.forceExpired
-                    ? '🔒 Matched a Force-Expired (360d) lead. Please create a new lead.'
-                    : `♻️ Matched expired lead ${expiredMatch.leadNumber || ''}.`}
+                    ? 'Matched a Force-Expired (360d) lead. Please create a new lead.'
+                    : `Matched expired lead ${expiredMatch.leadNumber || ''}.`}
                 </span>
                 {!expiredMatch.forceExpired && (
-                  <button
-                    type="button"
-                    className="btn btn-sm btn-primary"
-                    onClick={handleReopenExpiredMatch}
-                  >
+                  <button type="button" className="btn btn-sm btn-primary" onClick={handleReopenExpiredMatch}>
                     Reopen Instead
                   </button>
                 )}
               </div>
             )}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+
+            {/* STUDENT & FAMILY */}
+            <div id="sec-student" style={{ ...secTitle, marginTop: 0 }}>
+              <CrmIcon name="users" size={14} /> Student & Family
+            </div>
+            <div style={grid}>
               <div className="form-group">
                 <label className="form-label">Student Name *</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  required
-                  value={studentName}
-                  onChange={(e) => setStudentName(e.target.value)}
-                />
+                <input className="form-control" required value={f.studentName} onChange={set('studentName')} placeholder="e.g. Aarav Rawat" />
               </div>
               <div className="form-group">
-                <label className="form-label">Father / Parent Name *</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  required
-                  value={fatherName}
-                  onChange={(e) => setFatherName(e.target.value)}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Primary Mobile (+91 Auto) *</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  required
-                  placeholder="9876543210"
-                  value={fatherPhone}
-                  onChange={(e) => setFatherPhone(e.target.value)}
-                  onBlur={runDuplicateAndExpiredChecks}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Mother / Alt Mobile</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Optional"
-                  value={motherPhone}
-                  onChange={(e) => setMotherPhone(e.target.value)}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Class Applying</label>
-                <select
-                  className="form-control"
-                  value={admissionClass}
-                  onChange={(e) => setAdmissionClass(e.target.value)}
-                >
-                  {['Class 4', 'Class 5', 'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11', 'Class 12'].map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
+                <label className="form-label">Academic Year *</label>
+                <select className="form-control" value={f.academicYear} onChange={set('academicYear')}>
+                  {['2025-26', '2026-27', '2027-28'].map((y) => (
+                    <option key={y} value={y}>{y}</option>
                   ))}
                 </select>
               </div>
               <div className="form-group">
-                <label className="form-label">Preferred Board</label>
-                <select
-                  className="form-control"
-                  value={preferredBoard}
-                  onChange={(e) => setPreferredBoard(e.target.value)}
-                >
-                  <option value="CBSE">CBSE</option>
-                  <option value="ICSE">ICSE</option>
-                  <option value="IB">IB</option>
-                  <option value="IGCSE">IGCSE</option>
+                <label className="form-label">Class *</label>
+                <select className="form-control" required value={f.admissionClass} onChange={set('admissionClass')}>
+                  <option value="">Select</option>
+                  {LEAD_CLASSES.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
                 </select>
               </div>
               <div className="form-group">
-                <label className="form-label">Location / City</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                />
+                <label className="form-label">Father's Name</label>
+                <input className="form-control" value={f.fatherName} onChange={set('fatherName')} />
               </div>
               <div className="form-group">
-                <label className="form-label">Max Budget (₹)</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  value={budgetMax}
-                  onChange={(e) => setBudgetMax(e.target.value)}
-                />
+                <label className="form-label">Father's Occupation</label>
+                <input className="form-control" value={f.fatherOccupation} onChange={set('fatherOccupation')} />
               </div>
               <div className="form-group">
-                <label className="form-label">Lead Source</label>
-                <select
-                  className="form-control"
-                  value={leadSource}
-                  onChange={(e) => setLeadSource(e.target.value)}
-                >
-                  <option value="Website">Website</option>
-                  <option value="Phone Inquiry">Phone Inquiry</option>
-                  <option value="WhatsApp">WhatsApp</option>
-                  <option value="Referral">Referral</option>
-                  <option value="Walk-in">Walk-in</option>
-                </select>
+                <label className="form-label">Mother's Name</label>
+                <input className="form-control" value={f.motherName} onChange={set('motherName')} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Mother's Occupation</label>
+                <input className="form-control" value={f.motherOccupation} onChange={set('motherOccupation')} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Guardian Name</label>
+                <input className="form-control" value={f.guardianName} onChange={set('guardianName')} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Guardian Mobile</label>
+                <input className="form-control" inputMode="tel" value={f.guardianMobile} onChange={set('guardianMobile')} />
               </div>
             </div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', marginTop: '8px' }}>
-              <input
-                type="checkbox"
-                checked={dpdpConsent}
-                onChange={(e) => setDpdpConsent(e.target.checked)}
-              />
-              <span>Parent DPDP Data Processing Consent Obtained (90-day retention compliant)</span>
+
+            {/* CONTACT */}
+            <div id="sec-contact" style={secTitle}>
+              <CrmIcon name="phone" size={14} /> Contact
+            </div>
+            <div style={grid}>
+              <div className="form-group">
+                <label className="form-label">
+                  Mobile Primary (+91) *
+                  {phoneAlreadyRegistered && (
+                    <span style={{ color: '#DC2626', marginLeft: '6px', fontWeight: 700, fontSize: '11px' }}>
+                      (⚠️ Already Registered)
+                    </span>
+                  )}
+                </label>
+                <input
+                  className="form-control"
+                  required
+                  inputMode="tel"
+                  maxLength={13}
+                  placeholder="9876543210"
+                  value={f.mobile}
+                  onChange={(e) => {
+                    set('mobile')(e);
+                    const digits = e.target.value.replace(/\D/g, '');
+                    if (digits.length >= 10) {
+                      apiCall('/leads/check-duplicate', 'POST', { mobile: e.target.value })
+                        .then((res) => {
+                          if (res?.phoneAlreadyExists && res?.phoneMatchedLead) {
+                            setPhoneAlreadyRegistered(res.phoneMatchedLead);
+                          } else {
+                            setPhoneAlreadyRegistered(null);
+                          }
+                        })
+                        .catch(() => {});
+                    } else {
+                      setPhoneAlreadyRegistered(null);
+                    }
+                  }}
+                  onBlur={runDuplicateAndExpiredChecks}
+                  style={{
+                    borderColor: phoneAlreadyRegistered ? '#EF4444' : undefined,
+                    backgroundColor: phoneAlreadyRegistered ? '#FEF2F2' : undefined,
+                  }}
+                />
+                {phoneAlreadyRegistered && (
+                  <div style={{ color: '#DC2626', fontSize: '11px', marginTop: '4px', fontWeight: 600 }}>
+                    ⚠️ Pehle se is number se lead register ho chuki hai: Lead ID {phoneAlreadyRegistered.leadNumber} ({phoneAlreadyRegistered.studentName})
+                  </div>
+                )}
+              </div>
+              <div className="form-group">
+                <label className="form-label">Mobile Alt</label>
+                <input className="form-control" inputMode="tel" value={f.altMobile} onChange={set('altMobile')} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">WhatsApp Number</label>
+                <input className="form-control" inputMode="tel" placeholder="Same as primary if empty" value={f.whatsapp} onChange={set('whatsapp')} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Email</label>
+                <input className="form-control" type="email" placeholder="parent@example.com" value={f.email} onChange={set('email')} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Preferred Contact Time</label>
+                <select className="form-control" value={f.contactTime} onChange={set('contactTime')}>
+                  <option value="morning">Morning</option>
+                  <option value="afternoon">Afternoon</option>
+                  <option value="evening">Evening</option>
+                  <option value="anytime">Anytime</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">State *</label>
+                <select className="form-control" value={f.state} onChange={set('state')}>
+                  {LEAD_STATES.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">City Resident</label>
+                <input className="form-control" value={f.cityResident} onChange={set('cityResident')} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">City Preferred</label>
+                <input className="form-control" value={f.cityPreferred} onChange={set('cityPreferred')} />
+              </div>
+            </div>
+
+            {/* ACADEMIC */}
+            <div id="sec-academic" style={secTitle}>
+              <CrmIcon name="graduation-cap" size={14} /> Academic & Preferences
+            </div>
+            <div style={grid}>
+              <div className="form-group">
+                <label className="form-label">Board *</label>
+                <select className="form-control" value={f.board} onChange={set('board')}>
+                  {['CBSE', 'ICSE', 'IB', 'IGCSE', 'State Board'].map((b) => (
+                    <option key={b} value={b}>{b}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">School Type *</label>
+                <select className="form-control" value={f.schoolType} onChange={set('schoolType')}>
+                  <option value="boarding">Boarding</option>
+                  <option value="day_boarding">Day-Boarding</option>
+                  <option value="day">Day School</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Budget Range *</label>
+                <select className="form-control" value={f.budget} onChange={set('budget')}>
+                  {LEAD_BUDGETS.map((b) => (
+                    <option key={b.value} value={b.value}>{b.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Student Gender</label>
+                <select className="form-control" value={f.studentGender} onChange={set('studentGender')}>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">School Gender Preference *</label>
+                <select className="form-control" value={f.schoolGenderPref} onChange={set('schoolGenderPref')}>
+                  <option value="co_ed">Co-Ed (Both Boys & Girls)</option>
+                  <option value="boys">Boys Only</option>
+                  <option value="girls">Girls Only</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Previous Class %</label>
+                <input className="form-control" inputMode="decimal" placeholder="e.g. 85" value={f.prevClassPct} onChange={set('prevClassPct')} />
+              </div>
+            </div>
+
+            {/* SOURCE */}
+            <div id="sec-source" style={secTitle}>
+              <CrmIcon name="target" size={14} /> Source
+            </div>
+            <div style={grid}>
+              <div className="form-group">
+                <label className="form-label">Source *</label>
+                <select className="form-control" value={f.source} onChange={set('source')}>
+                  {LEAD_SOURCES.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Source Detail (Referral name / Campaign)</label>
+                <input className="form-control" value={f.sourceDetail} onChange={set('sourceDetail')} />
+              </div>
+            </div>
+            <div className="form-group" style={{ marginTop: '12px' }}>
+              <label className="form-label">Initial Remark</label>
+              <textarea className="form-control" rows={3} value={f.remark} onChange={set('remark')} />
+            </div>
+
+            <label
+              style={{
+                display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px',
+                marginTop: '10px', background: '#ECFDF5', border: '1px solid #A7F3D0',
+                padding: '10px 12px', borderRadius: '8px', cursor: 'pointer',
+              }}
+            >
+              <input type="checkbox" checked={dpdpConsent} onChange={(e) => setDpdpConsent(e.target.checked)} />
+              <span>I confirm parent consent for data storage (DPDP) *</span>
             </label>
           </div>
           <div className="modal-footer">
             <button type="button" className="btn btn-outline" onClick={onClose}>
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary" disabled={submitting}>
-              {submitting ? 'Creating Lead...' : 'Create Lead'}
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={submitting || !!phoneAlreadyRegistered}
+              style={{
+                opacity: phoneAlreadyRegistered ? 0.6 : 1,
+                cursor: phoneAlreadyRegistered ? 'not-allowed' : 'pointer',
+                background: phoneAlreadyRegistered ? '#DC2626' : undefined,
+                borderColor: phoneAlreadyRegistered ? '#DC2626' : undefined,
+              }}
+            >
+              {phoneAlreadyRegistered
+                ? '⛔ Number Already Registered (Cannot Submit)'
+                : submitting
+                ? 'Creating Lead...'
+                : 'Create Lead'}
             </button>
           </div>
         </form>

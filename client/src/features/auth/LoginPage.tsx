@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import CrmIcon from '../../components/CrmIcon';
 import { useAuthStore, User } from '../../stores/authStore';
 import { apiCall } from '../../lib/api';
 import WireframeExplorer from '../wireframes/WireframeExplorer';
@@ -28,10 +29,8 @@ export default function LoginPage() {
   const [toastMsg, setToastMsg] = useState<{ text: string; type: 'success' | 'danger' | 'warning' } | null>(null);
 
   // Forgot Password / OTP / Reset State
-  const [forgotMethod, setForgotMethod] = useState<'email' | 'phone'>('email');
   const [forgotEmail, setForgotEmail] = useState('');
   const [resolvedEmail, setResolvedEmail] = useState('');
-  const [phoneHint, setPhoneHint] = useState('+91 7249417658');
   const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
   const [resetToken, setResetToken] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -45,6 +44,27 @@ export default function LoginPage() {
   const [showRecoveryInput, setShowRecoveryInput] = useState(false);
   const [recoveryCode, setRecoveryCode] = useState('');
   const [lockoutSeconds, setLockoutSeconds] = useState(0);
+  const [isNewDevice, setIsNewDevice] = useState(false);
+  const [adminEmail, setAdminEmail] = useState('');
+  const [deviceId, setDeviceId] = useState('');
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  useEffect(() => {
+    let id = localStorage.getItem('crm_device_id');
+    if (!id) {
+      id = 'dev_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now().toString(36);
+      localStorage.setItem('crm_device_id', id);
+    }
+    setDeviceId(id);
+  }, []);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const t = setInterval(() => {
+      setResendCooldown((s) => (s > 0 ? s - 1 : 0));
+    }, 1000);
+    return () => clearInterval(t);
+  }, [resendCooldown]);
 
   useEffect(() => {
     if (lockoutSeconds <= 0) return;
@@ -109,17 +129,26 @@ export default function LoginPage() {
 
     setIsLoading(true);
     try {
+      const currentDevId = deviceId || localStorage.getItem('crm_device_id') || '';
       const res = await apiCall('/auth/login', 'POST', {
         identifier: emailTrimmed,
         email: emailTrimmed,
         password,
         role: selectedRole,
         rememberMe,
+        deviceId: currentDevId,
+        deviceName: navigator.userAgent,
       });
 
-      if (res.require2FA) {
-        setTempToken(res.tempToken);
-        showToast('Two-Factor Authentication required. Enter code to continue.', 'warning');
+      if (res.require2FA || res.requiresTwoFactor || res.requires_2fa) {
+        setTempToken(res.tempToken || res.temp_token);
+        setIsNewDevice(Boolean(res.isNewDevice));
+        setAdminEmail(res.adminEmail || 'adminboarding123@gmail.com');
+        setTfaDigits(['', '', '', '', '', '']);
+        showToast(
+          res.message || 'Two-Factor Authentication: 6-digit verification OTP sent to Admin email.',
+          'warning'
+        );
         setAuthView('two-factor');
         setIsLoading(false);
         return;
@@ -164,31 +193,24 @@ export default function LoginPage() {
     e.preventDefault();
     const cleanInput = forgotEmail.trim();
     if (!cleanInput) {
-      showToast(
-        forgotMethod === 'phone'
-          ? 'Please enter your registered mobile number (e.g. 7249417658).'
-          : 'Please enter your registered email address (e.g. adminboarding123@gmail.com).',
-        'danger'
-      );
+      showToast('Please enter your registered email address (e.g. adminboarding123@gmail.com).', 'danger');
       return;
     }
     setIsLoading(true);
     try {
       const res = await apiCall('/auth/forgot-password', 'POST', {
-        identifier: cleanInput,
         email: cleanInput,
-        phone: cleanInput,
+        identifier: cleanInput,
       });
       setResolvedEmail(res.email || cleanInput);
-      setPhoneHint(res.phone || '+91 7249417658');
       setOtpDigits(['', '', '', '', '', '']);
       showToast(
-        res.message || `Verification OTP sent to your registered email & mobile (+91 7249417658)!`,
+        res.message || `Verification OTP sent to your registered email (${res.email || cleanInput})!`,
         'success'
       );
       setAuthView('verify-otp');
     } catch (err: any) {
-      showToast(err.message || 'Account not found or error generating OTP.', 'danger');
+      showToast(err.message || 'Email not found or error generating OTP.', 'danger');
     } finally {
       setIsLoading(false);
     }
@@ -247,11 +269,20 @@ export default function LoginPage() {
 
   const handle2FASubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const code = tfaDigits.join('');
+    const code = tfaDigits.join('').trim();
+    if (code.length !== 6) {
+      showToast('Please enter all 6 digits of the OTP code.', 'danger');
+      return;
+    }
+    setIsLoading(true);
     try {
-      const res = await apiCall('/auth/verify-2fa', 'POST', {
+      const currentDevId = deviceId || localStorage.getItem('crm_device_id') || '';
+      const res = await apiCall('/auth/verify-device-otp', 'POST', {
         tempToken: tempToken || 'demo_temp_token',
         code,
+        otp: code,
+        deviceId: currentDevId,
+        deviceName: navigator.userAgent,
       });
       if (res.user) {
         const backendRole = String(res.user.backendRole || res.user.role || '').toUpperCase();
@@ -274,12 +305,29 @@ export default function LoginPage() {
           token,
           res.refreshToken
         );
+        showToast('Device authorized successfully! Welcome to BoardingEdu CRM.', 'success');
       } else {
         showToast('2FA Verified! Please sign in.', 'success');
         setAuthView('login');
       }
     } catch (err: any) {
-      showToast(err.message, 'danger');
+      showToast(err.message || 'Invalid or incorrect OTP. Please verify with Admin.', 'danger');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendDeviceOtp = async () => {
+    if (resendCooldown > 0) return;
+    try {
+      setIsLoading(true);
+      const res = await apiCall('/auth/resend-device-otp', 'POST', { tempToken });
+      showToast(res.message || 'Fresh 6-digit OTP sent to Admin email!', 'success');
+      setResendCooldown(60);
+    } catch (err: any) {
+      showToast(err.message || 'Failed to resend OTP to Admin.', 'danger');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -346,7 +394,7 @@ export default function LoginPage() {
       <div className="toast-container" id="toastContainer">
         {toastMsg && (
           <div className={`toast ${toastMsg.type}`}>
-            <span>{toastMsg.type === 'success' ? '✅' : toastMsg.type === 'danger' ? '❌' : '⚠️'}</span>{' '}
+            <span>{toastMsg.type === 'success' ? '' : toastMsg.type === 'danger' ? <CrmIcon name="x-circle" size={15} /> : <CrmIcon name="alert" size={15} />}</span>{' '}
             <span>{toastMsg.text}</span>
           </div>
         )}
@@ -381,82 +429,46 @@ export default function LoginPage() {
                 Forgot Password
               </h1>
               <p className="auth-subtitle" style={{ fontSize: '13px', color: '#64748B', margin: 0 }}>
-                Choose how you want to verify your account — via Registered Email or Mobile Number (7249417658).
+                Enter your registered email address to receive an instant 6-digit verification OTP on your Gmail.
               </p>
             </div>
 
             <div
               style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: '8px',
-                background: '#F1F5F9',
-                padding: '4px',
+                background: '#EFF6FF',
+                border: '1px solid #BFDBFE',
+                padding: '9px 12px',
                 borderRadius: '10px',
                 marginBottom: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                color: '#1D4ED8',
+                fontSize: '13px',
+                fontWeight: 700,
               }}
             >
-              <button
-                type="button"
-                onClick={() => {
-                  setForgotMethod('phone');
-                  setForgotEmail('7249417658');
-                }}
-                style={{
-                  padding: '9px 10px',
-                  borderRadius: '8px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: '12.5px',
-                  fontWeight: 700,
-                  background: forgotMethod === 'phone' ? '#FFFFFF' : 'transparent',
-                  color: forgotMethod === 'phone' ? '#2563EB' : '#64748B',
-                  boxShadow: forgotMethod === 'phone' ? '0 1px 3px rgba(15,23,42,0.1)' : 'none',
-                }}
-              >
-                📱 Number Verification
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setForgotMethod('email');
-                  setForgotEmail('adminboarding123@gmail.com');
-                }}
-                style={{
-                  padding: '9px 10px',
-                  borderRadius: '8px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: '12.5px',
-                  fontWeight: 700,
-                  background: forgotMethod === 'email' ? '#FFFFFF' : 'transparent',
-                  color: forgotMethod === 'email' ? '#2563EB' : '#64748B',
-                  boxShadow: forgotMethod === 'email' ? '0 1px 3px rgba(15,23,42,0.1)' : 'none',
-                }}
-              >
-                📧 Email Verification
-              </button>
+              <span><CrmIcon name="mail" size={16} /> Email Verification</span>
             </div>
 
             <form onSubmit={handleForgotPasswordSubmit}>
               <div className="form-group" style={{ marginBottom: '16px' }}>
                 <label className="form-label" style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>
-                  {forgotMethod === 'phone' ? 'Registered Mobile Number' : 'Registered Work Email'} <span className="req">*</span>
+                  Registered Work Email <span className="req">*</span>
                 </label>
                 <input
-                  type="text"
+                  type="email"
                   id="forgotEmail"
                   className="form-control"
-                  placeholder={forgotMethod === 'phone' ? 'e.g. 7249417658 or +917249417658' : 'e.g. adminboarding123@gmail.com'}
+                  placeholder="e.g. adminboarding123@gmail.com"
                   required
                   value={forgotEmail}
                   onChange={(e) => setForgotEmail(e.target.value)}
                   style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '14px' }}
                 />
                 <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '6px' }}>
-                  {forgotMethod === 'phone'
-                    ? '📱 Enter 7249417658 — 6-digit verification OTP will be sent immediately.'
-                    : '📧 Enter adminboarding123@gmail.com — 6-digit OTP will arrive in your Gmail inbox.'}
+                  <CrmIcon name="mail" size={16} /> 6-digit verification OTP will arrive immediately in your Gmail inbox.
                 </div>
               </div>
 
@@ -474,7 +486,7 @@ export default function LoginPage() {
                 }}
                 disabled={isLoading}
               >
-                {isLoading ? 'Sending Verification OTP...' : '📨 Send Verification OTP (Email & SMS)'}
+                {isLoading ? 'Sending Verification OTP...' : 'Send Email Verification OTP'}
               </button>
             </form>
 
@@ -528,11 +540,11 @@ export default function LoginPage() {
                 Enter OTP Verification Code
               </h1>
               <p className="auth-subtitle" style={{ fontSize: '13px', color: '#64748B', margin: 0 }}>
-                Please enter the 6-digit code received on your registered phone &amp; email.
+                Please enter the 6-digit verification code sent to your registered email address.
               </p>
             </div>
 
-            {/* Live SMS & Email Notification Card */}
+            {/* Live Email Notification Card */}
             <div
               style={{
                 background: 'linear-gradient(135deg, #F0FDF4 0%, #EFF6FF 100%)',
@@ -544,9 +556,9 @@ export default function LoginPage() {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                <span style={{ fontSize: '16px' }}>📲</span>
+                <span style={{ fontSize: '16px' }}><CrmIcon name="mail" size={16} /></span>
                 <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#166534' }}>
-                  Verification Code Dispatched (SMS &amp; Email)
+                  Email Verification Code Sent
                 </span>
                 <span
                   style={{
@@ -567,11 +579,8 @@ export default function LoginPage() {
                 <div>
                   <strong>Email:</strong> {resolvedEmail || forgotEmail || 'adminboarding123@gmail.com'}
                 </div>
-                <div>
-                  <strong>Phone (SMS):</strong> {phoneHint || '+91 7249417658'}
-                </div>
                 <div style={{ marginTop: '8px', fontSize: '11.5px', color: '#15803D', fontWeight: 600 }}>
-                  📩 Please check your Gmail inbox ({resolvedEmail || 'adminboarding123@gmail.com'}) / SMS ({phoneHint || '+91 7249417658'}) and enter the 6-digit OTP below.
+                  <CrmIcon name="mail" size={16} /> Please check your Gmail app ({resolvedEmail || 'adminboarding123@gmail.com'}) on your phone and enter the 6-digit OTP below.
                 </div>
               </div>
             </div>
@@ -640,7 +649,7 @@ export default function LoginPage() {
                   marginBottom: '18px',
                 }}
               >
-                ⏰ Code expires in{' '}
+                <CrmIcon name="clock" size={16} /> Code expires in{' '}
                 <span style={{ color: 'var(--warning)', fontWeight: 700 }}>14:45</span> • Single-use verification code
               </div>
 
@@ -658,7 +667,7 @@ export default function LoginPage() {
                 }}
                 disabled={isLoading}
               >
-                {isLoading ? 'Verifying OTP...' : '✅ Verify OTP & Proceed'}
+                {isLoading ? 'Verifying OTP...' : 'Verify OTP & Proceed'}
               </button>
             </form>
 
@@ -742,7 +751,7 @@ export default function LoginPage() {
                       fontSize: '16px',
                     }}
                   >
-                    {showNewPass ? '🙈' : '👁️'}
+                    {showNewPass ? <CrmIcon name="eye-off" size={15} /> : <CrmIcon name="eye" size={15} />}
                   </button>
                 </div>
               </div>
@@ -767,13 +776,13 @@ export default function LoginPage() {
 
               <div className="password-requirements" style={{ background: '#F8FAFC', padding: '10px 12px', borderRadius: '8px', marginBottom: '14px', fontSize: '12px' }}>
                 <div className={`req-item ${has8 ? 'valid' : ''}`} style={{ color: has8 ? '#15803D' : '#64748B', marginBottom: '3px' }}>
-                  <span>{has8 ? '✅' : '⚪'}</span> Min 8 characters
+                  <span>{has8 ? <CrmIcon name="check-circle" size={15} /> : <CrmIcon name="moon" size={15} />}</span> Min 8 characters
                 </div>
                 <div className={`req-item ${hasUpperLower ? 'valid' : ''}`} style={{ color: hasUpperLower ? '#15803D' : '#64748B', marginBottom: '3px' }}>
-                  <span>{hasUpperLower ? '✅' : '⚪'}</span> At least 1 Uppercase &amp; 1 Lowercase letter
+                  <span>{hasUpperLower ? <CrmIcon name="check-circle" size={15} /> : <CrmIcon name="moon" size={15} />}</span> At least 1 Uppercase &amp; 1 Lowercase letter
                 </div>
                 <div className={`req-item ${hasNumSpec ? 'valid' : ''}`} style={{ color: hasNumSpec ? '#15803D' : '#64748B' }}>
-                  <span>{hasNumSpec ? '✅' : '⚪'}</span> At least 1 Number &amp; 1 Special char (@$!%*?&amp;)
+                  <span>{hasNumSpec ? <CrmIcon name="check-circle" size={15} /> : <CrmIcon name="moon" size={15} />}</span> At least 1 Number &amp; 1 Special char (@$!%*?&amp;)
                 </div>
               </div>
 
@@ -807,7 +816,7 @@ export default function LoginPage() {
                       fontSize: '16px',
                     }}
                   >
-                    {showConfirmPass ? '🙈' : '👁️'}
+                    {showConfirmPass ? <CrmIcon name="eye-off" size={15} /> : <CrmIcon name="eye" size={15} />}
                   </button>
                 </div>
               </div>
@@ -823,7 +832,7 @@ export default function LoginPage() {
                   marginBottom: '16px',
                 }}
               >
-                🔒 <strong>Security Policy:</strong> Saving will update your password in PostgreSQL and revoke all existing active sessions.
+                <CrmIcon name="lock" size={16} /> <strong>Security Policy:</strong> Saving will update your password in PostgreSQL and revoke all existing active sessions.
               </div>
 
               <button
@@ -843,7 +852,7 @@ export default function LoginPage() {
                 }}
                 disabled={isLoading}
               >
-                {isLoading ? 'Saving Password...' : '✅ Save New Password in Database'}
+                {isLoading ? 'Saving Password...' : 'Save New Password in Database'}
               </button>
             </form>
           </div>
@@ -874,7 +883,7 @@ export default function LoginPage() {
                 }}
               />
             </div>
-            <div style={{ fontSize: '48px', marginBottom: '10px' }}>🎉</div>
+            <div style={{ fontSize: '48px', marginBottom: '10px' }}><CrmIcon name="sparkles" size={16} /></div>
             <h1 className="auth-title" style={{ color: '#16A34A', fontSize: '22px', fontWeight: 800 }}>
               Password Reset Successfully!
             </h1>
@@ -898,7 +907,7 @@ export default function LoginPage() {
                 setAuthView('login');
               }}
             >
-              🚀 Proceed to Sign In with New Password
+              <CrmIcon name="rocket" size={16} /> Proceed to Sign In with New Password
             </button>
           </div>
         </div>
@@ -911,13 +920,41 @@ export default function LoginPage() {
               className="auth-logo"
               style={{ background: 'linear-gradient(135deg, var(--primary-navy), #2563EB)' }}
             >
-              🛡️
+              <CrmIcon name="shield" size={16} />
             </div>
-            <h1 className="auth-title">Two-Factor Authentication</h1>
+            <h1 className="auth-title">
+              {isNewDevice ? 'New Device Approval (2FA)' : 'Two-Factor Authentication'}
+            </h1>
             <p className="auth-subtitle">
-              Enter the 6-digit verification code from Google Authenticator or your backup recovery
-              code.
+              {isNewDevice
+                ? 'Naya device detect hua hai! Security ke liye Super Admin ke email par 6-digit verification OTP bheja gaya hai.'
+                : 'Enter the 6-digit verification code from Google Authenticator or your backup recovery code.'}
             </p>
+
+            {isNewDevice && (
+              <div
+                style={{
+                  background: '#EFF6FF',
+                  border: '1px solid #BFDBFE',
+                  borderRadius: '10px',
+                  padding: '12px 16px',
+                  marginBottom: '18px',
+                  textAlign: 'left',
+                  fontSize: '12px',
+                  color: '#1E40AF',
+                }}
+              >
+                <div style={{ fontWeight: 700, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <CrmIcon name="shield" size={14} /> Super Admin Approval Required
+                </div>
+                <div style={{ color: '#1E3A8A' }}>
+                  OTP sent to Super Admin: <strong>{adminEmail || 'adminboarding123@gmail.com'}</strong>
+                </div>
+                <div style={{ color: '#64748B', fontSize: '11px', marginTop: '4px', lineHeight: 1.4 }}>
+                  Enter the 6-digit authorization code received by the Super Admin to authorize this device.
+                </div>
+              </div>
+            )}
 
             <form onSubmit={handle2FASubmit}>
               <div className="otp-inputs">
@@ -930,11 +967,16 @@ export default function LoginPage() {
                     className="otp-box"
                     value={digit}
                     onChange={(e) => {
-                      const val = e.target.value;
+                      const val = e.target.value.replace(/\D/g, '');
                       const next = [...tfaDigits];
                       next[idx] = val;
                       setTfaDigits(next);
                       if (val && idx < 5) tfaRefs[idx + 1].current?.focus();
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Backspace' && !digit && idx > 0) {
+                        tfaRefs[idx - 1].current?.focus();
+                      }
                     }}
                   />
                 ))}
@@ -943,60 +985,75 @@ export default function LoginPage() {
               <div
                 style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '20px' }}
               >
-                ⏰ <span style={{ color: 'var(--warning)', fontWeight: 700 }}>temp_token valid for 4:45</span>
+                <CrmIcon name="clock" size={16} /> <span style={{ color: 'var(--warning)', fontWeight: 700 }}>OTP valid for 10 minutes</span>
               </div>
 
               <button
                 type="submit"
                 id="btn2FASubmit"
                 className="btn btn-primary"
-                style={{ width: '100%', padding: '11px' }}
+                style={{ width: '100%', padding: '11px', fontWeight: 700 }}
+                disabled={isLoading}
               >
-                ✅ Verify &amp; Grant Dashboard Access
+                <CrmIcon name="check-circle" size={16} /> {isNewDevice ? 'Verify OTP & Authorize Device' : 'Verify & Grant Dashboard Access'}
               </button>
             </form>
 
-            <div style={{ marginTop: '16px' }}>
-              {!showRecoveryInput ? (
-                <a
-                  href="#recovery"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setShowRecoveryInput(true);
-                  }}
-                  style={{ fontSize: '12px', color: 'var(--primary-blue)', fontWeight: 600 }}
+            {isNewDevice ? (
+              <div style={{ marginTop: '14px' }}>
+                <button
+                  type="button"
+                  className="btn btn-outline btn-sm"
+                  disabled={resendCooldown > 0 || isLoading}
+                  onClick={handleResendDeviceOtp}
+                  style={{ fontSize: '11.5px', padding: '6px 14px', borderRadius: '6px' }}
                 >
-                  Use 8-Character Recovery Code instead →
-                </a>
-              ) : (
-                <form
-                  onSubmit={handleUseBackupCodeLogin}
-                  style={{
-                    background: '#F8FAFC',
-                    padding: '12px',
-                    borderRadius: '8px',
-                    border: '1px solid #CBD5E1',
-                    textAlign: 'left',
-                  }}
-                >
-                  <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, marginBottom: '6px' }}>
-                    Backup Recovery Code
-                  </label>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="e.g. UK26-A1B2-C3D4"
-                      value={recoveryCode}
-                      onChange={(e) => setRecoveryCode(e.target.value)}
-                    />
-                    <button type="submit" className="btn btn-primary btn-sm">
-                      Verify
-                    </button>
-                  </div>
-                </form>
-              )}
-            </div>
+                  <CrmIcon name="refresh-cw" size={13} /> {resendCooldown > 0 ? `Resend OTP to Admin in ${resendCooldown}s` : 'Resend OTP to Admin Email'}
+                </button>
+              </div>
+            ) : (
+              <div style={{ marginTop: '16px' }}>
+                {!showRecoveryInput ? (
+                  <a
+                    href="#recovery"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setShowRecoveryInput(true);
+                    }}
+                    style={{ fontSize: '12px', color: 'var(--primary-blue)', fontWeight: 600 }}
+                  >
+                    Use 8-Character Recovery Code instead →
+                  </a>
+                ) : (
+                  <form
+                    onSubmit={handleUseBackupCodeLogin}
+                    style={{
+                      background: '#F8FAFC',
+                      padding: '12px',
+                      borderRadius: '8px',
+                      border: '1px solid #CBD5E1',
+                      textAlign: 'left',
+                    }}
+                  >
+                    <label style={{ display: 'block', fontSize: '11.5px', fontWeight: 700, marginBottom: '6px' }}>
+                      Backup Recovery Code
+                    </label>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="e.g. UK26-A1B2-C3D4"
+                        value={recoveryCode}
+                        onChange={(e) => setRecoveryCode(e.target.value)}
+                      />
+                      <button type="submit" className="btn btn-primary btn-sm">
+                        Verify
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            )}
 
             <div style={{ marginTop: '18px' }}>
               <a
@@ -1021,7 +1078,7 @@ export default function LoginPage() {
       {authView === 'unauthorized' && (
         <div className="auth-wrapper">
           <div className="auth-card" style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '56px', marginBottom: '12px' }}>🚫</div>
+            <div style={{ fontSize: '56px', marginBottom: '12px' }}><CrmIcon name="ban" size={16} /></div>
             <h1 className="auth-title" style={{ color: 'var(--danger)' }}>
               403 – Unauthorized Access
             </h1>
@@ -1084,7 +1141,7 @@ export default function LoginPage() {
                   marginBottom: '14px',
                 }}
               >
-                🔒 Account temporarily locked due to failed attempts. Retry in{' '}
+                <CrmIcon name="lock" size={16} /> Account temporarily locked due to failed attempts. Retry in{' '}
                 <strong>
                   {Math.floor(lockoutSeconds / 60)}m {String(lockoutSeconds % 60).padStart(2, '0')}s
                 </strong>
@@ -1106,7 +1163,7 @@ export default function LoginPage() {
                     marginBottom: '6px',
                   }}
                 >
-                  Email Address or Mobile Number
+                  Email Address
                 </label>
                 <div className="auth-input-container">
                   <span className="auth-input-icon">
@@ -1125,9 +1182,9 @@ export default function LoginPage() {
                     </svg>
                   </span>
                   <input
-                    type="text"
+                    type="email"
                     id="loginIdentifier"
-                    placeholder="adminboarding123@gmail.com or 7249417658"
+                    placeholder="adminboarding123@gmail.com"
                     required
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
@@ -1238,9 +1295,7 @@ export default function LoginPage() {
                   onClick={(e) => {
                     e.preventDefault();
                     if (identifier.trim()) {
-                      const clean = identifier.trim();
-                      setForgotEmail(clean);
-                      setForgotMethod(/^\+?[\d\s-]{10,14}$/.test(clean) ? 'phone' : 'email');
+                      setForgotEmail(identifier.trim());
                     }
                     setAuthView('forgot-password');
                   }}

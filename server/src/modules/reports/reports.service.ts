@@ -17,10 +17,41 @@ import {
   toBlueprintRole,
 } from '../../common/utils/crm.utils';
 
+function formatExcelDate(d?: Date | string | null): string {
+  if (!d) return '—';
+  const date = new Date(d);
+  if (isNaN(date.getTime())) return '—';
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = months[date.getMonth()];
+  const year = date.getFullYear();
+  return `${day} ${month} ${year}`;
+}
+
+function autoFitColumns(rows: any[]) {
+  if (!rows || !rows.length) return [];
+  const colWidths: Record<string, number> = {};
+  const keys = Object.keys(rows[0]);
+  for (const key of keys) {
+    colWidths[key] = key.length;
+  }
+  for (const row of rows) {
+    for (const key of keys) {
+      const val = row[key];
+      const len = val !== null && val !== undefined ? String(val).length : 0;
+      if (len > colWidths[key]) {
+        colWidths[key] = Math.min(len, 45);
+      }
+    }
+  }
+  return keys.map((k) => ({ wch: Math.max(colWidths[k] + 3, 12) }));
+}
+
 export type ReportKey =
   | 'leads'
   | 'pipeline'
   | 'admissions'
+  | 'full-admission-process'
   | 'school-wise'
   | 'commission'
   | 'revenue'
@@ -157,6 +188,14 @@ export class ReportsService implements OnModuleInit {
           orderBy: { createdAt: 'desc' },
           include: {
             assignedCounsellor: { select: { fullName: true, employeeId: true } },
+            assignedManager: { select: { fullName: true } },
+            applications: {
+              select: {
+                admissionNumber: true,
+                schoolName: true,
+                stage: true,
+              },
+            },
           },
         });
         const byStatus: Record<string, number> = {};
@@ -169,22 +208,77 @@ export class ReportsService implements OnModuleInit {
           const city = l.city || 'Unknown';
           byCity[city] = (byCity[city] || 0) + 1;
         }
+        // Deduplicate leads by unique leadNumber / id
+        const seen = new Set<string>();
+        const uniqueLeads: any[] = [];
+        for (const l of leads) {
+          const key = (l.leadNumber || l.id || '').trim().toUpperCase();
+          if (key && !seen.has(key)) {
+            seen.add(key);
+            uniqueLeads.push(l);
+          }
+        }
+
+        const rows = uniqueLeads.map((l) => {
+          let primaryMobile = l.parentPhone || '';
+          const digits = primaryMobile.replace(/\D/g, '');
+          if (digits.length === 10) primaryMobile = `+91${digits}`;
+          else if (digits.length === 12 && digits.startsWith('91')) primaryMobile = `+${digits}`;
+
+          let altMobile = l.alternateMobile || '—';
+          if (altMobile !== '—') {
+            const altDigits = altMobile.replace(/\D/g, '');
+            if (altDigits.length === 10) altMobile = `+91${altDigits}`;
+            else if (altDigits.length === 12 && altDigits.startsWith('91')) altMobile = `+${altDigits}`;
+          }
+
+          let guardianMobile = l.guardianMobile || '—';
+          if (guardianMobile !== '—') {
+            const gDigits = guardianMobile.replace(/\D/g, '');
+            if (gDigits.length === 10) guardianMobile = `+91${gDigits}`;
+            else if (gDigits.length === 12 && gDigits.startsWith('91')) guardianMobile = `+${gDigits}`;
+          }
+
+          return {
+            'LEAD ID': l.leadNumber,
+            'ACADEMIC YEAR': l.academicYear || '2026-27',
+            'STUDENT NAME': l.studentName,
+            "FATHER'S NAME": l.fatherName || l.parentName || '—',
+            "FATHER'S OCCUPATION": l.fatherOccupation || '—',
+            "MOTHER'S NAME": l.motherName || '—',
+            "MOTHER'S OCCUPATION": l.motherOccupation || '—',
+            'GUARDIAN NAME': l.guardianName || '—',
+            'GUARDIAN MOBILE': guardianMobile,
+            'MOBILE PRIMARY': primaryMobile,
+            'MOBILE ALT': altMobile,
+            'WHATSAPP NUMBER': l.whatsappNumber || primaryMobile,
+            'PARENT EMAIL': l.parentEmail || '—',
+            'GENDER': l.studentGender || '—',
+            'DOB': formatExcelDate(l.studentDob),
+            'CURRENT GRADE': l.currentGrade || '—',
+            'APPLYING CLASS': l.applyingForGrade || (l.classGrade ? `Class ${l.classGrade}` : '—'),
+            'RESIDENT CITY': l.city || '—',
+            'PREFERRED LOCATION': l.preferredLocation || '—',
+            'PREFERRED BOARD': l.preferredBoard || '—',
+            'SCHOOL TYPE PREFERENCE': l.boardingPreference || 'Boarding',
+            'ANNUAL BUDGET': l.annualBudget || (l.budgetMax ? `₹${(l.budgetMax / 100000).toFixed(1)} Lakhs` : '—'),
+            'GENUINE LEAD?': l.isGenuine ? 'Yes (Genuine)' : 'No (Junk)',
+            'PARENT REQUIREMENTS': l.parentRequirements || '—',
+            'STATUS': l.status,
+            'PRIORITY': l.priority || 'MEDIUM',
+            'LEAD SCORE': l.score || 0,
+            'ASSIGNED COUNSELLOR': l.assignedCounsellor?.fullName || 'Unassigned',
+            'ASSIGNED MANAGER': l.assignedManager?.fullName || 'Unassigned',
+            'APPLICATIONS': l.applications?.map((a: any) => `${a.admissionNumber} (${a.schoolName || 'School'})`).join('; ') || 'None',
+            'DPDP CONSENT': l.dpdpConsent ? 'Consented' : 'Pending',
+            'CREATED AT': formatExcelDate(l.createdAt),
+          };
+        });
+
         return {
-          title: 'Leads Acquisition & Status Report',
-          summary: { total: leads.length, byStatus, bySource, byCity },
-          rows: leads.map((l) => ({
-            LeadID: l.leadNumber,
-            Student: l.studentName,
-            Parent: l.parentName,
-            Phone: l.parentPhone,
-            Class: l.applyingForGrade,
-            City: l.city || '',
-            Source: l.leadSource || '',
-            Status: l.status,
-            Score: l.score,
-            Counsellor: l.assignedCounsellor?.fullName || 'Unassigned',
-            CreatedAt: l.createdAt.toISOString(),
-          })),
+          title: 'Student Leads Master Directory',
+          summary: { total: uniqueLeads.length, byStatus, bySource, byCity },
+          rows,
         };
       }
 
@@ -217,8 +311,10 @@ export class ReportsService implements OnModuleInit {
           where,
           orderBy: { createdAt: 'desc' },
           include: {
-            school: { select: { name: true, city: true } },
+            lead: { select: { leadNumber: true, studentName: true } },
+            school: { select: { schoolCode: true, name: true, city: true } },
             counsellor: { select: { fullName: true } },
+            commissions: { select: { status: true } },
           },
         });
         const bySubStage: Record<string, number> = {};
@@ -228,19 +324,125 @@ export class ReportsService implements OnModuleInit {
           totalFeeAgreed += Number(a.feeAgreed || 0);
         }
         return {
-          title: 'Admissions & Sub-Stage (A/B/C) Report',
+          title: 'Sheet 3: Applications & Admissions Master',
           summary: { totalApplications: apps.length, bySubStage, totalFeeAgreed },
-          rows: apps.map((a) => ({
-            AppID: a.admissionNumber,
-            Student: a.studentName || '',
-            School: a.school?.name || a.schoolName || '',
-            Stage: a.stage,
-            SubStage: a.subStage,
-            FeeAgreed: a.feeAgreed,
-            CommissionGenerated: a.commissionGenerated ? 'Yes' : 'No',
-            Counsellor: a.counsellor?.fullName || '',
-            CreatedAt: a.createdAt.toISOString(),
-          })),
+          rows: apps.map((a) => {
+            const commStatus = a.commissions?.[0]?.status;
+            let commissionDisplay = a.commissionGenerated ? 'Yes' : 'No';
+            if (commStatus === 'reversed' || commStatus === 'REVERSED') {
+              commissionDisplay = 'Reversed';
+            }
+
+            return {
+              'ID': a.id,
+              'APP ID': a.admissionNumber,
+              'LEAD ID': a.lead?.leadNumber || a.leadId.slice(0, 8),
+              'SCHOOL ID': a.school?.schoolCode || a.schoolId.slice(0, 6),
+              'STUDENT NAME': a.studentName || a.lead?.studentName || '',
+              'SCHOOL NAME': a.school?.name || a.schoolName || '',
+              'STAGE': a.stage === 'admission_done' ? 'Admission Done' : a.stage === 'selected' ? 'Selected' : 'Applied',
+              'SUB-STAGE': a.subStage === 'C_formalities_done' ? 'C: Formalities Done' : (a.subStage || '—'),
+              'CONFERENCE CALL': a.conferenceCallStatus ? (a.conferenceCallStatus.toLowerCase().includes('done') ? 'Done ✓' : a.conferenceCallStatus) : '—',
+              'TEST DATE': formatExcelDate(a.testDate),
+              'VISIT DATE': formatExcelDate(a.visitDate),
+              'REG. NUMBER': a.registrationNumber || '—',
+              'SELECTED DATE': formatExcelDate(a.selectedDate),
+              'ADMISSION DATE': formatExcelDate(a.admissionDate),
+              'CHILD DROP DATE': formatExcelDate(a.childDropDate),
+              'COMMISSION': commissionDisplay,
+              'SCHOOL APP NO.': a.schoolAppNo || '—',
+              'NEXT FOLLOW-UP': formatExcelDate(a.nextFollowUpDate),
+              'CREATED AT': formatExcelDate(a.createdAt),
+              'DELETED AT': a.deletedAt ? formatExcelDate(a.deletedAt) : '—',
+            };
+          }),
+        };
+      }
+
+      case 'full-admission-process': {
+        const where: any = { deletedAt: null, ...this.buildDateWhere(query, 'createdAt') };
+        if (role === 'jr_counsellor' && user?.id) where.counsellorId = user.id;
+        if (query.school_id) where.schoolId = query.school_id;
+        if (query.counsellor_id) where.counsellorId = query.counsellor_id;
+
+        const apps = await this.prisma.admission.findMany({
+          where,
+          orderBy: { createdAt: 'desc' },
+          include: {
+            lead: {
+              include: {
+                assignedCounsellor: { select: { fullName: true } },
+                assignedManager: { select: { fullName: true } },
+                tours: { orderBy: { scheduledAt: 'desc' }, take: 1 },
+              },
+            },
+            school: { select: { schoolCode: true, name: true, board: true, city: true, minFeeAnnual: true, maxFeeAnnual: true } },
+            counsellor: { select: { fullName: true } },
+            installments: { orderBy: { installmentNumber: 'asc' } },
+            commissions: { select: { commissionCode: true, amount: true, jrAmount: true, srAmount: true, netProfit: true, status: true } },
+          },
+        });
+
+        const rows = apps.map((a) => {
+          const l = a.lead;
+          const s = a.school;
+          const comm = a.commissions?.[0];
+          const latestTour = l?.tours?.[0];
+          const totalFee = Number(a.feeAgreed || 0);
+          const paidFee = (a.installments || [])
+            .filter((i) => i.status === 'PAID')
+            .reduce((sum, i) => sum + Number(i.amount || 0), 0);
+          const paymentStatus =
+            paidFee >= totalFee && totalFee > 0
+              ? 'Full Paid'
+              : paidFee > 0
+              ? 'Partial Paid'
+              : 'Payment Pending';
+
+          return {
+            'APP ID': a.admissionNumber,
+            'LEAD ID': l?.leadNumber || a.leadId.slice(0, 8),
+            'ACADEMIC YEAR': l?.academicYear || '2026-27',
+            'STUDENT NAME': a.studentName || l?.studentName || '—',
+            'PARENT NAME': l?.fatherName || l?.parentName || '—',
+            'PARENT PHONE': l?.parentPhone || '—',
+            'CITY': l?.city || '—',
+            'ANNUAL BUDGET': l?.annualBudget || '—',
+            'SCHOOL CODE': s?.schoolCode || a.schoolId.slice(0, 6),
+            'SCHOOL NAME': s?.name || a.schoolName || '—',
+            'BOARD': s?.board || '—',
+            'CURRENT STAGE': a.stage === 'admission_done' ? 'Admission Done' : a.stage === 'selected' ? 'Selected' : (a.stage || 'Applied'),
+            'SUB-STAGE': a.subStage === 'C_formalities_done' ? 'C: Formalities Done' : (a.subStage || '—'),
+            'VERIFIED GENUINE': l?.isGenuine ? 'Yes (Genuine)' : 'No',
+            'CONFERENCE CALL': a.conferenceCallStatus || '—',
+            'TEST DATE': formatExcelDate(a.testDate),
+            'CAMPUS / ZOOM TOUR DATE': formatExcelDate(a.visitDate || latestTour?.scheduledAt),
+            'REGISTRATION NUMBER': a.registrationNumber || '—',
+            'SCHOOL APP NUMBER': a.schoolAppNo || '—',
+            'SELECTION DATE': formatExcelDate(a.selectedDate),
+            'ADMISSION CONFIRMED DATE': formatExcelDate(a.admissionDate),
+            'TOTAL FEE AGREED': totalFee,
+            'TOTAL FEE PAID': paidFee,
+            'BALANCE DUE': Math.max(totalFee - paidFee, 0),
+            'PAYMENT STATUS': paymentStatus,
+            'INSTALLMENTS PLAN': a.installments?.length ? `${a.installments.length} Tier Milestones` : 'Single Payment',
+            'LATEST UTR': a.installments?.find((i) => i.utrNumber)?.utrNumber || '—',
+            'COMMISSION ELIGIBLE': a.commissionGenerated ? 'Yes (Sub-Stage C)' : 'No',
+            'COMPANY COMMISSION': Number(comm?.amount || 0),
+            'JR COUNSELLOR SHARE': Number(comm?.jrAmount || 0),
+            'SR MANAGER SHARE': Number(comm?.srAmount || 0),
+            'NET PROFIT': Number(comm?.netProfit || 0),
+            'COMMISSION STATUS': comm?.status || 'Pending',
+            'ASSIGNED COUNSELLOR': a.counsellor?.fullName || l?.assignedCounsellor?.fullName || '—',
+            'ASSIGNED MANAGER': l?.assignedManager?.fullName || '—',
+            'PROCESS INITIATED AT': formatExcelDate(a.createdAt),
+          };
+        });
+
+        return {
+          title: 'End-to-End Admission Full Process Lifecycle Report',
+          summary: { totalApplications: apps.length },
+          rows,
         };
       }
 
@@ -790,7 +992,140 @@ export class ReportsService implements OnModuleInit {
     });
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(cleanRows);
-    XLSX.utils.book_append_sheet(wb, ws, reportKey.replace(/[^a-zA-Z0-9]/g, '_').slice(0, 30) || 'Report');
+    ws['!cols'] = autoFitColumns(cleanRows);
+    let sheetName = reportKey.replace(/[^a-zA-Z0-9]/g, '_').slice(0, 30) || 'Report';
+    if (reportKey === 'leads') sheetName = 'Sheet 1 - Leads';
+    else if (reportKey === 'admissions') sheetName = 'Sheet 3 - Applications';
+    else if (reportKey === 'full-admission-process') sheetName = 'Admission Full Process';
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }) as Buffer;
+  }
+
+  async buildMasterCrmWorkbookBuffer(user: any): Promise<Buffer> {
+    const wb = XLSX.utils.book_new();
+
+    const addCleanSheet = (sheetName: string, rows: any[]) => {
+      const cleanRows = (rows.length ? rows : [{ Status: 'No records available' }]).map((r) => {
+        const obj: Record<string, any> = {};
+        for (const [k, v] of Object.entries(r)) {
+          obj[k] = typeof v === 'string' ? sanitizeSpreadsheetCell(v) : v;
+        }
+        return obj;
+      });
+      const ws = XLSX.utils.json_to_sheet(cleanRows);
+      ws['!cols'] = autoFitColumns(cleanRows);
+      XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    };
+
+    // 1. Sheet 1: Leads
+    try {
+      const leadsData = await this.computeReportData('leads', {}, user);
+      addCleanSheet('Sheet 1 - Leads', leadsData.rows || []);
+    } catch (e) {
+      addCleanSheet('Sheet 1 - Leads', [{ Error: 'Could not load leads' }]);
+    }
+
+    // 2. Sheet 2: Schools
+    try {
+      const schools = await this.prisma.school.findMany({
+        where: { deletedAt: null },
+        orderBy: { name: 'asc' },
+      });
+      const schoolRows = schools.map((s) => ({
+        'SCHOOL CODE': s.schoolCode,
+        'SCHOOL NAME': s.name,
+        'CITY': s.city,
+        'STATE': s.state || '—',
+        'BOARD': s.board,
+        'TYPE': s.genderType === 'co_ed' ? 'Co-Ed Boarding' : `${s.genderType} Boarding`,
+        'CATEGORY': s.category,
+        'ANNUAL FEE': s.feesDisplay || (s.minFeeAnnual ? `₹${s.minFeeAnnual.toLocaleString('en-IN')} - ₹${s.maxFeeAnnual.toLocaleString('en-IN')}` : '—'),
+        'COMMISSION SLAB': s.defaultCommission ? `₹${s.defaultCommission.toLocaleString('en-IN')}` : 'Standard',
+        'ACTIVE STATUS': s.status || 'Active',
+        'CONTACT EMAIL': s.admissionsEmail || '—',
+        'CONTACT PHONE': s.phone || '—',
+      }));
+      addCleanSheet('Sheet 2 - Schools', schoolRows);
+    } catch (e) {
+      addCleanSheet('Sheet 2 - Schools', [{ Error: 'Could not load schools' }]);
+    }
+
+    // 3. Sheet 3: Applications & Admissions (Matching Screenshot)
+    try {
+      const admissionsData = await this.computeReportData('admissions', {}, user);
+      addCleanSheet('Sheet 3 - Applications', admissionsData.rows || []);
+    } catch (e) {
+      addCleanSheet('Sheet 3 - Applications', [{ Error: 'Could not load admissions' }]);
+    }
+
+    // 4. Sheet 4: Fee Milestones
+    try {
+      const installments = await this.prisma.admissionInstallment.findMany({
+        include: {
+          admission: {
+            select: {
+              admissionNumber: true,
+              studentName: true,
+              schoolName: true,
+            },
+          },
+        },
+        orderBy: { dueDate: 'asc' },
+      });
+      const feeRows = installments.map((i) => ({
+        'MILESTONE ID': i.id.slice(0, 8),
+        'APP ID': i.admission?.admissionNumber || '—',
+        'STUDENT NAME': i.admission?.studentName || '—',
+        'SCHOOL': i.admission?.schoolName || '—',
+        'INSTALLMENT NO': `Inst #${i.installmentNumber || 1}`,
+        'DESCRIPTION': i.title,
+        'PERCENTAGE': `${i.percentage}%`,
+        'AMOUNT DUE': Number(i.amount || 0),
+        'DUE DATE': formatExcelDate(i.dueDate),
+        'PAID AMOUNT': i.status === 'PAID' ? Number(i.amount || 0) : 0,
+        'PAID DATE': formatExcelDate(i.paidAt),
+        'UTR NUMBER': i.utrNumber || '—',
+        'PAYMENT MODE': i.paymentMode || '—',
+        'STATUS': i.status,
+      }));
+      addCleanSheet('Sheet 4 - Fee Milestones', feeRows);
+    } catch (e) {
+      addCleanSheet('Sheet 4 - Fee Milestones', [{ Error: 'Could not load installments' }]);
+    }
+
+    // 5. Sheet 5: Virtual Tours & Campus Visits
+    try {
+      const tours = await this.prisma.schoolTour.findMany({
+        include: {
+          lead: {
+            select: {
+              leadNumber: true,
+              studentName: true,
+              assignedCounsellor: { select: { fullName: true } },
+            },
+          },
+          school: { select: { name: true } },
+        },
+        orderBy: { scheduledAt: 'desc' },
+      });
+      const tourRows = tours.map((t) => ({
+        'TOUR ID': t.id.slice(0, 8),
+        'LEAD ID': t.lead?.leadNumber || '—',
+        'STUDENT NAME': t.lead?.studentName || '—',
+        'SCHOOL': t.school?.name || t.schoolName || '—',
+        'SCHEDULED DATE': formatExcelDate(t.scheduledAt),
+        'TOUR TYPE': t.tourType === 'ONLINE_ZOOM' ? 'Virtual (Zoom)' : 'Campus Visit',
+        'ZOOM / MEETING LINK': t.zoomMeetingUrl || '—',
+        'STATUS': t.status,
+        'COUNSELLOR': t.lead?.assignedCounsellor?.fullName || '—',
+        'FEEDBACK': t.postTourFeedback || '—',
+        'PROCEED ADMISSION': t.proceedAdmission ? 'Yes' : 'Pending',
+      }));
+      addCleanSheet('Sheet 5 - Tours & Visits', tourRows);
+    } catch (e) {
+      addCleanSheet('Sheet 5 - Tours & Visits', [{ Error: 'Could not load tours' }]);
+    }
+
     return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }) as Buffer;
   }
 

@@ -239,7 +239,7 @@ export class LeadsController {
     return apiEnvelope(lead, 'Stage updated', { lead });
   }
 
-  @Roles('SUPER_ADMIN', 'SENIOR_MANAGER')
+  @Roles('SUPER_ADMIN', 'SENIOR_MANAGER', 'COUNSELLOR')
   @Put(':id/follow-up')
   async updateFollowUp(@Param('id') id: string, @Body() body: any, @Req() req: any) {
     const lead = await this.leadsService.updateFollowUpWithReason(
@@ -251,7 +251,7 @@ export class LeadsController {
     return apiEnvelope(lead, 'Follow-up date updated with audit reason', { lead });
   }
 
-  @Roles('SUPER_ADMIN', 'SENIOR_MANAGER')
+  @Roles('SUPER_ADMIN', 'SENIOR_MANAGER', 'COUNSELLOR')
   @Post(':id/date-change')
   async dateChange(@Param('id') id: string, @Body() body: any, @Req() req: any) {
     const lead = await this.leadsService.updateFollowUpWithReason(

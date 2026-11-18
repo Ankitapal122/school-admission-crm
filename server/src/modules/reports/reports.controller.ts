@@ -64,6 +64,18 @@ export class ReportsController {
     return res.end(pdf);
   }
 
+  @Get('master-export')
+  async masterExport(@Req() r: any, @Res() res: Response) {
+    const buf = await this.reportsService.buildMasterCrmWorkbookBuffer(r.user);
+    res.set({
+      'Content-Type':
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': 'attachment; filename="CRM_Master_Workbook.xlsx"',
+      'Content-Length': buf.length,
+    });
+    return res.end(buf);
+  }
+
   @Get('leads')
   leads(@Query() q: any, @Req() r: any, @Res() res: Response) {
     return this.serve('leads', q, r.user, res);
@@ -77,6 +89,11 @@ export class ReportsController {
   @Get('admissions')
   admissions(@Query() q: any, @Req() r: any, @Res() res: Response) {
     return this.serve('admissions', q, r.user, res);
+  }
+
+  @Get('full-admission-process')
+  fullAdmissionProcess(@Query() q: any, @Req() r: any, @Res() res: Response) {
+    return this.serve('full-admission-process', q, r.user, res);
   }
 
   @Get('school-wise')

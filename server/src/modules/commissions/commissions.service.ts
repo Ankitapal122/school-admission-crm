@@ -159,16 +159,28 @@ export class CommissionsService {
       orderBy: { version: 'desc' },
     });
 
-    const companyAmount = Number(
+    const agreedFeeBase = Number(
+      admission.finalFee || admission.agreedFee || admission.school?.annualFee || 350000,
+    );
+    const rawCompanyRule = Number(
       admission.school?.defaultCommission || rule?.totalCommissionAmount || 35000,
     );
-    const jrAmount = Number(
+    const rawJrRule = Number(
       admission.school?.jrCommission || rule?.counsellorShare || 5000,
     );
-    const srAmount = Number(
+    const rawSrRule = Number(
       admission.school?.srCommission || rule?.managerShare || 7000,
     );
-    const netProfit = Math.max(0, companyAmount - jrAmount - srAmount);
+
+    // Strict Business Split as requested:
+    // Counsellor: 10% of total fee
+    // Manager: 15% of total fee
+    // Admin: 20% of total fee
+    // Remaining (55%) stays with School
+    const jrAmount = Math.round((agreedFeeBase * 10) / 100);
+    const srAmount = Math.round((agreedFeeBase * 15) / 100);
+    const netProfit = Math.round((agreedFeeBase * 20) / 100);
+    const companyAmount = jrAmount + srAmount + netProfit; // 45% Agency Commission Total
 
     const jrName = admission.counsellor?.fullName || 'Jr. Counsellor';
     const srManager =
@@ -193,7 +205,7 @@ export class CommissionsService {
         beneficiaryType: 'THREE_WAY_SPLIT',
         beneficiaryRole: admission.counsellor?.role || Role.jr_counsellor,
         teamId: admission.teamId || admission.counsellor?.teamId || null,
-        originalAmount: companyAmount,
+        originalAmount: agreedFeeBase,
         amount: companyAmount,
         jrAmount,
         jrName,

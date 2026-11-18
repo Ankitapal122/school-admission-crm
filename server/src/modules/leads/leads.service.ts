@@ -15,6 +15,7 @@ import {
   normalizeCanonicalRole,
   normalizeIndianPhone,
   parseClassGrade,
+  sanitizeSpreadsheetCell,
   toBlueprintLeadStatus,
 } from '../../common/utils/crm.utils';
 import {
@@ -327,23 +328,38 @@ export class LeadsService implements OnModuleInit {
     admissionClass?: string;
     classGrade?: number;
     class?: any;
+    excludeLeadId?: string;
   }) {
     const phoneInput = body.mobile || body.parentPhone || body.mobile_primary || '';
-    const normPhone = phoneInput ? normalizeIndianPhone(phoneInput, false) : null;
+    const rawDigits = phoneInput.replace(/\D/g, '');
+    const tenDigits = rawDigits.length >= 10 ? rawDigits.slice(-10) : '';
+    const phoneCandidates = tenDigits
+      ? [`+91${tenDigits}`, `91${tenDigits}`, tenDigits]
+      : [];
     const studentName = (body.studentName || body.student_name || '').trim();
     const classGrade = parseClassGrade(body.classGrade ?? body.class ?? body.admissionClass, 0);
 
-    if (!normPhone && !studentName) {
-      return { isDuplicate: false, is_duplicate: false, matches: [] };
+    if (!tenDigits && !studentName) {
+      return { isDuplicate: false, is_duplicate: false, phoneAlreadyExists: false, matches: [] };
     }
 
     const matches = await this.prisma.lead.findMany({
       where: {
         deletedAt: null,
         status: { notIn: ['merged', 'MERGED'] },
-        ...(normPhone ? { parentPhone: normPhone } : {}),
-        ...(studentName ? { studentName: { equals: studentName, mode: 'insensitive' } } : {}),
-        ...(classGrade > 0 ? { classGrade } : {}),
+        ...(body.excludeLeadId ? { id: { not: body.excludeLeadId } } : {}),
+        OR: [
+          ...(phoneCandidates.length > 0
+            ? [
+                { parentPhone: { in: phoneCandidates } },
+                { alternateMobile: { in: phoneCandidates } },
+                { whatsappNumber: { in: phoneCandidates } },
+              ]
+            : []),
+          ...(studentName
+            ? [{ studentName: { equals: studentName, mode: 'insensitive' as const } }]
+            : []),
+        ],
       },
       select: {
         id: true,
@@ -355,13 +371,30 @@ export class LeadsService implements OnModuleInit {
         status: true,
         forceExpired: true,
         createdAt: true,
+        assignedCounsellor: { select: { fullName: true } },
       },
       take: 10,
+    });
+
+    const phoneMatch = matches.find((m) => {
+      const mDigits = (m.parentPhone || '').replace(/\D/g, '').slice(-10);
+      return tenDigits && mDigits === tenDigits;
     });
 
     return {
       isDuplicate: matches.length > 0,
       is_duplicate: matches.length > 0,
+      phoneAlreadyExists: !!phoneMatch,
+      phoneMatchedLead: phoneMatch
+        ? {
+            id: phoneMatch.id,
+            leadNumber: phoneMatch.leadNumber,
+            studentName: phoneMatch.studentName,
+            parentPhone: phoneMatch.parentPhone,
+            status: phoneMatch.status,
+            counsellor: phoneMatch.assignedCounsellor?.fullName || 'Unassigned',
+          }
+        : null,
       matches: matches.map((m) => ({
         ...m,
         lead_id: m.leadNumber,
@@ -455,6 +488,46 @@ export class LeadsService implements OnModuleInit {
           'Parent',
       ).trim();
 
+    const tenDigitPhone = parentPhone.replace(/\D/g, '').slice(-10);
+    const phoneCandidates = [
+      parentPhone,
+      `+91${tenDigitPhone}`,
+      `91${tenDigitPhone}`,
+      tenDigitPhone,
+    ];
+
+    const existingPhoneLead = await this.prisma.lead.findFirst({
+      where: {
+        deletedAt: null,
+        status: { notIn: ['merged', 'MERGED'] },
+        OR: [
+          { parentPhone: { in: phoneCandidates } },
+          { alternateMobile: { in: phoneCandidates } },
+          { whatsappNumber: { in: phoneCandidates } },
+        ],
+      },
+      select: {
+        id: true,
+        leadNumber: true,
+        studentName: true,
+        parentPhone: true,
+        status: true,
+        createdAt: true,
+        assignedCounsellor: { select: { fullName: true } },
+      },
+    });
+
+    if (existingPhoneLead) {
+      const counsellor = existingPhoneLead.assignedCounsellor?.fullName
+        ? ` (Counsellor: ${existingPhoneLead.assignedCounsellor.fullName})`
+        : '';
+      throw new ConflictException(
+        `Pehle se is number se lead register ho chuki hai! (Lead ID: ${
+          existingPhoneLead.leadNumber || existingPhoneLead.id
+        }, Student: "${existingPhoneLead.studentName}"${counsellor}). Ek hi mobile number se duplicate lead submit nahi ho sakti.`
+      );
+    }
+
     const dup = await this.checkDuplicate({
       mobile: parentPhone,
       studentName,
@@ -529,6 +602,12 @@ export class LeadsService implements OnModuleInit {
         dpdpConsent: Boolean(body.consent_given ?? body.dpdpConsent),
         dpdpConsentAt: body.consent_given || body.dpdpConsent ? new Date() : null,
         notes: body.initial_remark || body.remarks || body.notes || null,
+        remarksJson: {
+          motherName: body.mother_name || body.motherName || '',
+          parentEmail: body.email || body.parentEmail || '',
+          schoolGenderPref: body.schoolGenderPref || body.school_gender_pref || 'co_ed',
+          state: body.state || 'Uttarakhand',
+        },
         overrideReason: body.overrideReason || body.override_reason || null,
         nextFollowUpDate: followUpDate,
         createdById: user.id,
@@ -576,6 +655,18 @@ export class LeadsService implements OnModuleInit {
         link: `/leads/${created.id}`,
       });
     }
+
+    // Always notify Senior Managers & Super Admin when a new lead is entered
+    await this.notifications
+      .notifyRoles(['SENIOR_MANAGER', 'SUPER_ADMIN'], {
+        type: 'lead_assigned',
+        title: `New Lead Entered: ${leadNumber} (${studentName})`,
+        message: `${user.fullName || 'Counsellor'} entered a new inquiry for ${studentName} (${applyingForGrade}). Ready for Genuine/Verification check.`,
+        relatedEntityId: created.id,
+        relatedEntityType: 'lead',
+        link: `/leads/${created.id}`,
+      })
+      .catch(() => {});
 
     return {
       lead: created,
@@ -646,6 +737,35 @@ export class LeadsService implements OnModuleInit {
     }
     if (body.parentPhone !== undefined || body.mobile_primary !== undefined) {
       updateData.parentPhone = normalizeIndianPhone(body.mobile_primary ?? body.parentPhone, true);
+      if (updateData.parentPhone && updateData.parentPhone !== existing.parentPhone) {
+        const tenDigitPhone = updateData.parentPhone.replace(/\D/g, '').slice(-10);
+        const phoneCandidates = [
+          updateData.parentPhone,
+          `+91${tenDigitPhone}`,
+          `91${tenDigitPhone}`,
+          tenDigitPhone,
+        ];
+        const otherLead = await this.prisma.lead.findFirst({
+          where: {
+            id: { not: existing.id },
+            deletedAt: null,
+            status: { notIn: ['merged', 'MERGED'] },
+            OR: [
+              { parentPhone: { in: phoneCandidates } },
+              { alternateMobile: { in: phoneCandidates } },
+              { whatsappNumber: { in: phoneCandidates } },
+            ],
+          },
+          select: { id: true, leadNumber: true, studentName: true },
+        });
+        if (otherLead) {
+          throw new ConflictException(
+            `Pehle se is number se lead register ho chuki hai! (Lead ID: ${
+              otherLead.leadNumber || otherLead.id
+            }, Student: "${otherLead.studentName}"). Duplicate phone number update nahi kiya ja sakta.`
+          );
+        }
+      }
     }
     if (body.alternateMobile !== undefined || body.mobile_alternate !== undefined) {
       updateData.alternateMobile = normalizeIndianPhone(body.mobile_alternate ?? body.alternateMobile, false);
@@ -681,6 +801,25 @@ export class LeadsService implements OnModuleInit {
     }
     if (body.previousClassPercentage !== undefined || body.previous_class_percentage !== undefined) {
       updateData.previousClassPercentage = body.previous_class_percentage ?? body.previousClassPercentage;
+    }
+    if (body.academicYear !== undefined || body.academic_year !== undefined) {
+      updateData.academicYear = body.academic_year ?? body.academicYear;
+    }
+    if (body.studentGender !== undefined || body.gender !== undefined) {
+      updateData.studentGender = body.gender ?? body.studentGender;
+    }
+    if (body.studentDob !== undefined || body.student_dob !== undefined) {
+      const dobVal = body.student_dob ?? body.studentDob;
+      updateData.studentDob = dobVal ? new Date(dobVal) : null;
+    }
+    if (body.currentGrade !== undefined || body.current_grade !== undefined) {
+      updateData.currentGrade = body.current_grade ?? body.currentGrade;
+    }
+    if (body.parentRequirements !== undefined || body.parent_requirements !== undefined) {
+      updateData.parentRequirements = body.parent_requirements ?? body.parentRequirements;
+    }
+    if (body.budgetMax !== undefined || body.budget_max !== undefined) {
+      updateData.budgetMax = Number(body.budget_max ?? body.budgetMax);
     }
     if (body.notes !== undefined) updateData.notes = body.notes;
     if (body.status !== undefined && canonRole !== 'COUNSELLOR') {
@@ -1835,14 +1974,28 @@ export class LeadsService implements OnModuleInit {
 
   async verifyLead(id: string, decision: string, returnRemarks: string, user: any) {
     const lead = await this.resolveLead(id);
-    const approved = String(decision).toUpperCase() === 'APPROVE';
+    const upper = String(decision || 'APPROVE').toUpperCase();
+    if (upper === 'PENDING_FOLLOWUP' || upper === 'NO_ANSWER') {
+      return this.prisma.lead.update({
+        where: { id: lead.id },
+        data: {
+          status: 'contacted',
+          verificationStatus: 'PENDING_VERIFICATION',
+          returnRemarks: returnRemarks || 'Parent did not pick call — kept in Pending Follow-up (Not Fake)',
+          nextFollowUpDate: new Date(Date.now() + 2 * 86_400_000),
+          version: { increment: 1 },
+        },
+      });
+    }
+    const approved = upper === 'APPROVE' || upper === 'GENUINE';
     return this.prisma.lead.update({
       where: { id: lead.id },
       data: {
+        status: approved ? 'qualified' : lead.status,
         verificationStatus: approved ? 'APPROVED' : 'RETURNED',
         verifiedById: user.id,
         verifiedAt: new Date(),
-        returnRemarks: approved ? null : returnRemarks || 'Please update remarks',
+        returnRemarks: approved ? null : returnRemarks || 'Correction required by Manager',
         version: { increment: 1 },
       },
     });
@@ -1879,26 +2032,116 @@ export class LeadsService implements OnModuleInit {
     });
   }
 
+  private formatLeadExcelDate(d: any): string {
+    if (!d) return '—';
+    const date = new Date(d);
+    if (isNaN(date.getTime())) return '—';
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+    return `${day} ${month} ${year}`;
+  }
+
+  private autoFitLeadColumns(rows: any[]) {
+    if (!rows || !rows.length) return [];
+    const colWidths: Record<string, number> = {};
+    const keys = Object.keys(rows[0]);
+    for (const key of keys) {
+      colWidths[key] = key.length;
+    }
+    for (const row of rows) {
+      for (const key of keys) {
+        const val = row[key];
+        const len = val !== null && val !== undefined ? String(val).length : 0;
+        if (len > colWidths[key]) {
+          colWidths[key] = Math.min(len, 45);
+        }
+      }
+    }
+    return keys.map((k) => ({ wch: Math.max(colWidths[k] + 3, 12) }));
+  }
+
   buildLeadsExcelBuffer(leads: any[]): Buffer {
-    const rows = leads.map((l) => ({
-      'Lead ID': l.leadNumber,
-      'Student Name': l.studentName,
-      Class: l.applyingForGrade,
-      Board: l.preferredBoard,
-      'Parent Name': l.parentName,
-      Mobile: l.parentPhone,
-      City: l.city || '',
-      Budget: l.annualBudget || '',
-      Status: l.status,
-      Score: l.score,
-      Source: l.leadSource || '',
-      'Follow Up Date': l.nextFollowUpDate ? new Date(l.nextFollowUpDate).toISOString().slice(0, 10) : '',
-      Counsellor: l.assignedCounsellor?.fullName || 'Unassigned',
-      'Created At': new Date(l.createdAt).toISOString().slice(0, 10),
-    }));
+    // Deduplicate leads by unique leadNumber / id
+    const seen = new Set<string>();
+    const uniqueLeads: any[] = [];
+    for (const l of leads) {
+      const key = (l.leadNumber || l.id || '').trim().toUpperCase();
+      if (key && !seen.has(key)) {
+        seen.add(key);
+        uniqueLeads.push(l);
+      }
+    }
+
+    const rows = uniqueLeads.map((l) => {
+      let primaryMobile = l.parentPhone || l.mobile || '';
+      const digits = primaryMobile.replace(/\D/g, '');
+      if (digits.length === 10) primaryMobile = `+91${digits}`;
+      else if (digits.length === 12 && digits.startsWith('91')) primaryMobile = `+${digits}`;
+
+      let altMobile = l.alternateMobile || '—';
+      if (altMobile !== '—') {
+        const altDigits = altMobile.replace(/\D/g, '');
+        if (altDigits.length === 10) altMobile = `+91${altDigits}`;
+        else if (altDigits.length === 12 && altDigits.startsWith('91')) altMobile = `+${altDigits}`;
+      }
+
+      let guardianMobile = l.guardianMobile || '—';
+      if (guardianMobile !== '—') {
+        const gDigits = guardianMobile.replace(/\D/g, '');
+        if (gDigits.length === 10) guardianMobile = `+91${gDigits}`;
+        else if (gDigits.length === 12 && gDigits.startsWith('91')) guardianMobile = `+${gDigits}`;
+      }
+
+      return {
+        'LEAD ID': l.leadNumber,
+        'ACADEMIC YEAR': l.academicYear || '2026-27',
+        'STUDENT NAME': l.studentName,
+        "FATHER'S NAME": l.fatherName || l.parentName || '—',
+        "FATHER'S OCCUPATION": l.fatherOccupation || '—',
+        "MOTHER'S NAME": l.motherName || '—',
+        "MOTHER'S OCCUPATION": l.motherOccupation || '—',
+        'GUARDIAN NAME': l.guardianName || '—',
+        'GUARDIAN MOBILE': guardianMobile,
+        'MOBILE PRIMARY': primaryMobile,
+        'MOBILE ALT': altMobile,
+        'WHATSAPP NUMBER': l.whatsappNumber || primaryMobile,
+        'PARENT EMAIL': l.parentEmail || '—',
+        'GENDER': l.studentGender || '—',
+        'DOB': this.formatLeadExcelDate(l.studentDob),
+        'CURRENT GRADE': l.currentGrade || '—',
+        'APPLYING CLASS': l.applyingForGrade || (l.classGrade ? `Class ${l.classGrade}` : '—'),
+        'RESIDENT CITY': l.city || '—',
+        'PREFERRED LOCATION': l.preferredLocation || '—',
+        'PREFERRED BOARD': l.preferredBoard || '—',
+        'SCHOOL TYPE PREFERENCE': l.boardingPreference || 'Boarding',
+        'ANNUAL BUDGET': l.annualBudget || (l.budgetMax ? `₹${(l.budgetMax / 100000).toFixed(1)} Lakhs` : '—'),
+        'GENUINE LEAD?': l.isGenuine ? 'Yes (Genuine)' : 'No (Junk)',
+        'PARENT REQUIREMENTS': l.parentRequirements || '—',
+        'STATUS': l.status,
+        'PRIORITY': l.priority || 'MEDIUM',
+        'LEAD SCORE': l.score || 0,
+        'ASSIGNED COUNSELLOR': l.assignedCounsellor?.fullName || 'Unassigned',
+        'ASSIGNED MANAGER': l.assignedManager?.fullName || 'Unassigned',
+        'APPLICATIONS': Array.isArray(l.applications) ? l.applications.map((a: any) => `${a.admissionNumber} (${a.schoolName || 'School'})`).join('; ') : (l.applications || 'None'),
+        'DPDP CONSENT': l.dpdpConsent ? 'Consented' : 'Pending',
+        'CREATED AT': this.formatLeadExcelDate(l.createdAt),
+      };
+    });
+
+    const cleanRows = (rows.length ? rows : [{ Status: 'No leads available' }]).map((r: any) => {
+      const obj: Record<string, any> = {};
+      for (const [k, v] of Object.entries(r)) {
+        obj[k] = typeof v === 'string' ? sanitizeSpreadsheetCell(v) : v;
+      }
+      return obj;
+    });
+
     const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(rows);
-    XLSX.utils.book_append_sheet(wb, ws, 'Leads');
+    const ws = XLSX.utils.json_to_sheet(cleanRows);
+    ws['!cols'] = this.autoFitLeadColumns(cleanRows);
+    XLSX.utils.book_append_sheet(wb, ws, 'Sheet 1 - Leads');
     return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }) as Buffer;
   }
 }

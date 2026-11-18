@@ -4,14 +4,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 import path from 'path';
 
 export default defineConfig({
-  plugins: [
-    react(),
-    VitePWA({
-      selfDestroying: true,
-      registerType: 'autoUpdate',
-      manifest: false,
-    }),
-  ],
+  plugins: [react()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

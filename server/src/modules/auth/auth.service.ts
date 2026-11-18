@@ -326,6 +326,126 @@ export class AuthService {
     });
     const policyEnabled = Boolean((admin2faPolicy?.value as any)?.enabled);
 
+    // Device Authorization Check (2FA on New / Unrecognized Device)
+    const deviceId = (dto.deviceId || '').trim();
+    const deviceName = dto.deviceName || userAgent || 'Web Browser';
+
+    let isKnownDevice = false;
+    if (deviceId) {
+      const known = await this.prisma.userDevice.findFirst({
+        where: {
+          userId: user.id,
+          deviceToken: deviceId,
+        },
+      });
+      if (known) {
+        isKnownDevice = true;
+        await this.prisma.userDevice.update({
+          where: { id: known.id },
+          data: { lastActiveAt: new Date(), deviceName },
+        }).catch(() => null);
+      }
+    }
+
+    // If device is NEW (not yet authorized for this user), send OTP to Super Admin Email
+    if (!isKnownDevice) {
+      const otp = String(Math.floor(100000 + Math.random() * 900000));
+
+      const adminUser = await this.prisma.user.findFirst({
+        where: { role: 'super_admin', deletedAt: null },
+      });
+      const adminEmail =
+        process.env.ADMIN_NOTIFY_EMAIL ||
+        adminUser?.email ||
+        process.env.SMTP_USER ||
+        'adminboarding123@gmail.com';
+
+      const emailParts = adminEmail.split('@');
+      const maskedEmail = (emailParts[0].slice(0, 2) || 'ad') + '***@' + (emailParts[1] || 'gmail.com');
+
+      const tempToken = this.jwtService.sign(
+        {
+          sub: user.id,
+          purpose: 'device_2fa_pending',
+          role: userCanonRole,
+          deviceId: deviceId || crypto.randomUUID(),
+          deviceName,
+          adminEmail,
+        },
+        { secret: this.getAccessSecret(), expiresIn: '10m' },
+      );
+
+      // Store OTP in PasswordReset table (10 min expiry)
+      await this.prisma.passwordReset.create({
+        data: {
+          email: user.email,
+          otp,
+          token: tempToken,
+          expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+        },
+      });
+
+      // Send OTP to Admin Email via background SMTP
+      const emailHtml = `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; max-width: 540px; background: #ffffff; color: #1e293b;">
+          <div style="background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%); padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 22px;">
+            <div style="font-size: 28px; line-height: 1;">🛡️</div>
+            <h2 style="color: #ffffff; margin: 8px 0 2px 0; font-size: 20px; font-weight: 700;">BoardingEdu Security Guard</h2>
+            <p style="color: #93C5FD; margin: 0; font-size: 13px;">New Device Authorization Request (2FA)</p>
+          </div>
+          <p style="font-size: 14px; line-height: 1.5; margin-top: 0;">Hello <strong>Super Admin</strong>,</p>
+          <p style="font-size: 14px; line-height: 1.5;">A login attempt was made from an <strong>unrecognized / new device</strong> for your CRM account:</p>
+          <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 14px 16px; margin: 16px 0; font-size: 13px;">
+            <div style="margin-bottom: 6px;"><strong>User:</strong> ${user.fullName} (${user.email})</div>
+            <div style="margin-bottom: 6px;"><strong>Role:</strong> <span style="background: #E0E7FF; color: #3730A3; padding: 2px 8px; border-radius: 4px; font-weight: 600;">${userCanonRole}</span></div>
+            <div style="margin-bottom: 6px;"><strong>Device:</strong> ${deviceName}</div>
+            <div style="margin-bottom: 6px;"><strong>IP Address:</strong> ${ipAddress || '127.0.0.1'}</div>
+            <div><strong>Time:</strong> ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST</div>
+          </div>
+          <p style="font-size: 14px; line-height: 1.5;">If you approve this device to access the CRM, please share the following 6-digit approval OTP with the user:</p>
+          <div style="background: #EFF6FF; border: 2px dashed #3B82F6; padding: 18px; border-radius: 10px; text-align: center; margin: 20px 0;">
+            <div style="font-size: 12px; color: #1D4ED8; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;">NEW DEVICE APPROVAL OTP</div>
+            <div style="font-size: 36px; font-weight: 800; color: #1E40AF; letter-spacing: 8px; margin: 8px 0;">${otp}</div>
+            <div style="font-size: 12px; color: #64748B;">Valid for 10 minutes (single-use authorization)</div>
+          </div>
+          <p style="color: #64748B; font-size: 12px; line-height: 1.4;">If you did not authorize this login, please ignore this email or temporarily suspend the user account from the Admin Dashboard.</p>
+        </div>
+      `;
+
+      this.emailProcessor
+        .sendEmail({
+          to: adminEmail,
+          subject: `[2FA Security] ${otp} is the New Device Approval OTP for ${user.fullName}`,
+          html: emailHtml,
+          text: `BoardingEdu CRM Security: New device login detected for ${user.fullName} (${user.email}). Verification OTP sent to Admin: ${otp} (valid for 10 minutes).`,
+        })
+        .catch(() => null);
+
+      console.log(`\n======================================================`);
+      console.log(`[2FA Security Alert] 🛡️ NEW DEVICE LOGIN DETECTED!`);
+      console.log(`User: ${user.fullName} (${user.email}, ${userCanonRole})`);
+      console.log(`Device: ${deviceName}`);
+      console.log(`Admin Email: ${adminEmail}`);
+      console.log(`APPROVAL OTP: >>> ${otp} <<<`);
+      console.log(`======================================================\n`);
+
+      return {
+        require2FA: true,
+        requiresTwoFactor: true,
+        requires_2fa: true,
+        isNewDevice: true,
+        deviceVerificationRequired: true,
+        tempToken,
+        temp_token: tempToken,
+        adminEmail: maskedEmail,
+        fullAdminEmail: adminEmail,
+        userEmail: user.email,
+        deviceId: deviceId || crypto.randomUUID(),
+        deviceName,
+        message: `New device detected! A 6-digit verification OTP has been sent to Admin Email (${maskedEmail}).`,
+      };
+    }
+
     if (user.isTwoFactorEnabled) {
       const tempToken = this.jwtService.sign(
         { sub: user.id, purpose: '2fa_pending', role: userCanonRole },
@@ -333,7 +453,9 @@ export class AuthService {
       );
       return {
         requiresTwoFactor: true,
+        require2FA: true,
         requires_2fa: true,
+        isNewDevice: false,
         tempToken,
         temp_token: tempToken,
         user_id: user.id,
@@ -370,6 +492,7 @@ export class AuthService {
         userAgent,
         details: {
           loginMethod: 'password',
+          deviceAuthorized: isKnownDevice,
           enforce2faRecommended: policyEnabled && userCanonRole === 'SUPER_ADMIN',
         },
       },
@@ -392,6 +515,8 @@ export class AuthService {
     code: string,
     ipAddress?: string,
     userAgent?: string,
+    deviceId?: string,
+    deviceName?: string,
   ) {
     if (!tempToken || !code) {
       throw new BadRequestException('temp_token and OTP code are required.');
@@ -404,7 +529,7 @@ export class AuthService {
       throw new UnauthorizedException('2FA challenge token is invalid or expired.');
     }
 
-    if (decoded?.purpose !== '2fa_pending' || !decoded?.sub) {
+    if (decoded?.purpose !== '2fa_pending' && decoded?.purpose !== 'device_2fa_pending') {
       throw new UnauthorizedException('Invalid 2FA token purpose.');
     }
 
@@ -414,6 +539,94 @@ export class AuthService {
     }
 
     const cleanCode = String(code).trim();
+
+    // Handling New Device Admin Email OTP Verification
+    if (decoded?.purpose === 'device_2fa_pending') {
+      const otpRecord = await this.prisma.passwordReset.findFirst({
+        where: {
+          token: tempToken,
+          otp: cleanCode,
+          used: false,
+          expiresAt: { gt: new Date() },
+        },
+      });
+
+      if (!otpRecord) {
+        throw new UnauthorizedException('Invalid or expired device verification OTP. Please check the code sent to the Admin email.');
+      }
+
+      await this.prisma.passwordReset.update({
+        where: { id: otpRecord.id },
+        data: { used: true },
+      });
+
+      const resolvedDeviceId = decoded.deviceId || deviceId || crypto.randomUUID();
+      const resolvedDeviceName = deviceName || decoded.deviceName || userAgent || 'Authorized Device';
+
+      await this.prisma.userDevice.upsert({
+        where: { deviceToken: resolvedDeviceId },
+        update: {
+          lastActiveAt: new Date(),
+          deviceName: resolvedDeviceName,
+          userId: user.id,
+        },
+        create: {
+          userId: user.id,
+          deviceToken: resolvedDeviceId,
+          deviceName: resolvedDeviceName,
+          platform: 'web',
+          pushEnabled: true,
+          lastActiveAt: new Date(),
+        },
+      }).catch(() => null);
+
+      await this.prisma.auditLog.create({
+        data: {
+          userId: user.id,
+          userName: user.fullName,
+          userRole: normalizeCanonicalRole(user.role),
+          action: 'NEW_DEVICE_AUTHORIZED',
+          module: 'auth',
+          entity: 'UserDevice',
+          entityId: resolvedDeviceId,
+          ipAddress,
+          userAgent,
+          details: {
+            deviceId: resolvedDeviceId,
+            deviceName: resolvedDeviceName,
+            approvedVia: 'ADMIN_EMAIL_OTP',
+          },
+        },
+      });
+
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          failedLoginAttempts: 0,
+          lockedUntil: null,
+          lastLoginAt: new Date(),
+        },
+      });
+
+      const { accessToken, refreshToken } = await this.issueSessionTokens(
+        user,
+        ipAddress,
+        userAgent,
+      );
+
+      return {
+        token: accessToken,
+        accessToken,
+        refreshToken,
+        refresh_token: refreshToken,
+        user: this.sanitizeUser(user),
+        deviceAuthorized: true,
+        deviceId: resolvedDeviceId,
+        message: 'New device successfully authorized by Admin OTP!',
+      };
+    }
+
+    // Otherwise standard TOTP flow
     const secret = decryptSensitiveData<string>(user.twoFactorSecret) || user.twoFactorSecret;
 
     let verified = false;
@@ -484,6 +697,73 @@ export class AuthService {
       refreshToken,
       refresh_token: refreshToken,
       user: this.sanitizeUser(user),
+    };
+  }
+
+  async resendDeviceOtp(tempToken: string) {
+    if (!tempToken) {
+      throw new BadRequestException('temp_token is required.');
+    }
+    let decoded: any;
+    try {
+      decoded = this.jwtService.verify(tempToken, { secret: this.getAccessSecret() });
+    } catch {
+      throw new UnauthorizedException('Verification session expired. Please log in again.');
+    }
+    if (decoded?.purpose !== 'device_2fa_pending' || !decoded?.sub) {
+      throw new BadRequestException('Invalid token purpose for resending OTP.');
+    }
+    const user = await this.prisma.user.findUnique({ where: { id: decoded.sub } });
+    if (!user || user.deletedAt || !user.isActive) {
+      throw new UnauthorizedException('User account not found or inactive.');
+    }
+
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    const adminEmail = decoded.adminEmail || process.env.SMTP_USER || 'adminboarding123@gmail.com';
+
+    await this.prisma.passwordReset.create({
+      data: {
+        email: user.email,
+        otp,
+        token: tempToken,
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      },
+    });
+
+    const emailHtml = `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; max-width: 540px; background: #ffffff; color: #1e293b;">
+        <div style="background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%); padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 22px;">
+          <div style="font-size: 28px; line-height: 1;">🛡️</div>
+          <h2 style="color: #ffffff; margin: 8px 0 2px 0; font-size: 20px; font-weight: 700;">BoardingEdu Security Guard</h2>
+          <p style="color: #93C5FD; margin: 0; font-size: 13px;">Resent Device Authorization OTP</p>
+        </div>
+        <p style="font-size: 14px; line-height: 1.5;">Hello <strong>Super Admin</strong>,</p>
+        <p style="font-size: 14px; line-height: 1.5;">A refreshed 2FA authorization OTP was requested for user <strong>${user.fullName} (${user.email})</strong>:</p>
+        <div style="background: #EFF6FF; border: 2px dashed #3B82F6; padding: 18px; border-radius: 10px; text-align: center; margin: 20px 0;">
+          <div style="font-size: 12px; color: #1D4ED8; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;">REFRESHED APPROVAL OTP</div>
+          <div style="font-size: 36px; font-weight: 800; color: #1E40AF; letter-spacing: 8px; margin: 8px 0;">${otp}</div>
+          <div style="font-size: 12px; color: #64748B;">Valid for 10 minutes (single-use authorization)</div>
+        </div>
+      </div>
+    `;
+
+    this.emailProcessor
+      .sendEmail({
+        to: adminEmail,
+        subject: `[Resent OTP] ${otp} is the New Device Approval OTP for ${user.fullName}`,
+        html: emailHtml,
+        text: `Resent verification OTP for ${user.fullName}: ${otp}`,
+      })
+      .catch(() => null);
+
+    console.log(`\n[Resend 2FA] 🔄 NEW OTP RESENT TO ADMIN (${adminEmail}) for user ${user.email}: >>> ${otp} <<<\n`);
+
+    const emailParts = adminEmail.split('@');
+    const maskedEmail = (emailParts[0].slice(0, 2) || 'ad') + '***@' + (emailParts[1] || 'gmail.com');
+
+    return {
+      sent: true,
+      message: `A fresh 6-digit OTP has been sent to Admin Email (${maskedEmail}).`,
     };
   }
 
@@ -776,9 +1056,15 @@ export class AuthService {
   }
 
   async forgotPassword(identifier: string) {
-    const user = await this.findUserByEmailOrPhoneOrId(identifier);
+    const cleanEmail = String(identifier || '').trim();
+    const user = await this.prisma.user.findFirst({
+      where: {
+        email: { equals: cleanEmail, mode: 'insensitive' },
+        deletedAt: null,
+      },
+    });
     if (!user) {
-      throw new NotFoundException('No account found with this email address or mobile number.');
+      throw new NotFoundException('No account found with this email address.');
     }
 
     const otp = String(Math.floor(100000 + Math.random() * 900000));
@@ -794,15 +1080,11 @@ export class AuthService {
       },
     });
 
-    const formattedPhone = user.phone
-      ? user.phone.replace(/^\+91(\d{10})$/, '+91 $1')
-      : '+91 7249417658';
-
-    // Dispatch Email & SMS in background (non-blocking) so UI responds in <100ms without hanging
+    // Dispatch Email in background (non-blocking) with pooled SMTP so UI responds in <50ms and email arrives on phone Gmail immediately
     const emailHtml = `<div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px; max-width: 520px;">
-        <h2 style="color: #0F172A; margin-top: 0;">BoardingEdu CRM - OTP Verification</h2>
+        <h2 style="color: #0F172A; margin-top: 0;">BoardingEdu CRM - Email OTP Verification</h2>
         <p style="color: #334155;">Hello <strong>${user.fullName}</strong>,</p>
-        <p style="color: #334155;">We received a password reset / verification request for your account (Email: <strong>${user.email}</strong> | Mobile: <strong>${formattedPhone}</strong>).</p>
+        <p style="color: #334155;">We received a password reset verification request for your account (<strong>${user.email}</strong>).</p>
         <div style="background: #EFF6FF; border: 1px dashed #2563EB; padding: 16px; border-radius: 8px; text-align: center; margin: 20px 0;">
           <div style="font-size: 12px; color: #1E40AF; font-weight: bold; letter-spacing: 1px;">YOUR 6-DIGIT VERIFICATION OTP</div>
           <div style="font-size: 32px; font-weight: 800; color: #1D4ED8; letter-spacing: 6px; margin-top: 6px;">${otp}</div>
@@ -813,26 +1095,16 @@ export class AuthService {
     this.emailProcessor
       .sendEmail({
         to: user.email,
-        subject: 'BoardingEdu CRM Password Reset OTP',
+        subject: `${otp} is your BoardingEdu CRM Verification OTP`,
         html: emailHtml,
-        text: `Your BoardingEdu CRM verification OTP is ${otp} (valid for 15 minutes). Account: ${user.email} / ${formattedPhone}`,
+        text: `Your BoardingEdu CRM verification OTP is ${otp} (valid for 15 minutes).`,
       })
       .catch(() => {});
-
-    // Optional SMS Gateway dispatch if FAST2SMS_API_KEY is configured
-    const smsKey = process.env.FAST2SMS_API_KEY;
-    const rawDigits = (user.phone || '7249417658').replace(/\D/g, '').slice(-10);
-    if (smsKey && rawDigits.length === 10) {
-      fetch(
-        `https://www.fast2sms.com/dev/bulkV2?authorization=${encodeURIComponent(smsKey)}&route=q&message=${encodeURIComponent(`Your BoardingEdu CRM verification OTP is ${otp}. Valid for 15 minutes.`)}&language=english&flash=0&numbers=${rawDigits}`,
-      ).catch(() => {});
-    }
 
     return {
       sent: true,
       email: user.email,
-      phone: formattedPhone,
-      message: `Verification OTP sent to your registered email (${user.email}) & mobile (${formattedPhone}).`,
+      message: `Verification OTP sent to your registered email (${user.email}).`,
     };
   }
 

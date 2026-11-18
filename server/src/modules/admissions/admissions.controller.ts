@@ -126,4 +126,64 @@ export class AdmissionsController {
     });
     res.end(pdfBuffer);
   }
+
+  // ==========================================
+  // VIRTUAL TOURS & ZOOM MEETINGS
+  // ==========================================
+
+  @Get('tours/upcoming')
+  getUpcomingTours(@Req() req: any) {
+    return this.admissionsService.getUpcomingTours(req.user);
+  }
+
+  @Post('tours/schedule')
+  scheduleTour(@Body() body: any, @Req() req: any) {
+    return this.admissionsService.scheduleTour(body, req.user);
+  }
+
+  @Post('tours/:id/complete')
+  completeTour(
+    @Param('id') tourId: string,
+    @Body() body: any,
+    @Req() req: any,
+  ) {
+    return this.admissionsService.completeTour(tourId, body, req.user);
+  }
+
+  // ==========================================
+  // 3-TIER MILESTONE FEE TRACKING (ADMIN & MANAGER ONLY)
+  // ==========================================
+
+  @Get(':id/installments')
+  @Roles('super_admin', 'manager', 'SUPER_ADMIN', 'SENIOR_MANAGER')
+  getInstallments(@Param('id') admissionId: string, @Req() req: any) {
+    return this.admissionsService.getInstallments(admissionId, req.user);
+  }
+
+  @Post(':id/installments/setup-plan')
+  @Roles('super_admin', 'manager', 'SUPER_ADMIN', 'SENIOR_MANAGER')
+  setupInstallmentPlan(
+    @Param('id') admissionId: string,
+    @Body() body: any,
+    @Req() req: any,
+  ) {
+    return this.admissionsService.setupInstallmentPlan(admissionId, body, req.user);
+  }
+
+  @Post(':id/installments/:instId/pay')
+  @Roles('super_admin', 'manager', 'SUPER_ADMIN', 'SENIOR_MANAGER')
+  recordInstallmentPayment(
+    @Param('id') admissionId: string,
+    @Param('instId') instId: string,
+    @Body() body: any,
+    @Req() req: any,
+  ) {
+    return this.admissionsService.recordInstallmentPayment(
+      admissionId,
+      instId,
+      body,
+      req.user,
+    );
+  }
 }
+

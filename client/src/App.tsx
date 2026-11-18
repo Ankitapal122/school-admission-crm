@@ -6,6 +6,7 @@ import { hasRole, normalizeRoleKey } from './lib/roles';
 import LoginPage from './features/auth/LoginPage';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
+import CrmIcon from './components/CrmIcon';
 import RoleDashboard from './features/dashboard/RoleDashboard';
 import {
   LeadsView,
@@ -23,6 +24,9 @@ import {
   SettingsView,
   CreateLeadModal,
 } from './features/views/CrmViews';
+import LeadReportModal from './features/leads/LeadReportModal';
+import AuditLogViewer from './features/analytics/AuditLogViewer';
+import PwaInstallPrompt from './components/PwaInstallPrompt';
 
 export default function App() {
   const { isAuthenticated, user, previewRole, lastActivityAt, touchActivity, logout } = useAuthStore();
@@ -32,6 +36,7 @@ export default function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
+  const [createdReportLead, setCreatedReportLead] = useState<any | null>(null);
   const [wireframeScreenNum] = useState(1);
   const [idleWarningSeconds, setIdleWarningSeconds] = useState<number | null>(null);
   const [toastMsg, setToastMsg] = useState<{
@@ -173,11 +178,13 @@ export default function App() {
         {toastMsg && (
           <div className={`toast ${toastMsg.type}`}>
             <span>
-              {toastMsg.type === 'success'
-                ? '✅'
-                : toastMsg.type === 'danger'
-                ? '❌'
-                : '⚠️'}
+              {toastMsg.type === 'success' ? (
+                <CrmIcon name="check-circle" size={16} />
+              ) : toastMsg.type === 'danger' ? (
+                <CrmIcon name="x-circle" size={16} />
+              ) : (
+                <CrmIcon name="alert" size={16} />
+              )}
             </span>{' '}
             <span>{toastMsg.text}</span>
           </div>
@@ -273,18 +280,43 @@ export default function App() {
               />
             )}
 
-            {currentTab === 'users' && (
+            {(currentTab === 'users' ||
+              currentTab === 'managers' ||
+              currentTab === 'counsellors' ||
+              currentTab === 'employee-monitoring' ||
+              currentTab === 'roles-permissions') && (
               <UsersView
-                users={users}
+                users={
+                  currentTab === 'managers'
+                    ? users.filter((u: any) =>
+                        String(u.role || u.canonicalRole || '').toLowerCase().includes('manager')
+                      )
+                    : currentTab === 'counsellors'
+                    ? users.filter((u: any) =>
+                        String(u.role || u.canonicalRole || '').toLowerCase().includes('counsellor')
+                      )
+                    : users
+                }
                 teams={teams}
                 onRefresh={refreshAll}
                 onShowToast={showToast}
               />
             )}
 
-            {currentTab === 'admissions' && (
+            {(currentTab === 'admissions' ||
+              currentTab === 'school-visits' ||
+              currentTab === 'fee-installments') && (
               <AdmissionsView
                 admissions={admissions}
+                leads={leads}
+                schools={schools}
+                initialSubTab={
+                  currentTab === 'school-visits'
+                    ? 'virtual-tours'
+                    : currentTab === 'fee-installments'
+                    ? 'installments'
+                    : 'applications'
+                }
                 onRefresh={refreshAll}
                 onShowToast={showToast}
               />
@@ -306,7 +338,7 @@ export default function App() {
               />
             )}
 
-            {currentTab === 'followups' && (
+            {(currentTab === 'followups' || currentTab === 'notifications') && (
               <FollowUpsView
                 followUps={followUps}
                 leads={leads}
@@ -319,7 +351,13 @@ export default function App() {
 
             {currentTab === 'whatsapp' && <WhatsAppView onShowToast={showToast} />}
 
-            {currentTab === 'reports' && <ReportsView onShowToast={showToast} />}
+            {currentTab === 'audit-logs' && (
+              <AuditLogViewer onShowToast={showToast} />
+            )}
+
+            {(currentTab === 'reports' || currentTab === 'activity-logs') && (
+              <ReportsView onShowToast={showToast} />
+            )}
 
             {currentTab === 'authenticator-setup' && (
               <AuthenticatorSetupView onShowToast={showToast} />
@@ -336,16 +374,32 @@ export default function App() {
           isOpen={isLeadModalOpen}
           onClose={() => setIsLeadModalOpen(false)}
           schools={schools}
-          onSuccess={refreshAll}
+          onSuccess={(created) => {
+            refreshAll();
+            if (created) {
+              setCreatedReportLead(created);
+            }
+          }}
           onShowToast={showToast}
         />
+
+        {/* Student Lead Report Modal (Opened automatically on lead creation or via check) */}
+        {createdReportLead && (
+          <LeadReportModal
+            lead={createdReportLead}
+            schools={schools}
+            onClose={() => setCreatedReportLead(null)}
+            onRefresh={refreshAll}
+            onShowToast={showToast}
+          />
+        )}
 
         {idleWarningSeconds !== null && (
           <div className="modal-overlay" style={{ zIndex: 2500 }}>
             <div className="modal-content" style={{ maxWidth: '420px' }}>
               <div className="modal-header">
                 <h3 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--primary-navy)' }}>
-                  ⏳ Session Inactivity Warning
+                  <CrmIcon name="clock" size={16} /> Session Inactivity Warning
                 </h3>
               </div>
               <div className="modal-body">
@@ -377,6 +431,9 @@ export default function App() {
             </div>
           </div>
         )}
+
+        {/* PWA Install Prompt & iOS Guide */}
+        <PwaInstallPrompt />
       </div>
     </>
   );

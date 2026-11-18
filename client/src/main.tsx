@@ -6,20 +6,31 @@ import './index.css';
 import './styles-original.css';
 import './wireframe-components.css';
 
-// Clear any stale Service Workers & caches so fresh UI updates always appear immediately
+// PWA Service Worker Registration
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then((registrations) => {
-    for (const reg of registrations) {
-      reg.unregister();
-    }
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register('/sw.js', { scope: '/' })
+      .then((reg) => {
+        console.log('[PWA] Service Worker registered with scope:', reg.scope);
+
+        // Check for updates periodically
+        reg.onupdatefound = () => {
+          const installingWorker = reg.installing;
+          if (installingWorker) {
+            installingWorker.onstatechange = () => {
+              if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                console.log('[PWA] New version available, dispatching update event');
+                window.dispatchEvent(new CustomEvent('pwa-update-available'));
+              }
+            };
+          }
+        };
+      })
+      .catch((err) => {
+        console.warn('[PWA] Service Worker registration failed:', err);
+      });
   });
-  if ('caches' in window) {
-    caches.keys().then((keys) => {
-      for (const k of keys) {
-        caches.delete(k);
-      }
-    });
-  }
 }
 
 const queryClient = new QueryClient({
@@ -39,9 +50,4 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   </React.StrictMode>
 );
 
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    const swUrl = import.meta.env.PROD ? '/sw.js' : '/push-sw.js';
-    navigator.serviceWorker.register(swUrl).catch(() => {});
-  });
-}
+

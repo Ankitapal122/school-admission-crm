@@ -279,6 +279,7 @@ model User {
   lockedUntil          DateTime? @map("locked_until")
   lastLoginAt          DateTime? @map("last_login_at")
   lastLogoutAt         DateTime? @map("last_logout_at")
+  lastActiveAt         DateTime? @map("last_active_at")
   passwordUpdatedAt    DateTime? @map("password_updated_at")
   fnfDate              DateTime? @map("fnf_date")
   fnfSettled           Boolean   @default(false) @map("fnf_settled")
@@ -327,6 +328,7 @@ model User {
 
   @@index([role, status])
   @@index([managerId])
+  @@index([lastActiveAt])
   @@index([deletedAt])
   @@map("users")
 }
@@ -425,6 +427,8 @@ model Lead {
   dpdpConsent             Boolean            @default(false) @map("consent_given")
   dpdpConsentAt           DateTime?          @map("consent_at")
   notes                   String?
+  isGenuine               Boolean            @default(true) @map("is_genuine")
+  parentRequirements      String?            @map("parent_requirements")
   returnRemarks           String?            @map("return_remarks")
   remarksJson             Json?              @map("remarks_json")
   historyJson             Json?              @map("history_json")
@@ -479,6 +483,7 @@ model Lead {
   tasks                 Task[]
   communicationLogs     CommunicationLog[]
   activityConfirmations ActivityConfirmation[]
+  tours                 SchoolTour[]
 
   @@index([parentPhone, studentName, classGrade])
   @@index([status])
@@ -546,6 +551,7 @@ model School {
   applications Admission[]
   shortlists   Shortlist[]
   commissions  Commission[]
+  tours        SchoolTour[]
 
   @@index([board, state])
   @@index([status])
@@ -600,8 +606,9 @@ model Admission {
   school      School       @relation(fields: [schoolId], references: [id])
   counsellor  User         @relation("AdmissionCounsellor", fields: [counsellorId], references: [id])
   manager     User?        @relation("AdmissionManager", fields: [managerId], references: [id])
-  team        Team?        @relation(fields: [teamId], references: [id])
-  commissions Commission[]
+  team         Team?                  @relation(fields: [teamId], references: [id])
+  commissions  Commission[]
+  installments AdmissionInstallment[]
 
   @@index([leadId, schoolId])
   @@index([stage])
@@ -753,7 +760,7 @@ model Notification {
 
 // 13. audit_log (Month-partitioned in PostgreSQL via apply_blueprint_sql.ts)
 model AuditLog {
-  id            String    @id @default(uuid())
+  id            String    @default(uuid())
   userId        String?   @map("user_id")
   userName      String?   @map("user_name")
   userRole      String?   @map("user_role")
@@ -774,6 +781,7 @@ model AuditLog {
 
   user User? @relation(fields: [userId], references: [id])
 
+  @@id([id, createdAt])
   @@index([module, createdAt])
   @@index([userId, createdAt])
   @@index([entityId])
@@ -1193,4 +1201,51 @@ model ActivityConfirmation {
   counsellor User @relation(fields: [counsellorId], references: [id])
 
   @@map("activity_confirmations")
+}
+
+model SchoolTour {
+  id                 String    @id @default(uuid())
+  leadId             String    @map("lead_id")
+  schoolId           String?   @map("school_id")
+  schoolName         String?   @map("school_name")
+  tourType           String    @default("ONLINE_ZOOM") @map("tour_type") // ONLINE_ZOOM or VISIT_PHYSICAL
+  scheduledAt        DateTime  @map("scheduled_at")
+  zoomMeetingUrl     String?   @map("zoom_meeting_url")
+  status             String    @default("SCHEDULED") // SCHEDULED, COMPLETED, CANCELLED
+  reminder10mSent    Boolean   @default(false) @map("reminder_10m_sent")
+  managerAlert5mSent Boolean   @default(false) @map("manager_alert_5m_sent")
+  postTourFeedback   String?   @map("post_tour_feedback")
+  proceedAdmission   Boolean?  @map("proceed_admission")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  lead   Lead    @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  school School? @relation(fields: [schoolId], references: [id])
+
+  @@index([leadId])
+  @@index([status, scheduledAt])
+  @@map("school_tours")
+}
+
+model AdmissionInstallment {
+  id                String    @id @default(uuid())
+  admissionId       String    @map("admission_id")
+  installmentNumber Int       @map("installment_number")
+  title             String
+  percentage        Float     @default(0)
+  amount            Float     @default(0)
+  dueDate           DateTime  @map("due_date")
+  status            String    @default("PENDING") // PENDING, PAID, OVERDUE
+  paidAt            DateTime? @map("paid_at")
+  utrNumber         String?   @map("utr_number")
+  paymentMode       String?   @map("payment_mode")
+  notes             String?
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  admission Admission @relation(fields: [admissionId], references: [id], onDelete: Cascade)
+
+  @@index([admissionId])
+  @@index([status])
+  @@map("admission_installments")
 }

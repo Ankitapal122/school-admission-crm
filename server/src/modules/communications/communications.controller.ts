@@ -8,13 +8,146 @@ import {
   Query,
   Req,
   UseGuards,
+  BadRequestException,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { CALL_OUTCOMES, CommunicationsService } from './communications.service';
+import { WhatsappBotService } from './whatsapp-bot.service';
 import { apiEnvelope } from '../../common/utils/crm.utils';
+
+@ApiTags('WhatsApp Bot (Free QR Connect)')
+@Controller('whatsapp/bot')
+export class WhatsappBotController {
+  constructor(private readonly botService: WhatsappBotService) {}
+
+  @Get('status')
+  getBotStatus() {
+    const status = this.botService.getStatus();
+    return apiEnvelope(status, 'WhatsApp bot status fetched', status);
+  }
+
+  @Post('disconnect')
+  async disconnectBot() {
+    const res = await this.botService.disconnect();
+    return apiEnvelope(res, res.message, res);
+  }
+
+  @Post('send')
+  async sendDirectBotMessage(@Body() body: any) {
+    const res = await this.botService.sendMessage(body.phone, body.message);
+    return apiEnvelope(res, 'Direct WhatsApp message sent', res);
+  }
+
+  private extractUserId(req: any): string {
+    if (req.user?.id) return req.user.id;
+    if (req.user?.sub) return req.user.sub;
+    const auth = String(req.headers?.authorization || req.headers?.Authorization || '');
+    if (auth.startsWith('Bearer ')) {
+      try {
+        const token = auth.slice(7).trim();
+        const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+        if (payload?.sub || payload?.id) return payload.sub || payload.id;
+      } catch {}
+    }
+    return req.query?.userId || req.body?.userId || 'default_counsellor';
+  }
+
+  // Multi-Device / Personal WhatsApp Endpoints for 500+ Managers, Counsellors & Admins
+  @Get(['counsellor/status', 'user/status'])
+  async getCounsellorStatus(@Req() req: any) {
+    const userId = this.extractUserId(req);
+    const status = await this.botService.getCounsellorWhatsapp(userId);
+    return apiEnvelope(status, 'User WhatsApp status fetched', status);
+  }
+
+  @Post(['counsellor/pair-phone', 'user/pair-phone', 'user/send-otp'])
+  async requestCounsellorPairing(@Body() body: any, @Req() req: any) {
+    const userId = this.extractUserId(req);
+    const rawPhone = String(body.phone || body.phoneNumber || '').trim();
+    const cleanPhone = rawPhone.replace(/\D/g, '').slice(-10);
+    if (cleanPhone.length !== 10) {
+      throw new BadRequestException('Kripya valid 10-digit Indian phone number daalein.');
+    }
+
+    const pairingCode = await this.botService.requestPairingCode(cleanPhone);
+    const otpResult = await this.botService.sendOtpToWhatsapp(userId, cleanPhone);
+
+    const result = {
+      phone: cleanPhone,
+      displayNumber: `+91 ${cleanPhone}`,
+      pairingCode,
+      otp: otpResult.otp,
+      deliveredViaWhatsapp: otpResult.deliveredViaWhatsapp,
+      message: `Aapke WhatsApp number (+91 ${cleanPhone}) par 6-digit OTP code bhej diya gaya hai! Kripya phone par WhatsApp check karein.`,
+    };
+    return apiEnvelope(result, result.message, result);
+  }
+
+  @Post(['counsellor/verify-otp', 'user/verify-otp'])
+  async verifyCounsellorOtp(@Body() body: any, @Req() req: any) {
+    const userId = this.extractUserId(req);
+    const rawPhone = String(body.phone || body.phoneNumber || '').trim();
+    const cleanPhone = rawPhone.replace(/\D/g, '').slice(-10);
+    const inputOtp = String(body.otp || body.code || '').trim();
+
+    let result: any;
+    if (inputOtp) {
+      result = await this.botService.verifyWhatsappLoginOtp(userId, cleanPhone, inputOtp);
+    } else {
+      result = await this.botService.saveCounsellorWhatsapp(userId, {
+        phone: cleanPhone,
+        method: 'PAIRING_CODE',
+        pairingCode: body.pairingCode,
+      });
+    }
+
+    return apiEnvelope(result, 'WhatsApp connected successfully!', result);
+  }
+
+  @Post(['counsellor/disconnect', 'user/disconnect'])
+  async disconnectCounsellor(@Req() req: any) {
+    const userId = this.extractUserId(req);
+    const result = await this.botService.disconnectCounsellorWhatsapp(userId);
+    return apiEnvelope(result, result.message, result);
+  }
+
+  @Post(['counsellor/send', 'user/send'])
+  async sendCounsellorMessage(@Body() body: any, @Req() req: any) {
+    const userId = this.extractUserId(req);
+    const targetPhone = body.phone || body.toPhone || body.phoneNumber || '';
+    const result = await this.botService.sendCounsellorMessage(
+      userId,
+      targetPhone,
+      body.message || body.text || '',
+      body.leadId,
+    );
+    return apiEnvelope(result, result.message, result);
+  }
+
+  // Budget-Based School Search & Direct WhatsApp Delivery
+  @Get('budget-schools')
+  async getBudgetSchools(@Req() req: any) {
+    const budget = Number(req.query?.budget) || 400000;
+    const schools = await this.botService.getSchoolsByBudget(budget);
+    return apiEnvelope(schools, 'Schools matching budget fetched', { schools, count: schools.length });
+  }
+
+  @Post('send-budget-schools')
+  async sendBudgetSchools(@Body() body: any, @Req() req: any) {
+    const userId = this.extractUserId(req);
+    const result = await this.botService.sendBudgetSchoolsMessage(userId, {
+      parentPhone: body.phone || body.parentPhone || body.toPhone || body.parent_phone,
+      budget: Number(body.budget || body.max_budget) || 400000,
+      studentName: body.studentName,
+      customMessage: body.message,
+      leadId: body.leadId,
+    });
+    return apiEnvelope(result, 'Budget-matched school details sent to parent', result);
+  }
+}
 
 @ApiTags('WhatsApp (Free wa.me)')
 @ApiBearerAuth()

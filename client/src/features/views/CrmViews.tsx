@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import CrmIcon from '../../components/CrmIcon';
+import WhatsAppBotModal from '../../components/WhatsAppBotModal';
 import { apiCall } from '../../lib/api';
 
 export { LeadsView, CreateLeadModal } from './LeadsWorkspaceView';
@@ -51,11 +53,11 @@ export function TeamsView({
     <div className="card">
       <div className="card-header">
         <div>
-          <h3 className="card-title">👥 Team Structure &amp; Hierarchies ({teams.length})</h3>
+          <h3 className="card-title"><CrmIcon name="users" size={16} /> Team Structure &amp; Hierarchies ({teams.length})</h3>
           <span className="card-subtitle">Manage Counsellor &amp; Manager regional pods</span>
         </div>
         <button className="btn btn-sm btn-primary" onClick={() => setShowCreate(true)}>
-          ➕ Create Team
+          <CrmIcon name="plus" size={16} /> Create Team
         </button>
       </div>
       <div className="table-container">
@@ -92,7 +94,7 @@ export function TeamsView({
                       className="btn btn-sm btn-outline"
                       onClick={() => handleToggleTeam(t.id)}
                     >
-                      ⏯️ Toggle Status
+                      <CrmIcon name="play" size={16} /> Toggle Status
                     </button>
                   </td>
                 </tr>
@@ -106,9 +108,9 @@ export function TeamsView({
         <div className="modal-overlay" onClick={() => setShowCreate(false)}>
           <div className="modal-content" style={{ maxWidth: '420px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3 style={{ fontSize: '15px', fontWeight: 800 }}>➕ Create Regional Team</h3>
+              <h3 style={{ fontSize: '15px', fontWeight: 800 }}><CrmIcon name="plus" size={16} /> Create Regional Team</h3>
               <button className="btn btn-sm btn-outline" onClick={() => setShowCreate(false)}>
-                ✕
+                <CrmIcon name="x" size={16} />
               </button>
             </div>
             <form onSubmit={handleCreateTeam}>
@@ -217,7 +219,7 @@ export function FollowUpsView({
     <div className="card">
       <div className="card-header">
         <div>
-          <h3 className="card-title">📅 Follow-up Calendar &amp; Overdue SLA</h3>
+          <h3 className="card-title"><CrmIcon name="calendar" size={16} /> Follow-up Calendar &amp; Overdue SLA</h3>
           <span className="card-subtitle">Mandatory-reason follow-up rescheduling &amp; completion tracking</span>
         </div>
         <div style={{ display: 'flex', gap: '6px' }}>
@@ -277,14 +279,14 @@ export function FollowUpsView({
                         className="btn btn-sm btn-outline"
                         onClick={() => setReschedLead(item)}
                       >
-                        📅 Reschedule
+                        <CrmIcon name="calendar" size={16} /> Reschedule
                       </button>
                       {item.scheduledAt && (
                         <button
                           className="btn btn-sm btn-success"
                           onClick={() => handleComplete(item)}
                         >
-                          ✓ Complete
+                          <CrmIcon name="check" size={16} /> Complete
                         </button>
                       )}
                     </div>
@@ -300,9 +302,9 @@ export function FollowUpsView({
         <div className="modal-overlay" onClick={() => setReschedLead(null)}>
           <div className="modal-content" style={{ maxWidth: '420px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3 style={{ fontSize: '15px', fontWeight: 800 }}>📅 Reschedule Follow-up</h3>
+              <h3 style={{ fontSize: '15px', fontWeight: 800 }}><CrmIcon name="calendar" size={16} /> Reschedule Follow-up</h3>
               <button className="btn btn-sm btn-outline" onClick={() => setReschedLead(null)}>
-                ✕
+                <CrmIcon name="x" size={16} />
               </button>
             </div>
             <form onSubmit={handleReschedule}>
@@ -381,7 +383,7 @@ export function AIView({
     <div className="card">
       <div className="card-header">
         <div>
-          <h3 className="card-title">🧠 8-Criteria School Matching &amp; AI Simulator</h3>
+          <h3 className="card-title"><CrmIcon name="sparkles" size={16} /> 8-Criteria School Matching &amp; AI Simulator</h3>
           <span className="card-subtitle">
             Powered by live matching_criteria_weights (=100) from PostgreSQL
           </span>
@@ -434,7 +436,7 @@ export function AIView({
         </div>
         <div style={{ display: 'flex', alignItems: 'flex-end' }}>
           <button type="submit" className="btn btn-primary" disabled={loading} style={{ width: '100%' }}>
-            {loading ? 'Scoring...' : '✨ Run Match'}
+            {loading ? 'Scoring...' : 'Run Match'}
           </button>
         </div>
       </form>
@@ -489,14 +491,19 @@ export function WhatsAppView({
     'Namaste {parentName}! Sharing {schoolName} boarding details for {studentName}.'
   );
 
+  const [showBotModal, setShowBotModal] = useState(false);
+  const [botStatus, setBotStatus] = useState<any>({ isConnected: false });
+
   const loadWaData = async () => {
     try {
-      const [tRes, lRes] = await Promise.all([
+      const [tRes, lRes, bRes] = await Promise.all([
         apiCall('/whatsapp-templates').catch(() => ({ templates: [] })),
         apiCall('/whatsapp/log').catch(() => ({ logs: [] })),
+        apiCall('/whatsapp/bot/status').catch(() => ({ isConnected: false })),
       ]);
       setTemplates(tRes?.templates || tRes?.data?.templates || []);
       setLogs(lRes?.logs || lRes?.items || lRes?.data || []);
+      setBotStatus(bRes?.data || bRes || { isConnected: false });
     } catch {
       // ignore
     }
@@ -504,6 +511,12 @@ export function WhatsAppView({
 
   useEffect(() => {
     loadWaData();
+    const interval = setInterval(() => {
+      apiCall('/whatsapp/bot/status')
+        .then((res) => setBotStatus(res?.data || res))
+        .catch(() => {});
+    }, 4000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleSaveTemplate = async (e: React.FormEvent) => {
@@ -529,16 +542,93 @@ export function WhatsAppView({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+      {/* WhatsApp Bot Connection Card */}
+      <div
+        style={{
+          background: botStatus?.isConnected
+            ? 'linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%)'
+            : 'linear-gradient(135deg, #FEF3C7 0%, #FEF9C3 100%)',
+          border: botStatus?.isConnected ? '2px solid #86EFAC' : '2px solid #FDE047',
+          borderRadius: '16px',
+          padding: '20px 24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '16px',
+          boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div
+            style={{
+              width: '52px',
+              height: '52px',
+              borderRadius: '14px',
+              backgroundColor: botStatus?.isConnected ? '#16A34A' : '#D97706',
+              color: '#FFFFFF',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '24px',
+              boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
+            }}
+          >
+            {botStatus?.isConnected ? '✓' : '📱'}
+          </div>
+          <div>
+            <div style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
+              WhatsApp Bot &amp; Personal Sender: {botStatus?.isConnected ? '🟢 CONNECTED & ACTIVE' : '🟠 CONNECT PHONE (QR / OTP)'}
+            </div>
+            <div style={{ fontSize: '13px', color: '#475569', marginTop: '2px' }}>
+              {botStatus?.isConnected
+                ? `Active Sender: +${botStatus.activeNumber || '7249417658'} • Every manager and counsellor can connect their personal WhatsApp to message parents directly.`
+                : 'Connect your WhatsApp account to enable direct parent messaging (QR Code Scan or Mobile Number & OTP Verification).'}
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setShowBotModal(true)}
+          style={{
+            backgroundColor: botStatus?.isConnected ? '#0F172A' : '#16A34A',
+            color: '#FFFFFF',
+            border: 'none',
+            borderRadius: '10px',
+            padding: '12px 24px',
+            fontSize: '14px',
+            fontWeight: 800,
+            cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+          }}
+        >
+          <span>{botStatus?.isConnected ? '⚙️ Manage WhatsApp / Change Number' : '📱 Connect WhatsApp (QR / OTP)'}</span>
+        </button>
+      </div>
+
+      <WhatsAppBotModal
+        isOpen={showBotModal}
+        onClose={() => {
+          setShowBotModal(false);
+          loadWaData();
+        }}
+        onShowToast={onShowToast}
+      />
+
       <div className="card">
         <div className="card-header">
           <div>
-            <h3 className="card-title">📱 WhatsApp Templates &amp; 3-Layer Activity Centre</h3>
+            <h3 className="card-title"><CrmIcon name="smartphone" size={16} /> WhatsApp Templates &amp; 3-Layer Activity Centre</h3>
             <span className="card-subtitle">
               Placeholder variables ({'{parentName}'}, {'{studentName}'}, {'{schoolName}'}) with strict 2000-char limit
             </span>
           </div>
           <button className="btn btn-sm btn-primary" onClick={() => setShowNewTpl(true)}>
-            ➕ New Template
+            <CrmIcon name="plus" size={16} /> New Template
           </button>
         </div>
 
@@ -566,7 +656,7 @@ export function WhatsAppView({
 
       <div className="card">
         <div className="card-header">
-          <h3 className="card-title">📜 Recent Logged WhatsApp Dispatches ({logs.length})</h3>
+          <h3 className="card-title"><CrmIcon name="clipboard" size={16} /> Recent Logged WhatsApp Dispatches ({logs.length})</h3>
         </div>
         <div style={{ maxHeight: '260px', overflowY: 'auto', fontSize: '12.5px' }}>
           {logs.length === 0 ? (
@@ -587,9 +677,9 @@ export function WhatsAppView({
         <div className="modal-overlay" onClick={() => setShowNewTpl(false)}>
           <div className="modal-content" style={{ maxWidth: '480px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3 style={{ fontSize: '15px', fontWeight: 800 }}>➕ Create WhatsApp Template</h3>
+              <h3 style={{ fontSize: '15px', fontWeight: 800 }}><CrmIcon name="plus" size={16} /> Create WhatsApp Template</h3>
               <button className="btn btn-sm btn-outline" onClick={() => setShowNewTpl(false)}>
-                ✕
+                <CrmIcon name="x" size={16} />
               </button>
             </div>
             <form onSubmit={handleSaveTemplate}>

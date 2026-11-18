@@ -120,9 +120,38 @@ export class DashboardService {
   }
 
   async getSrDashboard(user: any) {
-    const teamMembers = await this.prisma.user.findMany({
-      where: { managerId: user.id, deletedAt: null },
-      select: { id: true, fullName: true, email: true, role: true },
+    const [rawTeamMembers, activeSessionRows] = await Promise.all([
+      this.prisma.user.findMany({
+        where: { managerId: user.id, deletedAt: null },
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          phone: true,
+          role: true,
+          status: true,
+          lastLoginAt: true,
+          lastLogoutAt: true,
+          team: { select: { name: true } },
+        },
+      }),
+      this.prisma.refreshTokenSession.findMany({
+        where: { isActive: true, isRevoked: false, expiresAt: { gt: new Date() } },
+        select: { userId: true },
+      }),
+    ]);
+    const activeUserIds = new Set(activeSessionRows.map((s) => s.userId));
+    const teamMembers = rawTeamMembers.map((m) => {
+      const isOnline =
+        activeUserIds.has(m.id) &&
+        Boolean(m.lastLoginAt) &&
+        (!m.lastLogoutAt ||
+          new Date(m.lastLoginAt).getTime() >= new Date(m.lastLogoutAt).getTime());
+      return {
+        ...m,
+        isOnline,
+        presenceStatus: isOnline ? 'online' : 'offline',
+      };
     });
     const memberIds = [user.id, ...teamMembers.map((m) => m.id)];
     const canon = normalizeCanonicalRole(user.role);
@@ -211,17 +240,20 @@ export class DashboardService {
           id: true,
           fullName: true,
           employeeId: true,
+          phone: true,
           role: true,
           status: true,
           lastLoginAt: true,
+          lastLogoutAt: true,
           manager: { select: { fullName: true } },
           team: { select: { name: true } },
         },
         orderBy: { lastLoginAt: 'desc' },
         take: 25,
       }),
-      this.prisma.refreshTokenSession.count({
+      this.prisma.refreshTokenSession.findMany({
         where: { isActive: true, isRevoked: false, expiresAt: { gt: new Date() } },
+        select: { userId: true },
       }),
       this.prisma.lead.groupBy({
         by: ['status'],
@@ -230,6 +262,20 @@ export class DashboardService {
       }),
       this.getPendingConfirmations(user),
     ]);
+
+    const activeUserIds = new Set((activeSessions as any[]).map((s) => s.userId));
+    const presenceUsers = liveUsers.map((u) => {
+      const isOnline =
+        activeUserIds.has(u.id) &&
+        Boolean(u.lastLoginAt) &&
+        (!u.lastLogoutAt ||
+          new Date(u.lastLoginAt).getTime() >= new Date(u.lastLogoutAt).getTime());
+      return {
+        ...u,
+        isOnline,
+        presenceStatus: isOnline ? 'online' : 'offline',
+      };
+    });
 
     const totalRevenue = commissions
       .filter((c) => !c.isReversal && !['reversed', 'REVERSED', 'CANCELLED'].includes(c.status))
@@ -248,12 +294,12 @@ export class DashboardService {
       managersCount,
       counsellorsCount,
       pendingVerifications,
-      activeSessions,
+      activeSessions: activeUserIds.size,
       totalCommission: totalRevenue,
       realizedCommission: realizedRevenue,
       reversedCommission: reversedAmount,
       pipelineBreakdown: pipelineGrouped.map((p) => ({ status: p.status, count: p._count.id })),
-      presenceMonitor: liveUsers,
+      presenceMonitor: presenceUsers,
       pendingConfirmations,
     };
   }

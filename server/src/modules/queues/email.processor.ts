@@ -27,6 +27,9 @@ export class EmailProcessor {
     }
     const port = Number(process.env.SMTP_PORT || process.env.EMAIL_PORT || 587);
     this.transporter = nodemailer.createTransport({
+      pool: true,
+      maxConnections: 3,
+      maxMessages: 100,
       host,
       port,
       secure: port === 465,

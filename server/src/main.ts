@@ -19,7 +19,8 @@ async function bootstrap() {
   app.use(cookieParser());
 
   // Rewrite /v1/* and /api/v1/* cleanly to /api/* while keeping Swagger docs & static assets intact
-  app.use((req: Request, _res: Response, next: NextFunction) => {
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    res.setHeader('X-API-Version', '3.0');
     if (req.url === '/v1' || req.url.startsWith('/v1/')) {
       req.url = '/api' + req.url.slice(3);
     } else if (req.url === '/api/v1' || req.url.startsWith('/api/v1/')) {

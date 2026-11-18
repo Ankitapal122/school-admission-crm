@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuthStore } from '../stores/authStore';
 import { normalizeRoleKey } from '../lib/roles';
+import CrmIcon from './CrmIcon';
 
 interface SidebarProps {
   currentTab: string;
@@ -64,8 +65,10 @@ export default function Sidebar({
             />
           </div>
           <div>
-            <div className="brand-title">BoardingEdu CRM</div>
-            <div className="brand-subtitle">Uttarakhand Schools</div>
+            <div className="brand-title">BoardingEdu</div>
+            <div className="brand-subtitle" style={{ textTransform: 'none', fontSize: '9.5px' }}>
+              Connecting Future &amp; Schools
+            </div>
           </div>
         </a>
         <button
@@ -93,223 +96,336 @@ export default function Sidebar({
           aria-label="Close navigation"
           title="Close"
         >
-          ✕
+          <CrmIcon name="x" size={18} />
         </button>
       </div>
 
       <nav className="sidebar-nav">
         {roleName === 'admin' && (
           <>
-            <div className="nav-section-title">ADMIN CORE</div>
             <a
               className={`nav-item ${currentTab === 'dashboard' ? 'active' : ''}`}
               onClick={() => handleNavClick('dashboard')}
             >
-              <span className="nav-icon">📊</span>
-              <span>Organization Dashboard</span>
+              <span className="nav-icon"><CrmIcon name="home" size={17} /></span>
+              <span>Dashboard</span>
+            </a>
+            <a
+              className={`nav-item ${currentTab === 'managers' ? 'active' : ''}`}
+              onClick={() => handleNavClick('managers')}
+            >
+              <span className="nav-icon"><CrmIcon name="user-cog" size={17} /></span>
+              <span>Manager Management</span>
+            </a>
+            <a
+              className={`nav-item ${currentTab === 'counsellors' ? 'active' : ''}`}
+              onClick={() => handleNavClick('counsellors')}
+            >
+              <span className="nav-icon"><CrmIcon name="user-check" size={17} /></span>
+              <span>Counsellor Management</span>
+            </a>
+            <a
+              className={`nav-item ${currentTab === 'teams' ? 'active' : ''}`}
+              onClick={() => handleNavClick('teams')}
+            >
+              <span className="nav-icon"><CrmIcon name="users" size={17} /></span>
+              <span>Team Management</span>
             </a>
             <a
               className={`nav-item ${currentTab === 'leads' ? 'active' : ''}`}
               onClick={() => handleNavClick('leads')}
             >
-              <span className="nav-icon">📥</span>
+              <span className="nav-icon"><CrmIcon name="file-text" size={17} /></span>
               <span>Lead Management</span>
-              <span className="nav-badge danger">{leadsCount}</span>
+              <span className="nav-badge danger">{leadsCount || 12}</span>
             </a>
             <a
-              className={`nav-item ${currentTab === 'admissions' ? 'active' : ''}`}
-              onClick={() => handleNavClick('admissions')}
+              className={`nav-item ${currentTab === 'lead-verification' ? 'active' : ''}`}
+              onClick={() => handleNavClick('lead-verification')}
             >
-              <span className="nav-icon">🎓</span>
-              <span>Admission Tracking</span>
-            </a>
-            <a
-              className={`nav-item ${currentTab === 'commissions' ? 'active' : ''}`}
-              onClick={() => handleNavClick('commissions')}
-            >
-              <span className="nav-icon">💰</span>
-              <span>Commission Management</span>
-              <span className="nav-badge warning">Ledger</span>
-            </a>
-
-            <div className="nav-section-title">MANAGEMENT &amp; SCHOOLS</div>
-            <a
-              className={`nav-item ${currentTab === 'teams' ? 'active' : ''}`}
-              onClick={() => handleNavClick('teams')}
-            >
-              <span className="nav-icon">👥</span>
-              <span>Team Management</span>
-            </a>
-            <a
-              className={`nav-item ${currentTab === 'users' ? 'active' : ''}`}
-              onClick={() => handleNavClick('users')}
-            >
-              <span className="nav-icon">👤</span>
-              <span>User Management</span>
-            </a>
-            <a
-              className={`nav-item ${currentTab === 'schools' ? 'active' : ''}`}
-              onClick={() => handleNavClick('schools')}
-            >
-              <span className="nav-icon">🏫</span>
-              <span>Partner Schools (1,368)</span>
-            </a>
-
-            <div className="nav-section-title">AUTOMATION &amp; INTELLIGENCE</div>
-            <a
-              className={`nav-item ${currentTab === 'ai' ? 'active' : ''}`}
-              onClick={() => handleNavClick('ai')}
-            >
-              <span className="nav-icon">🧠</span>
-              <span>AI Intelligence</span>
+              <span className="nav-icon"><CrmIcon name="check-square" size={17} /></span>
+              <span>Lead Verification</span>
             </a>
             <a
               className={`nav-item ${currentTab === 'whatsapp' ? 'active' : ''}`}
               onClick={() => handleNavClick('whatsapp')}
             >
-              <span className="nav-icon">📱</span>
-              <span>WhatsApp &amp; Email Centre</span>
+              <span className="nav-icon"><CrmIcon name="message-square" size={17} /></span>
+              <span>Parent Communication</span>
+              <span className="nav-badge success" style={{ fontSize: '9px', fontWeight: 800, padding: '2px 6px', background: '#DCFCE7', color: '#166534', border: '1px solid #86EFAC' }}>QR BOT</span>
             </a>
             <a
-              className={`nav-item ${currentTab === 'followups' ? 'active' : ''}`}
-              onClick={() => handleNavClick('followups')}
+              className={`nav-item ${currentTab === 'schools' ? 'active' : ''}`}
+              onClick={() => handleNavClick('schools')}
             >
-              <span className="nav-icon">📅</span>
-              <span>Follow-up Management</span>
+              <span className="nav-icon"><CrmIcon name="school" size={17} /></span>
+              <span>School Management</span>
+            </a>
+            <a
+              className={`nav-item ${currentTab === 'ai' ? 'active' : ''}`}
+              onClick={() => handleNavClick('ai')}
+            >
+              <span className="nav-icon"><CrmIcon name="lightbulb" size={17} /></span>
+              <span>School Recommendations</span>
+            </a>
+            <a
+              className={`nav-item ${currentTab === 'admissions' ? 'active' : ''}`}
+              onClick={() => handleNavClick('admissions')}
+            >
+              <span className="nav-icon"><CrmIcon name="graduation-cap" size={17} /></span>
+              <span>Admission Tracking</span>
+            </a>
+            <a
+              className={`nav-item ${currentTab === 'school-visits' ? 'active' : ''}`}
+              onClick={() => handleNavClick('school-visits')}
+            >
+              <span className="nav-icon"><CrmIcon name="calendar" size={17} /></span>
+              <span>School Visits &amp; Meetings</span>
+            </a>
+            <a
+              className={`nav-item ${currentTab === 'fee-installments' ? 'active' : ''}`}
+              onClick={() => handleNavClick('fee-installments')}
+            >
+              <span className="nav-icon"><CrmIcon name="credit-card" size={17} /></span>
+              <span>Fee &amp; Installment Mgmt</span>
+            </a>
+            <a
+              className={`nav-item ${currentTab === 'commissions' ? 'active' : ''}`}
+              onClick={() => handleNavClick('commissions')}
+            >
+              <span className="nav-icon"><CrmIcon name="rupee" size={17} /></span>
+              <span>Commission Management</span>
+              <span className="nav-badge" style={{ fontSize: '9px', fontWeight: 800, padding: '2px 5px', background: '#FEF3C7', color: '#92400E', border: '1px solid #FCD34D' }}>29-30</span>
+            </a>
+            <a
+              className={`nav-item ${currentTab === 'employee-monitoring' ? 'active' : ''}`}
+              onClick={() => handleNavClick('employee-monitoring')}
+            >
+              <span className="nav-icon"><CrmIcon name="activity" size={17} /></span>
+              <span>Employee Monitoring</span>
             </a>
             <a
               className={`nav-item ${currentTab === 'reports' ? 'active' : ''}`}
               onClick={() => handleNavClick('reports')}
             >
-              <span className="nav-icon">📈</span>
+              <span className="nav-icon"><CrmIcon name="bar-chart" size={17} /></span>
               <span>Reports &amp; Analytics</span>
             </a>
-
-            <div className="nav-section-title">SECURITY &amp; SYSTEM</div>
             <a
-              className={`nav-item ${currentTab === 'authenticator-setup' ? 'active' : ''}`}
-              onClick={() => handleNavClick('authenticator-setup')}
+              className={`nav-item ${currentTab === 'audit-logs' ? 'active' : ''}`}
+              onClick={() => handleNavClick('audit-logs')}
             >
-              <span className="nav-icon">🛡️</span>
-              <span>2FA &amp; Security</span>
+              <span className="nav-icon"><CrmIcon name="shield" size={17} /></span>
+              <span>Audit Log Viewer</span>
+              <span className="nav-badge" style={{ fontSize: '9px', fontWeight: 800, padding: '2px 5px', background: '#DBEAFE', color: '#1E40AF', border: '1px solid #93C5FD' }}>Screen 31</span>
             </a>
             <a
-              className={`nav-item ${currentTab === 'sessions' ? 'active' : ''}`}
-              onClick={() => handleNavClick('sessions')}
+              className={`nav-item ${currentTab === 'notifications' ? 'active' : ''}`}
+              onClick={() => handleNavClick('notifications')}
             >
-              <span className="nav-icon">💻</span>
-              <span>Active Sessions</span>
+              <span className="nav-icon"><CrmIcon name="bell" size={17} /></span>
+              <span>Notifications</span>
+              <span className="nav-badge danger">24</span>
+            </a>
+            <a
+              className={`nav-item ${currentTab === 'activity-logs' ? 'active' : ''}`}
+              onClick={() => handleNavClick('activity-logs')}
+            >
+              <span className="nav-icon"><CrmIcon name="clipboard" size={17} /></span>
+              <span>Activity Logs</span>
+            </a>
+            <a
+              className={`nav-item ${currentTab === 'roles-permissions' ? 'active' : ''}`}
+              onClick={() => handleNavClick('roles-permissions')}
+            >
+              <span className="nav-icon"><CrmIcon name="shield" size={17} /></span>
+              <span>Roles &amp; Permissions</span>
             </a>
             <a
               className={`nav-item ${currentTab === 'settings' ? 'active' : ''}`}
               onClick={() => handleNavClick('settings')}
             >
-              <span className="nav-icon">⚙️</span>
-              <span>System Settings</span>
+              <span className="nav-icon"><CrmIcon name="settings" size={17} /></span>
+              <span>Settings</span>
             </a>
           </>
         )}
 
         {roleName === 'manager' && (
           <>
-            <div className="nav-section-title">MANAGER CONSOLE</div>
             <a
               className={`nav-item ${currentTab === 'dashboard' ? 'active' : ''}`}
               onClick={() => handleNavClick('dashboard')}
             >
-              <span className="nav-icon">📊</span>
-              <span>Team Dashboard</span>
+              <span className="nav-icon"><CrmIcon name="home" size={17} /></span>
+              <span>Dashboard</span>
+            </a>
+            <a
+              className={`nav-item ${currentTab === 'counsellors' || currentTab === 'teams' ? 'active' : ''}`}
+              onClick={() => handleNavClick('counsellors')}
+            >
+              <span className="nav-icon"><CrmIcon name="users" size={17} /></span>
+              <span>My Team</span>
             </a>
             <a
               className={`nav-item ${currentTab === 'leads' ? 'active' : ''}`}
               onClick={() => handleNavClick('leads')}
             >
-              <span className="nav-icon">📥</span>
-              <span>Team Leads</span>
+              <span className="nav-icon"><CrmIcon name="file-text" size={17} /></span>
+              <span>Leads</span>
             </a>
             <a
               className={`nav-item ${currentTab === 'lead-verification' ? 'active' : ''}`}
               onClick={() => handleNavClick('lead-verification')}
             >
-              <span className="nav-icon">✅</span>
+              <span className="nav-icon"><CrmIcon name="check-square" size={17} /></span>
               <span>Lead Verification</span>
-              <span className="nav-badge danger">Review</span>
-            </a>
-            <a
-              className={`nav-item ${currentTab === 'admissions' ? 'active' : ''}`}
-              onClick={() => handleNavClick('admissions')}
-            >
-              <span className="nav-icon">🎓</span>
-              <span>Admission Tracking</span>
-            </a>
-            <a
-              className={`nav-item ${currentTab === 'commissions' ? 'active' : ''}`}
-              onClick={() => handleNavClick('commissions')}
-            >
-              <span className="nav-icon">💰</span>
-              <span>Team Commission</span>
-            </a>
-            <a
-              className={`nav-item ${currentTab === 'schools' ? 'active' : ''}`}
-              onClick={() => handleNavClick('schools')}
-            >
-              <span className="nav-icon">🏫</span>
-              <span>School Directory</span>
-            </a>
-            <a
-              className={`nav-item ${currentTab === 'followups' ? 'active' : ''}`}
-              onClick={() => handleNavClick('followups')}
-            >
-              <span className="nav-icon">📅</span>
-              <span>Follow-up Management</span>
+              <span className="nav-badge danger">{leadsCount || 12}</span>
             </a>
             <a
               className={`nav-item ${currentTab === 'whatsapp' ? 'active' : ''}`}
               onClick={() => handleNavClick('whatsapp')}
             >
-              <span className="nav-icon">📱</span>
-              <span>WhatsApp Inbox</span>
+              <span className="nav-icon"><CrmIcon name="message-square" size={17} /></span>
+              <span>Parent Communication</span>
+              <span className="nav-badge success" style={{ fontSize: '9px', fontWeight: 800, padding: '2px 6px', background: '#DCFCE7', color: '#166534', border: '1px solid #86EFAC' }}>QR BOT</span>
+            </a>
+            <a
+              className={`nav-item ${currentTab === 'schools' ? 'active' : ''}`}
+              onClick={() => handleNavClick('schools')}
+            >
+              <span className="nav-icon"><CrmIcon name="school" size={17} /></span>
+              <span>School Management</span>
+            </a>
+            <a
+              className={`nav-item ${currentTab === 'ai' ? 'active' : ''}`}
+              onClick={() => handleNavClick('ai')}
+            >
+              <span className="nav-icon"><CrmIcon name="lightbulb" size={17} /></span>
+              <span>School Recommendations</span>
+            </a>
+            <a
+              className={`nav-item ${currentTab === 'admissions' ? 'active' : ''}`}
+              onClick={() => handleNavClick('admissions')}
+            >
+              <span className="nav-icon"><CrmIcon name="graduation-cap" size={17} /></span>
+              <span>Admission Tracking</span>
+            </a>
+            <a
+              className={`nav-item ${currentTab === 'school-visits' ? 'active' : ''}`}
+              onClick={() => handleNavClick('school-visits')}
+            >
+              <span className="nav-icon"><CrmIcon name="calendar" size={17} /></span>
+              <span>School Visits &amp; Meetings</span>
+            </a>
+            <a
+              className={`nav-item ${currentTab === 'fee-installments' ? 'active' : ''}`}
+              onClick={() => handleNavClick('fee-installments')}
+            >
+              <span className="nav-icon"><CrmIcon name="credit-card" size={17} /></span>
+              <span>Fee &amp; Installment Mgmt</span>
+            </a>
+            <a
+              className={`nav-item ${currentTab === 'commissions' ? 'active' : ''}`}
+              onClick={() => handleNavClick('commissions')}
+            >
+              <span className="nav-icon"><CrmIcon name="rupee" size={17} /></span>
+              <span>Commission</span>
             </a>
             <a
               className={`nav-item ${currentTab === 'reports' ? 'active' : ''}`}
               onClick={() => handleNavClick('reports')}
             >
-              <span className="nav-icon">📈</span>
-              <span>Team Reports</span>
+              <span className="nav-icon"><CrmIcon name="bar-chart" size={17} /></span>
+              <span>Reports &amp; Analytics</span>
             </a>
             <a
-              className={`nav-item ${currentTab === 'authenticator-setup' ? 'active' : ''}`}
-              onClick={() => handleNavClick('authenticator-setup')}
+              className={`nav-item ${currentTab === 'notifications' ? 'active' : ''}`}
+              onClick={() => handleNavClick('notifications')}
             >
-              <span className="nav-icon">🛡️</span>
-              <span>2FA &amp; Push Alerts</span>
+              <span className="nav-icon"><CrmIcon name="bell" size={17} /></span>
+              <span>Notifications</span>
+              <span className="nav-badge danger">8</span>
             </a>
             <a
-              className={`nav-item ${currentTab === 'sessions' ? 'active' : ''}`}
-              onClick={() => handleNavClick('sessions')}
+              className={`nav-item ${currentTab === 'settings' ? 'active' : ''}`}
+              onClick={() => handleNavClick('settings')}
             >
-              <span className="nav-icon">💻</span>
-              <span>Active Sessions</span>
+              <span className="nav-icon"><CrmIcon name="settings" size={17} /></span>
+              <span>Settings</span>
             </a>
           </>
         )}
 
         {roleName === 'counsellor' && (
           <>
-            <div className="nav-section-title">COUNSELLOR DESK</div>
+            {/* Counsellor Top Profile Card matching reference image */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '10px 12px 14px',
+                marginBottom: '6px',
+                borderBottom: '1px solid rgba(255,255,255,0.1)',
+              }}
+            >
+              <div style={{ position: 'relative' }}>
+                <div
+                  style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #3B82F6, #EC4899)',
+                    color: '#FFFFFF',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '13px',
+                    fontWeight: 800,
+                    border: '2px solid rgba(255,255,255,0.45)',
+                  }}
+                >
+                  AP
+                </div>
+                <span
+                  style={{
+                    position: 'absolute',
+                    bottom: '0px',
+                    right: '0px',
+                    width: '10px',
+                    height: '10px',
+                    borderRadius: '50%',
+                    background: '#22C55E',
+                    border: '2px solid #0B1F44',
+                  }}
+                />
+              </div>
+              <div>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: '#FFFFFF' }}>
+                  {user?.fullName && !user.fullName.includes('Admin')
+                    ? user.fullName
+                    : 'Ankita Pal'}
+                </div>
+                <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 600 }}>
+                  Counsellor <CrmIcon name="chevron-down" size={12} />
+                </div>
+              </div>
+            </div>
+
             <a
               className={`nav-item ${currentTab === 'dashboard' ? 'active' : ''}`}
               onClick={() => handleNavClick('dashboard')}
             >
-              <span className="nav-icon">📊</span>
-              <span>My Dashboard</span>
+              <span className="nav-icon"><CrmIcon name="home" size={17} /></span>
+              <span>Dashboard</span>
             </a>
             <a
               className={`nav-item ${currentTab === 'leads' ? 'active' : ''}`}
               onClick={() => handleNavClick('leads')}
             >
-              <span className="nav-icon">📥</span>
-              <span>My Assigned Leads</span>
+              <span className="nav-icon"><CrmIcon name="user-check" size={17} /></span>
+              <span>My Leads</span>
             </a>
             <a
               className={`nav-item ${currentTab === 'create-lead' ? 'active' : ''}`}
@@ -318,57 +434,92 @@ export default function Sidebar({
                 if (onCloseMobile) onCloseMobile();
               }}
             >
-              <span className="nav-icon">➕</span>
-              <span>Create New Lead</span>
-            </a>
-            <a
-              className={`nav-item ${currentTab === 'admissions' ? 'active' : ''}`}
-              onClick={() => handleNavClick('admissions')}
-            >
-              <span className="nav-icon">🎓</span>
-              <span>My Admissions</span>
+              <span className="nav-icon"><CrmIcon name="plus-circle" size={17} /></span>
+              <span>Add Lead</span>
             </a>
             <a
               className={`nav-item ${currentTab === 'commissions' ? 'active' : ''}`}
               onClick={() => handleNavClick('commissions')}
             >
-              <span className="nav-icon">💰</span>
+              <span className="nav-icon"><CrmIcon name="rupee" size={17} /></span>
               <span>My Commission</span>
-            </a>
-            <a
-              className={`nav-item ${currentTab === 'followups' ? 'active' : ''}`}
-              onClick={() => handleNavClick('followups')}
-            >
-              <span className="nav-icon">📅</span>
-              <span>Follow-up Calendar</span>
-            </a>
-            <a
-              className={`nav-item ${currentTab === 'schools' ? 'active' : ''}`}
-              onClick={() => handleNavClick('schools')}
-            >
-              <span className="nav-icon">🏫</span>
-              <span>School Directory</span>
             </a>
             <a
               className={`nav-item ${currentTab === 'whatsapp' ? 'active' : ''}`}
               onClick={() => handleNavClick('whatsapp')}
             >
-              <span className="nav-icon">📱</span>
-              <span>WhatsApp &amp; Templates</span>
+              <span className="nav-icon"><CrmIcon name="phone-call" size={17} /></span>
+              <span>Calls &amp; Messages</span>
             </a>
             <a
-              className={`nav-item ${currentTab === 'authenticator-setup' ? 'active' : ''}`}
-              onClick={() => handleNavClick('authenticator-setup')}
+              className={`nav-item ${currentTab === 'school-visits' ? 'active' : ''}`}
+              onClick={() => handleNavClick('school-visits')}
             >
-              <span className="nav-icon">🛡️</span>
-              <span>2FA &amp; Push Alerts</span>
+              <span className="nav-icon"><CrmIcon name="calendar" size={17} /></span>
+              <span>Visit Schedule</span>
+            </a>
+            <a
+              className={`nav-item ${currentTab === 'followups' ? 'active' : ''}`}
+              onClick={() => handleNavClick('followups')}
+            >
+              <span className="nav-icon"><CrmIcon name="calendar-clock" size={17} /></span>
+              <span>Reschedule Visit</span>
+            </a>
+            <a
+              className={`nav-item ${currentTab === 'ai' || currentTab === 'schools' ? 'active' : ''}`}
+              onClick={() => handleNavClick('ai')}
+            >
+              <span className="nav-icon"><CrmIcon name="school" size={17} /></span>
+              <span>Suggested Schools</span>
             </a>
             <a
               className={`nav-item ${currentTab === 'sessions' ? 'active' : ''}`}
               onClick={() => handleNavClick('sessions')}
             >
-              <span className="nav-icon">💻</span>
-              <span>Active Sessions</span>
+              <span className="nav-icon"><CrmIcon name="user" size={17} /></span>
+              <span>Profile</span>
+            </a>
+            <a
+              className={`nav-item ${currentTab === 'settings' ? 'active' : ''}`}
+              onClick={() => handleNavClick('settings')}
+            >
+              <span className="nav-icon"><CrmIcon name="settings" size={17} /></span>
+              <span>Settings</span>
+            </a>
+            <a
+              className="nav-item"
+              onClick={() => logout(true)}
+            >
+              <span className="nav-icon"><CrmIcon name="logout" size={17} /></span>
+              <span>Logout</span>
+            </a>
+
+            {/* Need Help? Contact Manager Card */}
+            <a
+              href="https://wa.me/919876543210?text=Hello%20Manager%2C%20I%20need%20help%20with%20a%20student%20lead."
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                marginTop: '14px',
+                background: 'rgba(255,255,255,0.08)',
+                border: '1px solid rgba(255,255,255,0.14)',
+                borderRadius: '12px',
+                padding: '10px 12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                textDecoration: 'none',
+                color: '#FFFFFF',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <CrmIcon name="headphones" size={18} color="#93C5FD" />
+                <div>
+                  <div style={{ fontSize: '12px', fontWeight: 700 }}>Need Help?</div>
+                  <div style={{ fontSize: '10.5px', color: '#94A3B8' }}>Contact Manager</div>
+                </div>
+              </div>
+              <CrmIcon name="chevron-right" size={14} color="#94A3B8" />
             </a>
           </>
         )}
@@ -376,9 +527,11 @@ export default function Sidebar({
 
       <div className="sidebar-footer">
         <div className="user-mini-profile">
-          <div className="avatar">{initials}</div>
+          <div className="avatar">{roleName === 'admin' ? 'SA' : initials}</div>
           <div>
-            <div className="user-meta-name">{user?.fullName || 'User'}</div>
+            <div className="user-meta-name">
+              {roleName === 'admin' ? 'Super Admin' : user?.fullName || 'User'}
+            </div>
             <div className="user-meta-role">{roleName.toUpperCase()}</div>
           </div>
         </div>
@@ -388,7 +541,7 @@ export default function Sidebar({
           title="Logout"
           style={{ color: '#CBD5E1', borderColor: 'rgba(255,255,255,0.2)' }}
         >
-          🚪
+          <CrmIcon name="logout" size={15} />
         </button>
       </div>
     </aside>

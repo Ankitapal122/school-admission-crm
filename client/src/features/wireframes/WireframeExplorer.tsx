@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import CrmIcon from '../../components/CrmIcon';
 
 declare global {
   interface Window {
@@ -48,7 +49,7 @@ export default function WireframeExplorer({
             ← Back to Login
           </button>
           <span style={{ fontWeight: 700, color: '#1E3A8A', fontSize: '14px' }}>
-            🎓 BoardingEdu CRM – Wireframe Specification Viewer (Screens 1 to 36)
+            <CrmIcon name="graduation-cap" size={16} /> BoardingEdu CRM – Wireframe Specification Viewer (Screens 1 to 36)
           </span>
         </div>
         <div dangerouslySetInnerHTML={{ __html: html }} />
