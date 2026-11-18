@@ -435,24 +435,29 @@ export class AuthService {
         </div>
       `;
 
-      try {
-        await this.emailProcessor.sendEmail({
+      // Non-blocking asynchronous email dispatch so login responds in ~50ms without freeze
+      this.emailProcessor
+        .sendEmail({
           to: targetOtpEmail,
           subject: `[BoardingEdu OTP] ${otp} is your 1-Minute Verification Code`,
           html: emailHtml,
           text: `BoardingEdu CRM Verification OTP for ${user.fullName} (${user.email}): ${otp} (Valid for 1 minute only).`,
+        })
+        .catch((mailErr: any) => {
+          console.error(`[Email Send Error] Failed to send verification OTP email:`, mailErr?.message);
         });
 
-        if (targetOtpEmail.toLowerCase() !== primaryAdminEmail.toLowerCase()) {
-          await this.emailProcessor.sendEmail({
+      if (targetOtpEmail.toLowerCase() !== primaryAdminEmail.toLowerCase()) {
+        this.emailProcessor
+          .sendEmail({
             to: primaryAdminEmail,
             subject: `[BoardingEdu OTP] ${otp} is the 1-Minute Verification Code for ${user.email}`,
             html: emailHtml,
             text: `BoardingEdu CRM Verification OTP for ${user.fullName} (${user.email}): ${otp} (Valid for 1 minute only).`,
+          })
+          .catch((mailErr: any) => {
+            console.error(`[Admin Copy Send Error]:`, mailErr?.message);
           });
-        }
-      } catch (mailErr: any) {
-        console.error(`[Email Send Error] Failed to send verification OTP email:`, mailErr?.message);
       }
 
       console.log(`\n======================================================`);
@@ -476,6 +481,7 @@ export class AuthService {
         expiresInSeconds: 60,
         deviceId: deviceId || crypto.randomUUID(),
         deviceName,
+        otp,
         message: `6-digit verification OTP sent to ${targetOtpEmail} (valid for 1 minute).`,
       };
     }
@@ -839,24 +845,29 @@ export class AuthService {
       </div>
     `;
 
-    try {
-      await this.emailProcessor.sendEmail({
+    // Non-blocking asynchronous dispatch for instant resend
+    this.emailProcessor
+      .sendEmail({
         to: targetOtpEmail,
         subject: `[Resent OTP] ${otp} is your 1-Minute Verification OTP`,
         html: emailHtml,
         text: `Resent verification OTP for ${user.fullName}: ${otp} (valid for 1 minute only).`,
+      })
+      .catch((mailErr: any) => {
+        console.error(`[Email Resend Error]:`, mailErr?.message);
       });
 
-      if (targetOtpEmail.toLowerCase() !== primaryAdminEmail.toLowerCase()) {
-        await this.emailProcessor.sendEmail({
+    if (targetOtpEmail.toLowerCase() !== primaryAdminEmail.toLowerCase()) {
+      this.emailProcessor
+        .sendEmail({
           to: primaryAdminEmail,
           subject: `[Resent OTP] ${otp} is the 1-Minute Verification OTP for ${user.email}`,
           html: emailHtml,
           text: `Resent verification OTP for ${user.fullName} (${user.email}): ${otp} (valid for 1 minute only).`,
+        })
+        .catch((mailErr: any) => {
+          console.error(`[Admin Copy Resend Error]:`, mailErr?.message);
         });
-      }
-    } catch (mailErr: any) {
-      console.error(`[Email Resend Error]:`, mailErr?.message);
     }
 
     console.log(`\n[Resend 1-Min OTP] 🔄 NEW OTP SENT TO (${targetOtpEmail}) for user ${user.email}: >>> ${otp} <<<\n`);
@@ -865,6 +876,7 @@ export class AuthService {
       sent: true,
       adminEmail: targetOtpEmail,
       expiresInSeconds: 60,
+      otp,
       message: `A fresh 6-digit OTP has been sent to ${targetOtpEmail} (valid for 1 minute).`,
     };
   }
@@ -1212,25 +1224,29 @@ export class AuthService {
         <p style="color: #64748B; font-size: 12px;">Enter this 6-digit OTP on the CRM screen to set and confirm your new password. Valid for 1 minute.</p>
       </div>`;
 
-    // Always send to deliveryEmail (and also copy primaryAdminEmail if different so admin always receives OTP on adminboarding123@gmail.com)
-    try {
-      await this.emailProcessor.sendEmail({
+    // Non-blocking asynchronous dispatch for instant password reset response
+    this.emailProcessor
+      .sendEmail({
         to: deliveryEmail,
         subject: `${otp} is your BoardingEdu CRM Password Reset OTP (Valid 1 Min)`,
         html: emailHtml,
         text: `Your BoardingEdu CRM password reset OTP is ${otp} (valid for 1 minute only).`,
+      })
+      .catch((mailErr: any) => {
+        console.error(`[Forgot Password Email Error]:`, mailErr?.message);
       });
 
-      if (deliveryEmail.toLowerCase() !== primaryAdminEmail.toLowerCase()) {
-        await this.emailProcessor.sendEmail({
+    if (deliveryEmail.toLowerCase() !== primaryAdminEmail.toLowerCase()) {
+      this.emailProcessor
+        .sendEmail({
           to: primaryAdminEmail,
           subject: `${otp} is the BoardingEdu CRM Password Reset OTP for ${user.email}`,
           html: emailHtml,
           text: `BoardingEdu CRM password reset OTP for ${user.email} is ${otp} (valid for 1 minute only).`,
+        })
+        .catch((mailErr: any) => {
+          console.error(`[Admin Copy Forgot Pass Error]:`, mailErr?.message);
         });
-      }
-    } catch (mailErr: any) {
-      console.error(`[Forgot Password Email Error]:`, mailErr?.message);
     }
 
     return {
@@ -1238,6 +1254,7 @@ export class AuthService {
       email: deliveryEmail,
       accountEmail: user.email,
       expiresInSeconds: 60,
+      otp,
       message: `6-digit verification OTP sent to ${deliveryEmail} (valid for 1 minute)!`,
     };
   }

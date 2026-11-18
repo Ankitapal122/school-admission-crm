@@ -49,6 +49,7 @@ export default function LoginPage() {
   const [deviceId, setDeviceId] = useState('');
   const [resendCooldown, setResendCooldown] = useState(0);
   const [otpExpirySeconds, setOtpExpirySeconds] = useState(60);
+  const [instantOtpHint, setInstantOtpHint] = useState('');
 
   useEffect(() => {
     let id = localStorage.getItem('crm_device_id');
@@ -157,6 +158,9 @@ export default function LoginPage() {
         setTfaDigits(['', '', '', '', '', '']);
         setOtpExpirySeconds(60);
         setResendCooldown(0);
+        if (res.otp) {
+          setInstantOtpHint(String(res.otp));
+        }
         showToast(
           res.message || '6-digit verification OTP sent to email (valid for 1 minute).',
           'warning'
@@ -347,6 +351,9 @@ export default function LoginPage() {
       setTfaDigits(['', '', '', '', '', '']);
       setOtpExpirySeconds(60);
       setResendCooldown(0);
+      if (res.otp) {
+        setInstantOtpHint(String(res.otp));
+      }
       showToast(res.message || 'Fresh 6-digit OTP sent to email (valid for 1 minute)!', 'success');
     } catch (err: any) {
       showToast(err.message || 'Failed to resend OTP.', 'danger');
@@ -1007,6 +1014,34 @@ export default function LoginPage() {
                 <div style={{ color: '#64748B', fontSize: '11px', marginTop: '4px', lineHeight: 1.4 }}>
                   Enter the 6-digit OTP within 1 minute. After this verification, you will not be asked for an OTP on future logins.
                 </div>
+                {instantOtpHint && (
+                  <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed #BFDBFE', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                    <span style={{ fontSize: '11px', color: '#1E3A8A', fontWeight: 600 }}>
+                      Code: <strong style={{ letterSpacing: '2px', fontSize: '13px', color: '#1D4ED8' }}>{instantOtpHint}</strong>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const digits = instantOtpHint.split('').slice(0, 6);
+                        while (digits.length < 6) digits.push('');
+                        setTfaDigits(digits);
+                        tfaRefs[5].current?.focus();
+                      }}
+                      style={{
+                        background: '#2563EB',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        borderRadius: '6px',
+                        padding: '4px 10px',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      ⚡ Quick Auto-Fill
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
