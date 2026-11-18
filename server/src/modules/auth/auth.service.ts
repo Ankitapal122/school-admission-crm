@@ -353,138 +353,118 @@ export class AuthService {
     });
     const policyEnabled = Boolean((admin2faPolicy?.value as any)?.enabled);
 
-    // One-Time Email OTP Verification Check (Once verified once for this user, subsequent logins go directly to Dashboard without OTP!)
+    // 2FA Email OTP Verification on Login (Every login sends a secure 6-digit OTP to Admin Email)
     const deviceId = (dto.deviceId || '').trim();
     const deviceName = dto.deviceName || userAgent || 'Web Browser';
 
-    let isKnownDevice = false;
-    const known = await this.prisma.userDevice.findFirst({
-      where: {
-        userId: user.id,
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    const primaryAdminEmail =
+      process.env.ADMIN_NOTIFY_EMAIL ||
+      'adminboarding123@gmail.com';
+    const isDemoDomain =
+      user.email.endsWith('@crm.edu') || user.email.endsWith('@boardingedu.com');
+    const targetOtpEmail = isDemoDomain ? primaryAdminEmail : (user.email.toLowerCase() === 'adminboarding123@gmail.com' ? 'adminboarding123@gmail.com' : user.email);
+
+    const tempToken = this.jwtService.sign(
+      {
+        sub: user.id,
+        purpose: 'device_2fa_pending',
+        role: userCanonRole,
+        deviceId: deviceId || crypto.randomUUID(),
+        deviceName,
+        adminEmail: targetOtpEmail,
+      },
+      { secret: this.getAccessSecret(), expiresIn: '15m' },
+    );
+
+    // Invalidate any previous unused OTPs for this email
+    await this.prisma.passwordReset.updateMany({
+      where: { email: user.email, used: false },
+      data: { used: true },
+    });
+
+    // Store OTP in PasswordReset table (STRICT 1 MINUTE = 60 SECONDS EXPIRY)
+    await this.prisma.passwordReset.create({
+      data: {
+        email: user.email,
+        otp,
+        token: tempToken,
+        expiresAt: new Date(Date.now() + 60 * 1000),
       },
     });
-    if (known) {
-      isKnownDevice = true;
-      await this.prisma.userDevice
-        .update({
-          where: { id: known.id },
-          data: { lastActiveAt: new Date(), deviceName },
-        })
-        .catch(() => null);
-    }
 
-    // If user email has NOT been verified yet (First-time login), send 1-Minute OTP to User's Email
-    if (!isKnownDevice) {
-      const otp = String(Math.floor(100000 + Math.random() * 900000));
-
-      const primaryAdminEmail =
-        process.env.ADMIN_NOTIFY_EMAIL ||
-        'adminboarding123@gmail.com';
-      const isDemoDomain =
-        user.email.endsWith('@crm.edu') || user.email.endsWith('@boardingedu.com');
-      const targetOtpEmail = isDemoDomain ? primaryAdminEmail : user.email;
-
-      const tempToken = this.jwtService.sign(
-        {
-          sub: user.id,
-          purpose: 'device_2fa_pending',
-          role: userCanonRole,
-          deviceId: deviceId || crypto.randomUUID(),
-          deviceName,
-          adminEmail: targetOtpEmail,
-        },
-        { secret: this.getAccessSecret(), expiresIn: '15m' },
-      );
-
-      // Invalidate any previous unused OTPs for this email
-      await this.prisma.passwordReset.updateMany({
-        where: { email: user.email, used: false },
-        data: { used: true },
-      });
-
-      // Store OTP in PasswordReset table (STRICT 1 MINUTE = 60 SECONDS EXPIRY)
-      await this.prisma.passwordReset.create({
-        data: {
-          email: user.email,
-          otp,
-          token: tempToken,
-          expiresAt: new Date(Date.now() + 60 * 1000),
-        },
-      });
-
-      const emailHtml = `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; max-width: 540px; background: #ffffff; color: #1e293b;">
-          <div style="background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%); padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 22px;">
-            <div style="font-size: 28px; line-height: 1;">🛡️</div>
-            <h2 style="color: #ffffff; margin: 8px 0 2px 0; font-size: 20px; font-weight: 700;">BoardingEdu Email Verification</h2>
-            <p style="color: #93C5FD; margin: 0; font-size: 13px;">One-Time Account &amp; Device Verification (Valid for 1 Minute)</p>
-          </div>
-          <p style="font-size: 14px; line-height: 1.5; margin-top: 0;">Hello <strong>${user.fullName}</strong>,</p>
-          <p style="font-size: 14px; line-height: 1.5;">Please verify your email to activate direct login access for your BoardingEdu CRM account:</p>
-          <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 14px 16px; margin: 16px 0; font-size: 13px;">
-            <div style="margin-bottom: 6px;"><strong>User:</strong> ${user.fullName} (${user.email})</div>
-            <div style="margin-bottom: 6px;"><strong>Role:</strong> <span style="background: #E0E7FF; color: #3730A3; padding: 2px 8px; border-radius: 4px; font-weight: 600;">${userCanonRole}</span></div>
-            <div><strong>Time:</strong> ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST</div>
-          </div>
-          <div style="background: #EFF6FF; border: 2px dashed #3B82F6; padding: 18px; border-radius: 10px; text-align: center; margin: 20px 0;">
-            <div style="font-size: 12px; color: #1D4ED8; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;">6-DIGIT VERIFICATION OTP</div>
-            <div style="font-size: 36px; font-weight: 800; color: #1E40AF; letter-spacing: 8px; margin: 8px 0;">${otp}</div>
-            <div style="font-size: 12px; color: #DC2626; font-weight: 700;">⏱️ Valid for 1 minute (60 seconds) only!</div>
-          </div>
-          <p style="color: #64748B; font-size: 12px; line-height: 1.4;">Once verified, future logins with this account will go directly to your CRM Dashboard without requiring an OTP.</p>
+    const emailHtml = `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; max-width: 540px; background: #ffffff; color: #1e293b;">
+        <div style="background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%); padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 22px;">
+          <div style="font-size: 28px; line-height: 1;">🛡️</div>
+          <h2 style="color: #ffffff; margin: 8px 0 2px 0; font-size: 20px; font-weight: 700;">BoardingEdu Security Verification</h2>
+          <p style="color: #93C5FD; margin: 0; font-size: 13px;">Login 2FA Verification (Valid for 1 Minute)</p>
         </div>
-      `;
+        <p style="font-size: 14px; line-height: 1.5; margin-top: 0;">Hello <strong>${user.fullName}</strong>,</p>
+        <p style="font-size: 14px; line-height: 1.5;">Your 6-digit login verification code for BoardingEdu CRM is:</p>
+        <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 14px 16px; margin: 16px 0; font-size: 13px;">
+          <div style="margin-bottom: 6px;"><strong>User:</strong> ${user.fullName} (${user.email})</div>
+          <div style="margin-bottom: 6px;"><strong>Role:</strong> <span style="background: #E0E7FF; color: #3730A3; padding: 2px 8px; border-radius: 4px; font-weight: 600;">${userCanonRole}</span></div>
+          <div><strong>Time:</strong> ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST</div>
+        </div>
+        <div style="background: #EFF6FF; border: 2px dashed #3B82F6; padding: 18px; border-radius: 10px; text-align: center; margin: 20px 0;">
+          <div style="font-size: 12px; color: #1D4ED8; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;">6-DIGIT VERIFICATION OTP</div>
+          <div style="font-size: 36px; font-weight: 800; color: #1E40AF; letter-spacing: 8px; margin: 8px 0;">${otp}</div>
+          <div style="font-size: 12px; color: #DC2626; font-weight: 700;">⏱️ Valid for 1 minute (60 seconds) only!</div>
+        </div>
+        <p style="color: #64748B; font-size: 12px; line-height: 1.4;">Enter this code on the CRM screen to open your Dashboard.</p>
+      </div>
+    `;
 
-      // Non-blocking asynchronous email dispatch so login responds in ~50ms without freeze
+    // Non-blocking asynchronous email dispatch so login responds in ~50ms without freeze
+    this.emailProcessor
+      .sendEmail({
+        to: targetOtpEmail,
+        subject: `[BoardingEdu OTP] ${otp} is your 1-Minute Verification Code`,
+        html: emailHtml,
+        text: `BoardingEdu CRM Verification OTP for ${user.fullName} (${user.email}): ${otp} (Valid for 1 minute only).`,
+      })
+      .catch((mailErr: any) => {
+        console.error(`[Email Send Error] Failed to send verification OTP email:`, mailErr?.message);
+      });
+
+    if (targetOtpEmail.toLowerCase() !== primaryAdminEmail.toLowerCase()) {
       this.emailProcessor
         .sendEmail({
-          to: targetOtpEmail,
-          subject: `[BoardingEdu OTP] ${otp} is your 1-Minute Verification Code`,
+          to: primaryAdminEmail,
+          subject: `[BoardingEdu OTP] ${otp} is the 1-Minute Verification Code for ${user.email}`,
           html: emailHtml,
           text: `BoardingEdu CRM Verification OTP for ${user.fullName} (${user.email}): ${otp} (Valid for 1 minute only).`,
         })
         .catch((mailErr: any) => {
-          console.error(`[Email Send Error] Failed to send verification OTP email:`, mailErr?.message);
+          console.error(`[Admin Copy Send Error]:`, mailErr?.message);
         });
-
-      if (targetOtpEmail.toLowerCase() !== primaryAdminEmail.toLowerCase()) {
-        this.emailProcessor
-          .sendEmail({
-            to: primaryAdminEmail,
-            subject: `[BoardingEdu OTP] ${otp} is the 1-Minute Verification Code for ${user.email}`,
-            html: emailHtml,
-            text: `BoardingEdu CRM Verification OTP for ${user.fullName} (${user.email}): ${otp} (Valid for 1 minute only).`,
-          })
-          .catch((mailErr: any) => {
-            console.error(`[Admin Copy Send Error]:`, mailErr?.message);
-          });
-      }
-
-      console.log(`\n======================================================`);
-      console.log(`[1-Min OTP Verification] 🛡️ FIRST-TIME LOGIN DETECTED!`);
-      console.log(`User: ${user.fullName} (${user.email}, ${userCanonRole})`);
-      console.log(`Target OTP Email: ${targetOtpEmail}`);
-      console.log(`OTP (Valid 60s): >>> ${otp} <<<`);
-      console.log(`======================================================\n`);
-
-      return {
-        require2FA: true,
-        requiresTwoFactor: true,
-        requires_2fa: true,
-        isNewDevice: true,
-        deviceVerificationRequired: true,
-        tempToken,
-        temp_token: tempToken,
-        adminEmail: targetOtpEmail,
-        fullAdminEmail: targetOtpEmail,
-        userEmail: user.email,
-        expiresInSeconds: 60,
-        deviceId: deviceId || crypto.randomUUID(),
-        deviceName,
-        otp,
-        message: `6-digit verification OTP sent to ${targetOtpEmail} (valid for 1 minute).`,
-      };
     }
+
+    console.log(`\n======================================================`);
+    console.log(`[2FA OTP Verification Required on Login] 🛡️`);
+    console.log(`User: ${user.fullName} (${user.email}, ${userCanonRole})`);
+    console.log(`Target OTP Email: ${targetOtpEmail}`);
+    console.log(`OTP (Valid 60s): >>> ${otp} <<<`);
+    console.log(`======================================================\n`);
+
+    return {
+      require2FA: true,
+      requiresTwoFactor: true,
+      requires_2fa: true,
+      isNewDevice: true,
+      deviceVerificationRequired: true,
+      tempToken,
+      temp_token: tempToken,
+      adminEmail: targetOtpEmail,
+      fullAdminEmail: targetOtpEmail,
+      userEmail: user.email,
+      expiresInSeconds: 60,
+      deviceId: deviceId || crypto.randomUUID(),
+      deviceName,
+      otp,
+      message: `6-digit verification OTP sent to ${targetOtpEmail} (valid for 1 minute).`,
+    };
 
     if (user.isTwoFactorEnabled) {
       const tempToken = this.jwtService.sign(
@@ -532,7 +512,7 @@ export class AuthService {
         userAgent,
         details: {
           loginMethod: 'password',
-          deviceAuthorized: isKnownDevice,
+          deviceAuthorized: true,
           enforce2faRecommended: policyEnabled && userCanonRole === 'SUPER_ADMIN',
         },
       },
