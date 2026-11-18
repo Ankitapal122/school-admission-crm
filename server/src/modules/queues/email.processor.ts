@@ -61,7 +61,56 @@ export class EmailProcessor {
     return this.transporter;
   }
 
+  private async sendViaHttpApi(options: { to: string; subject: string; html: string; text?: string }) {
+    const brevoKey = process.env.BREVO_API_KEY || '';
+    const resendKey = process.env.RESEND_API_KEY || '';
+    const senderEmail =
+      process.env.MAIL_FROM_EMAIL || process.env.SMTP_USER || 'adminboarding123@gmail.com';
+    if (brevoKey.startsWith('xkeysib')) {
+      const r = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: { 'api-key': brevoKey, 'content-type': 'application/json', accept: 'application/json' },
+        body: JSON.stringify({
+          sender: { name: 'BoardingEdu CRM', email: senderEmail },
+          to: [{ email: options.to }],
+          subject: options.subject,
+          htmlContent: options.html,
+          textContent: options.text,
+        }),
+      });
+      const body = await r.text();
+      if (!r.ok) throw new Error(`Brevo API ${r.status}: ${body}`);
+      return { delivered: true, mode: 'brevo_api' };
+    }
+    if (resendKey) {
+      const r = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${resendKey}`, 'content-type': 'application/json' },
+        body: JSON.stringify({
+          from: process.env.RESEND_FROM || 'BoardingEdu CRM <onboarding@resend.dev>',
+          to: [options.to],
+          subject: options.subject,
+          html: options.html,
+          text: options.text,
+        }),
+      });
+      const body = await r.text();
+      if (!r.ok) throw new Error(`Resend API ${r.status}: ${body}`);
+      return { delivered: true, mode: 'resend_api' };
+    }
+    return null;
+  }
+
   async sendEmail(options: { to: string; subject: string; html: string; text?: string }) {
+    try {
+      const apiRes = await this.sendViaHttpApi(options);
+      if (apiRes) {
+        this.logger.log(`Email sent via ${apiRes.mode} to ${options.to}`);
+        return apiRes;
+      }
+    } catch (apiErr: any) {
+      this.logger.warn(`HTTP email API failed: ${apiErr.message} - falling back to SMTP`);
+    }
     const { user, pass, host, from } = this.getCredentials();
     const transporter = this.getTransporter();
     if (!transporter) {
