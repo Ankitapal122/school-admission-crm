@@ -4,6 +4,8 @@ const APP_SHELL_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/icon-192.png',
+  '/icon-512.png',
   '/boardingedu-logo.png',
   '/boardingedu-logo-clean.png'
 ];
