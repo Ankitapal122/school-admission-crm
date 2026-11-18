@@ -462,7 +462,6 @@ export class AuthService {
       expiresInSeconds: 60,
       deviceId: deviceId || crypto.randomUUID(),
       deviceName,
-      otp,
       message: `6-digit verification OTP sent to ${targetOtpEmail} (valid for 1 minute).`,
     };
 
@@ -856,7 +855,6 @@ export class AuthService {
       sent: true,
       adminEmail: targetOtpEmail,
       expiresInSeconds: 60,
-      otp,
       message: `A fresh 6-digit OTP has been sent to ${targetOtpEmail} (valid for 1 minute).`,
     };
   }
@@ -1234,7 +1232,6 @@ export class AuthService {
       email: deliveryEmail,
       accountEmail: user.email,
       expiresInSeconds: 60,
-      otp,
       message: `6-digit verification OTP sent to ${deliveryEmail} (valid for 1 minute)!`,
     };
   }
