@@ -102,6 +102,36 @@ export default function Sidebar({
       </div>
 
       <nav className="sidebar-nav">
+        <div style={{ padding: '4px 10px 10px 10px' }}>
+          <button
+            type="button"
+            onClick={() => {
+              if (onCloseMobile) onCloseMobile();
+              sessionStorage.removeItem('pwa_install_dismissed');
+              window.dispatchEvent(new CustomEvent('pwa-show-install-prompt'));
+            }}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              padding: '10px 12px',
+              background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+              color: '#FFFFFF',
+              border: 'none',
+              borderRadius: '10px',
+              fontSize: '13px',
+              fontWeight: 800,
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.35)',
+            }}
+            title="Install BoardingEdu CRM on Phone or Desktop"
+          >
+            <span style={{ fontSize: '15px' }}>📲</span>
+            <span>Install App on Phone</span>
+          </button>
+        </div>
         {roleName === 'admin' && (
           <>
             <a
@@ -249,6 +279,18 @@ export default function Sidebar({
               <span className="nav-icon"><CrmIcon name="settings" size={17} /></span>
               <span>Settings</span>
             </a>
+            <a
+              className="nav-item"
+              style={{ color: '#10B981', fontWeight: 700 }}
+              onClick={() => {
+                if (onCloseMobile) onCloseMobile();
+                sessionStorage.removeItem('pwa_install_dismissed');
+                window.dispatchEvent(new CustomEvent('pwa-show-install-prompt'));
+              }}
+            >
+              <span className="nav-icon">📲</span>
+              <span>Install Mobile App</span>
+            </a>
           </>
         )}
 
@@ -354,6 +396,18 @@ export default function Sidebar({
             >
               <span className="nav-icon"><CrmIcon name="settings" size={17} /></span>
               <span>Settings</span>
+            </a>
+            <a
+              className="nav-item"
+              style={{ color: '#10B981', fontWeight: 700 }}
+              onClick={() => {
+                if (onCloseMobile) onCloseMobile();
+                sessionStorage.removeItem('pwa_install_dismissed');
+                window.dispatchEvent(new CustomEvent('pwa-show-install-prompt'));
+              }}
+            >
+              <span className="nav-icon">📲</span>
+              <span>Install Mobile App</span>
             </a>
           </>
         )}
@@ -486,6 +540,18 @@ export default function Sidebar({
             >
               <span className="nav-icon"><CrmIcon name="settings" size={17} /></span>
               <span>Settings</span>
+            </a>
+            <a
+              className="nav-item"
+              style={{ color: '#10B981', fontWeight: 700 }}
+              onClick={() => {
+                if (onCloseMobile) onCloseMobile();
+                sessionStorage.removeItem('pwa_install_dismissed');
+                window.dispatchEvent(new CustomEvent('pwa-show-install-prompt'));
+              }}
+            >
+              <span className="nav-icon">📲</span>
+              <span>Install Mobile App</span>
             </a>
             <a
               className="nav-item"
