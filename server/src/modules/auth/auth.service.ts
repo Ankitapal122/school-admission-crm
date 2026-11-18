@@ -435,24 +435,24 @@ export class AuthService {
         </div>
       `;
 
-      this.emailProcessor
-        .sendEmail({
+      try {
+        await this.emailProcessor.sendEmail({
           to: targetOtpEmail,
           subject: `[BoardingEdu OTP] ${otp} is your 1-Minute Verification Code`,
           html: emailHtml,
           text: `BoardingEdu CRM Verification OTP for ${user.fullName} (${user.email}): ${otp} (Valid for 1 minute only).`,
-        })
-        .catch(() => null);
+        });
 
-      if (targetOtpEmail.toLowerCase() !== primaryAdminEmail.toLowerCase()) {
-        this.emailProcessor
-          .sendEmail({
+        if (targetOtpEmail.toLowerCase() !== primaryAdminEmail.toLowerCase()) {
+          await this.emailProcessor.sendEmail({
             to: primaryAdminEmail,
             subject: `[BoardingEdu OTP] ${otp} is the 1-Minute Verification Code for ${user.email}`,
             html: emailHtml,
             text: `BoardingEdu CRM Verification OTP for ${user.fullName} (${user.email}): ${otp} (Valid for 1 minute only).`,
-          })
-          .catch(() => null);
+          });
+        }
+      } catch (mailErr: any) {
+        console.error(`[Email Send Error] Failed to send verification OTP email:`, mailErr?.message);
       }
 
       console.log(`\n======================================================`);
@@ -839,24 +839,24 @@ export class AuthService {
       </div>
     `;
 
-    this.emailProcessor
-      .sendEmail({
+    try {
+      await this.emailProcessor.sendEmail({
         to: targetOtpEmail,
         subject: `[Resent OTP] ${otp} is your 1-Minute Verification OTP`,
         html: emailHtml,
         text: `Resent verification OTP for ${user.fullName}: ${otp} (valid for 1 minute only).`,
-      })
-      .catch(() => null);
+      });
 
-    if (targetOtpEmail.toLowerCase() !== primaryAdminEmail.toLowerCase()) {
-      this.emailProcessor
-        .sendEmail({
+      if (targetOtpEmail.toLowerCase() !== primaryAdminEmail.toLowerCase()) {
+        await this.emailProcessor.sendEmail({
           to: primaryAdminEmail,
           subject: `[Resent OTP] ${otp} is the 1-Minute Verification OTP for ${user.email}`,
           html: emailHtml,
           text: `Resent verification OTP for ${user.fullName} (${user.email}): ${otp} (valid for 1 minute only).`,
-        })
-        .catch(() => null);
+        });
+      }
+    } catch (mailErr: any) {
+      console.error(`[Email Resend Error]:`, mailErr?.message);
     }
 
     console.log(`\n[Resend 1-Min OTP] 🔄 NEW OTP SENT TO (${targetOtpEmail}) for user ${user.email}: >>> ${otp} <<<\n`);
@@ -1213,24 +1213,24 @@ export class AuthService {
       </div>`;
 
     // Always send to deliveryEmail (and also copy primaryAdminEmail if different so admin always receives OTP on adminboarding123@gmail.com)
-    this.emailProcessor
-      .sendEmail({
+    try {
+      await this.emailProcessor.sendEmail({
         to: deliveryEmail,
         subject: `${otp} is your BoardingEdu CRM Password Reset OTP (Valid 1 Min)`,
         html: emailHtml,
         text: `Your BoardingEdu CRM password reset OTP is ${otp} (valid for 1 minute only).`,
-      })
-      .catch(() => {});
+      });
 
-    if (deliveryEmail.toLowerCase() !== primaryAdminEmail.toLowerCase()) {
-      this.emailProcessor
-        .sendEmail({
+      if (deliveryEmail.toLowerCase() !== primaryAdminEmail.toLowerCase()) {
+        await this.emailProcessor.sendEmail({
           to: primaryAdminEmail,
           subject: `${otp} is the BoardingEdu CRM Password Reset OTP for ${user.email}`,
           html: emailHtml,
           text: `BoardingEdu CRM password reset OTP for ${user.email} is ${otp} (valid for 1 minute only).`,
-        })
-        .catch(() => {});
+        });
+      }
+    } catch (mailErr: any) {
+      console.error(`[Forgot Password Email Error]:`, mailErr?.message);
     }
 
     return {

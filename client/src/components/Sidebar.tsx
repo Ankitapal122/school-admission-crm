@@ -56,6 +56,7 @@ export default function Sidebar({
             handleNavClick('dashboard');
           }}
           className="sidebar-brand"
+          title="BoardingEdu CRM"
         >
           <div className="brand-icon" style={{ background: '#FFFFFF', padding: '3px', overflow: 'hidden' }}>
             <img

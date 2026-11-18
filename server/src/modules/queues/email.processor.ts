@@ -34,6 +34,16 @@ export class EmailProcessor {
     if (!host || !user || !pass) {
       return null;
     }
+
+    if (host.includes('gmail.com') || user.endsWith('@gmail.com')) {
+      this.transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: { user, pass },
+        tls: { rejectUnauthorized: false },
+      });
+      return this.transporter;
+    }
+
     const port = Number(process.env.SMTP_PORT || process.env.EMAIL_PORT || 587);
     this.transporter = nodemailer.createTransport({
       pool: true,

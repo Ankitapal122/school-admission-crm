@@ -1,7 +1,7 @@
 ﻿{
-  name: BoardingEdu Enterprise Student CRM,
-  short_name: BoardingEdu CRM,
-  description: Uttarakhand Boarding Schools Enterprise Student & Admission CRM with PWA Offline Support, WhatsApp Bot & Realtime Tracking,
+  "name": "BoardingEdu CRM",
+  "short_name": "BoardingEdu CRM",
+  "description": "BoardingEdu CRM - Enterprise Student & Admission CRM with PWA Mobile Support, WhatsApp Bot & Realtime Tracking",
   start_url: /,
   scope: /,
   display: standalone,
