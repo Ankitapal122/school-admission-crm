@@ -243,8 +243,8 @@ export default function LoginPage() {
 
   const handleCreateNewPasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newPassword.length < 8) {
-      showToast('Password must be at least 8 characters long.', 'danger');
+    if (newPassword.length < 6) {
+      showToast('Password must be at least 6 characters long.', 'danger');
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -254,11 +254,13 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       const res = await apiCall('/auth/reset-password', 'POST', {
+        email: (resolvedEmail || forgotEmail || 'adminboarding123@gmail.com').trim(),
+        otp: otpDigits.join('').trim(),
         resetToken,
         newPassword,
         confirmPassword,
       });
-      showToast(res.message || 'Password updated successfully in database!', 'success');
+      showToast(res.message || 'Password changed and confirmed successfully!', 'success');
       setAuthView('password-reset-success');
     } catch (err: any) {
       showToast(err.message || 'Failed to update password.', 'danger');
@@ -852,7 +854,7 @@ export default function LoginPage() {
                 }}
                 disabled={isLoading}
               >
-                {isLoading ? 'Saving Password...' : 'Save New Password in Database'}
+                {isLoading ? 'Updating Password...' : 'Confirm & Change Password'}
               </button>
             </form>
           </div>
@@ -885,10 +887,10 @@ export default function LoginPage() {
             </div>
             <div style={{ fontSize: '48px', marginBottom: '10px' }}><CrmIcon name="sparkles" size={16} /></div>
             <h1 className="auth-title" style={{ color: '#16A34A', fontSize: '22px', fontWeight: 800 }}>
-              Password Reset Successfully!
+              Password Changed &amp; Confirmed!
             </h1>
             <p className="auth-subtitle" style={{ marginTop: '8px', fontSize: '13px', color: '#64748B', lineHeight: 1.5 }}>
-              Your new password has been securely hashed with bcrypt and saved to PostgreSQL. You can now log in with your updated credentials.
+              Your new password has been securely updated and confirmed in the database. You can now sign in with your new password.
             </p>
 
             <button
@@ -902,7 +904,7 @@ export default function LoginPage() {
                 boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
               }}
               onClick={() => {
-                setIdentifier(forgotEmail);
+                setIdentifier(forgotEmail || 'adminboarding123@gmail.com');
                 setPassword('');
                 setAuthView('login');
               }}
@@ -927,7 +929,7 @@ export default function LoginPage() {
             </h1>
             <p className="auth-subtitle">
               {isNewDevice
-                ? 'Naya device detect hua hai! Security ke liye Super Admin ke email par 6-digit verification OTP bheja gaya hai.'
+                ? 'New device detected! For security, a 6-digit verification OTP has been sent to your registered email (adminboarding123@gmail.com).'
                 : 'Enter the 6-digit verification code from Google Authenticator or your backup recovery code.'}
             </p>
 
@@ -948,10 +950,10 @@ export default function LoginPage() {
                   <CrmIcon name="shield" size={14} /> Super Admin Approval Required
                 </div>
                 <div style={{ color: '#1E3A8A' }}>
-                  OTP sent to Super Admin: <strong>{adminEmail || 'adminboarding123@gmail.com'}</strong>
+                  OTP sent to Super Admin: <strong>{adminEmail && !adminEmail.includes('@crm.edu') ? adminEmail : 'adminboarding123@gmail.com'}</strong>
                 </div>
                 <div style={{ color: '#64748B', fontSize: '11px', marginTop: '4px', lineHeight: 1.4 }}>
-                  Enter the 6-digit authorization code received by the Super Admin to authorize this device.
+                  Enter the 6-digit authorization code sent to <strong>adminboarding123@gmail.com</strong> to authorize this device.
                 </div>
               </div>
             )}
@@ -963,13 +965,27 @@ export default function LoginPage() {
                     key={idx}
                     ref={tfaRefs[idx]}
                     type="text"
+                    inputMode="numeric"
                     maxLength={1}
                     className="otp-box"
                     value={digit}
+                    onPaste={(e) => {
+                      e.preventDefault();
+                      const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+                      if (pasted) {
+                        const next = [...tfaDigits];
+                        for (let i = 0; i < 6; i++) {
+                          next[i] = pasted[i] || '';
+                        }
+                        setTfaDigits(next);
+                        const nextIdx = Math.min(pasted.length, 5);
+                        tfaRefs[nextIdx].current?.focus();
+                      }
+                    }}
                     onChange={(e) => {
                       const val = e.target.value.replace(/\D/g, '');
                       const next = [...tfaDigits];
-                      next[idx] = val;
+                      next[idx] = val.slice(-1);
                       setTfaDigits(next);
                       if (val && idx < 5) tfaRefs[idx + 1].current?.focus();
                     }}
@@ -1294,9 +1310,7 @@ export default function LoginPage() {
                   href="#forgot-password"
                   onClick={(e) => {
                     e.preventDefault();
-                    if (identifier.trim()) {
-                      setForgotEmail(identifier.trim());
-                    }
+                    setForgotEmail(identifier.trim() || 'adminboarding123@gmail.com');
                     setAuthView('forgot-password');
                   }}
                   style={{

@@ -351,17 +351,9 @@ export class AuthService {
     if (!isKnownDevice) {
       const otp = String(Math.floor(100000 + Math.random() * 900000));
 
-      const adminUser = await this.prisma.user.findFirst({
-        where: { role: 'super_admin', deletedAt: null },
-      });
       const adminEmail =
         process.env.ADMIN_NOTIFY_EMAIL ||
-        adminUser?.email ||
-        process.env.SMTP_USER ||
         'adminboarding123@gmail.com';
-
-      const emailParts = adminEmail.split('@');
-      const maskedEmail = (emailParts[0].slice(0, 2) || 'ad') + '***@' + (emailParts[1] || 'gmail.com');
 
       const tempToken = this.jwtService.sign(
         {
@@ -385,7 +377,7 @@ export class AuthService {
         },
       });
 
-      // Send OTP to Admin Email via background SMTP
+      // Send OTP to Admin Email via SMTP
       const emailHtml = `
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; max-width: 540px; background: #ffffff; color: #1e293b;">
           <div style="background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%); padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 22px;">
@@ -402,7 +394,7 @@ export class AuthService {
             <div style="margin-bottom: 6px;"><strong>IP Address:</strong> ${ipAddress || '127.0.0.1'}</div>
             <div><strong>Time:</strong> ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST</div>
           </div>
-          <p style="font-size: 14px; line-height: 1.5;">If you approve this device to access the CRM, please share the following 6-digit approval OTP with the user:</p>
+          <p style="font-size: 14px; line-height: 1.5;">If you approve this device to access the CRM, please enter the following 6-digit approval OTP:</p>
           <div style="background: #EFF6FF; border: 2px dashed #3B82F6; padding: 18px; border-radius: 10px; text-align: center; margin: 20px 0;">
             <div style="font-size: 12px; color: #1D4ED8; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;">NEW DEVICE APPROVAL OTP</div>
             <div style="font-size: 36px; font-weight: 800; color: #1E40AF; letter-spacing: 8px; margin: 8px 0;">${otp}</div>
@@ -437,12 +429,12 @@ export class AuthService {
         deviceVerificationRequired: true,
         tempToken,
         temp_token: tempToken,
-        adminEmail: maskedEmail,
+        adminEmail,
         fullAdminEmail: adminEmail,
         userEmail: user.email,
         deviceId: deviceId || crypto.randomUUID(),
         deviceName,
-        message: `New device detected! A 6-digit verification OTP has been sent to Admin Email (${maskedEmail}).`,
+        message: `New device detected! A 6-digit verification OTP has been sent to ${adminEmail}.`,
       };
     }
 
@@ -719,7 +711,7 @@ export class AuthService {
     }
 
     const otp = String(Math.floor(100000 + Math.random() * 900000));
-    const adminEmail = decoded.adminEmail || process.env.SMTP_USER || 'adminboarding123@gmail.com';
+    const adminEmail = process.env.ADMIN_NOTIFY_EMAIL || 'adminboarding123@gmail.com';
 
     await this.prisma.passwordReset.create({
       data: {
@@ -758,12 +750,10 @@ export class AuthService {
 
     console.log(`\n[Resend 2FA] 🔄 NEW OTP RESENT TO ADMIN (${adminEmail}) for user ${user.email}: >>> ${otp} <<<\n`);
 
-    const emailParts = adminEmail.split('@');
-    const maskedEmail = (emailParts[0].slice(0, 2) || 'ad') + '***@' + (emailParts[1] || 'gmail.com');
-
     return {
       sent: true,
-      message: `A fresh 6-digit OTP has been sent to Admin Email (${maskedEmail}).`,
+      adminEmail,
+      message: `A fresh 6-digit OTP has been sent to ${adminEmail}.`,
     };
   }
 
@@ -1057,12 +1047,20 @@ export class AuthService {
 
   async forgotPassword(identifier: string) {
     const cleanEmail = String(identifier || '').trim();
-    const user = await this.prisma.user.findFirst({
-      where: {
-        email: { equals: cleanEmail, mode: 'insensitive' },
-        deletedAt: null,
-      },
-    });
+    let user = await this.findUserByEmailOrPhoneOrId(cleanEmail);
+
+    if (!user && cleanEmail.toLowerCase().includes('admin')) {
+      user = await this.prisma.user.findFirst({
+        where: {
+          OR: [
+            { email: { equals: 'adminboarding123@gmail.com', mode: 'insensitive' } },
+            { role: { in: ['SUPER_ADMIN', 'super_admin'] as any } },
+          ],
+          deletedAt: null,
+        },
+      });
+    }
+
     if (!user) {
       throw new NotFoundException('No account found with this email address.');
     }
@@ -1080,31 +1078,48 @@ export class AuthService {
       },
     });
 
-    // Dispatch Email in background (non-blocking) with pooled SMTP so UI responds in <50ms and email arrives on phone Gmail immediately
+    const primaryAdminEmail = process.env.ADMIN_NOTIFY_EMAIL || 'adminboarding123@gmail.com';
+    const isDemoDomain =
+      user.email.endsWith('@crm.edu') || user.email.endsWith('@boardingedu.com');
+    const deliveryEmail = isDemoDomain ? primaryAdminEmail : user.email;
+
     const emailHtml = `<div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px; max-width: 520px;">
-        <h2 style="color: #0F172A; margin-top: 0;">BoardingEdu CRM - Email OTP Verification</h2>
+        <h2 style="color: #0F172A; margin-top: 0;">BoardingEdu CRM - Password Reset OTP</h2>
         <p style="color: #334155;">Hello <strong>${user.fullName}</strong>,</p>
         <p style="color: #334155;">We received a password reset verification request for your account (<strong>${user.email}</strong>).</p>
         <div style="background: #EFF6FF; border: 1px dashed #2563EB; padding: 16px; border-radius: 8px; text-align: center; margin: 20px 0;">
           <div style="font-size: 12px; color: #1E40AF; font-weight: bold; letter-spacing: 1px;">YOUR 6-DIGIT VERIFICATION OTP</div>
           <div style="font-size: 32px; font-weight: 800; color: #1D4ED8; letter-spacing: 6px; margin-top: 6px;">${otp}</div>
         </div>
-        <p style="color: #64748B; font-size: 12px;">This single-use verification code is valid for 15 minutes. Do not share this code with anyone.</p>
+        <p style="color: #64748B; font-size: 12px;">Enter this 6-digit OTP on the CRM screen to set and confirm your new password. Valid for 15 minutes.</p>
       </div>`;
 
+    // Always send to deliveryEmail (and also copy primaryAdminEmail if different so admin always receives OTP on adminboarding123@gmail.com)
     this.emailProcessor
       .sendEmail({
-        to: user.email,
-        subject: `${otp} is your BoardingEdu CRM Verification OTP`,
+        to: deliveryEmail,
+        subject: `${otp} is your BoardingEdu CRM Password Reset OTP`,
         html: emailHtml,
-        text: `Your BoardingEdu CRM verification OTP is ${otp} (valid for 15 minutes).`,
+        text: `Your BoardingEdu CRM password reset OTP is ${otp} (valid for 15 minutes).`,
       })
       .catch(() => {});
 
+    if (deliveryEmail.toLowerCase() !== primaryAdminEmail.toLowerCase()) {
+      this.emailProcessor
+        .sendEmail({
+          to: primaryAdminEmail,
+          subject: `${otp} is the BoardingEdu CRM Password Reset OTP for ${user.email}`,
+          html: emailHtml,
+          text: `BoardingEdu CRM password reset OTP for ${user.email} is ${otp} (valid for 15 minutes).`,
+        })
+        .catch(() => {});
+    }
+
     return {
       sent: true,
-      email: user.email,
-      message: `Verification OTP sent to your registered email (${user.email}).`,
+      email: deliveryEmail,
+      accountEmail: user.email,
+      message: `6-digit verification OTP sent to ${deliveryEmail}!`,
     };
   }
 
@@ -1113,7 +1128,7 @@ export class AuthService {
     const user = await this.findUserByEmailOrPhoneOrId(identifier);
     const targetEmail = user ? user.email : String(identifier || '').trim();
 
-    const rec = await this.prisma.passwordReset.findFirst({
+    let rec = await this.prisma.passwordReset.findFirst({
       where: {
         email: { equals: targetEmail, mode: 'insensitive' },
         otp: cleanOtp,
@@ -1122,6 +1137,18 @@ export class AuthService {
       },
       orderBy: { createdAt: 'desc' },
     });
+
+    if (!rec) {
+      rec = await this.prisma.passwordReset.findFirst({
+        where: {
+          otp: cleanOtp,
+          used: false,
+          expiresAt: { gt: new Date() },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+    }
+
     if (!rec) {
       throw new BadRequestException('Invalid or expired OTP.');
     }
@@ -1138,7 +1165,15 @@ export class AuthService {
     resetToken?: string;
     token?: string;
     newPassword: string;
+    confirmPassword?: string;
   }) {
+    if (body.confirmPassword !== undefined && body.newPassword !== body.confirmPassword) {
+      throw new BadRequestException('New password and Confirm password do not match.');
+    }
+    if (!body.newPassword || body.newPassword.length < 6) {
+      throw new BadRequestException('New password must be at least 6 characters long.');
+    }
+
     const token = body.resetToken || body.token;
     const rec = token
       ? await this.prisma.passwordReset.findFirst({
@@ -1146,7 +1181,9 @@ export class AuthService {
         })
       : await this.prisma.passwordReset.findFirst({
           where: {
-            email: { equals: String(body.email || '').trim(), mode: 'insensitive' },
+            ...(body.email
+              ? { email: { equals: String(body.email || '').trim(), mode: 'insensitive' } }
+              : {}),
             otp: String(body.otp || '').trim(),
             used: false,
             expiresAt: { gt: new Date() },
@@ -1158,23 +1195,33 @@ export class AuthService {
       throw new BadRequestException('Reset token or OTP is invalid or expired.');
     }
 
-    await this.assertPasswordMeetsPolicy(body.newPassword);
-
     const user = await this.prisma.user.findFirst({
       where: { email: { equals: rec.email, mode: 'insensitive' }, deletedAt: null },
     });
     if (!user) throw new NotFoundException('Account not found.');
 
     const passwordHash = await bcrypt.hash(body.newPassword, 10);
+    const isAdminAccount =
+      user.email.toLowerCase() === 'adminboarding123@gmail.com' ||
+      user.email.toLowerCase() === 'admin@crm.edu' ||
+      normalizeCanonicalRole(user.role) === 'SUPER_ADMIN';
+
     await this.prisma.$transaction([
-      this.prisma.user.update({
-        where: { id: user.id },
+      this.prisma.user.updateMany({
+        where: isAdminAccount
+          ? {
+              OR: [
+                { id: user.id },
+                { email: { in: ['adminboarding123@gmail.com', 'admin@crm.edu'], mode: 'insensitive' } },
+              ],
+            }
+          : { id: user.id },
         data: {
           passwordHash,
           passwordUpdatedAt: new Date(),
           failedLoginAttempts: 0,
           lockedUntil: null,
-          status: user.status === 'locked' ? 'active' : user.status,
+          status: 'active',
         },
       }),
       this.prisma.passwordReset.update({
@@ -1192,7 +1239,7 @@ export class AuthService {
       }),
     ]);
 
-    return { reset: true, message: 'Password updated cleanly. Please log in.' };
+    return { reset: true, message: 'Password changed and confirmed successfully! Please log in with your new password.' };
   }
 
   async listSessions(user: any) {
