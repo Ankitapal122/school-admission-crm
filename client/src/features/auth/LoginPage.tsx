@@ -48,6 +48,7 @@ export default function LoginPage() {
   const [adminEmail, setAdminEmail] = useState('');
   const [deviceId, setDeviceId] = useState('');
   const [resendCooldown, setResendCooldown] = useState(0);
+  const [otpExpirySeconds, setOtpExpirySeconds] = useState(60);
 
   useEffect(() => {
     let id = localStorage.getItem('crm_device_id');
@@ -57,6 +58,15 @@ export default function LoginPage() {
     }
     setDeviceId(id);
   }, []);
+
+  useEffect(() => {
+    if (authView !== 'two-factor' && authView !== 'verify-otp') return;
+    if (otpExpirySeconds <= 0) return;
+    const t = setInterval(() => {
+      setOtpExpirySeconds((s) => (s > 0 ? s - 1 : 0));
+    }, 1000);
+    return () => clearInterval(t);
+  }, [authView, otpExpirySeconds]);
 
   useEffect(() => {
     if (resendCooldown <= 0) return;
@@ -143,10 +153,12 @@ export default function LoginPage() {
       if (res.require2FA || res.requiresTwoFactor || res.requires_2fa) {
         setTempToken(res.tempToken || res.temp_token);
         setIsNewDevice(Boolean(res.isNewDevice));
-        setAdminEmail(res.adminEmail || 'adminboarding123@gmail.com');
+        setAdminEmail(res.adminEmail || emailTrimmed || 'adminboarding123@gmail.com');
         setTfaDigits(['', '', '', '', '', '']);
+        setOtpExpirySeconds(60);
+        setResendCooldown(0);
         showToast(
-          res.message || 'Two-Factor Authentication: 6-digit verification OTP sent to Admin email.',
+          res.message || '6-digit verification OTP sent to email (valid for 1 minute).',
           'warning'
         );
         setAuthView('two-factor');
@@ -189,8 +201,8 @@ export default function LoginPage() {
     }
   };
 
-  const handleForgotPasswordSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleForgotPasswordSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     const cleanInput = forgotEmail.trim();
     if (!cleanInput) {
       showToast('Please enter your registered email address (e.g. adminboarding123@gmail.com).', 'danger');
@@ -204,8 +216,9 @@ export default function LoginPage() {
       });
       setResolvedEmail(res.email || cleanInput);
       setOtpDigits(['', '', '', '', '', '']);
+      setOtpExpirySeconds(60);
       showToast(
-        res.message || `Verification OTP sent to your registered email (${res.email || cleanInput})!`,
+        res.message || `6-digit verification OTP sent to ${res.email || cleanInput} (valid for 1 minute)!`,
         'success'
       );
       setAuthView('verify-otp');
@@ -218,6 +231,10 @@ export default function LoginPage() {
 
   const handleVerifyOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (otpExpirySeconds <= 0) {
+      showToast('OTP has expired (1-minute limit)! Please click Resend OTP to get a new code.', 'danger');
+      return;
+    }
     const otp = otpDigits.join('').trim();
     if (otp.length !== 6) {
       showToast('Please enter all 6 digits of the verification OTP.', 'danger');
@@ -232,10 +249,10 @@ export default function LoginPage() {
         otp,
       });
       setResetToken(res.resetToken);
-      showToast('OTP verified successfully! Now create your new password.', 'success');
+      showToast('OTP verified successfully! Now create and confirm your new password.', 'success');
       setAuthView('create-new-password');
     } catch (err: any) {
-      showToast(err.message || 'Invalid or incorrect OTP. Please enter the correct verification code.', 'danger');
+      showToast(err.message || 'Invalid or expired OTP. Please click Resend OTP if 1 minute has passed.', 'danger');
     } finally {
       setIsLoading(false);
     }
@@ -271,6 +288,10 @@ export default function LoginPage() {
 
   const handle2FASubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (otpExpirySeconds <= 0) {
+      showToast('OTP has expired (1-minute limit)! Please click Resend OTP below to get a fresh 6-digit OTP.', 'danger');
+      return;
+    }
     const code = tfaDigits.join('').trim();
     if (code.length !== 6) {
       showToast('Please enter all 6 digits of the OTP code.', 'danger');
@@ -307,27 +328,28 @@ export default function LoginPage() {
           token,
           res.refreshToken
         );
-        showToast('Device authorized successfully! Welcome to BoardingEdu CRM.', 'success');
+        showToast('Email verified! Welcome to BoardingEdu CRM. Future logins will not require an OTP.', 'success');
       } else {
-        showToast('2FA Verified! Please sign in.', 'success');
+        showToast('OTP Verified! Please sign in.', 'success');
         setAuthView('login');
       }
     } catch (err: any) {
-      showToast(err.message || 'Invalid or incorrect OTP. Please verify with Admin.', 'danger');
+      showToast(err.message || 'Invalid or expired OTP. Please click Resend OTP if 1 minute has elapsed.', 'danger');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleResendDeviceOtp = async () => {
-    if (resendCooldown > 0) return;
     try {
       setIsLoading(true);
       const res = await apiCall('/auth/resend-device-otp', 'POST', { tempToken });
-      showToast(res.message || 'Fresh 6-digit OTP sent to Admin email!', 'success');
-      setResendCooldown(60);
+      setTfaDigits(['', '', '', '', '', '']);
+      setOtpExpirySeconds(60);
+      setResendCooldown(0);
+      showToast(res.message || 'Fresh 6-digit OTP sent to email (valid for 1 minute)!', 'success');
     } catch (err: any) {
-      showToast(err.message || 'Failed to resend OTP to Admin.', 'danger');
+      showToast(err.message || 'Failed to resend OTP.', 'danger');
     } finally {
       setIsLoading(false);
     }
@@ -651,8 +673,20 @@ export default function LoginPage() {
                   marginBottom: '18px',
                 }}
               >
-                <CrmIcon name="clock" size={16} /> Code expires in{' '}
-                <span style={{ color: 'var(--warning)', fontWeight: 700 }}>14:45</span> • Single-use verification code
+                <CrmIcon name="clock" size={16} />{' '}
+                {otpExpirySeconds > 0 ? (
+                  <>
+                    OTP valid for{' '}
+                    <span style={{ color: 'var(--warning)', fontWeight: 800 }}>
+                      00:{String(otpExpirySeconds).padStart(2, '0')}s
+                    </span>{' '}
+                    (1-minute limit)
+                  </>
+                ) : (
+                  <span style={{ color: '#DC2626', fontWeight: 800 }}>
+                    OTP Expired (1 minute over)! Please click Resend OTP below.
+                  </span>
+                )}
               </div>
 
               <button
@@ -665,15 +699,33 @@ export default function LoginPage() {
                   borderRadius: '8px',
                   fontWeight: 700,
                   fontSize: '14px',
+                  opacity: otpExpirySeconds <= 0 ? 0.6 : 1,
                   boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
                 }}
-                disabled={isLoading}
+                disabled={isLoading || otpExpirySeconds <= 0}
               >
                 {isLoading ? 'Verifying OTP...' : 'Verify OTP & Proceed'}
               </button>
             </form>
 
-            <div style={{ textAlign: 'center', marginTop: '20px' }}>
+            <div style={{ textAlign: 'center', marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}>
+              <button
+                type="button"
+                className="btn btn-outline btn-sm"
+                disabled={isLoading}
+                onClick={() => handleForgotPasswordSubmit()}
+                style={{
+                  fontSize: '12px',
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  fontWeight: 700,
+                  background: otpExpirySeconds <= 0 ? '#EFF6FF' : undefined,
+                  borderColor: otpExpirySeconds <= 0 ? '#2563EB' : undefined,
+                  color: otpExpirySeconds <= 0 ? '#1D4ED8' : undefined,
+                }}
+              >
+                <CrmIcon name="refresh-cw" size={13} /> Resend Fresh OTP (1-Min Timer)
+              </button>
               <a
                 href="#forgot"
                 onClick={(e) => {
@@ -682,7 +734,7 @@ export default function LoginPage() {
                 }}
                 style={{ color: '#2563EB', fontSize: '13px', textDecoration: 'none', fontWeight: 600 }}
               >
-                ← Resend OTP / Change Email
+                ← Change Email Address
               </a>
             </div>
           </div>
@@ -925,11 +977,11 @@ export default function LoginPage() {
               <CrmIcon name="shield" size={16} />
             </div>
             <h1 className="auth-title">
-              {isNewDevice ? 'New Device Approval (2FA)' : 'Two-Factor Authentication'}
+              {isNewDevice ? 'Email OTP Verification (1-Minute)' : 'Two-Factor Authentication'}
             </h1>
             <p className="auth-subtitle">
               {isNewDevice
-                ? 'New device detected! For security, a 6-digit verification OTP has been sent to your registered email (adminboarding123@gmail.com).'
+                ? 'One-time email verification! A 6-digit OTP has been sent to the email below. Once verified, future logins will go directly to the Dashboard without asking for OTP.'
                 : 'Enter the 6-digit verification code from Google Authenticator or your backup recovery code.'}
             </p>
 
@@ -947,13 +999,13 @@ export default function LoginPage() {
                 }}
               >
                 <div style={{ fontWeight: 700, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <CrmIcon name="shield" size={14} /> Super Admin Approval Required
+                  <CrmIcon name="shield" size={14} /> One-Time Account Verification
                 </div>
                 <div style={{ color: '#1E3A8A' }}>
-                  OTP sent to Super Admin: <strong>{adminEmail && !adminEmail.includes('@crm.edu') ? adminEmail : 'adminboarding123@gmail.com'}</strong>
+                  OTP sent to Email: <strong>{adminEmail && !adminEmail.includes('@crm.edu') ? adminEmail : 'adminboarding123@gmail.com'}</strong>
                 </div>
                 <div style={{ color: '#64748B', fontSize: '11px', marginTop: '4px', lineHeight: 1.4 }}>
-                  Enter the 6-digit authorization code sent to <strong>adminboarding123@gmail.com</strong> to authorize this device.
+                  Enter the 6-digit OTP within 1 minute. After this verification, you will not be asked for an OTP on future logins.
                 </div>
               </div>
             )}
@@ -1001,17 +1053,26 @@ export default function LoginPage() {
               <div
                 style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '20px' }}
               >
-                <CrmIcon name="clock" size={16} /> <span style={{ color: 'var(--warning)', fontWeight: 700 }}>OTP valid for 10 minutes</span>
+                <CrmIcon name="clock" size={16} />{' '}
+                {otpExpirySeconds > 0 ? (
+                  <span style={{ color: 'var(--warning)', fontWeight: 800 }}>
+                    OTP valid for 00:{String(otpExpirySeconds).padStart(2, '0')}s (1 minute only)
+                  </span>
+                ) : (
+                  <span style={{ color: '#DC2626', fontWeight: 800 }}>
+                    OTP Expired (1 minute over)! Please click Resend OTP below.
+                  </span>
+                )}
               </div>
 
               <button
                 type="submit"
                 id="btn2FASubmit"
                 className="btn btn-primary"
-                style={{ width: '100%', padding: '11px', fontWeight: 700 }}
-                disabled={isLoading}
+                style={{ width: '100%', padding: '11px', fontWeight: 700, opacity: otpExpirySeconds <= 0 ? 0.6 : 1 }}
+                disabled={isLoading || otpExpirySeconds <= 0}
               >
-                <CrmIcon name="check-circle" size={16} /> {isNewDevice ? 'Verify OTP & Authorize Device' : 'Verify & Grant Dashboard Access'}
+                <CrmIcon name="check-circle" size={16} /> {isNewDevice ? 'Verify OTP & Open Dashboard' : 'Verify & Grant Dashboard Access'}
               </button>
             </form>
 
@@ -1020,11 +1081,19 @@ export default function LoginPage() {
                 <button
                   type="button"
                   className="btn btn-outline btn-sm"
-                  disabled={resendCooldown > 0 || isLoading}
+                  disabled={isLoading}
                   onClick={handleResendDeviceOtp}
-                  style={{ fontSize: '11.5px', padding: '6px 14px', borderRadius: '6px' }}
+                  style={{
+                    fontSize: '12px',
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    fontWeight: 700,
+                    background: otpExpirySeconds <= 0 ? '#EFF6FF' : undefined,
+                    borderColor: otpExpirySeconds <= 0 ? '#2563EB' : undefined,
+                    color: otpExpirySeconds <= 0 ? '#1D4ED8' : undefined,
+                  }}
                 >
-                  <CrmIcon name="refresh-cw" size={13} /> {resendCooldown > 0 ? `Resend OTP to Admin in ${resendCooldown}s` : 'Resend OTP to Admin Email'}
+                  <CrmIcon name="refresh-cw" size={13} /> Resend Fresh OTP (1-Min Timer)
                 </button>
               </div>
             ) : (

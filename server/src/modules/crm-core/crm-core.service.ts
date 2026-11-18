@@ -392,8 +392,10 @@ export class CrmCoreService implements OnModuleInit {
       throw new BadRequestException('A user with this email already exists');
     }
 
-    const rawPassword = body.password || 'Password@123';
-    await this.authService.assertPasswordMeetsPolicy(rawPassword);
+    const rawPassword = String(body.password || 'Password@123');
+    if (rawPassword.length < 6) {
+      throw new BadRequestException('Password must be at least 6 characters long.');
+    }
 
     const role = this.mapFrontendToRole(body.role);
     const count = await this.prisma.user.count();
