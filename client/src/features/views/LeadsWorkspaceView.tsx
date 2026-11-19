@@ -1478,10 +1478,10 @@ function LeadDetailModal({
                 </div>
                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
                   {[
-                    { label: '2 Din Baad (+2 Days)', days: 2, reason: 'Parent replied: Call back after 2 days' },
-                    { label: '3 Din Baad (+3 Days)', days: 3, reason: 'Parent replied: Call back after 3 days' },
-                    { label: 'Agle Hafte (+7 Days)', days: 7, reason: 'Parent replied: Discuss next week with family' },
-                    { label: '15 Din Baad (+15 Days)', days: 15, reason: 'Parent replied: Follow up after 15 days' },
+                    { label: 'In 2 Days (+2 Days)', days: 2, reason: 'Parent replied: Call back after 2 days' },
+                    { label: 'In 3 Days (+3 Days)', days: 3, reason: 'Parent replied: Call back after 3 days' },
+                    { label: 'Next Week (+7 Days)', days: 7, reason: 'Parent replied: Discuss next week with family' },
+                    { label: 'In 15 Days (+15 Days)', days: 15, reason: 'Parent replied: Follow up after 15 days' },
                   ].map((preset) => (
                     <button
                       key={preset.days}
@@ -1793,9 +1793,9 @@ export function CreateLeadModal({
     }
     if (phoneAlreadyRegistered) {
       onShowToast(
-        `Pehle se is number se lead register ho chuki hai! (Lead ID: ${
+        `This phone number is already registered! (Lead ID: ${
           phoneAlreadyRegistered.leadNumber || 'Existing'
-        }${phoneAlreadyRegistered.studentName ? `, Student: "${phoneAlreadyRegistered.studentName}"` : ''}). Duplicate lead submit nahi ho sakti.`,
+        }${phoneAlreadyRegistered.studentName ? `, Student: "${phoneAlreadyRegistered.studentName}"` : ''}). Duplicate leads cannot be submitted.`,
         'danger'
       );
       return;
@@ -1979,14 +1979,14 @@ export function CreateLeadModal({
                 <CrmIcon name="alert" size={20} />
                 <div>
                   <div style={{ fontWeight: 800, fontSize: '13px' }}>
-                    ⛔ Pehle se is number se lead register ho chuki hai!
+                    ⛔ This phone number is already registered!
                   </div>
                   <div style={{ marginTop: '2px', lineHeight: '1.4' }}>
-                    Yeh mobile number already registered hai: Lead ID <strong>{phoneAlreadyRegistered.leadNumber}</strong>
+                    This mobile number is already registered: Lead ID <strong>{phoneAlreadyRegistered.leadNumber}</strong>
                     {phoneAlreadyRegistered.studentName && <> (Student: <strong>{phoneAlreadyRegistered.studentName}</strong>)</>}
                     {phoneAlreadyRegistered.counsellor && <> — Counsellor: <strong>{phoneAlreadyRegistered.counsellor}</strong></>}.
                     <br />
-                    Duplicate lead submit nahi ki ja sakti. Please check existing lead.
+                    Duplicate lead submission is not permitted. Please verify the existing lead.
                   </div>
                 </div>
               </div>
@@ -2121,7 +2121,7 @@ export function CreateLeadModal({
                 />
                 {phoneAlreadyRegistered && (
                   <div style={{ color: '#DC2626', fontSize: '11px', marginTop: '4px', fontWeight: 600 }}>
-                    ⚠️ Pehle se is number se lead register ho chuki hai: Lead ID {phoneAlreadyRegistered.leadNumber} ({phoneAlreadyRegistered.studentName})
+                    ⚠️ This phone number is already registered: Lead ID {phoneAlreadyRegistered.leadNumber} ({phoneAlreadyRegistered.studentName})
                   </div>
                 )}
               </div>

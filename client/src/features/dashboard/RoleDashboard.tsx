@@ -2022,7 +2022,7 @@ export default function RoleDashboard({
                                 }}
                               >
                                 {mgrActivityTab === 'working'
-                                  ? 'Abhi koi counsellor online login nahi hai.'
+                                  ? 'No counsellors are currently online.'
                                   : 'No counsellors in this filter.'}
                               </td>
                             </tr>
@@ -4085,7 +4085,7 @@ export default function RoleDashboard({
                     </div>
                     <div>
                       <label className="form-label" style={{ fontSize: '11px', fontWeight: 700 }}>
-                        Kaha School Chahiye (Location)
+                        Preferred School Location
                       </label>
                       <input
                         type="text"
@@ -4100,7 +4100,7 @@ export default function RoleDashboard({
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '10px', alignItems: 'center' }}>
                     <div>
                       <label className="form-label" style={{ fontSize: '11px', fontWeight: 700 }}>
-                        Parent Ka Budget (₹)
+                        Parent Budget (₹)
                       </label>
                       <input
                         type="number"
@@ -4112,7 +4112,7 @@ export default function RoleDashboard({
                     </div>
                     <div>
                       <label className="form-label" style={{ fontSize: '11px', fontWeight: 700 }}>
-                        Genuine Hai Ki Nahi?
+                        Lead Intent / Genuine Interest
                       </label>
                       <div style={{ display: 'flex', gap: '6px' }}>
                         <button
@@ -4418,7 +4418,7 @@ export default function RoleDashboard({
               </div>
               <div className="form-group">
                 <label className="form-label">
-                  <CrmIcon name="edit" size={16} /> Or Enter Manual Team Name (Koi Bhi Naam Rakh Sakte Hain)
+                  <CrmIcon name="edit" size={16} /> Or Enter Custom Team Name
                 </label>
                 <input
                   type="text"

@@ -645,7 +645,7 @@ export function VirtualTourManager({
                     className="form-label"
                     style={{ fontSize: '13px', fontWeight: 800, color: '#0F172A', marginBottom: '8px' }}
                   >
-                    Admission aage proceed karna hai ya nahi? *
+                    Proceed with admission? *
                   </label>
                   <div style={{ display: 'flex', gap: '12px' }}>
                     <button
@@ -663,7 +663,7 @@ export function VirtualTourManager({
                       }}
                       onClick={() => setProceedDecision('YES')}
                     >
-                      <CrmIcon name="check" size={18} /> Haa, Admission Proceed Karo
+                      <CrmIcon name="check" size={18} /> Yes, Proceed with Admission
                     </button>
                     <button
                       type="button"
@@ -680,7 +680,7 @@ export function VirtualTourManager({
                       }}
                       onClick={() => setProceedDecision('NO')}
                     >
-                      <CrmIcon name="x" size={18} /> Nahi, Not Proceeding
+                      <CrmIcon name="x" size={18} /> No, Not Proceeding
                     </button>
                   </div>
                 </div>

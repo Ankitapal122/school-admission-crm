@@ -35,20 +35,31 @@ export default function PwaInstallPrompt() {
     }
 
     // 3. Listen for browser install prompt (Android / Chrome)
+    const checkDeferredPrompt = () => {
+      const globalPrompt = (window as any).__deferredPwaPrompt;
+      if (globalPrompt) {
+        setDeferredPrompt(globalPrompt);
+        setShowBanner(true);
+      }
+    };
+    checkDeferredPrompt();
+
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
+      (window as any).__deferredPwaPrompt = e;
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       setShowBanner(true);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('pwa-prompt-ready', checkDeferredPrompt);
 
     // If on iOS or Android, show banner after 2s
     const dismissed = sessionStorage.getItem('pwa_install_dismissed') === 'true';
     if (!dismissed) {
       const timer = setTimeout(() => {
         setShowBanner(true);
-      }, 2000);
+      }, 1500);
       return () => clearTimeout(timer);
     }
 
@@ -64,19 +75,22 @@ export default function PwaInstallPrompt() {
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('pwa-prompt-ready', checkDeferredPrompt);
       window.removeEventListener('pwa-update-available', handleUpdate);
       window.removeEventListener('pwa-show-install-prompt', handleManualShow);
     };
   }, []);
 
   const handleInstallClick = async () => {
-    if (deferredPrompt) {
+    const promptEvent = deferredPrompt || (window as any).__deferredPwaPrompt;
+    if (promptEvent) {
       try {
-        await deferredPrompt.prompt();
-        const choice = await deferredPrompt.userChoice;
-        if (choice.outcome === 'accepted') {
+        await promptEvent.prompt();
+        const choice = await promptEvent.userChoice;
+        if (choice && choice.outcome === 'accepted') {
           setShowBanner(false);
           setDeferredPrompt(null);
+          (window as any).__deferredPwaPrompt = null;
           return;
         }
       } catch (err) {
@@ -358,19 +372,19 @@ export default function PwaInstallPrompt() {
                 <div style={{ display: 'flex', gap: '12px', background: '#F8FAFC', padding: '10px 14px', borderRadius: '10px', border: '1px solid #E2E8F0', alignItems: 'center' }}>
                   <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#123B70', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800 }}>1</div>
                   <div style={{ fontSize: '13px', color: '#1E293B' }}>
-                    Mobile browser ke top-right me <strong>3 dots (⋮)</strong> par tap karein.
+                    Tap the <strong>3 dots (⋮)</strong> menu icon at the top-right corner of Chrome.
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '12px', background: '#F8FAFC', padding: '10px 14px', borderRadius: '10px', border: '1px solid #E2E8F0', alignItems: 'center' }}>
                   <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#123B70', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800 }}>2</div>
                   <div style={{ fontSize: '13px', color: '#1E293B' }}>
-                    Menu me <strong>"Install app"</strong> ya <strong>"Add to Home screen"</strong> par tap karein.
+                    Select <strong>"Install app"</strong> or <strong>"Add to Home screen"</strong> from the menu.
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '12px', background: '#F8FAFC', padding: '10px 14px', borderRadius: '10px', border: '1px solid #E2E8F0', alignItems: 'center' }}>
                   <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#123B70', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800 }}>3</div>
                   <div style={{ fontSize: '13px', color: '#1E293B' }}>
-                    <strong>"Install"</strong> par click karein. App aapke phone screen par aa jayegi!
+                    Tap <strong>"Install"</strong>. The app icon will be added to your home screen!
                   </div>
                 </div>
               </div>
@@ -382,19 +396,19 @@ export default function PwaInstallPrompt() {
                 <div style={{ display: 'flex', gap: '12px', background: '#F8FAFC', padding: '10px 14px', borderRadius: '10px', border: '1px solid #E2E8F0', alignItems: 'center' }}>
                   <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#123B70', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800 }}>1</div>
                   <div style={{ fontSize: '13px', color: '#1E293B' }}>
-                    Chrome/Edge me upar address bar (URL) ke right side me <strong>🖥️ Install icon</strong> ya <strong>➕ icon</strong> dekhiye.
+                    Click the <strong>Install App icon (🖥️ or ➕)</strong> in the browser address bar.
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '12px', background: '#F8FAFC', padding: '10px 14px', borderRadius: '10px', border: '1px solid #E2E8F0', alignItems: 'center' }}>
                   <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#123B70', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800 }}>2</div>
                   <div style={{ fontSize: '13px', color: '#1E293B' }}>
-                    Ya browser ke top-right <strong>3 dots (⋮)</strong> dabayein ➔ <strong>"Cast, save, and share"</strong> ➔ <strong>"Install BoardingEdu CRM"</strong> select karein.
+                    Or click the <strong>3 dots (⋮)</strong> menu ➔ <strong>"Cast, save, and share"</strong> ➔ <strong>"Install BoardingEdu CRM"</strong>.
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '12px', background: '#F8FAFC', padding: '10px 14px', borderRadius: '10px', border: '1px solid #E2E8F0', alignItems: 'center' }}>
                   <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#123B70', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800 }}>3</div>
                   <div style={{ fontSize: '13px', color: '#1E293B' }}>
-                    <strong>"Install"</strong> click karein. Yeh desktop app window me alag se open ho jayega!
+                    Click <strong>"Install"</strong> to launch the CRM in its dedicated desktop window.
                   </div>
                 </div>
               </div>
@@ -406,19 +420,19 @@ export default function PwaInstallPrompt() {
                 <div style={{ display: 'flex', gap: '12px', background: '#F8FAFC', padding: '10px 14px', borderRadius: '10px', border: '1px solid #E2E8F0', alignItems: 'center' }}>
                   <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#123B70', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800 }}>1</div>
                   <div style={{ fontSize: '13px', color: '#1E293B' }}>
-                    Safari browser ke bottom me <strong>Share button (⎋ square with arrow)</strong> par tap karein.
+                    Tap the <strong>Share button (⎋ square with arrow)</strong> at the bottom of Safari.
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '12px', background: '#F8FAFC', padding: '10px 14px', borderRadius: '10px', border: '1px solid #E2E8F0', alignItems: 'center' }}>
                   <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#123B70', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800 }}>2</div>
                   <div style={{ fontSize: '13px', color: '#1E293B' }}>
-                    Neeche scroll karein aur <strong>"Add to Home Screen ➕"</strong> select karein.
+                    Scroll down and select <strong>"Add to Home Screen ➕"</strong>.
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '12px', background: '#F8FAFC', padding: '10px 14px', borderRadius: '10px', border: '1px solid #E2E8F0', alignItems: 'center' }}>
                   <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#123B70', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 800 }}>3</div>
                   <div style={{ fontSize: '13px', color: '#1E293B' }}>
-                    Top right me <strong>"Add"</strong> dabayein. App icon aapke iPhone screen par set ho jayega!
+                    Tap <strong>"Add"</strong> at the top right to place the app on your home screen.
                   </div>
                 </div>
               </div>
@@ -439,7 +453,7 @@ export default function PwaInstallPrompt() {
                 cursor: 'pointer',
               }}
             >
-              Samajh Gaya, Close
+              Close Instructions
             </button>
           </div>
         </div>
