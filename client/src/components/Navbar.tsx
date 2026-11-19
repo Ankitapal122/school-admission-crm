@@ -483,22 +483,24 @@ export default function Navbar({
             style={{ position: 'relative' }}
           >
             <CrmIcon name="bell" size={17} color="#334155" />
-            <span
-              style={{
-                position: 'absolute',
-                top: '-5px',
-                right: '-5px',
-                background: '#EF4444',
-                color: '#FFFFFF',
-                fontSize: '9.5px',
-                fontWeight: 800,
-                padding: '1px 5px',
-                borderRadius: '999px',
-                lineHeight: 1.2,
-              }}
-            >
-              {unreadCount > 0 ? unreadCount : 24}
-            </span>
+            {unreadCount > 0 && (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '-5px',
+                  right: '-5px',
+                  background: '#EF4444',
+                  color: '#FFFFFF',
+                  fontSize: '9.5px',
+                  fontWeight: 800,
+                  padding: '1px 5px',
+                  borderRadius: '999px',
+                  lineHeight: 1.2,
+                }}
+              >
+                {unreadCount}
+              </span>
+            )}
           </button>
 
           {notifOpen && (

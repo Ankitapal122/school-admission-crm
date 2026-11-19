@@ -151,17 +151,17 @@ export class AdmissionsController {
   }
 
   // ==========================================
-  // 3-TIER MILESTONE FEE TRACKING (ADMIN & MANAGER ONLY)
+  // FEE INSTALLMENT TRACKING & PAYMENT LEDGER (ADMIN, MANAGER & COUNSELLOR)
   // ==========================================
 
   @Get(':id/installments')
-  @Roles('super_admin', 'manager', 'SUPER_ADMIN', 'SENIOR_MANAGER')
+  @Roles('super_admin', 'manager', 'jr_counsellor', 'SUPER_ADMIN', 'SENIOR_MANAGER', 'COUNSELLOR')
   getInstallments(@Param('id') admissionId: string, @Req() req: any) {
     return this.admissionsService.getInstallments(admissionId, req.user);
   }
 
   @Post(':id/installments/setup-plan')
-  @Roles('super_admin', 'manager', 'SUPER_ADMIN', 'SENIOR_MANAGER')
+  @Roles('super_admin', 'manager', 'jr_counsellor', 'SUPER_ADMIN', 'SENIOR_MANAGER', 'COUNSELLOR')
   setupInstallmentPlan(
     @Param('id') admissionId: string,
     @Body() body: any,
@@ -170,8 +170,18 @@ export class AdmissionsController {
     return this.admissionsService.setupInstallmentPlan(admissionId, body, req.user);
   }
 
+  @Post(':id/installments/add-payment')
+  @Roles('super_admin', 'manager', 'jr_counsellor', 'SUPER_ADMIN', 'SENIOR_MANAGER', 'COUNSELLOR')
+  addCustomInstallmentPayment(
+    @Param('id') admissionId: string,
+    @Body() body: any,
+    @Req() req: any,
+  ) {
+    return this.admissionsService.addCustomInstallmentPayment(admissionId, body, req.user);
+  }
+
   @Post(':id/installments/:instId/pay')
-  @Roles('super_admin', 'manager', 'SUPER_ADMIN', 'SENIOR_MANAGER')
+  @Roles('super_admin', 'manager', 'jr_counsellor', 'SUPER_ADMIN', 'SENIOR_MANAGER', 'COUNSELLOR')
   recordInstallmentPayment(
     @Param('id') admissionId: string,
     @Param('instId') instId: string,

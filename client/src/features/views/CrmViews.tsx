@@ -185,7 +185,7 @@ export function FollowUpsView({
 
   const handleComplete = async (item: any) => {
     try {
-      await apiCall(`/follow-ups/${item.id}/complete`, 'POST', {
+      await apiCall(`/follow-ups/${item.id}/complete`, 'PUT', {
         outcome: 'Completed from CRM calendar',
       });
       onShowToast('Follow-up marked complete!', 'success');

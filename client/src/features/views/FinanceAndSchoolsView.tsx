@@ -21,64 +21,7 @@ interface LedgerItem {
   originalAmount?: number;
 }
 
-const DEFAULT_LEDGER_ITEMS: LedgerItem[] = [
-  {
-    id: 'comm-cm001',
-    commissionCode: 'CM001',
-    leadNumber: 'LD000123',
-    studentName: 'Aryan Kumar',
-    schoolName: 'ABC Intl',
-    companyAmount: 25000,
-    jrAmount: 3000,
-    srAmount: 5000,
-    netProfit: 17000,
-    status: 'received',
-    date: '14 Oct 2026',
-    originalAmount: 25000,
-  },
-  {
-    id: 'comm-cm002',
-    commissionCode: 'CM002',
-    leadNumber: 'LD000124',
-    studentName: 'Riya Sen',
-    schoolName: 'XYZ Public',
-    companyAmount: 30000,
-    jrAmount: 4000,
-    srAmount: 6000,
-    netProfit: 20000,
-    status: 'pending',
-    date: '18 Oct 2026',
-    originalAmount: 30000,
-  },
-  {
-    id: 'comm-cm003',
-    commissionCode: 'CM003',
-    leadNumber: 'LD000126',
-    studentName: 'Ananya Sharma',
-    schoolName: 'PQR Girls',
-    companyAmount: 40000,
-    jrAmount: 5000,
-    srAmount: 7000,
-    netProfit: 28000,
-    status: 'paid_out',
-    date: '22 Oct 2026',
-    originalAmount: 40000,
-  },
-  {
-    id: 'comm-cm004',
-    commissionCode: 'CM004',
-    leadNumber: 'LD000127',
-    studentName: 'Karan Mehta',
-    schoolName: 'ABC Intl',
-    companyAmount: 25000,
-    jrAmount: 0,
-    srAmount: 0,
-    netProfit: 0,
-    status: 'reversed',
-    date: '02 Nov 2026',
-    originalAmount: 25000,
-  },
-];
+const DEFAULT_LEDGER_ITEMS: LedgerItem[] = [];
 
 export function CommissionsView({
   commissions = [],
@@ -106,7 +49,6 @@ export function CommissionsView({
   const [detailsModalItem, setDetailsModalItem] = useState<LedgerItem | null>(null);
 
   useEffect(() => {
-    // If real backend commissions are loaded, format and merge with default wireframe items
     if (Array.isArray(commissions) && commissions.length > 0) {
       const formatted: LedgerItem[] = commissions.map((c: any, idx: number) => {
         const rawStatus = String(c.status || 'pending').toLowerCase();
@@ -119,18 +61,18 @@ export function CommissionsView({
             ? 'reversed'
             : 'pending';
 
-        const leadNum = c.leadNumber || c.lead?.leadNumber || c.admission?.lead?.leadNumber || `LD000${130 + idx}`;
+        const leadNum = c.leadNumber || c.lead?.leadNumber || c.admission?.lead?.leadNumber || `LD-${idx + 1}`;
         const stuName = c.studentName || c.lead?.studentName || c.admission?.lead?.studentName || 'Student';
         const schName = c.schoolName || c.school?.name || c.admission?.school?.name || 'Partner School';
 
-        const compAmt = Number(c.companyAmount || c.amount || 25000);
-        const jr = Number(c.jrAmount || Math.round(compAmt * 0.12));
-        const sr = Number(c.srAmount || Math.round(compAmt * 0.20));
+        const compAmt = Number(c.companyAmount || c.amount || 0);
+        const jr = Number(c.jrAmount ?? Math.round(compAmt * 0.12));
+        const sr = Number(c.srAmount ?? Math.round(compAmt * 0.20));
         const net = status === 'reversed' ? 0 : Math.max(0, compAmt - jr - sr);
 
         return {
           id: c.id || `live-${idx}`,
-          commissionCode: c.commissionCode || `CM00${idx + 5}`,
+          commissionCode: c.commissionCode || `COM-${idx + 1}`,
           leadNumber: leadNum,
           studentName: stuName,
           schoolName: schName,
@@ -139,15 +81,14 @@ export function CommissionsView({
           srAmount: status === 'reversed' ? 0 : sr,
           netProfit: net,
           status,
-          date: c.createdAt ? new Date(c.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Nov 2026',
+          date: c.createdAt ? new Date(c.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—',
           originalAmount: compAmt,
         };
       });
 
-      // Avoid duplicate codes
-      const existingCodes = new Set(formatted.map((f) => f.commissionCode));
-      const filteredDefaults = DEFAULT_LEDGER_ITEMS.filter((d) => !existingCodes.has(d.commissionCode));
-      setLedgerItems([...filteredDefaults, ...formatted]);
+      setLedgerItems(formatted);
+    } else {
+      setLedgerItems([]);
     }
   }, [commissions]);
 
@@ -384,7 +325,7 @@ export function CommissionsView({
             }}
           >
             <div style={{ fontSize: '24px', fontWeight: 900, color: '#0F172A' }}>
-              ₹{totalAccrued >= 100000 ? `${(totalAccrued / 100000).toFixed(1)}L` : '24L'}
+              ₹{totalAccrued >= 100000 ? `${(totalAccrued / 100000).toFixed(2)}L` : totalAccrued.toLocaleString('en-IN')}
             </div>
             <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', marginTop: '4px', letterSpacing: '0.5px' }}>
               TOTAL ACCRUED
@@ -403,7 +344,7 @@ export function CommissionsView({
             }}
           >
             <div style={{ fontSize: '24px', fontWeight: 900, color: '#0F172A' }}>
-              ₹{receivedAmount >= 100000 ? `${(receivedAmount / 100000).toFixed(1)}L` : '18.1L'}
+              ₹{receivedAmount >= 100000 ? `${(receivedAmount / 100000).toFixed(2)}L` : receivedAmount.toLocaleString('en-IN')}
             </div>
             <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', marginTop: '4px', letterSpacing: '0.5px' }}>
               RECEIVED
@@ -422,7 +363,7 @@ export function CommissionsView({
             }}
           >
             <div style={{ fontSize: '24px', fontWeight: 900, color: '#0F172A' }}>
-              ₹{pendingAmount >= 100000 ? `${(pendingAmount / 100000).toFixed(1)}L` : '5.9L'}
+              ₹{pendingAmount >= 100000 ? `${(pendingAmount / 100000).toFixed(2)}L` : pendingAmount.toLocaleString('en-IN')}
             </div>
             <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', marginTop: '4px', letterSpacing: '0.5px' }}>
               PENDING
@@ -441,7 +382,7 @@ export function CommissionsView({
             }}
           >
             <div style={{ fontSize: '24px', fontWeight: 900, color: '#0F172A' }}>
-              ₹{reversedAmount >= 1000 ? `${(reversedAmount / 1000).toFixed(0)}K` : '25K'}
+              ₹{reversedAmount >= 100000 ? `${(reversedAmount / 100000).toFixed(2)}L` : reversedAmount.toLocaleString('en-IN')}
             </div>
             <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', marginTop: '4px', letterSpacing: '0.5px' }}>
               REVERSED
@@ -490,11 +431,11 @@ export function CommissionsView({
               style={{ fontSize: '12px', padding: '6px 10px', borderRadius: '6px', minWidth: '130px' }}
             >
               <option value="All">All ▾</option>
-              <option value="ABC Intl">ABC Intl</option>
-              <option value="XYZ Public">XYZ Public</option>
-              <option value="PQR Girls">PQR Girls</option>
-              <option value="Doon">The Doon School</option>
-              <option value="Kasiga">Kasiga School</option>
+              {Array.from(new Set(ledgerItems.map((i) => i.schoolName).filter(Boolean))).map((sch) => (
+                <option key={sch} value={sch}>
+                  {sch}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -1909,7 +1850,7 @@ export function SchoolsView({
           >
             All India ({schools.length})
           </button>
-          {statesList.slice(0, 12).map(([st, cnt]) => (
+          {statesList.map(([st, cnt]) => (
             <button
               key={st}
               type="button"

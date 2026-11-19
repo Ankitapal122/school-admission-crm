@@ -21,8 +21,14 @@ process.on('uncaughtException', (err: Error) => {
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  // Security headers & response compression
-  app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
+  // Security headers & response compression (avoid HSTS on plain HTTP localhost)
+  app.use(
+    helmet({
+      contentSecurityPolicy: false,
+      crossOriginEmbedderPolicy: false,
+      hsts: process.env.NODE_ENV === 'production',
+    }),
+  );
   app.use(compression());
   app.use(cookieParser());
 
@@ -108,7 +114,13 @@ async function bootstrap() {
   }
 
   const port = Number(process.env.PORT || 5000);
-  await app.listen(port, '0.0.0.0');
-  console.log(`🚀 BoardingEdu Enterprise CRM Backend listening on 0.0.0.0:${port}/api (Docs: /api/docs, v1: /v1)`);
+  const listenHost =
+    process.env.RENDER || process.env.NODE_ENV === 'production' ? '0.0.0.0' : undefined;
+  if (listenHost) {
+    await app.listen(port, listenHost);
+  } else {
+    await app.listen(port);
+  }
+  console.log(`🚀 BoardingEdu Enterprise CRM Backend listening on ${listenHost || 'localhost'}:${port}/api (Docs: /api/docs, v1: /v1)`);
 }
 bootstrap();

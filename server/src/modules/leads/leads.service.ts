@@ -522,9 +522,9 @@ export class LeadsService implements OnModuleInit {
         ? ` (Counsellor: ${existingPhoneLead.assignedCounsellor.fullName})`
         : '';
       throw new ConflictException(
-        `Pehle se is number se lead register ho chuki hai! (Lead ID: ${
+        `A lead with this mobile number is already registered (Lead ID: ${
           existingPhoneLead.leadNumber || existingPhoneLead.id
-        }, Student: "${existingPhoneLead.studentName}"${counsellor}). Ek hi mobile number se duplicate lead submit nahi ho sakti.`
+        }, Student: "${existingPhoneLead.studentName}"${counsellor}). Duplicate leads with the same phone number are not permitted.`
       );
     }
 
@@ -760,9 +760,9 @@ export class LeadsService implements OnModuleInit {
         });
         if (otherLead) {
           throw new ConflictException(
-            `Pehle se is number se lead register ho chuki hai! (Lead ID: ${
+            `A lead with this mobile number is already registered (Lead ID: ${
               otherLead.leadNumber || otherLead.id
-            }, Student: "${otherLead.studentName}"). Duplicate phone number update nahi kiya ja sakta.`
+            }, Student: "${otherLead.studentName}"). Updating to a duplicate phone number is not permitted.`
           );
         }
       }

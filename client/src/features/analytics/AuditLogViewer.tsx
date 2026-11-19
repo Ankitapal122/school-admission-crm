@@ -1,180 +1,235 @@
-﻿import React, { useState, useEffect } from 'react';
-import CrmIcon from '../../components/CrmIcon';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { apiCall, downloadApiFile } from '../../lib/api';
 
 interface AuditEntry {
   id: string;
   timestamp: string;
+  rawDate: string;
   user: string;
-  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'REVERSE' | 'AUTO';
+  role: string;
+  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'REVERSE' | 'AUTO' | 'LOGIN' | 'LOGOUT';
   module: string;
+  entity: string;
   details: string;
   flag?: string;
   isSpecial?: boolean;
 }
 
-const DEFAULT_AUDIT_LOGS: AuditEntry[] = [
-  {
-    id: 'aud-1',
-    timestamp: '14 Oct 10:45',
-    user: 'Rahul S.',
-    action: 'CREATE',
-    module: 'Leads',
-    details: 'Created LD000123 (Aryan Kumar)',
-    flag: '—',
-  },
-  {
-    id: 'aud-2',
-    timestamp: '14 Oct 11:20',
-    user: 'RM',
-    action: 'UPDATE',
-    module: 'Leads',
-    details: 'LD000123 status: new → contacted',
-    flag: '—',
-  },
-  {
-    id: 'aud-3',
-    timestamp: '13 Oct 15:30',
-    user: 'Priya C.',
-    action: 'DELETE',
-    module: 'Leads',
-    details: 'LD000115 soft deleted',
-    flag: '—',
-  },
-  {
-    id: 'aud-4',
-    timestamp: '02 Nov 16:00',
-    user: 'Admin',
-    action: 'REVERSE',
-    module: 'Commission',
-    details: 'CM004 reversed – "Admission cancelled"',
-    flag: 'Special',
-    isSpecial: true,
-  },
-  {
-    id: 'aud-5',
-    timestamp: '01 Nov 09:00',
-    user: 'System',
-    action: 'AUTO',
-    module: 'Leads',
-    details: 'LD000045 force expired (360 days)',
-    flag: '—',
-  },
-];
+function formatJsonValue(val: any): string {
+  if (val === null || val === undefined) return '';
+  if (typeof val === 'string') return val.trim();
+  if (typeof val === 'number' || typeof val === 'boolean') return String(val);
+  if (Array.isArray(val)) {
+    return val.map(formatJsonValue).filter(Boolean).join(', ');
+  }
+  if (typeof val === 'object') {
+    const entries = Object.entries(val)
+      .filter(([, v]) => v !== null && v !== undefined && v !== '')
+      .slice(0, 8)
+      .map(([k, v]) => {
+        const prettyKey = k.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').trim();
+        const prettyVal = typeof v === 'object' ? JSON.stringify(v) : String(v);
+        return `${prettyKey}: ${prettyVal}`;
+      });
+    return entries.join(' • ');
+  }
+  return String(val);
+}
+
+function buildAuditDetails(item: any): string {
+  const parts: string[] = [];
+  if (item.entity && item.entityId) {
+    parts.push(`${String(item.entity)} (${String(item.entityId).slice(0, 10)})`);
+  } else if (item.entity) {
+    parts.push(String(item.entity));
+  }
+
+  const detailStr =
+    formatJsonValue(item.details) ||
+    formatJsonValue(item.content) ||
+    formatJsonValue(item.description) ||
+    formatJsonValue(item.newValue) ||
+    formatJsonValue(item.oldValue);
+
+  if (detailStr) parts.push(detailStr);
+  return parts.join(' — ') || 'System state updated';
+}
 
 export default function AuditLogViewer({
   onShowToast,
 }: {
   onShowToast?: (m: string, t?: 'success' | 'danger' | 'warning') => void;
 }) {
-  const [logs, setLogs] = useState<AuditEntry[]>(DEFAULT_AUDIT_LOGS);
+  const [logs, setLogs] = useState<AuditEntry[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   const [selectedUser, setSelectedUser] = useState('All');
   const [selectedModule, setSelectedModule] = useState('All');
-  const [selectedMonth, setSelectedMonth] = useState('Oct 2025');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    apiCall('/audit-log?limit=50')
-      .then((res) => {
-        const liveItems = res?.logs || res?.auditLogs || res?.data || [];
-        if (Array.isArray(liveItems) && liveItems.length > 0) {
-          const formatted: AuditEntry[] = liveItems.map((item: any, idx: number) => {
-            const rawAct = String(item.action || 'UPDATE').toUpperCase();
-            const action: 'CREATE' | 'UPDATE' | 'DELETE' | 'REVERSE' | 'AUTO' =
-              rawAct.includes('CREATE')
-                ? 'CREATE'
-                : rawAct.includes('DELETE')
-                ? 'DELETE'
-                : rawAct.includes('REVERSE')
-                ? 'REVERSE'
-                : rawAct.includes('AUTO') || rawAct.includes('EXPIR')
-                ? 'AUTO'
-                : 'UPDATE';
+  const loadAuditLogs = async () => {
+    setLoading(true);
+    try {
+      const res = await apiCall('/audit-log?limit=150');
+      const liveItems = Array.isArray(res?.logs)
+        ? res.logs
+        : Array.isArray(res?.auditLogs)
+        ? res.auditLogs
+        : Array.isArray(res?.data?.logs)
+        ? res.data.logs
+        : Array.isArray(res?.data)
+        ? res.data
+        : [];
 
-            const isReversal = action === 'REVERSE' || String(item.module || '').toLowerCase().includes('commission');
-            const d = item.createdAt ? new Date(item.createdAt) : new Date();
-            const timeStr = `${d.getDate().toString().padStart(2, '0')} ${d.toLocaleString('en-US', { month: 'short' })} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+      const formatted: AuditEntry[] = liveItems.map((item: any, idx: number) => {
+        const rawAct = String(item?.action || 'UPDATE').toUpperCase();
+        const action: AuditEntry['action'] =
+          rawAct.includes('LOGIN')
+            ? 'LOGIN'
+            : rawAct.includes('LOGOUT')
+            ? 'LOGOUT'
+            : rawAct.includes('CREATE')
+            ? 'CREATE'
+            : rawAct.includes('DELETE')
+            ? 'DELETE'
+            : rawAct.includes('REVERSE')
+            ? 'REVERSE'
+            : rawAct.includes('AUTO') || rawAct.includes('EXPIR')
+            ? 'AUTO'
+            : 'UPDATE';
 
-            return {
-              id: item.id || `live-${idx}`,
-              timestamp: timeStr,
-              user: item.userName || item.user?.fullName || item.userId || 'Admin',
-              action,
-              module: item.module || (isReversal ? 'Commission' : 'Leads'),
-              details: item.details || item.content || item.description || 'System state modified',
-              flag: isReversal ? 'Special' : '—',
-              isSpecial: isReversal,
-            };
-          });
+        const mod = String(item?.module || 'system');
+        const isSpecial =
+          Boolean(item?.isSpecialFlag) ||
+          action === 'REVERSE' ||
+          action === 'DELETE' ||
+          mod.toLowerCase().includes('commission');
 
-          setLogs([...DEFAULT_AUDIT_LOGS, ...formatted]);
-        }
-      })
-      .catch(() => {});
-  }, []);
+        const d = item?.createdAt ? new Date(item.createdAt) : new Date();
+        const validDate = !isNaN(d.getTime()) ? d : new Date();
+        const timeStr = validDate.toLocaleString('en-IN', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true,
+        });
 
-  const filteredLogs = logs.filter((log) => {
-    if (selectedUser !== 'All' && !log.user.toLowerCase().includes(selectedUser.toLowerCase())) {
-      return false;
+        const userLabel =
+          typeof item?.userName === 'string' && item.userName.trim()
+            ? item.userName
+            : typeof item?.user?.fullName === 'string' && item.user.fullName.trim()
+            ? item.user.fullName
+            : item?.userId
+            ? String(item.userId).slice(0, 8)
+            : 'System';
+
+        return {
+          id: String(item?.id || `live-${idx}`),
+          timestamp: timeStr,
+          rawDate: validDate.toISOString(),
+          user: userLabel,
+          role: String(item?.userRole || item?.user?.role || ''),
+          action,
+          module: mod,
+          entity: String(item?.entity || ''),
+          details: buildAuditDetails(item),
+          flag: isSpecial ? 'Special' : '—',
+          isSpecial,
+        };
+      });
+
+      setLogs(formatted);
+    } catch (err: any) {
+      if (onShowToast) {
+        onShowToast(err?.message || 'Could not load audit logs.', 'warning');
+      }
+      setLogs([]);
+    } finally {
+      setLoading(false);
     }
-    if (selectedModule !== 'All' && log.module.toLowerCase() !== selectedModule.toLowerCase()) {
-      return false;
-    }
-    return true;
-  });
-
-  const handleApplyFilter = () => {
-    if (onShowToast) onShowToast(`Filtered by Module: ${selectedModule}, User: ${selectedUser}`, 'success');
   };
 
+  useEffect(() => {
+    loadAuditLogs();
+  }, []);
+
+  const uniqueUsers = useMemo(() => {
+    return Array.from(new Set(logs.map((l) => l.user).filter(Boolean))).sort();
+  }, [logs]);
+
+  const uniqueModules = useMemo(() => {
+    return Array.from(new Set(logs.map((l) => l.module).filter(Boolean))).sort();
+  }, [logs]);
+
+  const filteredLogs = useMemo(() => {
+    return logs.filter((log) => {
+      if (selectedUser !== 'All' && log.user !== selectedUser) return false;
+      if (selectedModule !== 'All' && log.module.toLowerCase() !== selectedModule.toLowerCase()) {
+        return false;
+      }
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const hay = `${log.user} ${log.action} ${log.module} ${log.details} ${log.timestamp}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [logs, selectedUser, selectedModule, searchQuery]);
+
   const handleExport = () => {
-    downloadApiFile('/reports/audit?format=csv', 'Audit_Log_Master.csv');
+    downloadApiFile('/reports/audit?format=csv', 'Audit_Log_Master.csv').catch(() => {
+      // Fallback client CSV export if endpoint unavailable
+      const headers = ['Timestamp', 'User', 'Role', 'Action', 'Module', 'Details', 'Flag'];
+      const esc = (v: any) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+      const csv = [
+        headers.join(','),
+        ...filteredLogs.map((l) => [l.timestamp, l.user, l.role, l.action, l.module, l.details, l.flag].map(esc).join(',')),
+      ].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Audit_Logs_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
     if (onShowToast) onShowToast('Exporting Audit Log trail to CSV...', 'success');
   };
 
   const getActionBadge = (action: string) => {
-    switch (action) {
-      case 'CREATE':
-        return (
-          <span style={{ backgroundColor: '#2563EB', color: '#FFFFFF', padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 800 }}>
-            CREATE
-          </span>
-        );
-      case 'UPDATE':
-        return (
-          <span style={{ backgroundColor: '#EA580C', color: '#FFFFFF', padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 800 }}>
-            UPDATE
-          </span>
-        );
-      case 'DELETE':
-        return (
-          <span style={{ backgroundColor: '#DC2626', color: '#FFFFFF', padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 800 }}>
-            DELETE
-          </span>
-        );
-      case 'REVERSE':
-        return (
-          <span style={{ backgroundColor: '#E11D48', color: '#FFFFFF', padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 800 }}>
-            REVERSE
-          </span>
-        );
-      case 'AUTO':
-        return (
-          <span style={{ backgroundColor: '#7C3AED', color: '#FFFFFF', padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 800 }}>
-            AUTO
-          </span>
-        );
-      default:
-        return (
-          <span style={{ backgroundColor: '#64748B', color: '#FFFFFF', padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 800 }}>
-            {action}
-          </span>
-        );
-    }
+    const colorMap: Record<string, string> = {
+      CREATE: '#2563EB',
+      UPDATE: '#EA580C',
+      DELETE: '#DC2626',
+      REVERSE: '#E11D48',
+      AUTO: '#7C3AED',
+      LOGIN: '#16A34A',
+      LOGOUT: '#475569',
+    };
+    const bg = colorMap[action] || '#64748B';
+    return (
+      <span
+        style={{
+          backgroundColor: bg,
+          color: '#FFFFFF',
+          padding: '3px 10px',
+          borderRadius: '12px',
+          fontSize: '11px',
+          fontWeight: 800,
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {action}
+      </span>
+    );
   };
 
   return (
-    <div style={{ padding: '20px 24px', backgroundColor: '#F8FAFC', minHeight: '100vh', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-      {/* 31. Header Bar */}
+    <div style={{ padding: '4px 0', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+      {/* Header Bar */}
       <div
         style={{
           backgroundColor: '#1E3A8A',
@@ -184,6 +239,8 @@ export default function AuditLogViewer({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '10px',
           color: '#FFFFFF',
           boxShadow: '0 4px 12px rgba(30, 58, 138, 0.15)',
         }}
@@ -205,9 +262,11 @@ export default function AuditLogViewer({
           >
             31
           </div>
-          <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#FFFFFF' }}>
-            Audit Log Viewer
-          </h2>
+          <div>
+            <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#FFFFFF' }}>
+              Audit Log Viewer ({filteredLogs.length} Real Events)
+            </h2>
+          </div>
         </div>
         <span
           style={{
@@ -247,7 +306,7 @@ export default function AuditLogViewer({
             lineHeight: 1.5,
           }}
         >
-          <strong>Purpose:</strong> Complete audit trail – who, when, and what changed. Month-partitioned. Commission reversals carry a special flag.
+          <strong>Purpose:</strong> Complete real-time audit trail — who logged in, logged out, recorded payments, updated leads, or reversed commissions.
         </div>
 
         {/* Filter Bar */}
@@ -260,20 +319,29 @@ export default function AuditLogViewer({
             flexWrap: 'wrap',
           }}
         >
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Search user, action, student, UTR..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ fontSize: '12px', padding: '7px 12px', borderRadius: '6px', minWidth: '200px', flex: '1 1 220px' }}
+          />
+
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span style={{ fontSize: '12px', fontWeight: 600, color: '#475569' }}>User:</span>
             <select
               className="form-control"
               value={selectedUser}
               onChange={(e) => setSelectedUser(e.target.value)}
-              style={{ fontSize: '12px', padding: '6px 12px', borderRadius: '6px', minWidth: '120px' }}
+              style={{ fontSize: '12px', padding: '6px 12px', borderRadius: '6px', minWidth: '130px' }}
             >
-              <option value="All">All Users ▾</option>
-              <option value="Rahul S.">Rahul S.</option>
-              <option value="RM">RM</option>
-              <option value="Priya C.">Priya C.</option>
-              <option value="Admin">Admin</option>
-              <option value="System">System</option>
+              <option value="All">All Users ({uniqueUsers.length})</option>
+              {uniqueUsers.map((u) => (
+                <option key={u} value={u}>
+                  {u}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -285,68 +353,30 @@ export default function AuditLogViewer({
               onChange={(e) => setSelectedModule(e.target.value)}
               style={{ fontSize: '12px', padding: '6px 12px', borderRadius: '6px', minWidth: '130px' }}
             >
-              <option value="All">All Modules ▾</option>
-              <option value="Leads">Leads</option>
-              <option value="Commission">Commission</option>
-              <option value="Schools">Schools</option>
-              <option value="Users">Users</option>
-              <option value="Security">Security</option>
-            </select>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 600, color: '#475569' }}>Date:</span>
-            <select
-              className="form-control"
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              style={{ fontSize: '12px', padding: '6px 12px', borderRadius: '6px', minWidth: '130px' }}
-            >
-              <option value="Oct 2025">Oct 2025 ▾</option>
-              <option value="Nov 2025">Nov 2025</option>
-              <option value="Dec 2025">Dec 2025</option>
-              <option value="Nov 2026">Nov 2026 (Live)</option>
+              <option value="All">All Modules ({uniqueModules.length})</option>
+              {uniqueModules.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
             </select>
           </div>
 
           <button
             type="button"
-            onClick={handleApplyFilter}
-            style={{
-              backgroundColor: '#2563EB',
-              color: '#FFFFFF',
-              border: 'none',
-              borderRadius: '6px',
-              padding: '7px 16px',
-              fontSize: '12px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
+            onClick={loadAuditLogs}
+            className="btn btn-sm btn-primary"
+            disabled={loading}
           >
-            <span>🔍 Filter</span>
+            {loading ? 'Loading...' : 'Refresh Live'}
           </button>
 
           <button
             type="button"
             onClick={handleExport}
-            style={{
-              backgroundColor: '#FFFFFF',
-              color: '#334155',
-              border: '1px solid #CBD5E1',
-              borderRadius: '6px',
-              padding: '7px 16px',
-              fontSize: '12px',
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
+            className="btn btn-sm btn-outline"
           >
-            <span>📥 Export</span>
+            Export CSV
           </button>
         </div>
 
@@ -364,44 +394,61 @@ export default function AuditLogViewer({
               </tr>
             </thead>
             <tbody>
-              {filteredLogs.map((log) => {
-                const isSpecial = log.isSpecial || log.action === 'REVERSE';
-                return (
-                  <tr
-                    key={log.id}
-                    style={{
-                      borderBottom: '1px solid #F1F5F9',
-                      backgroundColor: isSpecial ? '#FEE2E2' : '#FFFFFF',
-                      transition: 'background-color 0.15s ease',
-                    }}
-                  >
-                    <td style={{ padding: '12px 14px', color: '#64748B', fontWeight: 600, whiteSpace: 'nowrap' }}>
-                      {log.timestamp}
-                    </td>
-                    <td style={{ padding: '12px 14px', fontWeight: 700, color: '#0F172A' }}>
-                      {log.user}
-                    </td>
-                    <td style={{ padding: '12px 14px' }}>
-                      {getActionBadge(log.action)}
-                    </td>
-                    <td style={{ padding: '12px 14px', color: '#334155', fontWeight: 600 }}>
-                      {log.module}
-                    </td>
-                    <td style={{ padding: '12px 14px', color: '#1E293B', fontWeight: 500 }}>
-                      {log.details}
-                    </td>
-                    <td style={{ padding: '12px 14px', whiteSpace: 'nowrap' }}>
-                      {isSpecial ? (
-                        <span style={{ color: '#DC2626', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                          🚩 Special
-                        </span>
-                      ) : (
-                        <span style={{ color: '#94A3B8' }}>—</span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
+              {loading ? (
+                <tr>
+                  <td colSpan={6} style={{ padding: '28px', textAlign: 'center', color: '#64748B' }}>
+                    Loading real audit trail...
+                  </td>
+                </tr>
+              ) : filteredLogs.length === 0 ? (
+                <tr>
+                  <td colSpan={6} style={{ padding: '28px', textAlign: 'center', color: '#64748B' }}>
+                    No audit log entries recorded for this filter yet.
+                  </td>
+                </tr>
+              ) : (
+                filteredLogs.map((log) => {
+                  const isSpecial = log.isSpecial || log.action === 'REVERSE';
+                  return (
+                    <tr
+                      key={log.id}
+                      style={{
+                        borderBottom: '1px solid #F1F5F9',
+                        backgroundColor: isSpecial ? '#FEF2F2' : '#FFFFFF',
+                        transition: 'background-color 0.15s ease',
+                      }}
+                    >
+                      <td style={{ padding: '12px 14px', color: '#475569', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                        {log.timestamp}
+                      </td>
+                      <td style={{ padding: '12px 14px', fontWeight: 700, color: '#0F172A', whiteSpace: 'nowrap' }}>
+                        <div>{log.user}</div>
+                        {log.role && (
+                          <div style={{ fontSize: '10px', color: '#64748B', fontWeight: 600 }}>{log.role}</div>
+                        )}
+                      </td>
+                      <td style={{ padding: '12px 14px' }}>
+                        {getActionBadge(log.action)}
+                      </td>
+                      <td style={{ padding: '12px 14px', color: '#334155', fontWeight: 700, textTransform: 'capitalize' }}>
+                        {log.module}
+                      </td>
+                      <td style={{ padding: '12px 14px', color: '#1E293B', fontWeight: 500, maxWidth: '420px', wordBreak: 'break-word' }}>
+                        {log.details}
+                      </td>
+                      <td style={{ padding: '12px 14px', whiteSpace: 'nowrap' }}>
+                        {isSpecial ? (
+                          <span style={{ color: '#DC2626', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            🚩 Special
+                          </span>
+                        ) : (
+                          <span style={{ color: '#94A3B8' }}>—</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
@@ -424,34 +471,8 @@ export default function AuditLogViewer({
         >
           <span>📌</span>
           <span>
-            <strong>Retention:</strong> 90 days queryable online, then archived to S3 for 12 months. Auto-delete after 15 months total.
+            <strong>Retention:</strong> 90 days queryable online, then archived for 12 months. Full login/logout, fee payment, and commission reversal history preserved.
           </span>
-        </div>
-
-        {/* API Notes Footer */}
-        <div
-          style={{
-            marginTop: '16px',
-            backgroundColor: '#0F172A',
-            color: '#94A3B8',
-            borderRadius: '8px',
-            padding: '10px 16px',
-            fontFamily: 'monospace',
-            fontSize: '11px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-          }}
-        >
-          <span style={{ backgroundColor: '#10B981', color: '#FFFFFF', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
-            GET
-          </span>
-          <span style={{ color: '#38BDF8' }}>/audit-log</span>
-          <span style={{ color: '#64748B' }}>|</span>
-          <span style={{ backgroundColor: '#10B981', color: '#FFFFFF', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
-            GET
-          </span>
-          <span style={{ color: '#38BDF8' }}>/audit-log/:module</span>
         </div>
       </div>
     </div>

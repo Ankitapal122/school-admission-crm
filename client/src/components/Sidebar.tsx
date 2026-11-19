@@ -22,7 +22,7 @@ export default function Sidebar({
   onToggleCollapse,
   mobileOpen = false,
   onCloseMobile,
-  leadsCount = 3,
+  leadsCount = 0,
 }: SidebarProps) {
   const { user, previewRole, logout } = useAuthStore();
   const effectiveRole = previewRole || user?.role || 'SUPER_ADMIN';
@@ -196,7 +196,7 @@ export default function Sidebar({
             >
               <span className="nav-icon"><CrmIcon name="file-text" size={17} /></span>
               <span>Lead Management</span>
-              <span className="nav-badge danger">{leadsCount || 12}</span>
+              {leadsCount > 0 && <span className="nav-badge danger">{leadsCount}</span>}
             </a>
             <a
               className={`nav-item ${currentTab === 'lead-verification' ? 'active' : ''}`}
@@ -284,7 +284,6 @@ export default function Sidebar({
             >
               <span className="nav-icon"><CrmIcon name="bell" size={17} /></span>
               <span>Notifications</span>
-              <span className="nav-badge danger">24</span>
             </a>
             <a
               className={`nav-item ${currentTab === 'activity-logs' ? 'active' : ''}`}
@@ -351,7 +350,7 @@ export default function Sidebar({
             >
               <span className="nav-icon"><CrmIcon name="check-square" size={17} /></span>
               <span>Lead Verification</span>
-              <span className="nav-badge danger">{leadsCount || 12}</span>
+              {leadsCount > 0 && <span className="nav-badge danger">{leadsCount}</span>}
             </a>
             <a
               className={`nav-item ${currentTab === 'whatsapp' ? 'active' : ''}`}
@@ -416,7 +415,6 @@ export default function Sidebar({
             >
               <span className="nav-icon"><CrmIcon name="bell" size={17} /></span>
               <span>Notifications</span>
-              <span className="nav-badge danger">8</span>
             </a>
             <a
               className={`nav-item ${currentTab === 'settings' ? 'active' : ''}`}
@@ -521,6 +519,20 @@ export default function Sidebar({
             >
               <span className="nav-icon"><CrmIcon name="plus-circle" size={17} /></span>
               <span>Add Lead</span>
+            </a>
+            <a
+              className={`nav-item ${currentTab === 'admissions' ? 'active' : ''}`}
+              onClick={() => handleNavClick('admissions')}
+            >
+              <span className="nav-icon"><CrmIcon name="graduation-cap" size={17} /></span>
+              <span>Admissions</span>
+            </a>
+            <a
+              className={`nav-item ${currentTab === 'fee-installments' ? 'active' : ''}`}
+              onClick={() => handleNavClick('fee-installments')}
+            >
+              <span className="nav-icon"><CrmIcon name="credit-card" size={17} /></span>
+              <span>Fee &amp; Installments</span>
             </a>
             <a
               className={`nav-item ${currentTab === 'commissions' ? 'active' : ''}`}

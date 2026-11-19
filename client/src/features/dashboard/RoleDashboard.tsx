@@ -489,7 +489,7 @@ export default function RoleDashboard({
                 }}
               >
                 <span><CrmIcon name="users" size={16} /></span>
-                <span>Team: {teams[0]?.name || 'Team A'} ▾</span>
+                <span>Team: {teams[0]?.name || 'Unassigned'} ▾</span>
               </div>
 
               <div
@@ -653,13 +653,13 @@ export default function RoleDashboard({
               </div>
               <div style={{ minWidth: 0 }}>
                 <div className="dash-kpi-value" style={{ fontSize: '24px', fontWeight: 800, color: '#0F172A', lineHeight: 1.1 }}>
-                  {approvedLeadsCount || 28}
+                  {approvedLeadsCount}
                 </div>
                 <div className="dash-kpi-label" style={{ fontSize: '12.5px', fontWeight: 600, color: '#334155', marginTop: '2px' }}>
                   Confirmed Leads
                 </div>
                 <div className="dash-kpi-trend" style={{ fontSize: '11px', fontWeight: 700, color: '#16A34A', marginTop: '4px' }}>
-                  62% conversion rate
+                  {leads.length > 0 ? `${Math.round((approvedLeadsCount / leads.length) * 100)}% verified rate` : '0% verified rate'}
                 </div>
               </div>
             </div>
@@ -700,13 +700,13 @@ export default function RoleDashboard({
               </div>
               <div style={{ minWidth: 0 }}>
                 <div className="dash-kpi-value" style={{ fontSize: '24px', fontWeight: 800, color: '#0F172A', lineHeight: 1.1 }}>
-                  ₹{Number(jrData?.earnedCommission ?? (paidCommAmount || 42000)).toLocaleString('en-IN')}
+                  ₹{Number(jrData?.earnedCommission ?? paidCommAmount ?? 0).toLocaleString('en-IN')}
                 </div>
                 <div className="dash-kpi-label" style={{ fontSize: '12.5px', fontWeight: 600, color: '#334155', marginTop: '2px' }}>
                   Commission Earned
                 </div>
                 <div className="dash-kpi-trend" style={{ fontSize: '11px', fontWeight: 700, color: '#16A34A', marginTop: '4px' }}>
-                  +12% from last week
+                  Live ledger balance
                 </div>
               </div>
             </div>
@@ -746,7 +746,7 @@ export default function RoleDashboard({
               </div>
               <div style={{ minWidth: 0 }}>
                 <div className="dash-kpi-value" style={{ fontSize: '24px', fontWeight: 800, color: '#0F172A', lineHeight: 1.1 }}>
-                  {(jrData?.todayFollowUps ?? 0) + (jrData?.overdueFollowUps ?? 0) || 12}
+                  {(jrData?.todayFollowUps ?? 0) + (jrData?.overdueFollowUps ?? 0)}
                 </div>
                 <div className="dash-kpi-label" style={{ fontSize: '12.5px', fontWeight: 600, color: '#334155', marginTop: '2px' }}>
                   Follow-ups Today
@@ -754,7 +754,7 @@ export default function RoleDashboard({
                 <div className="dash-kpi-trend" style={{ fontSize: '11px', fontWeight: 700, color: '#16A34A', marginTop: '4px' }}>
                   {returnedLeadsCount > 0
                     ? `${returnedLeadsCount} Returned for Correction`
-                    : '3 visits scheduled'}
+                    : `${jrData?.overdueFollowUps ?? 0} overdue`}
                 </div>
               </div>
             </div>
@@ -791,64 +791,6 @@ export default function RoleDashboard({
               </div>
 
               {(() => {
-                const defaultLatest = [
-                  {
-                    id: 'l1',
-                    studentName: 'Aanya Sharma',
-                    admissionClass: '8th',
-                    fatherName: 'Priya Sharma',
-                    fatherPhone: '+91 98765 43210',
-                    leadSource: 'Website',
-                    statusLabel: 'New',
-                    statusBg: '#FEE2E2',
-                    statusColor: '#DC2626',
-                  },
-                  {
-                    id: 'l2',
-                    studentName: 'Rohan Mehta',
-                    admissionClass: '10th',
-                    fatherName: 'Neha Mehta',
-                    fatherPhone: '+91 87654 32109',
-                    leadSource: 'Call',
-                    statusLabel: 'In Progress',
-                    statusBg: '#FEF3C7',
-                    statusColor: '#B45309',
-                  },
-                  {
-                    id: 'l3',
-                    studentName: 'Diya Singh',
-                    admissionClass: '9th',
-                    fatherName: 'Pooja Singh',
-                    fatherPhone: '+91 76543 21098',
-                    leadSource: 'WhatsApp',
-                    statusLabel: 'Confirmed',
-                    statusBg: '#DCFCE7',
-                    statusColor: '#15803D',
-                  },
-                  {
-                    id: 'l4',
-                    studentName: 'Aarav Gupta',
-                    admissionClass: '11th',
-                    fatherName: 'Sunil Gupta',
-                    fatherPhone: '+91 65432 10987',
-                    leadSource: 'Website',
-                    statusLabel: 'Pending',
-                    statusBg: '#DBEAFE',
-                    statusColor: '#1D4ED8',
-                  },
-                  {
-                    id: 'l5',
-                    studentName: 'Advika Patel',
-                    admissionClass: '8th',
-                    fatherName: 'Meena Patel',
-                    fatherPhone: '+91 54321 09876',
-                    leadSource: 'Referral',
-                    statusLabel: 'New',
-                    statusBg: '#FEE2E2',
-                    statusColor: '#DC2626',
-                  },
-                ];
-
                 const rowsToRender =
                   leads.length > 0
                     ? leads.slice((counsellorPage - 1) * 5, counsellorPage * 5).map((l: any) => {
@@ -857,9 +799,9 @@ export default function RoleDashboard({
                           String(l.verificationStatus || '').toUpperCase() === 'RETURNED';
                         const statusLabel = isVerifReturned
                           ? 'Correction Req'
-                          : rawSt === 'qualified' || rawSt === 'enrolled'
+                          : rawSt === 'qualified' || rawSt === 'enrolled' || rawSt === 'admission_done'
                           ? 'Confirmed'
-                          : rawSt === 'contacted'
+                          : rawSt === 'contacted' || rawSt === 'applied' || rawSt === 'selected'
                           ? 'In Progress'
                           : rawSt === 'shortlisted'
                           ? 'Pending'
@@ -886,16 +828,16 @@ export default function RoleDashboard({
                         return {
                           ...l,
                           studentName: l.studentName,
-                          admissionClass: l.admissionClass || '8th',
-                          fatherName: l.fatherName || l.parentName || 'Parent',
-                          fatherPhone: l.fatherPhone || l.mobile || '+91 98765 43210',
-                          leadSource: l.leadSource || l.source || 'Website',
+                          admissionClass: l.applyingForGrade || l.admissionClass || '—',
+                          fatherName: l.parentName || l.fatherName || 'Parent',
+                          fatherPhone: l.parentPhone || l.fatherPhone || l.mobile || '—',
+                          leadSource: l.leadSource || l.source || 'Direct',
                           statusLabel,
                           statusBg,
                           statusColor,
                         };
                       })
-                    : defaultLatest;
+                    : [];
 
                 return (
                   <>
@@ -914,7 +856,14 @@ export default function RoleDashboard({
                           </tr>
                         </thead>
                         <tbody>
-                          {rowsToRender.map((r: any, idx: number) => (
+                          {rowsToRender.length === 0 ? (
+                            <tr>
+                              <td colSpan={8} style={{ textAlign: 'center', padding: '24px', color: '#64748B', fontSize: '12.5px' }}>
+                                No leads assigned yet. Click <strong>+ New Lead</strong> to add your first student inquiry.
+                              </td>
+                            </tr>
+                          ) : (
+                          rowsToRender.map((r: any, idx: number) => (
                             <tr key={r.id || idx}>
                               <td>{(counsellorPage - 1) * 5 + idx + 1}</td>
                               <td>
@@ -954,7 +903,7 @@ export default function RoleDashboard({
                                 </button>
                               </td>
                             </tr>
-                          ))}
+                          )))}
                         </tbody>
                       </table>
                     </div>
@@ -975,7 +924,7 @@ export default function RoleDashboard({
                       }}
                     >
                       <span>
-                        Showing 1 to {rowsToRender.length} of {leads.length || 45} leads
+                        Showing {rowsToRender.length > 0 ? (counsellorPage - 1) * 5 + 1 : 0} to {(counsellorPage - 1) * 5 + rowsToRender.length} of {leads.length} leads
                       </span>
                       <div style={{ display: 'flex', gap: '4px' }}>
                         {[1, 2, 3].map((p) => (
@@ -1046,32 +995,17 @@ export default function RoleDashboard({
                   marginLeft: '8px',
                 }}
               >
-                {[
-                  {
-                    dot: '#22C55E',
-                    time: '10:24 AM',
-                    title: 'New Lead Received',
-                    sub: `${leads[0]?.studentName || 'Aanya Sharma'} (${leads[0]?.leadSource || 'Website'})`,
-                  },
-                  {
-                    dot: '#2563EB',
-                    time: '11:15 AM',
-                    title: 'Lead Confirmed',
-                    sub: leads[1]?.studentName || 'Rohan Mehta',
-                  },
-                  {
-                    dot: '#8B5CF6',
-                    time: '12:30 PM',
-                    title: 'Call Made',
-                    sub: leads[2]?.studentName || 'Diya Singh',
-                  },
-                  {
-                    dot: '#10B981',
-                    time: '02:20 PM',
-                    title: 'Visit Scheduled',
-                    sub: leads[3]?.studentName || 'Aarav Gupta',
-                  },
-                ].map((act, idx) => (
+                {(leads.length > 0
+                  ? leads.slice(0, 4).map((l: any, idx: number) => ({
+                      dot: ['#22C55E', '#2563EB', '#8B5CF6', '#10B981'][idx % 4],
+                      time: l.updatedAt || l.createdAt
+                        ? new Date(l.updatedAt || l.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+                        : 'Today',
+                      title: String(l.status || 'new').replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+                      sub: `${l.studentName} (${l.leadSource || 'Direct'})`,
+                    }))
+                  : [{ dot: '#94A3B8', time: '—', title: 'No activity yet', sub: 'New leads & call logs will appear here live.' }]
+                ).map((act, idx) => (
                   <div key={idx} style={{ position: 'relative' }}>
                     <span
                       style={{
@@ -1531,7 +1465,7 @@ export default function RoleDashboard({
                     letterSpacing: '-0.3px',
                   }}
                 >
-                  Welcome back, {user?.fullName || 'Rohit Sharma'}!
+                  Welcome back, {user?.fullName || 'Manager'}!
                 </h2>
                 <div style={{ fontSize: '13px', opacity: 0.9, marginTop: '3px' }}>
                   Here&apos;s your team performance and latest updates.
@@ -2294,7 +2228,7 @@ export default function RoleDashboard({
                   <h3 style={{ fontSize: '15.5px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
                     My Pending Leads{' '}
                     <span style={{ color: '#EF4444', fontSize: '13px' }}>
-                      ({pendingVerifyCount || leads.length || 12})
+                      ({pendingVerifyCount})
                     </span>
                   </h3>
                 </div>
@@ -3237,9 +3171,9 @@ export default function RoleDashboard({
                   </div>
                   <div style={{ color: '#D97706', fontWeight: 700 }}>
                     ● Conversion:{' '}
-                    {leads.length > 0
-                      ? `${Math.max(12, Math.round(((adminData?.totalAdmissions ?? 1) / leads.length) * 100))}%`
-                      : '34.5%'}
+                    {Number(adminData?.totalLeads ?? leads.length) > 0
+                      ? `${Math.min(100, Math.round((Number(adminData?.totalAdmissions ?? 0) / Number(adminData?.totalLeads ?? leads.length)) * 100))}%`
+                      : '0%'}
                   </div>
                 </div>
               </div>
@@ -3397,7 +3331,7 @@ export default function RoleDashboard({
                       <th>Role</th>
                       <th>Team</th>
                       <th>Status</th>
-                      <th>Last Activity</th>
+                      <th>Login / Logout Time</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
@@ -3419,12 +3353,18 @@ export default function RoleDashboard({
                           emp.isOnline === true ||
                           emp.presenceStatus === 'online' ||
                           emp.id === user?.id;
-                        const minsAgo = emp.lastLoginAt
-                          ? Math.max(
-                              1,
-                              Math.round((Date.now() - new Date(emp.lastLoginAt).getTime()) / 60000)
-                            )
-                          : null;
+                        const fmtTime = (dt: any) =>
+                          dt
+                            ? new Date(dt).toLocaleString('en-IN', {
+                                day: '2-digit',
+                                month: 'short',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: true,
+                              })
+                            : null;
+                        const empLoginStr = fmtTime(emp.lastLoginAt);
+                        const empLogoutStr = fmtTime(emp.lastLogoutAt);
 
                       return (
                         <tr key={emp.id}>
@@ -3493,14 +3433,15 @@ export default function RoleDashboard({
                               </span>
                             )}
                           </td>
-                          <td style={{ fontSize: '11.5px', color: '#64748B' }}>
-                            {isOnlineEmp
-                              ? 'Active now'
-                              : minsAgo !== null
-                              ? minsAgo < 60
-                                ? `${minsAgo} min ago`
-                                : `${Math.round(minsAgo / 60)} hr ago`
-                              : 'Not logged in'}
+                          <td style={{ fontSize: '11px', lineHeight: 1.45, whiteSpace: 'nowrap' }}>
+                            <div style={{ color: '#0F172A', fontWeight: 600 }}>
+                              <span style={{ color: '#16A34A', fontWeight: 700 }}>In:</span>{' '}
+                              {empLoginStr || <span style={{ color: '#94A3B8' }}>Not logged in</span>}
+                            </div>
+                            <div style={{ color: '#475569', fontWeight: 600 }}>
+                              <span style={{ color: '#DC2626', fontWeight: 700 }}>Out:</span>{' '}
+                              {empLogoutStr || (isOnlineEmp ? <span style={{ color: '#16A34A' }}>Active now</span> : '—')}
+                            </div>
                           </td>
                           <td>
                             <div style={{ display: 'flex', gap: '5px' }}>
@@ -3580,14 +3521,14 @@ export default function RoleDashboard({
               </div>
 
               {(() => {
-                const totalL = Math.max(1, Number(adminData?.totalLeads ?? leads.length));
-                const genuineL = approvedLeadsCount || Math.max(1, Math.round(totalL * 0.74));
-                const inProcessL =
-                  leads.filter((l) =>
-                    ['contacted', 'shortlisted', 'visit_scheduled', 'qualified'].includes(
-                      String(l.status || '').toLowerCase()
-                    )
-                  ).length || Math.max(1, Math.round(totalL * 0.51));
+                const totalL = Number(adminData?.totalLeads ?? leads.length ?? 0);
+                const denom = Math.max(1, totalL);
+                const genuineL = approvedLeadsCount;
+                const inProcessL = leads.filter((l) =>
+                  ['contacted', 'shortlisted', 'visit_scheduled', 'qualified', 'applied', 'selected'].includes(
+                    String(l.status || '').toLowerCase()
+                  )
+                ).length;
                 const admL = Number(adminData?.totalAdmissions ?? kpiStats.confirmedAdmissions ?? 0);
 
                 return (
@@ -3614,7 +3555,7 @@ export default function RoleDashboard({
                           {genuineL.toLocaleString('en-IN')}
                         </div>
                         <div style={{ fontSize: '11.5px', color: '#10B981', fontWeight: 700 }}>
-                          Genuine Leads ({Math.min(100, Math.round((genuineL / totalL) * 100))}%)
+                          Genuine Leads ({totalL > 0 ? Math.min(100, Math.round((genuineL / denom) * 100)) : 0}%)
                         </div>
                       </div>
                       <div>
@@ -3622,7 +3563,7 @@ export default function RoleDashboard({
                           {inProcessL.toLocaleString('en-IN')}
                         </div>
                         <div style={{ fontSize: '11.5px', color: '#D97706', fontWeight: 700 }}>
-                          In Process ({Math.min(100, Math.round((inProcessL / totalL) * 100))}%)
+                          In Process ({totalL > 0 ? Math.min(100, Math.round((inProcessL / denom) * 100)) : 0}%)
                         </div>
                       </div>
                       <div>
@@ -3630,7 +3571,7 @@ export default function RoleDashboard({
                           {admL.toLocaleString('en-IN')}
                         </div>
                         <div style={{ fontSize: '11.5px', color: '#7C3AED', fontWeight: 700 }}>
-                          Admissions ({Math.min(100, Math.round((admL / totalL) * 100))}%)
+                          Admissions ({totalL > 0 ? Math.min(100, Math.round((admL / denom) * 100)) : 0}%)
                         </div>
                       </div>
                     </div>

@@ -1336,6 +1336,152 @@ export class AdmissionsService {
     return this.getInstallments(admissionId, actor);
   }
 
+  private async finalizeIfFullyPaid(admissionId: string, paidDate: Date, actor: any) {
+    const admission = await this.prisma.admission.findUnique({
+      where: { id: admissionId },
+      include: { installments: true },
+    });
+    if (!admission) return;
+
+    const remainingPending = admission.installments.filter((i) => i.status !== 'PAID').length;
+    const totalPaid = admission.installments
+      .filter((i) => i.status === 'PAID')
+      .reduce((sum, i) => sum + Number(i.amount || 0), 0);
+    const feeAgreed = Number(admission.feeAgreed || 0);
+    const isFullyPaid =
+      (admission.installments.length > 0 && remainingPending === 0) ||
+      (feeAgreed > 0 && totalPaid >= feeAgreed);
+
+    if (!isFullyPaid) return;
+
+    await this.prisma.admission.update({
+      where: { id: admissionId },
+      data: {
+        stage: 'admission_done',
+        status: 'admitted',
+        subStage: 'C_formalities_done',
+        admissionDate: admission.admissionDate || paidDate,
+        version: { increment: 1 },
+      },
+    });
+
+    if (admission.leadId) {
+      await this.prisma.lead.update({
+        where: { id: admission.leadId },
+        data: {
+          status: LeadStatus.admission_done,
+          verificationStatus: VerificationStatus.APPROVED,
+          version: { increment: 1 },
+        },
+      });
+    }
+
+    if (!admission.commissionGenerated) {
+      try {
+        await this.commissionsService.generateAdmissionCommissions(admissionId, actor);
+      } catch {}
+    }
+  }
+
+  async addCustomInstallmentPayment(admissionId: string, body: any, actor: any) {
+    const admission = await this.prisma.admission.findUnique({
+      where: { id: admissionId },
+      include: { installments: true },
+    });
+    if (!admission) throw new NotFoundException('Admission record not found');
+
+    const amount = Number(body.amount || 0);
+    if (!amount || amount <= 0) {
+      throw new BadRequestException('Payment amount must be greater than 0');
+    }
+
+    const nextNum =
+      admission.installments.reduce((m, i) => Math.max(m, i.installmentNumber || 0), 0) + 1;
+    const feeAgreed = Number(admission.feeAgreed || amount);
+    const percentage = feeAgreed > 0 ? Math.min(100, Math.round((amount / feeAgreed) * 100)) : 0;
+    const status = String(body.status || 'PAID').toUpperCase() === 'PENDING' ? 'PENDING' : 'PAID';
+    const paidAtDate = body.paidAt ? new Date(body.paidAt) : new Date();
+    const dueDate = body.dueDate ? new Date(body.dueDate) : paidAtDate;
+    const utr =
+      status === 'PAID'
+        ? String(body.utrNumber || body.utr_number || `UTR-${Date.now().toString().slice(-8)}`).trim()
+        : null;
+    const mode = body.paymentMode || body.payment_mode || 'NEFT / RTGS / IMPS';
+    const rawNotes = String(body.notes || '').trim();
+    const recorderTag = `Recorded by ${actor?.fullName || 'Staff'} (${actor?.role || 'user'})`;
+    const notes = rawNotes ? `${rawNotes} • ${recorderTag}` : recorderTag;
+    const title = String(body.title || '').trim() || `Installment #${nextNum}`;
+
+    const created = await this.prisma.admissionInstallment.create({
+      data: {
+        admissionId,
+        installmentNumber: nextNum,
+        title,
+        percentage,
+        amount,
+        dueDate,
+        status,
+        paidAt: status === 'PAID' ? paidAtDate : null,
+        utrNumber: utr,
+        paymentMode: status === 'PAID' ? mode : null,
+        notes,
+      },
+    });
+
+    if (status === 'PAID') {
+      await this.finalizeIfFullyPaid(admissionId, paidAtDate, actor);
+
+      try {
+        await this.prisma.auditLog.create({
+          data: {
+            userId: actor?.id || null,
+            userName: actor?.fullName || 'Staff',
+            userRole: actor?.role || 'user',
+            action: 'CREATE',
+            module: 'admissions',
+            entity: 'AdmissionInstallment',
+            entityId: created.id,
+            details: {
+              admissionId,
+              admissionNumber: admission.admissionNumber,
+              studentName: admission.studentName,
+              title,
+              amount,
+              utrNumber: utr,
+              paymentMode: mode,
+              paidAt: paidAtDate.toISOString(),
+            },
+          },
+        });
+      } catch {}
+
+      try {
+        await this.prisma.leadRemark.create({
+          data: {
+            leadId: admission.leadId,
+            userId: actor?.id,
+            userName: actor?.fullName,
+            userRole: actor?.role,
+            content: `💰 Fee Installment Paid: ${title} - ₹${amount.toLocaleString('en-IN')} (UTR: ${utr}, Mode: ${mode}) recorded by ${actor?.fullName}.`,
+          },
+        });
+      } catch {}
+
+      try {
+        await this.notifications?.notifyRoles(['manager', 'super_admin', 'SENIOR_MANAGER', 'SUPER_ADMIN'], {
+          type: 'payment_received',
+          title: `💰 Fee Payment Received: ₹${amount.toLocaleString('en-IN')}`,
+          message: `${title} of ₹${amount.toLocaleString('en-IN')} paid for ${admission.studentName} (${admission.schoolName}) via ${mode}. UTR: ${utr} • Recorded by ${actor?.fullName}`,
+          relatedEntityId: admissionId,
+          relatedEntityType: 'admission',
+          link: `/admissions/${admissionId}`,
+        });
+      } catch {}
+    }
+
+    return this.getInstallments(admissionId, actor);
+  }
+
   async recordInstallmentPayment(
     admissionId: string,
     instId: string,
@@ -1347,37 +1493,53 @@ export class AdmissionsService {
     });
     if (!inst) throw new NotFoundException('Installment milestone not found');
 
-    const now = new Date();
+    const paidAtDate = body.paidAt ? new Date(body.paidAt) : new Date();
+    const paidAmount = body.amount && Number(body.amount) > 0 ? Number(body.amount) : inst.amount;
+    const rawNotes = String(body.notes || '').trim();
+    const recorderTag = `Recorded by ${actor?.fullName || 'Staff'} (${actor?.role || 'user'})`;
+    const notes = rawNotes ? `${rawNotes} • ${recorderTag}` : recorderTag;
+
     const updated = await this.prisma.admissionInstallment.update({
       where: { id: instId },
       data: {
         status: 'PAID',
-        paidAt: now,
-        utrNumber: body.utrNumber || body.utr_number || `UTR-${Date.now()}`,
+        amount: paidAmount,
+        paidAt: paidAtDate,
+        utrNumber: body.utrNumber || body.utr_number || `UTR-${Date.now().toString().slice(-8)}`,
         paymentMode: body.paymentMode || body.payment_mode || 'NetBanking',
-        notes: body.notes || null,
+        notes,
       },
     });
 
-    // Check if all installments are paid -> mark admission done
-    const remaining = await this.prisma.admissionInstallment.count({
-      where: { admissionId, status: { not: 'PAID' } },
-    });
-
-    if (remaining === 0) {
-      await this.prisma.admission.update({
-        where: { id: admissionId },
-        data: {
-          stage: 'admission_done',
-          status: 'admission_done',
-          admissionDate: now,
-        },
-      });
-    }
+    await this.finalizeIfFullyPaid(admissionId, paidAtDate, actor);
 
     const admission = await this.prisma.admission.findUnique({
       where: { id: admissionId },
     });
+
+    try {
+      await this.prisma.auditLog.create({
+        data: {
+          userId: actor?.id || null,
+          userName: actor?.fullName || 'Staff',
+          userRole: actor?.role || 'user',
+          action: 'UPDATE',
+          module: 'admissions',
+          entity: 'AdmissionInstallment',
+          entityId: instId,
+          details: {
+            admissionId,
+            admissionNumber: admission?.admissionNumber,
+            studentName: admission?.studentName,
+            title: inst.title,
+            amount: paidAmount,
+            utrNumber: updated.utrNumber,
+            paymentMode: updated.paymentMode,
+            paidAt: paidAtDate.toISOString(),
+          },
+        },
+      });
+    } catch {}
 
     try {
       await this.prisma.leadRemark.create({
@@ -1386,7 +1548,7 @@ export class AdmissionsService {
           userId: actor.id,
           userName: actor.fullName,
           userRole: actor.role,
-          content: `💰 Installment Payment Recorded: ${inst.title} - ₹${inst.amount.toLocaleString('en-IN')} (UTR: ${updated.utrNumber}, Mode: ${updated.paymentMode}) by ${actor.fullName}. Status: PAID`,
+          content: `💰 Installment Payment Recorded: ${inst.title} - ₹${paidAmount.toLocaleString('en-IN')} (UTR: ${updated.utrNumber}, Mode: ${updated.paymentMode}) by ${actor.fullName}. Status: PAID`,
         },
       });
     } catch {}
@@ -1394,8 +1556,8 @@ export class AdmissionsService {
     try {
       await this.notifications?.notifyRoles(['manager', 'super_admin', 'SENIOR_MANAGER', 'SUPER_ADMIN'], {
         type: 'payment_received',
-        title: `💰 Payment Received: ₹${inst.amount.toLocaleString('en-IN')}`,
-        message: `${inst.title} of ₹${inst.amount.toLocaleString('en-IN')} verified for ${admission?.studentName} by ${actor.fullName}. UTR: ${updated.utrNumber}`,
+        title: `💰 Payment Received: ₹${paidAmount.toLocaleString('en-IN')}`,
+        message: `${inst.title} of ₹${paidAmount.toLocaleString('en-IN')} verified for ${admission?.studentName} by ${actor.fullName}. UTR: ${updated.utrNumber}`,
         relatedEntityId: admissionId,
         relatedEntityType: 'admission',
         link: `/admissions/${admissionId}`,

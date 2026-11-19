@@ -585,11 +585,29 @@ export function UsersView({
                 <th>Employee</th>
                 <th>Role</th>
                 <th>Status</th>
+                <th>Login / Logout Time</th>
                 <th>Controls</th>
               </tr>
             </thead>
             <tbody>
-              {users.map((u: any) => (
+              {users.map((u: any) => {
+                const isUserOnline =
+                  u.isOnline === true ||
+                  u.presenceStatus === 'online' ||
+                  u.id === currentUser?.id;
+                const formatDateTime = (dt: any) =>
+                  dt
+                    ? new Date(dt).toLocaleString('en-IN', {
+                        day: '2-digit',
+                        month: 'short',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true,
+                      })
+                    : null;
+                const loginTimeStr = formatDateTime(u.lastLoginAt);
+                const logoutTimeStr = formatDateTime(u.lastLogoutAt);
+                return (
                 <tr key={u.id}>
                   <td>
                     <strong>{u.fullName}</strong>
@@ -601,31 +619,41 @@ export function UsersView({
                     <span className="badge badge-info">{u.role}</span>
                   </td>
                   <td>
-                    {(() => {
-                      const isUserOnline =
-                        u.isOnline === true ||
-                        u.presenceStatus === 'online' ||
-                        u.id === currentUser?.id;
-                      return (
-                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
-                          <span
-                            className={`badge ${
-                              isUserOnline ? 'badge-success' : 'badge-secondary'
-                            }`}
-                            style={{
-                              background: isUserOnline ? '#DCFCE7' : '#F1F5F9',
-                              color: isUserOnline ? '#15803D' : '#475569',
-                              fontWeight: 700,
-                            }}
-                          >
-                            ● {isUserOnline ? 'Online' : 'Offline'}
-                          </span>
-                          {u.status && u.status !== 'active' && u.status !== 'ACTIVE' && (
-                            <span className="badge badge-danger">{u.status}</span>
-                          )}
-                        </div>
-                      );
-                    })()}
+                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+                      <span
+                        className={`badge ${
+                          isUserOnline ? 'badge-success' : 'badge-secondary'
+                        }`}
+                        style={{
+                          background: isUserOnline ? '#DCFCE7' : '#F1F5F9',
+                          color: isUserOnline ? '#15803D' : '#475569',
+                          fontWeight: 700,
+                        }}
+                      >
+                        ● {isUserOnline ? 'Online' : 'Offline'}
+                      </span>
+                      {u.status && u.status !== 'active' && u.status !== 'ACTIVE' && (
+                        <span className="badge badge-danger">{u.status}</span>
+                      )}
+                    </div>
+                  </td>
+                  <td>
+                    <div style={{ fontSize: '11.5px', lineHeight: 1.55, whiteSpace: 'nowrap' }}>
+                      <div style={{ color: '#0F172A', fontWeight: 600 }}>
+                        <span style={{ color: '#16A34A', fontWeight: 700 }}>Login:</span>{' '}
+                        {loginTimeStr || <span style={{ color: '#94A3B8', fontWeight: 500 }}>Not logged in</span>}
+                      </div>
+                      <div style={{ color: '#334155', fontWeight: 600 }}>
+                        <span style={{ color: '#DC2626', fontWeight: 700 }}>Logout:</span>{' '}
+                        {logoutTimeStr ? (
+                          logoutTimeStr
+                        ) : isUserOnline ? (
+                          <span style={{ color: '#16A34A', fontWeight: 600 }}>Active now</span>
+                        ) : (
+                          <span style={{ color: '#94A3B8', fontWeight: 500 }}>—</span>
+                        )}
+                      </div>
+                    </div>
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
@@ -677,6 +705,7 @@ export function UsersView({
                                 `Status toggled for ${u.fullName}.`
                               )
                             }
+                            title="Activate or Suspend this employee account"
                           >
                             <CrmIcon name="play" size={16} /> Toggle Active
                           </button>
@@ -691,7 +720,8 @@ export function UsersView({
                     </div>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

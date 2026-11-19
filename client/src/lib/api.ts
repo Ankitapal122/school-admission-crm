@@ -113,22 +113,29 @@ export async function apiCall<T = any>(
     }
   }
 
-  let res: Response;
-  try {
-    res = await performFetch();
-    // Transparent auto-retry on transient gateway errors (502/503/504) during cold start or multi-device load
-    if ((res.status === 502 || res.status === 503 || res.status === 504) && (method === 'GET' || isAuthRoute)) {
-      for (let attempt = 1; attempt <= 2; attempt++) {
-        await new Promise((r) => setTimeout(r, 2000 * attempt));
-        try {
-          res = await performFetch();
-          if (res.status < 500) break;
-        } catch {
-          // Continue retry
-        }
+  let res!: Response;
+  let lastNetworkErr: any = null;
+  const maxAttempts = method === 'GET' || isAuthRoute ? 3 : 2;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      res = await performFetch();
+      lastNetworkErr = null;
+      // Transparent auto-retry on transient gateway errors (502/503/504) during cold start or multi-device load
+      if ((res.status === 502 || res.status === 503 || res.status === 504) && attempt < maxAttempts && (method === 'GET' || isAuthRoute)) {
+        await new Promise((r) => setTimeout(r, 1500 * attempt));
+        continue;
+      }
+      break;
+    } catch (networkErr: any) {
+      lastNetworkErr = networkErr;
+      if (attempt < maxAttempts) {
+        await new Promise((r) => setTimeout(r, 900 * attempt));
+        continue;
       }
     }
-  } catch (networkErr: any) {
+  }
+
+  if (lastNetworkErr) {
     if (method === 'GET') {
       const cached = await getCachedCollection<T>(endpoint);
       if (cached) return { ...(cached as any), _offlineCached: true };
@@ -140,7 +147,11 @@ export async function apiCall<T = any>(
         message: 'Saved offline in Dexie queue. Will auto-sync when connection returns.',
       } as unknown as T;
     }
-    throw new ApiError(networkErr?.message || 'Network unavailable', 0, {});
+    throw new ApiError(
+      'Unable to reach CRM server. Please refresh the page and try again.',
+      0,
+      {}
+    );
   }
 
   // Silent single-flight refresh rotation on 401

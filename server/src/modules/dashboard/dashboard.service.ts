@@ -267,7 +267,7 @@ export class DashboardService {
         where: {
           deletedAt: null,
           isActive: true,
-          role: { in: ['SENIOR_MANAGER', 'COUNSELLOR', 'manager', 'counsellor', 'jr_counsellor'] as any },
+          role: { in: ['SENIOR_MANAGER', 'COUNSELLOR', 'manager', 'jr_counsellor'] as any },
         },
         select: {
           id: true,
