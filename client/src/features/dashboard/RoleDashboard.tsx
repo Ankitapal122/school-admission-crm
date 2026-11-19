@@ -466,11 +466,7 @@ export default function RoleDashboard({
                   letterSpacing: '-0.3px',
                 }}
               >
-                Hello{' '}
-                {user?.fullName && !user.fullName.includes('Admin')
-                  ? user.fullName.split(' ')[0]
-                  : 'Ankita'}
-                ! <CrmIcon name="sparkles" size={16} />
+                Hello! <CrmIcon name="sparkles" size={16} />
               </h2>
               <div style={{ fontSize: '13px', color: '#64748B', marginTop: '2px' }}>
                 Here&apos;s your performance and latest updates
@@ -2857,7 +2853,7 @@ export default function RoleDashboard({
               </div>
               <div style={{ minWidth: 0 }}>
                 <div className="dash-kpi-value" style={{ fontSize: '24px', fontWeight: 800, color: '#0F172A', lineHeight: 1.1 }}>
-                  {Number(adminData?.managersCount ?? (teams.length || 5)).toLocaleString('en-IN')}
+                  {Number(adminData?.managersCount ?? (teams.length || 0)).toLocaleString('en-IN')}
                 </div>
                 <div className="dash-kpi-label" style={{ fontSize: '12.5px', fontWeight: 600, color: '#334155', marginTop: '2px' }}>
                   Total Managers
@@ -2902,7 +2898,7 @@ export default function RoleDashboard({
               </div>
               <div style={{ minWidth: 0 }}>
                 <div className="dash-kpi-value" style={{ fontSize: '24px', fontWeight: 800, color: '#0F172A', lineHeight: 1.1 }}>
-                  {Number(adminData?.counsellorsCount ?? 15).toLocaleString('en-IN')}
+                  {Number(adminData?.counsellorsCount ?? 0).toLocaleString('en-IN')}
                 </div>
                 <div className="dash-kpi-label" style={{ fontSize: '12.5px', fontWeight: 600, color: '#334155', marginTop: '2px' }}>
                   Total Counsellors
@@ -3466,7 +3462,7 @@ export default function RoleDashboard({
                               : 'Counsellor'}
                           </td>
                           <td style={{ fontSize: '12px', color: '#334155', fontWeight: 600 }}>
-                            {emp.team?.name || emp.manager?.fullName || 'Team North'}
+                            {emp.team?.name || emp.manager?.fullName || '—'}
                           </td>
                           <td>
                             {isOnlineEmp ? (
@@ -3658,7 +3654,7 @@ export default function RoleDashboard({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
                   <span style={{ fontSize: '16px' }}><CrmIcon name="trophy" size={16} /></span>
                   <h3 style={{ fontSize: '15.5px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
-                    Top Performing Teams
+                    Top Performers (Rankings)
                   </h3>
                 </div>
               </div>
@@ -3696,73 +3692,102 @@ export default function RoleDashboard({
                 ))}
               </div>
 
-              {/* Ranked Teams List */}
+              {/* Real Dynamic Top Performers Ranking */}
               {(() => {
-                const displayTeams =
-                  teams.length >= 3
-                    ? teams.slice(0, 5)
-                    : [
-                        ...teams,
-                        { id: 'tn', name: 'Team North', totalLeads: 48, totalAdmissions: 14, totalCommission: 120000 },
-                        { id: 'tw', name: 'Team West', totalLeads: 42, totalAdmissions: 11, totalCommission: 95000 },
-                        { id: 'ts', name: 'Team South', totalLeads: 36, totalAdmissions: 9, totalCommission: 82000 },
-                        { id: 'te', name: 'Team East', totalLeads: 29, totalAdmissions: 7, totalCommission: 64000 },
-                        { id: 'tc', name: 'Team Central', totalLeads: 24, totalAdmissions: 5, totalCommission: 45000 },
-                      ].slice(0, 5);
+                const performers = adminData?.topPerformers?.[topTeamMetric] || [];
+                if (!performers || performers.length === 0) {
+                  return (
+                    <div style={{ textAlign: 'center', padding: '24px 12px', color: '#64748B', fontSize: '12px' }}>
+                      <div style={{ fontSize: '24px', marginBottom: '6px' }}>🏆</div>
+                      <div style={{ fontWeight: 700, color: '#0F172A', marginBottom: '4px' }}>
+                        No Performance Data Yet
+                      </div>
+                      <div style={{ lineHeight: 1.4 }}>
+                        Once managers or counsellors submit leads and convert admissions, top rankings by {topTeamMetric} will appear here in real time.
+                      </div>
+                    </div>
+                  );
+                }
 
-                const pcts = [78, 66, 54, 44, 35];
-                const growths = ['+12%', '+10%', '+8%', '+6%', '+5%'];
+                const maxVal = Math.max(...performers.map((p: any) => Number(p.count || 1)), 1);
 
                 return (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    {displayTeams.map((t: any, idx: number) => (
-                      <div
-                        key={t.id || idx}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '10px',
-                          fontSize: '12.5px',
-                        }}
-                      >
-                        <span style={{ width: '16px', fontWeight: 700, color: '#64748B' }}>
-                          {idx + 1}
-                        </span>
-                        <span
-                          style={{
-                            width: '125px',
-                            fontWeight: 700,
-                            color: '#0F172A',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                          }}
-                        >
-                          {t.name}
-                        </span>
+                    {performers.map((p: any, idx: number) => {
+                      const pct = Math.max(15, Math.round((Number(p.count || 0) / maxVal) * 100));
+                      return (
                         <div
+                          key={p.id || idx}
                           style={{
-                            flex: 1,
-                            height: '7px',
-                            background: '#E2E8F0',
-                            borderRadius: '999px',
-                            overflow: 'hidden',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            fontSize: '12.5px',
                           }}
                         >
+                          <span
+                            style={{
+                              width: '18px',
+                              fontWeight: 800,
+                              color: idx === 0 ? '#EAB308' : idx === 1 ? '#94A3B8' : idx === 2 ? '#B45309' : '#64748B',
+                              textAlign: 'center',
+                            }}
+                          >
+                            {idx + 1}
+                          </span>
+                          <div style={{ width: '130px', minWidth: '130px' }}>
+                            <div
+                              style={{
+                                fontWeight: 700,
+                                color: '#0F172A',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                              }}
+                            >
+                              {p.name}
+                            </div>
+                            <div style={{ fontSize: '11px', color: '#64748B' }}>
+                              {p.teamName !== '—' ? p.teamName : p.role}
+                            </div>
+                          </div>
                           <div
                             style={{
-                              width: `${pcts[idx] || 40}%`,
-                              height: '100%',
-                              background: '#2563EB',
+                              flex: 1,
+                              height: '8px',
+                              background: '#F1F5F9',
                               borderRadius: '999px',
+                              overflow: 'hidden',
                             }}
-                          />
+                          >
+                            <div
+                              style={{
+                                width: `${pct}%`,
+                                height: '100%',
+                                background:
+                                  topTeamMetric === 'commission'
+                                    ? '#10B981'
+                                    : topTeamMetric === 'admissions'
+                                    ? '#8B5CF6'
+                                    : '#2563EB',
+                                borderRadius: '999px',
+                              }}
+                            />
+                          </div>
+                          <span
+                            style={{
+                              fontSize: '11.5px',
+                              fontWeight: 700,
+                              color: topTeamMetric === 'commission' ? '#047857' : '#1D4ED8',
+                              minWidth: '60px',
+                              textAlign: 'right',
+                            }}
+                          >
+                            {p.label}
+                          </span>
                         </div>
-                        <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#16A34A', width: '44px', textAlign: 'right' }}>
-                          ↑ {growths[idx]}
-                        </span>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 );
               })()}

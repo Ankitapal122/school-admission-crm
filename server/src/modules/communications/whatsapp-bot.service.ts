@@ -27,6 +27,9 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
   private activeNumber: string | null = null;
   private authDir: string;
   private isInitializing = false;
+  private socketReadyForPairing = false;
+  private qrAttempts = 0;
+  private readonly MAX_QR_ATTEMPTS = 3;
   private reconnectTimeout: NodeJS.Timeout | null = null;
   private lastSentSchoolByJid = new Map<string, string>();
   private lastRecommendedSchoolsByJid = new Map<string, string[]>();
@@ -41,9 +44,16 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
     if (!fs.existsSync(this.authDir)) {
       fs.mkdirSync(this.authDir, { recursive: true });
     }
-    this.initSocket().catch((err) => {
-      this.logger.error(`Initial WhatsApp socket setup error: ${err.message}`);
-    });
+    // Only auto-start Baileys on boot if a linked session already exists (saves RAM & prevents 502 OOM on 512MB tier)
+    const hasSavedSession = fs.existsSync(path.join(this.authDir, 'creds.json'));
+    if (hasSavedSession) {
+      this.logger.log('Saved WhatsApp session found — auto-connecting Baileys socket...');
+      this.initSocket().catch((err) => {
+        this.logger.error(`Initial WhatsApp socket setup error: ${err.message}`);
+      });
+    } else {
+      this.logger.log('No saved WhatsApp session — Baileys will initialize on-demand when a user opens WhatsApp Bot.');
+    }
     this.startReminderPoller();
   }
 
@@ -54,12 +64,21 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
     if (this.reminderInterval) {
       clearInterval(this.reminderInterval);
     }
+    this.destroySocket();
+  }
+
+  private destroySocket() {
+    this.socketReadyForPairing = false;
     if (this.sock) {
       try {
-        this.sock.end(new Error('Module destroyed'));
-      } catch {
-        // Safe teardown
-      }
+        this.sock.ev.removeAllListeners('connection.update');
+        this.sock.ev.removeAllListeners('creds.update');
+        this.sock.ev.removeAllListeners('messages.upsert');
+      } catch {}
+      try {
+        this.sock.end(undefined);
+      } catch {}
+      this.sock = null;
     }
   }
 
@@ -68,6 +87,9 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
     this.isInitializing = true;
 
     try {
+      // Cleanly tear down any previous socket before creating a new one (prevents memory leaks)
+      this.destroySocket();
+
       if (!fs.existsSync(this.authDir)) {
         fs.mkdirSync(this.authDir, { recursive: true });
       }
@@ -89,6 +111,14 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
         const { connection, lastDisconnect, qr } = update;
 
         if (qr) {
+          this.socketReadyForPairing = true;
+          this.qrAttempts += 1;
+          if (this.qrAttempts > this.MAX_QR_ATTEMPTS) {
+            this.logger.log('WhatsApp QR idle limit reached — pausing socket to conserve server memory.');
+            this.qrCodeDataUrl = null;
+            this.destroySocket();
+            return;
+          }
           try {
             this.qrCodeDataUrl = await QRCode.toDataURL(qr, {
               margin: 2,
@@ -98,7 +128,7 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
                 light: '#FFFFFF',
               },
             });
-            this.logger.log('WhatsApp QR Code generated for CRM linking');
+            this.logger.log(`WhatsApp QR Code generated for CRM linking (attempt ${this.qrAttempts}/${this.MAX_QR_ATTEMPTS})`);
           } catch (err: any) {
             this.logger.error(`Failed to generate QR data URL: ${err.message}`);
           }
@@ -107,23 +137,30 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
         if (connection === 'close') {
           this.isConnected = false;
           const statusCode = (lastDisconnect?.error as any)?.output?.statusCode;
-          const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
+          const hasCreds = fs.existsSync(path.join(this.authDir, 'creds.json'));
+          const shouldReconnect =
+            statusCode !== DisconnectReason.loggedOut &&
+            (hasCreds || this.qrAttempts < this.MAX_QR_ATTEMPTS);
 
           this.logger.warn(
             `WhatsApp connection closed. Status: ${statusCode}, Should Reconnect: ${shouldReconnect}`,
           );
 
           if (statusCode === DisconnectReason.loggedOut) {
-            this.logger.warn('WhatsApp session logged out. Wiping credentials for fresh QR code.');
+            this.logger.warn('WhatsApp session logged out. Clearing credentials and entering idle mode.');
+            this.destroySocket();
             this.clearAuthData();
             this.qrCodeDataUrl = null;
             this.activeNumber = null;
-            this.scheduleReconnect(2000);
           } else if (shouldReconnect) {
             this.scheduleReconnect(5000);
+          } else {
+            this.destroySocket();
+            this.qrCodeDataUrl = null;
           }
         } else if (connection === 'open') {
           this.isConnected = true;
+          this.qrAttempts = 0;
           this.qrCodeDataUrl = null;
           const rawId = this.sock?.user?.id || '';
           this.activeNumber = rawId.split(':')[0]?.replace(/\D/g, '') || rawId.split('@')[0]?.replace(/\D/g, '') || null;
@@ -957,7 +994,13 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
   }
 
   // Public Methods
-  getStatus() {
+  getStatus(autoInit = false) {
+    if (autoInit && !this.isConnected && !this.sock && !this.isInitializing) {
+      this.qrAttempts = 0;
+      this.initSocket().catch((err) => {
+        this.logger.warn(`On-demand WhatsApp init error: ${err.message}`);
+      });
+    }
     return {
       isConnected: this.isConnected,
       activeNumber: this.activeNumber,
@@ -966,7 +1009,9 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
         ? 'CONNECTED'
         : this.qrCodeDataUrl
           ? 'SCAN_QR_REQUIRED'
-          : 'INITIALIZING',
+          : this.isInitializing || this.sock
+            ? 'INITIALIZING'
+            : 'IDLE',
     };
   }
 
@@ -975,22 +1020,20 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
     this.isConnected = false;
     this.activeNumber = null;
     this.qrCodeDataUrl = null;
+    this.qrAttempts = 0;
 
     if (this.sock) {
       try {
         await this.sock.logout();
       } catch {}
-      try {
-        this.sock.end(new Error('User disconnected'));
-      } catch {}
+      this.destroySocket();
     }
 
     this.clearAuthData();
-    this.scheduleReconnect(1500);
 
     return {
       success: true,
-      message: 'WhatsApp session disconnected. New QR Code is generating...',
+      message: 'WhatsApp session disconnected.',
     };
   }
 
@@ -1030,16 +1073,18 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
     const ensureFreshUnregisteredSocket = async () => {
       if (this.isConnected) {
         await this.disconnect();
-        await new Promise((r) => setTimeout(r, 1500));
+        await new Promise((r) => setTimeout(r, 1000));
       }
 
+      this.qrAttempts = 0;
       if (!this.sock) {
+        this.clearAuthData();
         await this.initSocket();
       }
 
-      // Wait up to 6 seconds for socket to initialize and be ready for pairing
-      for (let i = 0; i < 12; i++) {
-        if (this.sock && !this.isInitializing) break;
+      // Wait up to 10 seconds for WhatsApp Noise handshake (first QR event) before requesting pairing code
+      for (let i = 0; i < 20; i++) {
+        if (this.sock && this.socketReadyForPairing) break;
         await new Promise((r) => setTimeout(r, 500));
       }
     };
@@ -1054,17 +1099,15 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
         return formatted;
       } catch (err: any) {
         this.logger.warn(`First Baileys requestPairingCode attempt failed (${err.message}). Re-initializing socket...`);
-        // Retry once with a clean socket and fresh auth directory
         try {
-          if (this.sock) {
-            try {
-              this.sock.end(new Error('Reinitializing for pairing code'));
-            } catch {}
-            this.sock = null;
-          }
+          this.destroySocket();
           this.clearAuthData();
+          this.qrAttempts = 0;
           await this.initSocket();
-          await new Promise((r) => setTimeout(r, 2500));
+          for (let i = 0; i < 20; i++) {
+            if (this.sock && this.socketReadyForPairing) break;
+            await new Promise((r) => setTimeout(r, 500));
+          }
           if (this.sock) {
             const rawCode = await (this.sock as any).requestPairingCode(international);
             const formatted = formatCode(rawCode);

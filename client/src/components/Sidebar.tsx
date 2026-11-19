@@ -102,7 +102,7 @@ export default function Sidebar({
       </div>
 
       <nav className="sidebar-nav">
-        <div style={{ padding: '4px 10px 10px 10px' }}>
+        <div style={{ padding: '4px 10px 10px 10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <button
             type="button"
             onClick={() => {
@@ -116,20 +116,48 @@ export default function Sidebar({
               alignItems: 'center',
               justifyContent: 'center',
               gap: '8px',
-              padding: '10px 12px',
-              background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+              padding: '9px 12px',
+              background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
               color: '#FFFFFF',
               border: 'none',
               borderRadius: '10px',
-              fontSize: '13px',
+              fontSize: '12.5px',
               fontWeight: 800,
               cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.35)',
+              boxShadow: '0 4px 12px rgba(37, 99, 235, 0.35)',
             }}
             title="Install BoardingEdu CRM on Phone or Desktop"
           >
             <span style={{ fontSize: '15px' }}>📲</span>
             <span>Install App on Phone</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (onCloseMobile) onCloseMobile();
+              window.dispatchEvent(new CustomEvent('crm-open-whatsapp-bot'));
+            }}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              padding: '9px 12px',
+              background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+              color: '#FFFFFF',
+              border: 'none',
+              borderRadius: '10px',
+              fontSize: '12.5px',
+              fontWeight: 800,
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.35)',
+            }}
+            title="WhatsApp Auto-Reply Bot: Scan QR Code or Link Phone Number"
+          >
+            <span style={{ fontSize: '15px' }}>📱</span>
+            <span>WhatsApp Bot (QR)</span>
           </button>
         </div>
         {roleName === 'admin' && (
@@ -441,7 +469,9 @@ export default function Sidebar({
                     border: '2px solid rgba(255,255,255,0.45)',
                   }}
                 >
-                  AP
+                  {user?.fullName && !user.fullName.includes('Admin')
+                    ? initials.toUpperCase()
+                    : 'CO'}
                 </div>
                 <span
                   style={{
@@ -460,7 +490,7 @@ export default function Sidebar({
                 <div style={{ fontSize: '13px', fontWeight: 700, color: '#FFFFFF' }}>
                   {user?.fullName && !user.fullName.includes('Admin')
                     ? user.fullName
-                    : 'Ankita Pal'}
+                    : 'Counsellor'}
                 </div>
                 <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 600 }}>
                   Counsellor <CrmIcon name="chevron-down" size={12} />

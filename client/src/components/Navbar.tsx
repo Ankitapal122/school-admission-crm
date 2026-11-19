@@ -92,16 +92,19 @@ export default function Navbar({
     const handleOffline = () => setIsOnline(false);
     const handleQueueEvt = () => refreshOfflineCount();
     const handleLogQueueEvt = () => loadTopbarCounts();
+    const handleOpenWhatsAppBot = () => setShowWhatsAppBotModal(true);
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     window.addEventListener('crm-offline-sync-updated', handleQueueEvt);
     window.addEventListener('crm-logging-queue-updated', handleLogQueueEvt);
+    window.addEventListener('crm-open-whatsapp-bot', handleOpenWhatsAppBot);
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
       window.removeEventListener('crm-offline-sync-updated', handleQueueEvt);
       window.removeEventListener('crm-logging-queue-updated', handleLogQueueEvt);
+      window.removeEventListener('crm-open-whatsapp-bot', handleOpenWhatsAppBot);
     };
   }, []);
 
@@ -257,7 +260,8 @@ export default function Navbar({
   };
 
   return (
-    <header className="topbar">
+    <>
+      <header className="topbar">
       <div className="topbar-left">
         {sidebarCollapsed && (
           <button
@@ -356,6 +360,8 @@ export default function Navbar({
             padding: '4px 10px',
             borderRadius: '999px',
             background: '#DCFCE7',
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
           }}
         >
           <span
@@ -369,55 +375,6 @@ export default function Navbar({
           />
           System Online
         </div>
-
-        <button
-          type="button"
-          onClick={() => {
-            sessionStorage.removeItem('pwa_install_dismissed');
-            window.dispatchEvent(new CustomEvent('pwa-show-install-prompt'));
-          }}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            fontSize: '12px',
-            fontWeight: 700,
-            color: '#1E3A8A',
-            padding: '4px 12px',
-            borderRadius: '999px',
-            background: '#EFF6FF',
-            border: '1.5px solid #93C5FD',
-            cursor: 'pointer',
-            boxShadow: '0 1px 2px rgba(37, 99, 235, 0.1)',
-          }}
-          title="Install BoardingEdu CRM as Mobile / Desktop App (PWA)"
-        >
-          <span>📲</span>
-          <span>Install App</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setShowWhatsAppBotModal(true)}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            fontSize: '12px',
-            fontWeight: 700,
-            color: '#15803D',
-            padding: '4px 12px',
-            borderRadius: '999px',
-            background: '#F0FDF4',
-            border: '1.5px solid #86EFAC',
-            cursor: 'pointer',
-            boxShadow: '0 1px 2px rgba(22, 163, 74, 0.15)',
-          }}
-          title="WhatsApp Auto-Reply Bot: Scan QR Code or check status"
-        >
-          <span>📱</span>
-          <span>WhatsApp Bot (QR)</span>
-        </button>
 
         <div
           className="desktop-only"
@@ -640,6 +597,8 @@ export default function Navbar({
             border: '1px solid #E2E8F0',
             background: '#F8FAFC',
             cursor: 'pointer',
+            flexShrink: 0,
+            whiteSpace: 'nowrap',
           }}
           onClick={() => onSelectTab('settings')}
           title="Account Profile & Settings"
@@ -656,29 +615,79 @@ export default function Navbar({
               justifyContent: 'center',
               fontSize: '11px',
               fontWeight: 800,
+              flexShrink: 0,
             }}
           >
             SA
           </div>
-          <span style={{ fontSize: '12px', fontWeight: 700, color: '#0F172A' }}>
-            {hasRole(user?.role, 'SUPER_ADMIN') ? 'Super Admin' : user?.fullName || 'User'}{' '}
+          <span
+            style={{
+              fontSize: '12px',
+              fontWeight: 700,
+              color: '#0F172A',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {hasRole(user?.role, 'SUPER_ADMIN') ? 'Super Admin' : user?.fullName || 'User'}
             <CrmIcon name="chevron-down" size={12} />
           </span>
         </div>
       </div>
+      </header>
 
       {previewRole && (
         <div className="preview-badge-banner">
-          <div>
-            <CrmIcon name="eye" size={14} /> PREVIEW MODE: Viewing interface as{' '}
-            <strong>{previewRole === 'SENIOR_MANAGER' ? 'MANAGER' : 'COUNSELLOR'}</strong> (Admin
-            permissions intact)
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', minWidth: 0 }}>
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                background: '#D97706',
+                color: '#FFFFFF',
+                fontSize: '10.5px',
+                fontWeight: 800,
+                padding: '3px 9px',
+                borderRadius: '999px',
+                letterSpacing: '0.4px',
+                textTransform: 'uppercase',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <CrmIcon name="eye" size={12} color="#FFFFFF" /> Preview Mode
+            </span>
+            <span style={{ fontSize: '12.5px', fontWeight: 600, color: '#78350F', lineHeight: 1.35 }}>
+              Viewing interface as{' '}
+              <strong style={{ color: '#92400E', fontWeight: 800 }}>
+                {previewRole === 'SENIOR_MANAGER' ? 'Manager' : 'Counsellor'}
+              </strong>{' '}
+              <span style={{ color: '#B45309', fontWeight: 500 }}>(Admin permissions intact)</span>
+            </span>
           </div>
           <button
-            className="btn btn-sm btn-outline"
-            style={{ marginLeft: '6px', padding: '2px 8px' }}
+            type="button"
             onClick={() => handlePreviewChange('')}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px',
+              background: '#FFFFFF',
+              color: '#92400E',
+              border: '1px solid #F59E0B',
+              borderRadius: '8px',
+              padding: '5px 12px',
+              fontSize: '12px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              boxShadow: '0 1px 2px rgba(146, 64, 14, 0.1)',
+              flexShrink: 0,
+            }}
           >
+            <CrmIcon name="x" size={13} color="#92400E" />
             Exit Preview
           </button>
         </div>
@@ -689,6 +698,6 @@ export default function Navbar({
         onClose={() => setShowWhatsAppBotModal(false)}
         onShowToast={onShowToast}
       />
-    </header>
+    </>
   );
 }

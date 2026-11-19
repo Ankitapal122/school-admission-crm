@@ -1,5 +1,5 @@
-﻿// BoardingEdu Enterprise CRM - Progressive Web App Service Worker (v2.1)
-const CACHE_NAME = 'boardingedu-crm-shell-v2';
+﻿// BoardingEdu Enterprise CRM - Progressive Web App Service Worker (v3.0)
+const CACHE_NAME = 'boardingedu-crm-shell-v3';
 const APP_SHELL_ASSETS = [
   '/',
   '/index.html',
@@ -99,13 +99,24 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Navigation requests: Network-first, fallback to /index.html
+  // Navigation requests: Network-first, fallback to cached /index.html on offline OR temporary 502/503/504
   if (req.mode === 'navigate') {
     event.respondWith(
-      fetch(req).catch(async () => {
-        const cachedIndex = await caches.match('/index.html');
-        return cachedIndex || caches.match('/');
-      })
+      fetch(req)
+        .then(async (res) => {
+          if (res.status >= 500) {
+            const cachedIndex = await caches.match('/index.html');
+            if (cachedIndex) return cachedIndex;
+          } else if (res.status === 200) {
+            const clone = res.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put('/index.html', clone));
+          }
+          return res;
+        })
+        .catch(async () => {
+          const cachedIndex = await caches.match('/index.html');
+          return cachedIndex || caches.match('/');
+        })
     );
     return;
   }

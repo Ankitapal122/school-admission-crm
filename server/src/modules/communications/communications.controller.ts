@@ -24,8 +24,9 @@ export class WhatsappBotController {
   constructor(private readonly botService: WhatsappBotService) {}
 
   @Get('status')
-  getBotStatus() {
-    const status = this.botService.getStatus();
+  getBotStatus(@Query('init') init?: string) {
+    const shouldInit = init !== 'false';
+    const status = this.botService.getStatus(shouldInit);
     return apiEnvelope(status, 'WhatsApp bot status fetched', status);
   }
 

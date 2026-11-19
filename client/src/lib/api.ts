@@ -116,6 +116,18 @@ export async function apiCall<T = any>(
   let res: Response;
   try {
     res = await performFetch();
+    // Transparent auto-retry on transient gateway errors (502/503/504) during cold start or multi-device load
+    if ((res.status === 502 || res.status === 503 || res.status === 504) && (method === 'GET' || isAuthRoute)) {
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        await new Promise((r) => setTimeout(r, 2000 * attempt));
+        try {
+          res = await performFetch();
+          if (res.status < 500) break;
+        } catch {
+          // Continue retry
+        }
+      }
+    }
   } catch (networkErr: any) {
     if (method === 'GET') {
       const cached = await getCachedCollection<T>(endpoint);

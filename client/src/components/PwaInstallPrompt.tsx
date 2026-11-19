@@ -13,6 +13,26 @@ export default function PwaInstallPrompt() {
   const [activeTab, setActiveTab] = useState<'android' | 'desktop' | 'ios'>('desktop');
   const [hasUpdate, setHasUpdate] = useState(false);
 
+  const handleInstallClick = async () => {
+    const promptEvent = (window as any).__deferredPwaPrompt || deferredPrompt;
+    if (promptEvent) {
+      try {
+        await promptEvent.prompt();
+        const choice = await promptEvent.userChoice;
+        if (choice && choice.outcome === 'accepted') {
+          setShowBanner(false);
+          setDeferredPrompt(null);
+          (window as any).__deferredPwaPrompt = null;
+          return;
+        }
+      } catch (err) {
+        console.warn('Install prompt error:', err);
+      }
+    }
+    // If native prompt is not available in browser context, open guided modal
+    setShowGuideModal(true);
+  };
+
   useEffect(() => {
     // 1. Detect standalone mode
     const isStandaloneMode =
@@ -34,12 +54,11 @@ export default function PwaInstallPrompt() {
       setActiveTab('desktop');
     }
 
-    // 3. Listen for browser install prompt (Android / Chrome)
+    // 3. Listen for browser install prompt silently (triggered ONLY from Sidebar / Hamburger menu)
     const checkDeferredPrompt = () => {
       const globalPrompt = (window as any).__deferredPwaPrompt;
       if (globalPrompt) {
         setDeferredPrompt(globalPrompt);
-        setShowBanner(true);
       }
     };
     checkDeferredPrompt();
@@ -48,26 +67,16 @@ export default function PwaInstallPrompt() {
       e.preventDefault();
       (window as any).__deferredPwaPrompt = e;
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setShowBanner(true);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('pwa-prompt-ready', checkDeferredPrompt);
 
-    // If on iOS or Android, show banner after 2s
-    const dismissed = sessionStorage.getItem('pwa_install_dismissed') === 'true';
-    if (!dismissed) {
-      const timer = setTimeout(() => {
-        setShowBanner(true);
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-
     // 4. Update check
     const handleUpdate = () => setHasUpdate(true);
     window.addEventListener('pwa-update-available', handleUpdate);
 
-    // 5. Manual trigger from Navbar
+    // 5. Manual trigger from Sidebar / Hamburger menu
     const handleManualShow = () => {
       handleInstallClick();
     };
@@ -80,26 +89,6 @@ export default function PwaInstallPrompt() {
       window.removeEventListener('pwa-show-install-prompt', handleManualShow);
     };
   }, []);
-
-  const handleInstallClick = async () => {
-    const promptEvent = deferredPrompt || (window as any).__deferredPwaPrompt;
-    if (promptEvent) {
-      try {
-        await promptEvent.prompt();
-        const choice = await promptEvent.userChoice;
-        if (choice && choice.outcome === 'accepted') {
-          setShowBanner(false);
-          setDeferredPrompt(null);
-          (window as any).__deferredPwaPrompt = null;
-          return;
-        }
-      } catch (err) {
-        console.warn('Install prompt error:', err);
-      }
-    }
-    // If native prompt is not available in browser context, open guided modal
-    setShowGuideModal(true);
-  };
 
   const handleDismiss = () => {
     setShowBanner(false);
@@ -159,9 +148,10 @@ export default function PwaInstallPrompt() {
         </div>
       )}
 
-      {/* 2. Floating Bottom Banner */}
+      {/* 2. Floating Bottom Banner (Desktop only; mobile installs from Hamburger menu) */}
       {!isStandalone && showBanner && (
         <div
+          className="desktop-only"
           style={{
             position: 'fixed',
             bottom: 20,

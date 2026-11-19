@@ -220,6 +220,7 @@ export class DashboardService {
       activeSessions,
       pipelineGrouped,
       pendingConfirmations,
+      activeStaff,
     ] = await Promise.all([
       this.prisma.lead.count({ where: { deletedAt: null } }),
       this.prisma.school.count({ where: { deletedAt: null, status: 'active' } }),
@@ -261,6 +262,35 @@ export class DashboardService {
         _count: { id: true },
       }),
       this.getPendingConfirmations(user),
+      // Active staff with aggregated counts for real top performers rankings
+      this.prisma.user.findMany({
+        where: {
+          deletedAt: null,
+          isActive: true,
+          role: { in: ['SENIOR_MANAGER', 'COUNSELLOR', 'manager', 'counsellor', 'jr_counsellor'] as any },
+        },
+        select: {
+          id: true,
+          fullName: true,
+          role: true,
+          team: { select: { name: true } },
+          _count: {
+            select: {
+              assignedLeads: { where: { deletedAt: null } },
+              admissionsCreated: { where: { deletedAt: null } },
+              admissionsManaged: { where: { deletedAt: null } },
+            },
+          },
+          commissionsBeneficiary: {
+            where: {
+              deletedAt: null,
+              isReversal: false,
+              status: { notIn: ['reversed', 'REVERSED', 'CANCELLED'] },
+            },
+            select: { amount: true, jrAmount: true, srAmount: true },
+          },
+        },
+      }),
     ]);
 
     const activeUserIds = new Set((activeSessions as any[]).map((s) => s.userId));
@@ -287,6 +317,55 @@ export class DashboardService {
       .filter((c) => c.isReversal || ['reversed', 'REVERSED'].includes(c.status))
       .reduce((acc, c) => acc + Number(c.originalAmount || c.amount || 0), 0);
 
+    // Build real top performers data sorted dynamically
+    const topLeads = (activeStaff || [])
+      .map((u) => ({
+        id: u.id,
+        name: u.fullName,
+        role: u.role,
+        teamName: u.team?.name || '—',
+        count: u._count?.assignedLeads || 0,
+        label: `${u._count?.assignedLeads || 0} Leads`,
+      }))
+      .filter((x) => x.count > 0)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    const topAdmissions = (activeStaff || [])
+      .map((u) => {
+        const totalAdms = (u._count?.admissionsCreated || 0) + (u._count?.admissionsManaged || 0);
+        return {
+          id: u.id,
+          name: u.fullName,
+          role: u.role,
+          teamName: u.team?.name || '—',
+          count: totalAdms,
+          label: `${totalAdms} Admissions`,
+        };
+      })
+      .filter((x) => x.count > 0)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    const topCommission = (activeStaff || [])
+      .map((u) => {
+        const total = (u.commissionsBeneficiary || []).reduce(
+          (acc, c) => acc + Number(c.amount || c.jrAmount || c.srAmount || 0),
+          0,
+        );
+        return {
+          id: u.id,
+          name: u.fullName,
+          role: u.role,
+          teamName: u.team?.name || '—',
+          count: total,
+          label: `₹${total.toLocaleString('en-IN')}`,
+        };
+      })
+      .filter((x) => x.count > 0)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
     return {
       totalLeads,
       totalSchools,
@@ -301,6 +380,11 @@ export class DashboardService {
       pipelineBreakdown: pipelineGrouped.map((p) => ({ status: p.status, count: p._count.id })),
       presenceMonitor: presenceUsers,
       pendingConfirmations,
+      topPerformers: {
+        leads: topLeads,
+        admissions: topAdmissions,
+        commission: topCommission,
+      },
     };
   }
 }
