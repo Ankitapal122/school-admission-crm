@@ -10,6 +10,14 @@ import { AppModule } from './app.module';
 import * as fs from 'fs';
 import * as path from 'path';
 
+// Prevent async socket/Baileys/network errors from crashing the Render process (502 Bad Gateway)
+process.on('unhandledRejection', (reason: any) => {
+  console.error('[Process] Unhandled Rejection caught safely:', reason?.message || reason);
+});
+process.on('uncaughtException', (err: Error) => {
+  console.error('[Process] Uncaught Exception caught safely:', err?.message || err);
+});
+
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
