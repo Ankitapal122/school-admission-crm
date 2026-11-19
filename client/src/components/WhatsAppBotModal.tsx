@@ -32,18 +32,19 @@ export default function WhatsAppBotModal({
   const [loading, setLoading] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
 
-  // Tab State: 'qr' (Option 1) vs 'manual' (Option 2)
-  const [activeTab, setActiveTab] = useState<'qr' | 'manual'>('qr');
+  // Tab State: default to 'manual' (Link with phone number) on mobile devices, 'qr' on desktop
+  const isMobileDevice =
+    typeof window !== 'undefined' &&
+    (/android|iphone|ipad|ipod|mobile/i.test(window.navigator.userAgent) || window.innerWidth < 768);
+  const [activeTab, setActiveTab] = useState<'qr' | 'manual'>(isMobileDevice ? 'manual' : 'qr');
 
-  // Option 2: WhatsApp Mobile Number & OTP Verification State
+  // Option 2: Official WhatsApp Link with Phone Number (8-Character Pairing Code)
+  const [countryCode, setCountryCode] = useState('91');
   const [manualPhone, setManualPhone] = useState('');
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
-  const [otpCountdown, setOtpCountdown] = useState(0);
-  const [inputOtp, setInputOtp] = useState('');
-  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [pairingCode, setPairingCode] = useState<string | null>(null);
-  const [receivedOtp, setReceivedOtp] = useState<string | null>(null);
+  const [copiedCode, setCopiedCode] = useState(false);
 
   // Budget-Based School Message State (For sending school details to parents by budget)
   const [budgetPhone, setBudgetPhone] = useState('');
@@ -56,7 +57,7 @@ export default function WhatsAppBotModal({
 
   // Direct Test Message State
   const [testMobile, setTestMobile] = useState('');
-  const [testMessage, setTestMessage] = useState('Namaste from BoardingEdu Admission Team! 🙏');
+  const [testMessage, setTestMessage] = useState('Hello from BoardingEdu Admission Team!');
   const [sendingTest, setSendingTest] = useState(false);
 
   const fetchBotStatus = async () => {
@@ -154,26 +155,19 @@ export default function WhatsAppBotModal({
     }
   };
 
-  useEffect(() => {
-    if (otpCountdown > 0) {
-      const timer = setTimeout(() => setOtpCountdown(otpCountdown - 1), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [otpCountdown]);
-
   const handleDisconnect = async () => {
-    if (!window.confirm('Do you want to disconnect this number and add or connect a different WhatsApp number?')) {
+    if (!window.confirm('Do you want to disconnect this number and link a different WhatsApp account?')) {
       return;
     }
     setDisconnecting(true);
     try {
       await apiCall('/whatsapp/bot/counsellor/disconnect', 'POST', {}).catch(() => null);
       await apiCall('/whatsapp/bot/disconnect', 'POST', {}).catch(() => null);
-      if (onShowToast) onShowToast('Disconnected! Please enter your new WhatsApp number below.', 'warning');
+      if (onShowToast) onShowToast('WhatsApp disconnected. You can now link a new device.', 'warning');
       setOtpSent(false);
-      setInputOtp('');
+      setPairingCode(null);
       setManualPhone('');
-      setActiveTab('manual');
+      setActiveTab(isMobileDevice ? 'manual' : 'qr');
       await fetchBotStatus();
     } catch (err: any) {
       if (onShowToast) onShowToast(err?.message || 'Disconnect failed.', 'danger');
@@ -187,9 +181,9 @@ export default function WhatsAppBotModal({
     try {
       await apiCall('/whatsapp/bot/counsellor/disconnect', 'POST', {}).catch(() => null);
       await apiCall('/whatsapp/bot/disconnect', 'POST', {}).catch(() => null);
-      if (onShowToast) onShowToast('Please enter your new WhatsApp number below to connect.', 'warning');
+      if (onShowToast) onShowToast('Enter your new WhatsApp phone number to link.', 'warning');
       setOtpSent(false);
-      setInputOtp('');
+      setPairingCode(null);
       setManualPhone('');
       setActiveTab('manual');
       await fetchBotStatus();
@@ -200,63 +194,49 @@ export default function WhatsAppBotModal({
     }
   };
 
-  // Option 2 Handler: Send OTP to User's Phone WhatsApp
+  // Option 2 Handler: Request Official 8-Character WhatsApp Pairing Code
   const handleSendWhatsappOtp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const clean = manualPhone.replace(/\D/g, '').slice(-10);
     if (clean.length !== 10) {
-      if (onShowToast) onShowToast('Please enter your valid 10-digit WhatsApp number.', 'warning');
+      if (onShowToast) onShowToast('Please enter a valid 10-digit WhatsApp phone number.', 'warning');
       return;
     }
     setIsSendingOtp(true);
+    setCopiedCode(false);
     try {
-      const res = await apiCall('/whatsapp/bot/counsellor/pair-phone', 'POST', { phone: clean });
+      const res = await apiCall('/whatsapp/bot/pair-code', 'POST', {
+        phone: clean,
+        countryCode,
+      });
       const data = res?.data || res;
-      setPairingCode(data.pairingCode || null);
-      setReceivedOtp(data.otp || '123456');
+      if (!data?.pairingCode) {
+        throw new Error('Could not generate pairing code. Please try again.');
+      }
+      setPairingCode(data.pairingCode);
       setOtpSent(true);
-      setOtpCountdown(45);
-      setInputOtp(data.otp || '123456');
       if (onShowToast) {
         onShowToast(
-          `Verification code is ready for +91 ${clean}!`,
+          `Pairing code generated! Enter it in WhatsApp Linked Devices on your phone.`,
           'success',
         );
       }
     } catch (err: any) {
-      if (onShowToast) onShowToast(err?.message || 'Failed to send OTP. Please try again.', 'danger');
+      if (onShowToast) onShowToast(err?.message || 'Failed to generate pairing code. Please try again.', 'danger');
     } finally {
       setIsSendingOtp(false);
     }
   };
 
-  // Option 2 Handler: Verify OTP entered from WhatsApp
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const cleanPhone = manualPhone.replace(/\D/g, '').slice(-10);
-    const cleanOtp = inputOtp.trim().replace(/\D/g, '');
-    if (cleanOtp.length !== 6) {
-      if (onShowToast) onShowToast('Please enter the 6-digit OTP code.', 'warning');
-      return;
-    }
-    setIsVerifyingOtp(true);
+  const handleCopyPairingCode = async () => {
+    if (!pairingCode) return;
     try {
-      await apiCall('/whatsapp/bot/counsellor/verify-otp', 'POST', {
-        phone: cleanPhone,
-        otp: cleanOtp,
-        method: 'WHATSAPP_OTP_VERIFIED',
-      });
-      if (onShowToast) {
-        onShowToast(`✅ WhatsApp (+91 ${cleanPhone}) successfully verified & connected!`, 'success');
-      }
-      await fetchBotStatus();
-      setOtpSent(false);
-      setInputOtp('');
-      setManualPhone('');
-    } catch (err: any) {
-      if (onShowToast) onShowToast(err?.message || 'Invalid OTP. Please enter the valid code.', 'danger');
-    } finally {
-      setIsVerifyingOtp(false);
+      await navigator.clipboard.writeText(pairingCode.replace(/-/g, ''));
+      setCopiedCode(true);
+      if (onShowToast) onShowToast('Pairing code copied! Paste it in WhatsApp.', 'success');
+      setTimeout(() => setCopiedCode(false), 3000);
+    } catch {
+      if (onShowToast) onShowToast('Unable to copy automatically. Please enter the 8-character code manually.', 'warning');
     }
   };
 
@@ -264,7 +244,7 @@ export default function WhatsAppBotModal({
     e.preventDefault();
     const clean = testMobile.replace(/\D/g, '').slice(-10);
     if (clean.length !== 10) {
-      if (onShowToast) onShowToast('Valid 10-digit mobile number daalein.', 'warning');
+      if (onShowToast) onShowToast('Please enter a valid 10-digit mobile number.', 'warning');
       return;
     }
     setSendingTest(true);
@@ -751,7 +731,7 @@ export default function WhatsAppBotModal({
                   gap: '8px',
                 }}
               >
-                <span>📷 Option 1: Scan QR Code</span>
+                <span>📷 Scan QR Code (Desktop)</span>
               </button>
               <button
                 type="button"
@@ -760,9 +740,9 @@ export default function WhatsAppBotModal({
                   flex: 1,
                   padding: '13px 16px',
                   border: 'none',
-                  borderBottom: activeTab === 'manual' ? '2.5px solid #2563EB' : '2.5px solid transparent',
+                  borderBottom: activeTab === 'manual' ? '2.5px solid #16A34A' : '2.5px solid transparent',
                   backgroundColor: activeTab === 'manual' ? '#FFFFFF' : 'transparent',
-                  color: activeTab === 'manual' ? '#1E40AF' : '#64748B',
+                  color: activeTab === 'manual' ? '#15803D' : '#64748B',
                   fontWeight: 700,
                   fontSize: '13px',
                   cursor: 'pointer',
@@ -772,19 +752,19 @@ export default function WhatsAppBotModal({
                   gap: '8px',
                 }}
               >
-                <span>📲 Option 2: WhatsApp OTP Login</span>
+                <span>📲 Link with Phone Number</span>
               </button>
             </div>
 
             <div style={{ padding: '24px', overflowY: 'auto' }}>
               {activeTab === 'qr' ? (
-                /* OPTION 1: SCAN QR CODE */
+                /* OPTION 1: SCAN QR CODE (DESKTOP) */
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-                  <div style={{ fontSize: '14px', fontWeight: 800, color: '#0F172A', marginBottom: '4px' }}>
+                  <div style={{ fontSize: '16px', fontWeight: 800, color: '#0F172A', marginBottom: '4px' }}>
                     Scan QR Code with Phone Camera
                   </div>
-                  <div style={{ fontSize: '11.5px', color: '#64748B', marginBottom: '16px' }}>
-                    Scan this QR code using WhatsApp on your phone to link your personal account to the CRM.
+                  <div style={{ fontSize: '12px', color: '#64748B', marginBottom: '16px' }}>
+                    Scan this QR code using WhatsApp on your phone to link your account to the CRM.
                   </div>
 
                   {/* QR Box */}
@@ -811,7 +791,7 @@ export default function WhatsAppBotModal({
                       />
                     ) : (
                       <div style={{ color: '#64748B', fontSize: '12px' }}>
-                        {loading ? 'Generating QR Code...' : 'Generating QR Code... (Please wait 2 seconds)'}
+                        {loading ? 'Generating QR Code...' : 'Generating QR Code... (Please wait a moment)'}
                       </div>
                     )}
                   </div>
@@ -823,189 +803,365 @@ export default function WhatsAppBotModal({
                       borderRadius: '12px',
                       padding: '12px 16px',
                       border: '1px solid #E2E8F0',
-                      fontSize: '11.5px',
+                      fontSize: '12px',
                       color: '#334155',
                       textAlign: 'left',
                       width: '100%',
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: '5px',
+                      gap: '6px',
                     }}
                   >
-                    <div style={{ fontWeight: 800, color: '#0F172A' }}>📱 How to scan the QR code:</div>
-                    <div>1. Open WhatsApp on your mobile phone.</div>
-                    <div>2. Tap top-right <strong>3 dots (⋮)</strong> or Settings ➔ <strong>Linked Devices</strong>.</div>
-                    <div>3. Tap <strong>Link a Device</strong> and point your camera at the QR code above.</div>
-                    <div style={{ color: '#16A34A', fontWeight: 700 }}>✓ Once scanned, your account will connect immediately!</div>
-                  </div>
-                </div>
-              ) : (
-                /* OPTION 2: WHATSAPP MOBILE NUMBER & OTP LOGIN */
-                <div>
-                  <div style={{ marginBottom: '18px' }}>
-                    <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', marginBottom: '4px' }}>
-                      Log In with Your WhatsApp Number
-                    </div>
-                    <div style={{ fontSize: '12px', color: '#64748B', lineHeight: 1.4 }}>
-                      Enter your phone number to receive an instant verification code. Once verified, all parent messages will be dispatched directly from your own WhatsApp number!
-                    </div>
+                    <div style={{ fontWeight: 800, color: '#0F172A' }}>How to scan the QR code:</div>
+                    <div>1. Open <strong>WhatsApp</strong> on your phone.</div>
+                    <div>2. Tap <strong>Menu (⋮)</strong> on Android or <strong>Settings (⚙️)</strong> on iPhone.</div>
+                    <div>3. Tap <strong>Linked devices</strong>, then <strong>Link a device</strong>.</div>
+                    <div>4. Point your phone camera at this screen to scan the QR code.</div>
                   </div>
 
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('manual')}
+                    style={{
+                      marginTop: '16px',
+                      background: 'none',
+                      border: 'none',
+                      color: '#15803D',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Link with phone number instead &rsaquo;
+                  </button>
+                </div>
+              ) : (
+                /* OPTION 2: LINK WITH PHONE NUMBER (OFFICIAL 8-CHAR WHATSAPP PAIRING CODE) */
+                <div>
                   {!otpSent ? (
-                    /* Step 1: Enter WhatsApp Mobile Number */
+                    /* Step 1: Enter Phone Number (WhatsApp Web Style) */
                     <form
                       onSubmit={handleSendWhatsappOtp}
                       style={{
-                        backgroundColor: '#F8FAFC',
-                        border: '1px solid #E2E8F0',
-                        borderRadius: '12px',
-                        padding: '20px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        textAlign: 'center',
+                        padding: '8px 4px',
                       }}
                     >
-                      <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#1E293B', marginBottom: '8px' }}>
-                        Your WhatsApp Mobile Number ({user?.fullName ? `${user.fullName} - ${roleTitle}` : 'Staff Member'}):
-                      </label>
-                      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            padding: '0 14px',
-                            backgroundColor: '#FFFFFF',
-                            border: '1px solid #CBD5E1',
-                            borderRadius: '8px',
-                            fontWeight: 700,
-                            fontSize: '13px',
-                            color: '#334155',
-                          }}
-                        >
-                          🇮🇳 +91
+                      <h3 style={{ margin: '0 0 6px', fontSize: '20px', fontWeight: 700, color: '#0F172A' }}>
+                        Enter phone number
+                      </h3>
+                      <p style={{ margin: '0 0 22px', fontSize: '13px', color: '#475569' }}>
+                        Select a country and enter your WhatsApp phone number.
+                      </p>
+
+                      <div style={{ width: '100%', maxWidth: '340px', display: 'flex', flexDirection: 'column', gap: '14px', textAlign: 'left' }}>
+                        <div>
+                          <select
+                            value={countryCode}
+                            onChange={(e) => setCountryCode(e.target.value)}
+                            style={{
+                              width: '100%',
+                              padding: '12px 14px',
+                              borderRadius: '10px',
+                              border: '1px solid #CBD5E1',
+                              backgroundColor: '#FFFFFF',
+                              fontSize: '14px',
+                              fontWeight: 600,
+                              color: '#0F172A',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            <option value="91">🇮🇳 India (+91)</option>
+                            <option value="971">🇦🇪 United Arab Emirates (+971)</option>
+                            <option value="44">🇬🇧 United Kingdom (+44)</option>
+                            <option value="1">🇺🇸 United States (+1)</option>
+                            <option value="65">🇸🇬 Singapore (+65)</option>
+                            <option value="977">🇳🇵 Nepal (+977)</option>
+                          </select>
                         </div>
-                        <input
-                          type="tel"
-                          maxLength={10}
-                          className="form-control"
-                          placeholder="10-digit WhatsApp Number (e.g. 7249417658)"
-                          value={manualPhone}
-                          onChange={(e) => setManualPhone(e.target.value.replace(/\D/g, ''))}
-                          style={{ fontSize: '15px', fontWeight: 700, flex: 1 }}
-                        />
+
+                        <div style={{ position: 'relative' }}>
+                          <span
+                            style={{
+                              position: 'absolute',
+                              top: '-9px',
+                              left: '12px',
+                              backgroundColor: '#FFFFFF',
+                              padding: '0 4px',
+                              fontSize: '11px',
+                              fontWeight: 600,
+                              color: '#64748B',
+                            }}
+                          >
+                            Phone number
+                          </span>
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              border: '1.5px solid #94A3B8',
+                              borderRadius: '10px',
+                              backgroundColor: '#F8FAFC',
+                              padding: '2px 12px',
+                            }}
+                          >
+                            <span style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', marginRight: '8px' }}>
+                              +{countryCode}
+                            </span>
+                            <input
+                              type="tel"
+                              maxLength={10}
+                              placeholder="Enter 10-digit number"
+                              value={manualPhone}
+                              onChange={(e) => setManualPhone(e.target.value.replace(/\D/g, ''))}
+                              style={{
+                                width: '100%',
+                                border: 'none',
+                                outline: 'none',
+                                backgroundColor: 'transparent',
+                                padding: '11px 4px',
+                                fontSize: '15px',
+                                fontWeight: 600,
+                                color: '#0F172A',
+                              }}
+                            />
+                          </div>
+                        </div>
                       </div>
 
                       <button
                         type="submit"
                         disabled={isSendingOtp || manualPhone.length !== 10}
                         style={{
-                          width: '100%',
-                          backgroundColor: '#2563EB',
+                          marginTop: '24px',
+                          minWidth: '140px',
+                          backgroundColor: isSendingOtp || manualPhone.length !== 10 ? '#94A3B8' : '#008069',
                           color: '#FFFFFF',
                           border: 'none',
-                          borderRadius: '8px',
-                          padding: '12px 18px',
-                          fontSize: '13.5px',
-                          fontWeight: 800,
+                          borderRadius: '999px',
+                          padding: '11px 32px',
+                          fontSize: '14px',
+                          fontWeight: 700,
                           cursor: isSendingOtp || manualPhone.length !== 10 ? 'not-allowed' : 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '8px',
-                          boxShadow: '0 2px 4px rgba(37, 99, 235, 0.2)',
+                          boxShadow: '0 2px 6px rgba(0, 128, 105, 0.25)',
                         }}
                       >
-                        {isSendingOtp ? 'Connecting...' : '📲 Log In with WhatsApp (Get OTP)'}
+                        {isSendingOtp ? 'Generating Code...' : 'Next'}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('qr')}
+                        style={{
+                          marginTop: '18px',
+                          background: 'none',
+                          border: 'none',
+                          color: '#008069',
+                          fontSize: '13.5px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Log in with QR code &rsaquo;
                       </button>
                     </form>
                   ) : (
-                    /* Step 2: Clean Simple OTP Verification */
-                    <form
-                      onSubmit={handleVerifyOtp}
-                      style={{
-                        backgroundColor: '#FFFFFF',
-                        border: '2px solid #2563EB',
-                        borderRadius: '14px',
-                        padding: '24px 20px',
-                        textAlign: 'center',
-                        boxShadow: '0 4px 12px rgba(37, 99, 235, 0.08)',
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-                        <div style={{ textAlign: 'left' }}>
-                          <div style={{ fontSize: '13px', fontWeight: 800, color: '#1E293B' }}>
-                            📱 Verify Number: +91 {manualPhone}
-                          </div>
-                          <div style={{ fontSize: '11.5px', color: '#64748B' }}>
-                            Enter the 6-digit OTP code to confirm WhatsApp login
-                          </div>
+                    /* Step 2: Enter 8-Character Code on Phone (WhatsApp Web Style) */
+                    <div style={{ padding: '4px' }}>
+                      <div style={{ marginBottom: '16px' }}>
+                        <h3 style={{ margin: '0 0 4px', fontSize: '20px', fontWeight: 700, color: '#0F172A' }}>
+                          Enter code on phone
+                        </h3>
+                        <div style={{ fontSize: '13px', color: '#475569' }}>
+                          Linking WhatsApp account{' '}
+                          <strong style={{ color: '#0F172A' }}>
+                            +{countryCode} {manualPhone.slice(0, 3)} {manualPhone.slice(3, 6)} {manualPhone.slice(6)}
+                          </strong>{' '}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setOtpSent(false);
+                              setPairingCode(null);
+                            }}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: '#008069',
+                              fontSize: '13px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              padding: 0,
+                            }}
+                          >
+                            (edit)
+                          </button>
                         </div>
+                      </div>
+
+                      {/* 8-Character Code Boxes (XXXX - XXXX) */}
+                      <div
+                        style={{
+                          backgroundColor: '#F1F5F9',
+                          borderRadius: '14px',
+                          padding: '18px 12px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: '12px',
+                          marginBottom: '18px',
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '6px',
+                            flexWrap: 'wrap',
+                          }}
+                        >
+                          {(pairingCode || '--------')
+                            .replace(/-/g, '')
+                            .split('')
+                            .slice(0, 8)
+                            .map((ch, idx) => (
+                              <React.Fragment key={idx}>
+                                {idx === 4 && (
+                                  <span style={{ fontSize: '20px', fontWeight: 800, color: '#475569', padding: '0 2px' }}>
+                                    -
+                                  </span>
+                                )}
+                                <div
+                                  style={{
+                                    width: '38px',
+                                    height: '44px',
+                                    borderRadius: '8px',
+                                    backgroundColor: '#FFFFFF',
+                                    border: '1.5px solid #CBD5E1',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: '18px',
+                                    fontWeight: 800,
+                                    color: '#0F172A',
+                                    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                                    fontFamily: "'JetBrains Mono', monospace",
+                                  }}
+                                >
+                                  {ch}
+                                </div>
+                              </React.Fragment>
+                            ))}
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <button
+                            type="button"
+                            onClick={handleCopyPairingCode}
+                            style={{
+                              backgroundColor: copiedCode ? '#16A34A' : '#FFFFFF',
+                              color: copiedCode ? '#FFFFFF' : '#008069',
+                              border: '1px solid #008069',
+                              borderRadius: '999px',
+                              padding: '5px 14px',
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            {copiedCode ? '✓ Code Copied' : '📋 Copy Code'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleSendWhatsappOtp()}
+                            disabled={isSendingOtp}
+                            style={{
+                              backgroundColor: 'transparent',
+                              color: '#475569',
+                              border: '1px solid #CBD5E1',
+                              borderRadius: '999px',
+                              padding: '5px 14px',
+                              fontSize: '12px',
+                              fontWeight: 600,
+                              cursor: isSendingOtp ? 'not-allowed' : 'pointer',
+                            }}
+                          >
+                            {isSendingOtp ? 'Refreshing...' : '↻ Refresh Code'}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Official 4-Step Phone Linking Instructions */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '18px' }}>
+                        {[
+                          <>Open <strong>WhatsApp</strong> on your phone</>,
+                          <>On Android tap <strong>Menu (⋮)</strong> &middot; On iPhone tap <strong>Settings (⚙️)</strong></>,
+                          <>Tap <strong>Linked devices</strong>, then <strong>Link device</strong></>,
+                          <>Tap <strong>Link with phone number instead</strong> and enter this code on your phone</>,
+                        ].map((step, idx) => (
+                          <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '13px', color: '#1E293B' }}>
+                            <div
+                              style={{
+                                width: '22px',
+                                height: '22px',
+                                borderRadius: '50%',
+                                border: '1.5px solid #94A3B8',
+                                color: '#334155',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                flexShrink: 0,
+                              }}
+                            >
+                              {idx + 1}
+                            </div>
+                            <div>{step}</div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Live Sync Status Indicator */}
+                      <div
+                        style={{
+                          backgroundColor: '#F0FDF4',
+                          border: '1px solid #BBF7D0',
+                          borderRadius: '10px',
+                          padding: '10px 14px',
+                          fontSize: '12px',
+                          color: '#166534',
+                          fontWeight: 600,
+                          marginBottom: '14px',
+                          textAlign: 'center',
+                        }}
+                      >
+                        Waiting for WhatsApp confirmation... Once you enter the code on your phone, the CRM will connect automatically.
+                      </div>
+
+                      <div style={{ textAlign: 'center' }}>
                         <button
                           type="button"
                           onClick={() => {
                             setOtpSent(false);
-                            setInputOtp('');
+                            setActiveTab('qr');
                           }}
                           style={{
                             background: 'none',
                             border: 'none',
-                            color: '#2563EB',
-                            fontSize: '11.5px',
+                            color: '#008069',
+                            fontSize: '13.5px',
                             fontWeight: 700,
                             cursor: 'pointer',
-                            textDecoration: 'underline',
                           }}
                         >
-                          Change Number
+                          Log in with QR code &rsaquo;
                         </button>
                       </div>
-
-                      <div style={{ maxWidth: '280px', margin: '0 auto 16px' }}>
-                        <input
-                          type="text"
-                          maxLength={6}
-                          autoFocus
-                          className="form-control"
-                          placeholder="123456"
-                          value={inputOtp}
-                          onChange={(e) => setInputOtp(e.target.value.replace(/\D/g, ''))}
-                          style={{
-                            fontSize: '26px',
-                            fontWeight: 900,
-                            textAlign: 'center',
-                            letterSpacing: '8px',
-                            padding: '10px',
-                            borderRadius: '10px',
-                            borderColor: '#3B82F6',
-                            backgroundColor: '#F8FAFC',
-                            color: '#1E40AF',
-                          }}
-                        />
-                      </div>
-
-                      <button
-                        type="submit"
-                        disabled={isVerifyingOtp}
-                        style={{
-                          width: '100%',
-                          backgroundColor: '#16A34A',
-                          color: '#FFFFFF',
-                          border: 'none',
-                          borderRadius: '8px',
-                          padding: '12px 20px',
-                          fontSize: '14px',
-                          fontWeight: 800,
-                          cursor: isVerifyingOtp ? 'not-allowed' : 'pointer',
-                          boxShadow: '0 2px 6px rgba(22, 163, 74, 0.25)',
-                          marginBottom: '10px',
-                        }}
-                      >
-                        {isVerifyingOtp ? 'Connecting...' : '✓ Verify & Connect WhatsApp'}
-                      </button>
-
-                      <div style={{ fontSize: '11.5px', color: '#64748B', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                        <span>Code: <strong>{inputOtp || receivedOtp || '123456'}</strong></span>
-                        <span>•</span>
-                        <span style={{ color: '#16A34A', fontWeight: 700 }}>Ready to Connect</span>
-                      </div>
-                    </form>
+                    </div>
                   )}
                 </div>
               )}

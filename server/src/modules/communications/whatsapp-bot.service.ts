@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import makeWASocket, {
+  Browsers,
   DisconnectReason,
   useMultiFileAuthState,
   WASocket,
@@ -77,7 +78,7 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
         auth: state,
         logger: pino({ level: 'silent' }),
         printQRInTerminal: false,
-        browser: ['BoardingEdu CRM', 'Chrome', '124.0.0.0'],
+        browser: Browsers.ubuntu('Chrome'),
         connectTimeoutMs: 60000,
         keepAliveIntervalMs: 25000,
       });
@@ -1005,35 +1006,89 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
     return { success: true, recipient: cleanPhone };
   }
 
-  // Counsellor Multi-Device / Personal WhatsApp Integration
-  async requestPairingCode(phoneNumber: string): Promise<string> {
-    const clean = phoneNumber.replace(/\D/g, '');
-    const international = clean.startsWith('91') && clean.length === 12 ? clean : `91${clean.slice(-10)}`;
+  // Official WhatsApp Multi-Device Pairing Code (Link with Phone Number)
+  async requestPairingCode(phoneNumber: string, countryCode = '91'): Promise<string> {
+    const cleanCountry = String(countryCode || '91').replace(/\D/g, '') || '91';
+    const cleanPhone = String(phoneNumber || '').replace(/\D/g, '');
+    if (cleanPhone.length < 7) {
+      throw new BadRequestException('Please enter a valid phone number.');
+    }
+
+    const international =
+      cleanPhone.length > 10 && cleanPhone.startsWith(cleanCountry)
+        ? cleanPhone
+        : `${cleanCountry}${cleanPhone.slice(-10)}`;
+
+    const formatCode = (raw: string) => {
+      const cleaned = String(raw || '').replace(/[^A-Z0-9]/gi, '').toUpperCase();
+      if (cleaned.length === 8) {
+        return `${cleaned.slice(0, 4)}-${cleaned.slice(4)}`;
+      }
+      return cleaned;
+    };
+
+    const ensureFreshUnregisteredSocket = async () => {
+      if (this.isConnected) {
+        await this.disconnect();
+        await new Promise((r) => setTimeout(r, 1500));
+      }
+
+      if (!this.sock) {
+        await this.initSocket();
+      }
+
+      // Wait up to 6 seconds for socket to initialize and be ready for pairing
+      for (let i = 0; i < 12; i++) {
+        if (this.sock && !this.isInitializing) break;
+        await new Promise((r) => setTimeout(r, 500));
+      }
+    };
+
+    await ensureFreshUnregisteredSocket();
 
     if (this.sock && !this.isConnected) {
       try {
-        const code = await (this.sock as any).requestPairingCode(international);
-        this.logger.log(`Baileys pairing code generated for ${international}: ${code}`);
-        return code;
+        const rawCode = await (this.sock as any).requestPairingCode(international);
+        const formatted = formatCode(rawCode);
+        this.logger.log(`✅ Baileys pairing code generated for +${international}: ${formatted}`);
+        return formatted;
       } catch (err: any) {
-        this.logger.warn(`Baileys requestPairingCode error: ${err.message}`);
+        this.logger.warn(`First Baileys requestPairingCode attempt failed (${err.message}). Re-initializing socket...`);
+        // Retry once with a clean socket and fresh auth directory
+        try {
+          if (this.sock) {
+            try {
+              this.sock.end(new Error('Reinitializing for pairing code'));
+            } catch {}
+            this.sock = null;
+          }
+          this.clearAuthData();
+          await this.initSocket();
+          await new Promise((r) => setTimeout(r, 2500));
+          if (this.sock) {
+            const rawCode = await (this.sock as any).requestPairingCode(international);
+            const formatted = formatCode(rawCode);
+            this.logger.log(`✅ Baileys pairing code generated on retry for +${international}: ${formatted}`);
+            return formatted;
+          }
+        } catch (retryErr: any) {
+          this.logger.error(`Baileys requestPairingCode retry failed: ${retryErr.message}`);
+          throw new BadRequestException(
+            'Unable to generate WhatsApp pairing code right now. Please wait 5 seconds and try again, or use QR code login.',
+          );
+        }
       }
     }
 
-    // Official 8-character alphanumeric pairing code format (e.g. ABCD-1234)
-    const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
-    let code = '';
-    for (let i = 0; i < 8; i++) {
-      if (i === 4) code += '-';
-      code += chars[Math.floor(Math.random() * chars.length)];
-    }
-    return code;
+    throw new BadRequestException(
+      'WhatsApp service is initializing. Please wait a few seconds and try again.',
+    );
   }
 
   async sendOtpToWhatsapp(userId: string, phoneNumber: string) {
     const cleanPhone = phoneNumber.replace(/\D/g, '').slice(-10);
     if (cleanPhone.length !== 10) {
-      throw new BadRequestException('Kripya valid 10-digit mobile number daalein.');
+      throw new BadRequestException('Please enter a valid 10-digit mobile number.');
     }
 
     const otp = String(Math.floor(100000 + Math.random() * 900000));

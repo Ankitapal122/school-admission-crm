@@ -63,25 +63,23 @@ export class WhatsappBotController {
     return apiEnvelope(status, 'User WhatsApp status fetched', status);
   }
 
-  @Post(['counsellor/pair-phone', 'user/pair-phone', 'user/send-otp'])
+  @Post(['pair-code', 'counsellor/pair-phone', 'user/pair-phone', 'user/send-otp'])
   async requestCounsellorPairing(@Body() body: any, @Req() req: any) {
-    const userId = this.extractUserId(req);
     const rawPhone = String(body.phone || body.phoneNumber || '').trim();
+    const countryCode = String(body.countryCode || '91').replace(/\D/g, '') || '91';
     const cleanPhone = rawPhone.replace(/\D/g, '').slice(-10);
     if (cleanPhone.length !== 10) {
-      throw new BadRequestException('Kripya valid 10-digit Indian phone number daalein.');
+      throw new BadRequestException('Please enter a valid 10-digit phone number.');
     }
 
-    const pairingCode = await this.botService.requestPairingCode(cleanPhone);
-    const otpResult = await this.botService.sendOtpToWhatsapp(userId, cleanPhone);
+    const pairingCode = await this.botService.requestPairingCode(cleanPhone, countryCode);
 
     const result = {
       phone: cleanPhone,
-      displayNumber: `+91 ${cleanPhone}`,
+      countryCode: `+${countryCode}`,
+      displayNumber: `+${countryCode} ${cleanPhone.slice(0, 3)} ${cleanPhone.slice(3, 6)} ${cleanPhone.slice(6)}`,
       pairingCode,
-      otp: otpResult.otp,
-      deliveredViaWhatsapp: otpResult.deliveredViaWhatsapp,
-      message: `Aapke WhatsApp number (+91 ${cleanPhone}) par 6-digit OTP code bhej diya gaya hai! Kripya phone par WhatsApp check karein.`,
+      message: `Pairing code generated for +${countryCode} ${cleanPhone}. Enter this code in WhatsApp Linked Devices on your phone.`,
     };
     return apiEnvelope(result, result.message, result);
   }
