@@ -50,7 +50,7 @@ export default function LoginPage() {
   const [adminEmail, setAdminEmail] = useState('');
   const [deviceId, setDeviceId] = useState('');
   const [resendCooldown, setResendCooldown] = useState(0);
-  const [otpExpirySeconds, setOtpExpirySeconds] = useState(60);
+  const [otpExpirySeconds, setOtpExpirySeconds] = useState(300);
 
   useEffect(() => {
     let id = localStorage.getItem('crm_device_id');
@@ -59,6 +59,8 @@ export default function LoginPage() {
       localStorage.setItem('crm_device_id', id);
     }
     setDeviceId(id);
+    // Pre-warm Render container on login screen mount so /auth/login responds with zero cold-start 502
+    fetch('/api/health', { cache: 'no-store' }).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -157,7 +159,7 @@ export default function LoginPage() {
         setIsNewDevice(Boolean(res.isNewDevice));
         setAdminEmail(res.adminEmail || emailTrimmed || 'adminboarding123@gmail.com');
         setTfaDigits(['', '', '', '', '', '']);
-        setOtpExpirySeconds(60);
+        setOtpExpirySeconds(Number(res.expiresInSeconds || 300));
         setResendCooldown(0);
         showToast(
           res.message || '6-digit verification OTP sent to adminboarding123@gmail.com (valid for 1 minute).',
@@ -218,7 +220,7 @@ export default function LoginPage() {
       });
       setResolvedEmail(res.email || cleanInput);
       setOtpDigits(['', '', '', '', '', '']);
-      setOtpExpirySeconds(60);
+      setOtpExpirySeconds(300);
       showToast(
         res.message || `6-digit verification OTP sent to ${res.email || cleanInput} (valid for 1 minute)!`,
         'success'

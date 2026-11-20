@@ -4,9 +4,9 @@
   "description": "Enterprise Student CRM for Uttarakhand Boarding Schools with Real MongoDB, JWT Auth, Role-Based Dashboards & Commission Management",
   "main": "server.js",
   "scripts": {
-    "build": "cd client && npm install --include=dev && npm run build && cd ../server && npm install --include=dev && npx prisma generate --schema=prisma/schema.prisma && npm run build",
-    "start": "node server/dist/src/main.js",
-    "start:prod": "node server/dist/src/main.js",
+    "build": "cd client && npm install --include=dev && npm run build && cd ../server && npm install --include=dev && npx prisma generate --schema=prisma/schema.prisma && npx nest build",
+    "start": "node --max-old-space-size=460 server/dist/src/main.js",
+    "start:prod": "node --max-old-space-size=460 server/dist/src/main.js",
     "prisma:seed": "cd server && npx ts-node prisma/seed.ts",
     "dev": "npm --prefix server run start:dev",
     "dev:client": "npm --prefix client run dev",

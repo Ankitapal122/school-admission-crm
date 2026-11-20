@@ -115,21 +115,21 @@ export async function apiCall<T = any>(
 
   let res!: Response;
   let lastNetworkErr: any = null;
-  const maxAttempts = method === 'GET' || isAuthRoute ? 3 : 2;
+  const maxAttempts = isAuthRoute ? 6 : method === 'GET' ? 4 : 2;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       res = await performFetch();
       lastNetworkErr = null;
-      // Transparent auto-retry on transient gateway errors (502/503/504) during cold start or multi-device load
+      // Transparent auto-retry on transient gateway errors (502/503/504) during Render cold start or redeploy
       if ((res.status === 502 || res.status === 503 || res.status === 504) && attempt < maxAttempts && (method === 'GET' || isAuthRoute)) {
-        await new Promise((r) => setTimeout(r, 1500 * attempt));
+        await new Promise((r) => setTimeout(r, 2200));
         continue;
       }
       break;
     } catch (networkErr: any) {
       lastNetworkErr = networkErr;
       if (attempt < maxAttempts) {
-        await new Promise((r) => setTimeout(r, 900 * attempt));
+        await new Promise((r) => setTimeout(r, 1500));
         continue;
       }
     }
