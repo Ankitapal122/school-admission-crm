@@ -74,7 +74,7 @@ export default function LeadFormModal({
         </div>
 
         <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-4 pt-4">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-xs font-semibold text-slate-700">Student Name *</label>
               <input
@@ -110,7 +110,7 @@ export default function LeadFormModal({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-xs font-semibold text-slate-700">Parent / Guardian Name *</label>
               <input
@@ -137,7 +137,7 @@ export default function LeadFormModal({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-xs font-semibold text-slate-700">Current City *</label>
               <input

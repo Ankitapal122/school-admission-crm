@@ -347,7 +347,31 @@ body,
   }
 }
 
+@media (max-width: 900px) {
+  .lead-report-grid,
+  .lead-submodal-split {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .lead-info-grid-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .lead-form-grid-2,
+  .lead-form-grid-3 {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .lead-modal-header,
+  .lead-modal-body {
+    padding: 12px 14px !important;
+  }
+}
+
 @media (max-width: 480px) {
+  .lead-info-grid-3 {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
   .dash-kpi-grid-5 {
     grid-template-columns: 1fr !important;
   }

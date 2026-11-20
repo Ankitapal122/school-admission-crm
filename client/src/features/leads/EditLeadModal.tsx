@@ -219,7 +219,7 @@ export default function EditLeadModal({
             }}
           >
             {activeTab === 'student' && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+              <div className="lead-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                 <div>
                   <label className="form-label" style={{ fontWeight: 600 }}>Student Full Name *</label>
                   <input
@@ -315,7 +315,7 @@ export default function EditLeadModal({
             )}
 
             {activeTab === 'family' && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+              <div className="lead-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                 <div>
                   <label className="form-label" style={{ fontWeight: 600 }}>Father's Name</label>
                   <input
@@ -421,7 +421,7 @@ export default function EditLeadModal({
             )}
 
             {activeTab === 'academic' && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+              <div className="lead-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                 <div>
                   <label className="form-label" style={{ fontWeight: 600 }}>Resident City</label>
                   <input

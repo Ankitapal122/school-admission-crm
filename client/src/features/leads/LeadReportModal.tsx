@@ -700,6 +700,7 @@ export default function LeadReportModal({
       >
         {/* Top Header Row */}
         <div
+          className="lead-modal-header"
           style={{
             backgroundColor: '#FFFFFF',
             borderBottom: '1px solid #E2E8F0',
@@ -707,6 +708,8 @@ export default function LeadReportModal({
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '8px',
           }}
         >
           <button
@@ -748,8 +751,9 @@ export default function LeadReportModal({
         </div>
 
         {/* Modal Scrollable Body */}
-        <div style={{ padding: '16px 20px', overflowY: 'auto', flex: 1 }}>
+        <div className="lead-modal-body" style={{ padding: '16px 20px', overflowY: 'auto', flex: 1 }}>
           <div
+            className="lead-report-grid"
             style={{
               display: 'grid',
               gridTemplateColumns: 'minmax(0, 1.8fr) minmax(280px, 1fr)',
@@ -757,7 +761,7 @@ export default function LeadReportModal({
             }}
           >
             {/* LEFT COLUMN: Student Card, Budget Match Schools, Add Remark, History Timeline */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', minWidth: 0 }}>
               {/* 1. Student Card Matching Image 2 */}
               <div
                 style={{
@@ -787,9 +791,10 @@ export default function LeadReportModal({
 
                 {!isEditing ? (
                   <div
+                    className="lead-info-grid-3"
                     style={{
                       display: 'grid',
-                      gridTemplateColumns: 'repeat(3, 1fr)',
+                      gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
                       gap: '8px 12px',
                       fontSize: '11.5px',
                       color: '#334155',
@@ -835,7 +840,7 @@ export default function LeadReportModal({
                     </div>
                   </div>
                 ) : (
-                  <form onSubmit={handleSaveEdit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <form className="lead-form-grid-2" onSubmit={handleSaveEdit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                     <div>
                       <label style={{ fontSize: '11px', fontWeight: 700 }}>Student Name</label>
                       <input
@@ -983,7 +988,7 @@ export default function LeadReportModal({
                   <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     🏫 Recommended Schools Matching Parent Budget ({lead.annualBudget || lead.budget_range || '₹4L – ₹5L'}):
                   </span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                     <button
                       type="button"
                       onClick={() => {
@@ -1894,6 +1899,7 @@ export default function LeadReportModal({
 
               {/* Two Column Layout Body */}
               <div
+                className="lead-submodal-split"
                 style={{
                   display: 'grid',
                   gridTemplateColumns: 'minmax(330px, 410px) 1fr',
@@ -1986,7 +1992,7 @@ export default function LeadReportModal({
                           boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
                         }}
                       >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                           <span style={{ fontSize: '16px', cursor: 'pointer' }}>←</span>
                           <div
                             style={{
@@ -2452,7 +2458,7 @@ export default function LeadReportModal({
                       <label style={{ fontSize: '11px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '6px' }}>
                         📤 SELECT VERSION TO SEND TO PARENT:
                       </label>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+                      <div className="lead-form-grid-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
                         <button
                           type="button"
                           onClick={() => setActiveSendVersion('translated')}
@@ -2554,7 +2560,7 @@ export default function LeadReportModal({
                       </strong>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                       <button
                         type="button"
                         onClick={() => handleCopyText(getFinalMessageToSend())}
@@ -2778,6 +2784,7 @@ export default function LeadReportModal({
 
               {/* Modal Body: Two Columns */}
               <div
+                className="lead-submodal-split"
                 style={{
                   display: 'grid',
                   gridTemplateColumns: 'minmax(330px, 420px) 1fr',
@@ -2928,7 +2935,7 @@ export default function LeadReportModal({
                       <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '6px' }}>
                         🌐 Message Language / Format:
                       </label>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                      <div className="lead-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                         <button
                           type="button"
                           onClick={() => handleToggleDossierLanguage('english')}
@@ -3061,7 +3068,7 @@ export default function LeadReportModal({
                       </strong>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                       <button
                         type="button"
                         onClick={handleCopyDossierText}
