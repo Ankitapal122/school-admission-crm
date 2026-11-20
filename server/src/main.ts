@@ -19,6 +19,7 @@ process.on('uncaughtException', (err: Error) => {
 });
 
 async function bootstrap() {
+  console.log(`[Boot] Initializing BoardingEdu CRM (Node ${process.version}, PORT=${process.env.PORT || 5000})...`);
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   // Security headers & response compression (avoid HSTS on plain HTTP localhost)
@@ -58,15 +59,19 @@ async function bootstrap() {
     }),
   );
 
-  // Swagger OpenAPI documentation at /api/docs
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('BoardingEdu Enterprise CRM API')
-    .setDescription('Unified Student CRM & Boarding School Admissions REST API (/api and /v1)')
-    .setVersion('3.0')
-    .addBearerAuth()
-    .build();
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api/docs', app, document);
+  // Swagger OpenAPI documentation at /api/docs (non-fatal)
+  try {
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle('BoardingEdu Enterprise CRM API')
+      .setDescription('Unified Student CRM & Boarding School Admissions REST API (/api and /v1)')
+      .setVersion('3.0')
+      .addBearerAuth()
+      .build();
+    const document = SwaggerModule.createDocument(app, swaggerConfig);
+    SwaggerModule.setup('api/docs', app, document);
+  } catch (swaggerErr: any) {
+    console.warn('[Boot] Swagger setup skipped:', swaggerErr?.message || swaggerErr);
+  }
 
   // Serve school_images from Documents/school_images at /school-images
   const docsImagesA = path.resolve(process.cwd(), '..', 'Documents', 'school_images');
@@ -123,4 +128,7 @@ async function bootstrap() {
   }
   console.log(`🚀 BoardingEdu Enterprise CRM Backend listening on ${listenHost || 'localhost'}:${port}/api (Docs: /api/docs, v1: /v1)`);
 }
-bootstrap();
+bootstrap().catch((err) => {
+  console.error('[FATAL BOOTSTRAP ERROR]', err);
+  process.exit(1);
+});

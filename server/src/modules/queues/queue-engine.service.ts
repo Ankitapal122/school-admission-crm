@@ -43,7 +43,21 @@ export class QueueEngineService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
-  async onModuleInit() {
+  onModuleInit() {
+    // Run Redis probe asynchronously so HTTP port binds immediately on Render
+    this.initRedisQueues().catch((err) => {
+      this.logger.warn(`QueueEngine background init warning: ${err?.message || err}`);
+    });
+
+    // Periodic maintenance sweep every 15 minutes (Pending logging 1h/4h/24h escalations + Weekly Monday 9 AM check)
+    const sweepTimer = setInterval(() => {
+      this.runPendingQueueEscalationSweep().catch(() => {});
+      this.runScheduledMaintenanceChecks().catch(() => {});
+    }, 15 * 60 * 1000);
+    this.timers.push(sweepTimer);
+  }
+
+  private async initRedisQueues() {
     const host = process.env.REDIS_HOST || 'localhost';
     const port = Number(process.env.REDIS_PORT || 6379);
     const password = process.env.REDIS_PASSWORD || undefined;
@@ -92,13 +106,6 @@ export class QueueEngineService implements OnModuleInit, OnModuleDestroy {
         `Redis unavailable at ${host}:${port}; QueueEngine running in PostgreSQL-tracked async mode.`,
       );
     }
-
-    // Periodic maintenance sweep every 15 minutes (Pending logging 1h/4h/24h escalations + Weekly Monday 9 AM check)
-    const sweepTimer = setInterval(() => {
-      this.runPendingQueueEscalationSweep().catch(() => {});
-      this.runScheduledMaintenanceChecks().catch(() => {});
-    }, 15 * 60 * 1000);
-    this.timers.push(sweepTimer);
   }
 
   async onModuleDestroy() {
