@@ -195,5 +195,19 @@ export class AdmissionsController {
       req.user,
     );
   }
+
+  @Post(':id/installments/:instId/verify')
+  @Roles('super_admin', 'manager', 'SUPER_ADMIN', 'SENIOR_MANAGER')
+  verifyInstallmentPayment(
+    @Param('id') admissionId: string,
+    @Param('instId') instId: string,
+    @Req() req: any,
+  ) {
+    return this.admissionsService.verifyInstallmentPayment(
+      admissionId,
+      instId,
+      req.user,
+    );
+  }
 }
 

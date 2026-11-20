@@ -1,5 +1,6 @@
 ﻿import React, { useState, useEffect, useMemo } from 'react';
 import { apiCall, downloadApiFile } from '../../lib/api';
+import CrmIcon from '../../components/CrmIcon';
 
 interface AuditEntry {
   id: string;
@@ -248,24 +249,26 @@ export default function AuditLogViewer({
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div
             style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '50%',
-              backgroundColor: '#3B82F6',
+              width: '36px',
+              height: '36px',
+              borderRadius: '10px',
+              backgroundColor: 'rgba(255,255,255,0.16)',
+              border: '1px solid rgba(255,255,255,0.28)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontWeight: 800,
-              fontSize: '14px',
               color: '#FFFFFF',
             }}
           >
-            31
+            <CrmIcon name="shield" size={18} />
           </div>
           <div>
             <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#FFFFFF' }}>
               Audit Log Viewer ({filteredLogs.length} Real Events)
             </h2>
+            <div style={{ fontSize: '11.5px', color: 'rgba(255,255,255,0.85)', marginTop: '2px' }}>
+              Immutable security &amp; operational activity log across all CRM modules
+            </div>
           </div>
         </div>
         <span
@@ -293,22 +296,6 @@ export default function AuditLogViewer({
           borderTop: 'none',
         }}
       >
-        {/* Purpose Banner */}
-        <div
-          style={{
-            backgroundColor: '#FFFBEB',
-            borderLeft: '4px solid #F59E0B',
-            padding: '12px 16px',
-            borderRadius: '6px',
-            marginBottom: '18px',
-            fontSize: '12.5px',
-            color: '#92400E',
-            lineHeight: 1.5,
-          }}
-        >
-          <strong>Purpose:</strong> Complete real-time audit trail — who logged in, logged out, recorded payments, updated leads, or reversed commissions.
-        </div>
-
         {/* Filter Bar */}
         <div
           style={{
@@ -439,7 +426,7 @@ export default function AuditLogViewer({
                       <td style={{ padding: '12px 14px', whiteSpace: 'nowrap' }}>
                         {isSpecial ? (
                           <span style={{ color: '#DC2626', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                            🚩 Special
+                            <CrmIcon name="alert" size={14} /> Special
                           </span>
                         ) : (
                           <span style={{ color: '#94A3B8' }}>—</span>
@@ -469,7 +456,7 @@ export default function AuditLogViewer({
             gap: '8px',
           }}
         >
-          <span>📌</span>
+          <CrmIcon name="shield" size={15} color="#2563EB" />
           <span>
             <strong>Retention:</strong> 90 days queryable online, then archived for 12 months. Full login/logout, fee payment, and commission reversal history preserved.
           </span>

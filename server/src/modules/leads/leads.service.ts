@@ -151,7 +151,11 @@ export class LeadsService implements OnModuleInit {
     return { score, breakdown };
   }
 
-  private async pickAssignee(methodInput?: string, explicitAssigneeId?: string): Promise<string | null> {
+  private async pickAssignee(
+    methodInput?: string,
+    explicitAssigneeId?: string,
+    context?: { source?: string | null; preferredSchoolId?: string | null; preferredLocation?: string | null },
+  ): Promise<string | null> {
     if (explicitAssigneeId) return explicitAssigneeId;
     const setting = await this.prisma.systemSetting.findUnique({ where: { key: 'assignment_default' } });
     const cfg = (setting?.value as any) || { method: 'round_robin', auto_assign_on_create: false };
@@ -165,9 +169,42 @@ export class LeadsService implements OnModuleInit {
         status: 'active',
         deletedAt: null,
       },
+      include: { team: { select: { id: true, name: true } } },
       orderBy: { employeeId: 'asc' },
     });
     if (counsellors.length === 0) return null;
+
+    // Source-Based Assignment (e.g. Website -> Website Team, WhatsApp -> WhatsApp Team, Referral -> Referral Team)
+    if (method === 'source_based' && context?.source) {
+      const srcKey = String(context.source).toLowerCase().trim();
+      const sourceMap = (cfg.source_map || {}) as Record<string, string>;
+      const mappedId = sourceMap[srcKey] || sourceMap[context.source];
+      if (mappedId && counsellors.some((c) => c.id === mappedId)) {
+        return mappedId;
+      }
+      const teamMatched = counsellors.filter((c) =>
+        String(c.team?.name || '').toLowerCase().includes(srcKey),
+      );
+      if (teamMatched.length > 0) {
+        return teamMatched[0].id;
+      }
+    }
+
+    // School-Based Assignment (maps preferred school or region to specialist counsellor/team)
+    if (method === 'school_based' && (context?.preferredSchoolId || context?.preferredLocation)) {
+      const schoolMap = (cfg.school_map || {}) as Record<string, string>;
+      if (context.preferredSchoolId && schoolMap[context.preferredSchoolId]) {
+        const mappedId = schoolMap[context.preferredSchoolId];
+        if (counsellors.some((c) => c.id === mappedId)) return mappedId;
+      }
+      if (context.preferredLocation) {
+        const loc = String(context.preferredLocation).toLowerCase().trim();
+        const locMatched = counsellors.filter((c) =>
+          String(c.team?.name || '').toLowerCase().includes(loc),
+        );
+        if (locMatched.length > 0) return locMatched[0].id;
+      }
+    }
 
     if (method === 'overload_balance') {
       const counts = await Promise.all(
@@ -432,16 +469,25 @@ export class LeadsService implements OnModuleInit {
       1,
       Math.floor((Date.now() - new Date(match.updatedAt).getTime()) / 86_400_000),
     );
+    const expiredSummary = {
+      id: match.id,
+      lead_id: match.leadNumber,
+      leadNumber: match.leadNumber,
+      student_name: match.studentName,
+      studentName: match.studentName,
+      status: match.status,
+      expired_at: match.updatedAt,
+      expiredAt: match.updatedAt,
+      days_ago: daysAgo,
+      daysAgo,
+      force_expired: match.forceExpired,
+      forceExpired: match.forceExpired,
+    };
     return {
       has_expired_match: true,
-      expired_lead: {
-        id: match.id,
-        lead_id: match.leadNumber,
-        student_name: match.studentName,
-        expired_at: match.updatedAt,
-        days_ago: daysAgo,
-        force_expired: match.forceExpired,
-      },
+      hasExpiredMatch: true,
+      expired_lead: expiredSummary,
+      expiredLead: expiredSummary,
       action_required: match.forceExpired ? 'create_new_only' : 'reopen_or_create_new',
     };
   }
@@ -496,10 +542,13 @@ export class LeadsService implements OnModuleInit {
       tenDigitPhone,
     ];
 
+    const allowAfterExpiry = Boolean(
+      body.allowCreateNewAfterExpiry || body.allow_create_new_after_expiry || body.forceCreateNew,
+    );
     const existingPhoneLead = await this.prisma.lead.findFirst({
       where: {
         deletedAt: null,
-        status: { notIn: ['merged', 'MERGED'] },
+        status: { notIn: allowAfterExpiry ? ['merged', 'MERGED', 'expired'] : ['merged', 'MERGED'] },
         OR: [
           { parentPhone: { in: phoneCandidates } },
           { alternateMobile: { in: phoneCandidates } },
@@ -957,11 +1006,17 @@ export class LeadsService implements OnModuleInit {
     const assigneeId = await this.pickAssignee(
       body.method,
       body.assigned_to || body.assignedTo || body.counsellorId,
+      {
+        source: lead.leadSource,
+        preferredSchoolId: lead.preferredSchoolId,
+        preferredLocation: lead.preferredLocation || lead.city,
+      },
     );
     if (!assigneeId) {
       throw new BadRequestException('No active counsellor available for assignment.');
     }
 
+    const reason = String(body.reason || '').trim() || `Assigned via ${body.method || 'manual'}`;
     const updated = await this.prisma.lead.update({
       where: { id: lead.id },
       data: {
@@ -976,7 +1031,7 @@ export class LeadsService implements OnModuleInit {
       userId: assigneeId,
       type: 'lead_assigned',
       title: `Lead Assigned: ${lead.leadNumber}`,
-      message: `${lead.studentName} assigned via ${body.method || 'manual'} by ${user.fullName}.`,
+      message: `${lead.studentName} assigned via ${body.method || 'manual'} by ${user.fullName} (${reason}).`,
       relatedEntityId: lead.id,
       relatedEntityType: 'lead',
       link: `/leads/${lead.id}`,
@@ -992,7 +1047,7 @@ export class LeadsService implements OnModuleInit {
         entity: 'Lead',
         entityId: lead.id,
         oldValue: { assignedTo: lead.assignedCounsellorId },
-        newValue: { assignedTo: assigneeId, method: body.method || 'manual' },
+        newValue: { assignedTo: assigneeId, method: body.method || 'manual', reason },
       },
     });
 
@@ -1255,6 +1310,25 @@ export class LeadsService implements OnModuleInit {
       }),
     ]);
 
+    // Notify both Jr. Counsellor and Manager when a lead is suspended
+    const suspendRecipients = new Set<string>();
+    if (lead.assignedCounsellorId) suspendRecipients.add(lead.assignedCounsellorId);
+    if (lead.assignedManagerId) suspendRecipients.add(lead.assignedManagerId);
+    if (user?.id) suspendRecipients.add(user.id);
+    for (const uid of suspendRecipients) {
+      await this.notifications
+        .notifyUser({
+          userId: uid,
+          type: 'lead_suspended',
+          title: `Lead Suspended: ${lead.leadNumber}`,
+          message: `${lead.studentName} has been suspended for ${suspendDays} days (${reason}). Review scheduled for ${suspendedUntil.toLocaleDateString('en-IN')}.`,
+          relatedEntityId: lead.id,
+          relatedEntityType: 'lead',
+          link: `/leads/${lead.id}`,
+        })
+        .catch(() => {});
+    }
+
     return { suspended: true, leadId: lead.id, suspendedUntil };
   }
 
@@ -1374,6 +1448,15 @@ export class LeadsService implements OnModuleInit {
           recalculatedScore: score,
         },
       }),
+      this.prisma.leadRemark.create({
+        data: {
+          leadId: lead.id,
+          userId: user.id,
+          userName: user.fullName || 'Manager',
+          userRole: normalizeCanonicalRole(user.role),
+          content: `Reopened on ${new Date().toLocaleDateString('en-IN')} — Reason: ${reason}. Score recalculated to ${score}. Next follow-up set to ${nextFollowUp.toLocaleDateString('en-IN')}.`,
+        },
+      }),
       this.prisma.leadExpiryLog.create({
         data: {
           logId,
@@ -1402,15 +1485,33 @@ export class LeadsService implements OnModuleInit {
       }),
     ]);
 
-    await this.notifications.notifyUser({
-      userId: assignTo,
-      type: 'lead_reopened',
-      title: `Lead Reopened: ${lead.leadNumber}`,
-      message: `${lead.studentName} was reopened (${reason}). New score: ${score}.`,
-      relatedEntityId: lead.id,
-      relatedEntityType: 'lead',
-      link: `/leads/${lead.id}`,
-    });
+    // Notify both Jr. Counsellor and Manager on lead reopen
+    const reopenRecipients = new Set<string>();
+    if (assignTo) reopenRecipients.add(assignTo);
+    if (lead.assignedManagerId) reopenRecipients.add(lead.assignedManagerId);
+    if (assignTo) {
+      const assignedUser = await this.prisma.user
+        .findUnique({
+          where: { id: assignTo },
+          select: { managerId: true, team: { select: { managerId: true } } },
+        })
+        .catch(() => null);
+      if (assignedUser?.managerId) reopenRecipients.add(assignedUser.managerId);
+      if (assignedUser?.team?.managerId) reopenRecipients.add(assignedUser.team.managerId);
+    }
+    for (const uid of reopenRecipients) {
+      await this.notifications
+        .notifyUser({
+          userId: uid,
+          type: 'lead_reopened',
+          title: `Lead Reopened: ${lead.leadNumber}`,
+          message: `${lead.studentName} was reopened (${reason}). Recalculated score: ${score}.`,
+          relatedEntityId: lead.id,
+          relatedEntityType: 'lead',
+          link: `/leads/${lead.id}`,
+        })
+        .catch(() => {});
+    }
 
     return {
       lead_id: lead.leadNumber,
@@ -1500,9 +1601,69 @@ export class LeadsService implements OnModuleInit {
         forceExpired: false,
         status: { notIn: ['closed', 'merged', 'admission_done', 'commission_received', 'disqualified'] },
       },
+      include: {
+        assignedCounsellor: {
+          select: { id: true, managerId: true, team: { select: { managerId: true } } },
+        },
+      },
     });
     const now = Date.now();
     let flagged = 0;
+
+    const sendCycleWarning = async (
+      l: any,
+      cycleNum: 1 | 2 | 3 | 4,
+      title: string,
+      message: string,
+      includeAdmins = false,
+    ) => {
+      const recipients = new Set<string>();
+      if (l.assignedCounsellorId) recipients.add(l.assignedCounsellorId);
+      const mgrId =
+        l.assignedManagerId ||
+        l.assignedCounsellor?.managerId ||
+        l.assignedCounsellor?.team?.managerId;
+      if (mgrId) recipients.add(mgrId);
+
+      for (const uid of recipients) {
+        const exists = await this.prisma.notification.findFirst({
+          where: {
+            userId: uid,
+            type: 'lead_expiry_warning',
+            relatedEntityId: l.id,
+            title: { contains: `Cycle ${cycleNum}` },
+          },
+          select: { id: true },
+        });
+        if (!exists) {
+          await this.notifications
+            .notifyUser({
+              userId: uid,
+              type: 'lead_expiry_warning',
+              title,
+              message,
+              relatedEntityId: l.id,
+              relatedEntityType: 'lead',
+              link: `/leads/${l.id}`,
+            })
+            .catch(() => {});
+        }
+      }
+
+      if (includeAdmins) {
+        await this.notifications
+          .notifyRoles(['SUPER_ADMIN'], {
+            type: 'lead_expiry_warning',
+            title,
+            message,
+            relatedEntityId: l.id,
+            relatedEntityType: 'lead',
+            link: `/leads/${l.id}`,
+          })
+          .catch(() => {});
+      }
+    };
+
     for (const l of leads) {
       const days = Math.floor((now - new Date(l.updatedAt).getTime()) / 86_400_000);
       if (days >= 360) {
@@ -1516,19 +1677,65 @@ export class LeadsService implements OnModuleInit {
             logId,
             leadId: l.id,
             eventType: 'force_expired',
-            reason: 'Auto force-expired at Day 360 limit',
+            reason: 'Auto force-expired at Day 360 limit (Cycle 4)',
             previousStatus: l.status,
             daysInPrevious: days,
             newStatus: 'expired',
             notificationSentTo: ['manager', 'super_admin'],
           },
         });
+        await sendCycleWarning(
+          l,
+          4,
+          `Cycle 4 (Day 360 — Force Expire): ${l.leadNumber}`,
+          `${l.studentName} reached 360 days of inactivity and has been permanently force-expired.`,
+          true,
+        );
         flagged++;
-      } else if (days >= 90 && l.expiryStatus === 'ACTIVE') {
-        await this.prisma.lead.update({
-          where: { id: l.id },
-          data: { expiryStatus: 'DAY_90_PENDING_REVIEW' },
-        });
+      } else if (days >= 270) {
+        if (l.expiryStatus !== 'DAY_90_PENDING_REVIEW') {
+          await this.prisma.lead.update({
+            where: { id: l.id },
+            data: { expiryStatus: 'DAY_90_PENDING_REVIEW' },
+          });
+        }
+        await sendCycleWarning(
+          l,
+          3,
+          `Cycle 3 (Day 270 — Last Chance): ${l.leadNumber}`,
+          `Final warning! ${l.studentName} has been inactive for ${days} days. Force expiry triggers at Day 360.`,
+          true,
+        );
+        flagged++;
+      } else if (days >= 180) {
+        if (l.expiryStatus !== 'DAY_90_PENDING_REVIEW') {
+          await this.prisma.lead.update({
+            where: { id: l.id },
+            data: { expiryStatus: 'DAY_90_PENDING_REVIEW' },
+          });
+        }
+        await sendCycleWarning(
+          l,
+          2,
+          `Cycle 2 (Day 180 — Urgent): ${l.leadNumber}`,
+          `Urgent action required: ${l.studentName} has been inactive for ${days} days. Extend, suspend, or follow up now.`,
+          false,
+        );
+        flagged++;
+      } else if (days >= 90) {
+        if (l.expiryStatus === 'ACTIVE') {
+          await this.prisma.lead.update({
+            where: { id: l.id },
+            data: { expiryStatus: 'DAY_90_PENDING_REVIEW' },
+          });
+        }
+        await sendCycleWarning(
+          l,
+          1,
+          `Cycle 1 (Day 90): ${l.leadNumber}`,
+          `${l.studentName} has reached 90 days of inactivity. Manager review required (Extend / Suspend / Expire).`,
+          false,
+        );
         flagged++;
       }
     }

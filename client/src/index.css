@@ -273,3 +273,87 @@ body {
     font-size: 10px;
   }
 }
+
+/* ============================================================================
+   GLOBAL CRM RESPONSIVE POLISH (Mobile, Tablet, PWA & Desktop)
+   ============================================================================ */
+html,
+body,
+#root {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 1024px) {
+  .dash-kpi-grid-5 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .dash-mid-grid-admin,
+  .dash-bottom-grid-3 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .card {
+    padding: 14px !important;
+    border-radius: 14px !important;
+  }
+  .card-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+  .modal-overlay {
+    padding: 10px !important;
+    align-items: flex-end !important;
+  }
+  .modal-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 92dvh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    border-radius: 16px 16px 12px 12px !important;
+  }
+  .modal-body {
+    max-height: 68dvh !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  .modal-footer {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+  .modal-footer .btn {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+  .form-control,
+  input.form-control,
+  select.form-control,
+  textarea.form-control {
+    font-size: 16px !important; /* Prevents iOS auto-zoom */
+    min-height: 40px;
+  }
+  .dash-mini-stats-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .dash-kpi-grid-5 {
+    grid-template-columns: 1fr !important;
+  }
+  .data-table th,
+  .data-table td {
+    padding: 8px 10px !important;
+    font-size: 12px !important;
+  }
+}

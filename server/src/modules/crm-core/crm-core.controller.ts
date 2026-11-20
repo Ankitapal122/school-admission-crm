@@ -613,4 +613,45 @@ export class CrmCoreController {
   runDataIntegrity(@Query('async') asyncFlag: string, @Req() req: any) {
     return this.crmCoreService.runDataIntegrityCheck(req.user, asyncFlag === 'true');
   }
+
+  // ============================================================================
+  // DATA PRIVACY & DPDP COMPLIANCE
+  // ============================================================================
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Get('privacy/status')
+  getPrivacyComplianceStatus(@Req() req: any) {
+    return this.crmCoreService.getPrivacyComplianceStatus(req.user);
+  }
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Post('privacy/accept-policy')
+  @HttpCode(200)
+  acceptPrivacyPolicy(@Body() body: any, @Req() req: any) {
+    return this.crmCoreService.acceptPrivacyPolicy(req.user, body?.version);
+  }
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Post('privacy/deletion-requests')
+  createDataDeletionRequest(@Body() body: any, @Req() req: any) {
+    return this.crmCoreService.createDataDeletionRequest(body, req.user);
+  }
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('super_admin')
+  @Put('privacy/deletion-requests/:id')
+  processDataDeletionRequest(
+    @Param('id') id: string,
+    @Body() body: any,
+    @Req() req: any,
+  ) {
+    return this.crmCoreService.processDataDeletionRequest(id, body, req.user);
+  }
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('super_admin')
+  @Post('privacy/retention-check')
+  @HttpCode(200)
+  runThreeYearRetentionCheck(@Req() req: any) {
+    return this.crmCoreService.runThreeYearRetentionCheck(req.user);
+  }
 }

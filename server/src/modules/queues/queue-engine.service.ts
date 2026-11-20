@@ -172,6 +172,25 @@ export class QueueEngineService implements OnModuleInit, OnModuleDestroy {
           downloadUrl: result?.downloadUrl || null,
         },
       });
+
+      // Notify user when a background report finishes generating with a download link
+      if (jobType === 'GENERATE_REPORT' && updated.userId && result?.downloadUrl) {
+        const reportLabel = String(result?.reportKey || payload?.reportKey || 'CRM')
+          .replace(/[_/-]+/g, ' ')
+          .toUpperCase();
+        await this.notifications
+          .notifyUser({
+            userId: updated.userId,
+            type: 'report_ready',
+            title: `Report Ready: ${reportLabel}`,
+            message: `Your background ${String(result?.format || 'file').toUpperCase()} report (${result?.rowCount ?? 0} rows) is ready to download.`,
+            relatedEntityId: jobId,
+            relatedEntityType: 'report',
+            link: result.downloadUrl,
+          })
+          .catch(() => {});
+      }
+
       return updated;
     } catch (e: any) {
       await this.prisma.backgroundJob
@@ -300,14 +319,21 @@ export class QueueEngineService implements OnModuleInit, OnModuleDestroy {
   }
 
   /**
-   * Checks Monday 9 AM IST weekly Super Admin summary & daily follow-up reminder dispatch.
+   * Checks:
+   * 1) Monday 9 AM IST weekly Super Admin summary (`weekly_report`)
+   * 2) Daily 9 AM IST pending follow-up reminders (`follow_up_reminder`)
+   * 3) Overdue follow-up escalation to Manager (`follow_up_overdue`)
+   * 4) Suspended lead period-end reminders (`lead_suspended`)
    */
   async runScheduledMaintenanceChecks() {
     const now = new Date();
     const ist = new Date(now.getTime() + 330 * 60 * 1000);
-    // Monday (1) between 09:00 and 09:20 IST -> trigger weekly admin summary if not run today
+    const todayKey = ist.toISOString().slice(0, 10);
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const endOfToday = new Date(startOfToday.getTime() + 86_400_000);
+
+    // 1. Monday (1) between 09:00 and 09:20 IST -> trigger weekly admin summary if not run today
     if (ist.getUTCDay() === 1 && ist.getUTCHours() === 9 && ist.getUTCMinutes() < 20) {
-      const todayKey = ist.toISOString().slice(0, 10);
       const settingKey = `weekly_report_last_run`;
       const prev = await this.prisma.systemSetting.findUnique({ where: { key: settingKey } });
       if ((prev?.value as any)?.date !== todayKey) {
@@ -329,6 +355,157 @@ export class QueueEngineService implements OnModuleInit, OnModuleDestroy {
           });
         }
       }
+    }
+
+    // 2. Daily 9 AM IST -> pending follow-up reminder to each counsellor (`follow_up_reminder`)
+    if (ist.getUTCHours() === 9 && ist.getUTCMinutes() < 25) {
+      const reminderKey = `follow_up_reminder_last_run`;
+      const prevRem = await this.prisma.systemSetting.findUnique({ where: { key: reminderKey } });
+      if ((prevRem?.value as any)?.date !== todayKey) {
+        await this.prisma.systemSetting.upsert({
+          where: { key: reminderKey },
+          update: { value: { date: todayKey } },
+          create: { key: reminderKey, value: { date: todayKey }, category: 'notifications' },
+        });
+        const todayFollowUps = await this.prisma.lead.findMany({
+          where: {
+            deletedAt: null,
+            nextFollowUpDate: { gte: startOfToday, lt: endOfToday },
+            status: { notIn: ['closed', 'merged', 'expired', 'disqualified', 'admission_done', 'LOST', 'MERGED'] },
+            assignedCounsellorId: { not: null },
+          },
+          select: { id: true, assignedCounsellorId: true, studentName: true },
+        });
+        const byCounsellor = new Map<string, string[]>();
+        for (const l of todayFollowUps) {
+          if (!l.assignedCounsellorId) continue;
+          const arr = byCounsellor.get(l.assignedCounsellorId) || [];
+          arr.push(l.studentName);
+          byCounsellor.set(l.assignedCounsellorId, arr);
+        }
+        for (const [counsellorId, names] of byCounsellor.entries()) {
+          await this.notifications.notifyUser({
+            userId: counsellorId,
+            type: 'follow_up_reminder',
+            title: `Daily Follow-up Reminder (${names.length} Due Today)`,
+            message: `You have ${names.length} scheduled parent follow-up${names.length > 1 ? 's' : ''} today: ${names.slice(0, 3).join(', ')}${names.length > 3 ? ` +${names.length - 3} more` : ''}.`,
+            link: '/follow-ups',
+          });
+        }
+      }
+    }
+
+    // 3. Overdue follow-up escalation to Manager (`follow_up_overdue`) — deduped per lead per 24h
+    const overdueLeads = await this.prisma.lead.findMany({
+      where: {
+        deletedAt: null,
+        nextFollowUpDate: { lt: startOfToday },
+        status: { notIn: ['closed', 'merged', 'expired', 'disqualified', 'admission_done', 'LOST', 'MERGED'] },
+      },
+      include: {
+        assignedCounsellor: {
+          select: {
+            id: true,
+            fullName: true,
+            managerId: true,
+            team: { select: { managerId: true } },
+          },
+        },
+      },
+      take: 50,
+    });
+    const cutoff24h = new Date(now.getTime() - 24 * 3600 * 1000);
+    for (const lead of overdueLeads) {
+      const targetManagerId =
+        lead.assignedManagerId ||
+        lead.assignedCounsellor?.managerId ||
+        lead.assignedCounsellor?.team?.managerId ||
+        null;
+      if (!targetManagerId) continue;
+
+      const alreadySent = await this.prisma.notification.findFirst({
+        where: {
+          userId: targetManagerId,
+          type: 'follow_up_overdue',
+          relatedEntityId: lead.id,
+          createdAt: { gte: cutoff24h },
+        },
+        select: { id: true },
+      });
+      if (alreadySent) continue;
+
+      const daysOverdue = Math.max(
+        1,
+        Math.floor((now.getTime() - new Date(lead.nextFollowUpDate!).getTime()) / 86_400_000),
+      );
+      const is30DayFlag = daysOverdue >= 30;
+      await this.notifications.notifyUser({
+        userId: targetManagerId,
+        type: 'follow_up_overdue',
+        title: is30DayFlag
+          ? `30+ Days Overdue Flag (No Auto-Expire): ${lead.leadNumber}`
+          : `Overdue Follow-up Escalation: ${lead.leadNumber}`,
+        message: is30DayFlag
+          ? `Follow-up for ${lead.studentName} (${lead.assignedCounsellor?.fullName || 'Unassigned'}) is ${daysOverdue} days overdue. Manager decision required (lead does not auto-expire).`
+          : `Follow-up for ${lead.studentName} (${lead.assignedCounsellor?.fullName || 'Unassigned'}) is overdue since ${new Date(lead.nextFollowUpDate!).toLocaleDateString('en-IN')}.`,
+        relatedEntityId: lead.id,
+        relatedEntityType: 'lead',
+        link: `/leads/${lead.id}`,
+      });
+    }
+
+    // 4. Suspended lead period-end reminder (`lead_suspended`) — deduped per lead per 24h
+    const endedSuspensions = await this.prisma.lead.findMany({
+      where: {
+        deletedAt: null,
+        status: 'suspended',
+        suspendedUntil: { lte: now },
+      },
+      include: {
+        assignedCounsellor: {
+          select: { id: true, fullName: true, managerId: true, team: { select: { managerId: true } } },
+        },
+      },
+      take: 30,
+    });
+    for (const lead of endedSuspensions) {
+      const recipients = new Set<string>();
+      if (lead.assignedCounsellorId) recipients.add(lead.assignedCounsellorId);
+      const mgrId =
+        lead.assignedManagerId ||
+        lead.assignedCounsellor?.managerId ||
+        lead.assignedCounsellor?.team?.managerId;
+      if (mgrId) recipients.add(mgrId);
+
+      for (const uid of recipients) {
+        const alreadySent = await this.prisma.notification.findFirst({
+          where: {
+            userId: uid,
+            type: 'lead_suspended',
+            relatedEntityId: lead.id,
+            title: { contains: 'Suspend Period Ended' },
+            createdAt: { gte: cutoff24h },
+          },
+          select: { id: true },
+        });
+        if (alreadySent) continue;
+        await this.notifications.notifyUser({
+          userId: uid,
+          type: 'lead_suspended',
+          title: `Suspend Period Ended: ${lead.leadNumber}`,
+          message: `The suspension window for ${lead.studentName} has ended. If there is no response, a fresh 90-day lifecycle cycle begins.`,
+          relatedEntityId: lead.id,
+          relatedEntityType: 'lead',
+          link: `/leads/${lead.id}`,
+        });
+      }
+      // Restart fresh 90-day cycle after suspend window expires
+      await this.prisma.lead
+        .update({
+          where: { id: lead.id },
+          data: { expiryStatus: 'ACTIVE', suspendedUntil: null },
+        })
+        .catch(() => {});
     }
   }
 }

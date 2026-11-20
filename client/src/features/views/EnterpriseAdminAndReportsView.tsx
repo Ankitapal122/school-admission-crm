@@ -406,23 +406,31 @@ export function ReportsView({
 export function UsersView({
   users = [],
   teams = [],
+  viewMode = 'all',
   onRefresh,
   onShowToast,
 }: {
   users: any[];
   teams: any[];
+  viewMode?: 'all' | 'managers' | 'counsellors';
   onRefresh: () => void;
   onShowToast: (m: string, t?: 'success' | 'danger' | 'warning') => void;
 }) {
   const { user: currentUser } = useAuthStore();
   const [subTab, setSubTab] = useState<'employees' | 'roles'>('employees');
+  const [selectedStaffDetail, setSelectedStaffDetail] = useState<any | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newFullName, setNewFullName] = useState('');
   const [newEmail, setNewEmail] = useState('');
+  const [newMobile, setNewMobile] = useState('');
   const [newPassword, setNewPassword] = useState('Welcome@123');
   const [newRole, setNewRole] = useState('COUNSELLOR');
   const [newTeamId, setNewTeamId] = useState('');
+  const [newManagerId, setNewManagerId] = useState('');
   const [newManualTeamName, setNewManualTeamName] = useState('');
+  const [newBankAccount, setNewBankAccount] = useState('');
+  const [editBankInput, setEditBankInput] = useState('');
+  const [fnfTransferToId, setFnfTransferToId] = useState('');
 
   // Reset Password & Role Modal (zero window.prompt)
   const [resetTarget, setResetTarget] = useState<any | null>(null);
@@ -458,10 +466,14 @@ export function UsersView({
       await apiCall('/users', 'POST', {
         fullName: newFullName.trim(),
         email: newEmail.trim(),
+        phone: newMobile.trim() || undefined,
+        mobile: newMobile.trim() || undefined,
         password: newPassword,
         role: newRole,
+        managerId: newManagerId || undefined,
         teamId: newManualTeamName.trim() ? undefined : newTeamId || undefined,
         customTeamName: newManualTeamName.trim() || undefined,
+        bankAccount: newBankAccount.trim() || undefined,
       });
       onShowToast(
         `Account created for ${newEmail}${newManualTeamName.trim() ? ` in team "${newManualTeamName.trim()}"` : ''}!`,
@@ -470,6 +482,9 @@ export function UsersView({
       setShowCreateModal(false);
       setNewFullName('');
       setNewEmail('');
+      setNewMobile('');
+      setNewManagerId('');
+      setNewBankAccount('');
       setNewManualTeamName('');
       onRefresh();
     } catch (err: any) {
@@ -551,9 +566,20 @@ export function UsersView({
     <div className="card">
       <div className="card-header" style={{ flexWrap: 'wrap', gap: '10px' }}>
         <div>
-          <h3 className="card-title"><CrmIcon name="user" size={16} /> Employee Directory &amp; Role Matrix</h3>
+          <h3 className="card-title">
+            <CrmIcon name="user" size={16} />{' '}
+            {viewMode === 'managers'
+              ? 'Manager Management & Assigned Teams'
+              : viewMode === 'counsellors'
+              ? 'Counsellor Management & Team Mapping'
+              : 'Employee Directory & Role Matrix'}
+          </h3>
           <span className="card-subtitle">
-            Account lifecycle controls: unlock, suspend, force-logout, role reassignment (revokes JWT sessions) &amp; RBAC matrix
+            {viewMode === 'managers'
+              ? 'View every Manager along with their assigned Team Name, counsellors, and live status'
+              : viewMode === 'counsellors'
+              ? 'Click any Counsellor to inspect their Team Name, Reporting Manager, and teammates'
+              : 'Account lifecycle controls: team mapping, unlock, suspend, force-logout, role reassignment & RBAC matrix'}
           </span>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
@@ -561,7 +587,12 @@ export function UsersView({
             className={`btn btn-sm ${subTab === 'employees' ? 'btn-navy' : 'btn-outline'}`}
             onClick={() => setSubTab('employees')}
           >
-            <CrmIcon name="users" size={16} /> Employees ({users.length})
+            <CrmIcon name="users" size={16} />{' '}
+            {viewMode === 'managers'
+              ? `Managers (${users.length})`
+              : viewMode === 'counsellors'
+              ? `Counsellors (${users.length})`
+              : `Employees (${users.length})`}
           </button>
           <button
             className={`btn btn-sm ${subTab === 'roles' ? 'btn-navy' : 'btn-outline'}`}
@@ -584,6 +615,7 @@ export function UsersView({
               <tr>
                 <th>Employee</th>
                 <th>Role</th>
+                <th>Team &amp; Manager</th>
                 <th>Status</th>
                 <th>Login / Logout Time</th>
                 <th>Controls</th>
@@ -595,6 +627,18 @@ export function UsersView({
                   u.isOnline === true ||
                   u.presenceStatus === 'online' ||
                   u.id === currentUser?.id;
+                const resolvedTeamName =
+                  u.teamName ||
+                  u.team?.name ||
+                  u.teamId?.teamName ||
+                  u.teamId?.name ||
+                  teams.find((t: any) => t.id === (u.teamId?.id || u.teamId) || t.managerId === u.id)?.name ||
+                  null;
+                const isMgr = String(u.role || u.canonicalRole || '').toLowerCase().includes('manager');
+                const isCounsellor = String(u.role || u.canonicalRole || '').toLowerCase().includes('counsellor');
+                const teamMembersCount = Array.isArray(u.teamMembers)
+                  ? u.teamMembers.filter((m: any) => m.id !== u.id).length
+                  : 0;
                 const formatDateTime = (dt: any) =>
                   dt
                     ? new Date(dt).toLocaleString('en-IN', {
@@ -610,13 +654,77 @@ export function UsersView({
                 return (
                 <tr key={u.id}>
                   <td>
-                    <strong>{u.fullName}</strong>
-                    <div style={{ fontSize: '11.5px', color: '#64748B' }}>
-                      {u.email} &bull; {u.employeeId || u.employeeCode || u.id.slice(0, 6)}
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedStaffDetail(u)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        padding: 0,
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                      }}
+                      title="Click to view Team Name & Staff Details"
+                    >
+                      <strong style={{ color: '#0F172A', textDecoration: 'underline', textDecorationColor: '#CBD5E1' }}>
+                        {u.fullName}
+                      </strong>
+                      <div style={{ fontSize: '11.5px', color: '#64748B' }}>
+                        {u.email} &bull; {u.employeeId || u.employeeCode || u.id.slice(0, 6)}
+                      </div>
+                    </button>
                   </td>
                   <td>
                     <span className="badge badge-info">{u.role}</span>
+                  </td>
+                  <td>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start' }}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedStaffDetail(u)}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          background: resolvedTeamName
+                            ? isMgr
+                              ? '#EFF6FF'
+                              : '#ECFDF5'
+                            : '#F8FAFC',
+                          color: resolvedTeamName
+                            ? isMgr
+                              ? '#1D4ED8'
+                              : '#047857'
+                            : '#64748B',
+                          border: `1px solid ${
+                            resolvedTeamName
+                              ? isMgr
+                                ? '#BFDBFE'
+                                : '#A7F3D0'
+                              : '#E2E8F0'
+                          }`,
+                          borderRadius: '999px',
+                          padding: '3px 10px',
+                          fontSize: '11.5px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                        }}
+                        title="Click to view full Team details"
+                      >
+                        <CrmIcon name="users" size={12} />
+                        {resolvedTeamName ? `Team: ${resolvedTeamName}` : 'Unassigned'}
+                      </button>
+                      {isCounsellor && u.managerName && (
+                        <span style={{ fontSize: '11px', color: '#475569', fontWeight: 600 }}>
+                          Manager: {u.managerName}
+                        </span>
+                      )}
+                      {isMgr && resolvedTeamName && (
+                        <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
+                          {teamMembersCount} {teamMembersCount === 1 ? 'Counsellor' : 'Counsellors'}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -801,6 +909,16 @@ export function UsersView({
                   />
                 </div>
                 <div className="form-group">
+                  <label className="form-label">Mobile Number (+91)</label>
+                  <input
+                    type="tel"
+                    className="form-control"
+                    placeholder="9876543210"
+                    value={newMobile}
+                    onChange={(e) => setNewMobile(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
                   <label className="form-label">Initial Password *</label>
                   <input
                     type="text"
@@ -817,10 +935,39 @@ export function UsersView({
                     value={newRole}
                     onChange={(e) => setNewRole(e.target.value)}
                   >
-                    <option value="COUNSELLOR">Jr. Counsellor</option>
+                    <option value="COUNSELLOR">Jr. Counsellor (Max 5 per Manager)</option>
                     <option value="SENIOR_MANAGER">Senior Manager</option>
                     <option value="SUPER_ADMIN">Super Admin</option>
                   </select>
+                </div>
+                {newRole === 'COUNSELLOR' && (
+                  <div className="form-group">
+                    <label className="form-label">Assigned Manager (1 Manager → Max 5 Jr. Counsellors)</label>
+                    <select
+                      className="form-control"
+                      value={newManagerId}
+                      onChange={(e) => setNewManagerId(e.target.value)}
+                    >
+                      <option value="">-- Optional: Select Reporting Manager --</option>
+                      {users
+                        .filter((u: any) => String(u.role || u.canonicalRole || '').toLowerCase().includes('manager'))
+                        .map((m: any) => (
+                          <option key={m.id} value={m.id}>
+                            {m.fullName} {m.teamName ? `(Team: ${m.teamName})` : ''}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                )}
+                <div className="form-group">
+                  <label className="form-label">Bank Account / IFSC (AES-256 Encrypted at Rest)</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="e.g. HDFC0001234 / Acct: 501002345678"
+                    value={newBankAccount}
+                    onChange={(e) => setNewBankAccount(e.target.value)}
+                  />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Assign Existing Team</label>
@@ -840,7 +987,7 @@ export function UsersView({
                 </div>
                 <div className="form-group">
                   <label className="form-label">
-                    <CrmIcon name="edit" size={16} /> Or Enter Manual Team Name (Koi Bhi Naam Rakh Sakte Hain)
+                    <CrmIcon name="edit" size={16} /> Or Enter Custom Team Name
                   </label>
                   <input
                     type="text"
@@ -912,7 +1059,7 @@ export function UsersView({
                 </div>
                 <div className="form-group">
                   <label className="form-label">
-                    <CrmIcon name="edit" size={16} /> Or Enter Manual Team Name (Koi Bhi Naam Rakh Sakte Hain)
+                    <CrmIcon name="edit" size={16} /> Or Enter Custom Team Name
                   </label>
                   <input
                     type="text"
@@ -949,6 +1096,252 @@ export function UsersView({
           </div>
         </div>
       )}
+
+      {/* Staff & Team Details Modal */}
+      {selectedStaffDetail && (() => {
+        const st = selectedStaffDetail;
+        const resolvedTeamObj =
+          teams.find(
+            (t: any) =>
+              t.id === (st.teamId?.id || st.teamId) ||
+              t.managerId === st.id
+          ) || null;
+        const teamName =
+          st.teamName ||
+          st.team?.name ||
+          st.teamId?.teamName ||
+          st.teamId?.name ||
+          resolvedTeamObj?.name ||
+          'Unassigned';
+        const teamCode = st.teamCode || st.teamId?.teamCode || resolvedTeamObj?.teamCode || null;
+        const isMgr = String(st.role || st.canonicalRole || '').toLowerCase().includes('manager');
+        const isOnlineSt =
+          st.isOnline === true || st.presenceStatus === 'online' || st.id === currentUser?.id;
+        const membersList: any[] = Array.isArray(st.teamMembers)
+          ? st.teamMembers.filter((m: any) => m.id !== st.id)
+          : [];
+        return (
+          <div className="modal-overlay" onClick={() => setSelectedStaffDetail(null)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px' }}>
+              <div className="modal-header" style={{ background: 'linear-gradient(95deg, #09204C 0%, #143D85 60%, #1D4ED8 100%)', color: '#FFFFFF' }}>
+                <div>
+                  <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: '#FFFFFF' }}>
+                    {st.fullName}
+                  </h3>
+                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.85)', marginTop: '2px' }}>
+                    {isMgr ? 'Team Manager' : st.role === 'admin' ? 'Super Admin' : 'Admissions Counsellor'} &bull; {st.employeeId || st.email}
+                  </div>
+                </div>
+                <button
+                  className="btn btn-sm btn-outline"
+                  style={{ background: 'rgba(255,255,255,0.16)', color: '#FFFFFF', border: '1px solid rgba(255,255,255,0.35)' }}
+                  onClick={() => setSelectedStaffDetail(null)}
+                >
+                  <CrmIcon name="x" size={16} />
+                </button>
+              </div>
+              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div
+                  style={{
+                    background: teamName !== 'Unassigned' ? '#EFF6FF' : '#F8FAFC',
+                    border: `1px solid ${teamName !== 'Unassigned' ? '#BFDBFE' : '#E2E8F0'}`,
+                    borderRadius: '12px',
+                    padding: '14px 16px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: '12px',
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#475569' }}>
+                      {isMgr ? 'Managed Team Name' : 'Assigned Team Name'}
+                    </div>
+                    <div style={{ fontSize: '18px', fontWeight: 800, color: '#1E3A8A', marginTop: '2px' }}>
+                      {teamName}
+                    </div>
+                    {teamCode && (
+                      <div style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 600 }}>
+                        Team Code: {teamCode}
+                      </div>
+                    )}
+                  </div>
+                  <span
+                    style={{
+                      background: isOnlineSt ? '#DCFCE7' : '#F1F5F9',
+                      color: isOnlineSt ? '#15803D' : '#475569',
+                      padding: '4px 10px',
+                      borderRadius: '999px',
+                      fontSize: '11.5px',
+                      fontWeight: 700,
+                    }}
+                  >
+                    ● {isOnlineSt ? 'Online' : 'Offline'}
+                  </span>
+                </div>
+
+                {!isMgr && st.managerName && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', padding: '10px 12px', background: '#F8FAFC', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+                    <span style={{ color: '#64748B', fontWeight: 600 }}>Reporting Manager</span>
+                    <strong style={{ color: '#0F172A' }}>{st.managerName}</strong>
+                  </div>
+                )}
+
+                <div style={{ fontSize: '12.5px', color: '#334155', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <div style={{ padding: '8px 10px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                    <div style={{ fontSize: '10.5px', color: '#64748B', fontWeight: 700 }}>EMAIL</div>
+                    <div style={{ fontWeight: 600, wordBreak: 'break-all' }}>{st.email || '—'}</div>
+                  </div>
+                  <div style={{ padding: '8px 10px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                    <div style={{ fontSize: '10.5px', color: '#64748B', fontWeight: 700 }}>PHONE</div>
+                    <div style={{ fontWeight: 600 }}>{st.phone || st.mobile || '—'}</div>
+                  </div>
+                </div>
+
+                {hasRole(currentUser?.role, 'SUPER_ADMIN') && (
+                  <div style={{ padding: '10px 12px', background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '10px', fontSize: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <strong style={{ color: '#166534' }}>AES-256 Encrypted Bank Account</strong>
+                      <span className="badge badge-success">{st.bankAccountMasked || 'Not Configured'}</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <input
+                        type="text"
+                        className="form-control"
+                        style={{ fontSize: '12px', padding: '5px 8px' }}
+                        placeholder="Update Bank Acct / IFSC (AES-256)..."
+                        value={editBankInput}
+                        onChange={(e) => setEditBankInput(e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-primary"
+                        onClick={async () => {
+                          if (!editBankInput.trim()) return;
+                          try {
+                            await apiCall(`/users/${st.id}`, 'PUT', { bankAccount: editBankInput.trim() });
+                            onShowToast('Bank details encrypted (AES-256-GCM) & saved!', 'success');
+                            setEditBankInput('');
+                            setSelectedStaffDetail(null);
+                            onRefresh();
+                          } catch (err: any) {
+                            onShowToast(err?.message || 'Could not update bank details.', 'danger');
+                          }
+                        }}
+                      >
+                        Save
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {hasRole(currentUser?.role, 'SUPER_ADMIN') && (
+                  <div style={{ padding: '10px 12px', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '10px', fontSize: '12px' }}>
+                    <strong style={{ color: '#92400E', display: 'block', marginBottom: '6px' }}>
+                      Suspend Account &amp; Reassign Active Leads (90-Day FNF)
+                    </strong>
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                      <select
+                        className="form-control"
+                        style={{ flex: 1, fontSize: '12px', padding: '5px 8px' }}
+                        value={fnfTransferToId}
+                        onChange={(e) => setFnfTransferToId(e.target.value)}
+                      >
+                        <option value="">-- Optional: Reassign Active Leads To --</option>
+                        {users
+                          .filter((u: any) => u.id !== st.id && u.isActive !== false)
+                          .map((u: any) => (
+                            <option key={u.id} value={u.id}>
+                              {u.fullName} ({u.role})
+                            </option>
+                          ))}
+                      </select>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-warning"
+                        onClick={async () => {
+                          try {
+                            await apiCall(`/users/${st.id}/suspend`, 'PUT', {
+                              transferToId: fnfTransferToId || undefined,
+                            });
+                            onShowToast(
+                              `${st.fullName} suspended (history preserved${fnfTransferToId ? ', active leads reassigned' : ''}).`,
+                              'warning'
+                            );
+                            setFnfTransferToId('');
+                            setSelectedStaffDetail(null);
+                            onRefresh();
+                          } catch (err: any) {
+                            onShowToast(err?.message || 'Suspend failed.', 'danger');
+                          }
+                        }}
+                      >
+                        Suspend &amp; Transfer
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                    {isMgr ? `Team Counsellors (${membersList.length})` : `Teammates in ${teamName} (${membersList.length})`}
+                  </div>
+                  {membersList.length === 0 ? (
+                    <div style={{ fontSize: '12px', color: '#64748B', padding: '10px 12px', background: '#F8FAFC', borderRadius: '8px', border: '1px dashed #CBD5E1' }}>
+                      {isMgr ? 'No counsellors assigned to this team yet.' : 'No other teammates listed in this team.'}
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '160px', overflowY: 'auto' }}>
+                      {membersList.map((m: any) => (
+                        <div
+                          key={m.id}
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            padding: '8px 10px',
+                            background: '#F8FAFC',
+                            border: '1px solid #E2E8F0',
+                            borderRadius: '8px',
+                            fontSize: '12.5px',
+                          }}
+                        >
+                          <div>
+                            <strong style={{ color: '#0F172A' }}>{m.fullName}</strong>
+                            <div style={{ fontSize: '11px', color: '#64748B' }}>{m.email}</div>
+                          </div>
+                          <span className="badge badge-info" style={{ textTransform: 'capitalize' }}>
+                            {m.role}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="modal-footer">
+                {hasRole(currentUser?.role, 'SUPER_ADMIN') && (
+                  <button
+                    type="button"
+                    className="btn btn-outline"
+                    onClick={() => {
+                      const target = st;
+                      setSelectedStaffDetail(null);
+                      setRoleTarget(target);
+                      setTargetRoleVal(target.role || 'COUNSELLOR');
+                    }}
+                  >
+                    <CrmIcon name="refresh" size={14} /> Change Team / Role
+                  </button>
+                )}
+                <button type="button" className="btn btn-primary" onClick={() => setSelectedStaffDetail(null)}>
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Reset Password Modal */}
       {resetTarget && (
@@ -1077,10 +1470,40 @@ export function SettingsView({
 
   const [gstRate, setGstRate] = useState('18');
   const [tdsRate, setTdsRate] = useState('10');
-  const [rateLimits, setRateLimits] = useState({ lead_create_per_hour: 60, wa_send_per_hour: 120 });
+  const [rateLimits, setRateLimits] = useState({
+    lead_create_per_hour: 50,
+    lead_merge_per_hour: 10,
+    excel_import_per_hour: 2,
+    wa_send_per_hour: 120,
+  });
   const [jobs, setJobs] = useState<any[]>([]);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [showLeadImport, setShowLeadImport] = useState(false);
+  const [matchingPreviewList, setMatchingPreviewList] = useState<any[]>([]);
+  const [testingMatch, setTestingMatch] = useState(false);
+
+  const handleTestMatchingPreview = async () => {
+    setTestingMatch(true);
+    try {
+      const res = await apiCall('/match/test', 'POST', {
+        preferredBoard: 'CBSE',
+        preferredLocation: 'Dehradun',
+        budgetMax: 600000,
+        admissionClass: 'Class 8',
+      });
+      const list =
+        res?.suggested_schools ||
+        res?.data?.suggested_schools ||
+        res?.matches ||
+        [];
+      setMatchingPreviewList(Array.isArray(list) ? list.slice(0, 5) : []);
+      onShowToast(`Matching preview calculated (${Array.isArray(list) ? list.length : 0} schools scored).`, 'success');
+    } catch (err: any) {
+      onShowToast(err?.message || 'Matching preview test failed.', 'danger');
+    } finally {
+      setTestingMatch(false);
+    }
+  };
 
   const loadSettingsData = async () => {
     try {
@@ -1317,14 +1740,31 @@ export function SettingsView({
             </div>
           </div>
 
-          <button
-            className="btn btn-primary"
-            style={{ width: '100%', marginTop: '14px', padding: '10px', fontWeight: 700 }}
-            disabled={scoringTotal !== 100 || !hasRole(user?.role, 'SUPER_ADMIN')}
-            onClick={handleSaveScoring}
-          >
-            Save Lead Scoring Weights ({scoringTotal === 100 ? 'Total: 100%' : `Invalid: ${scoringTotal}%`})
-          </button>
+          <div style={{ display: 'flex', gap: '8px', marginTop: '14px' }}>
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={() =>
+                setScoringWeights({
+                  budget_match: 25,
+                  engagement: 25,
+                  source_quality: 20,
+                  timeline_urgency: 15,
+                  class_demand: 15,
+                })
+              }
+            >
+              Reset Defaults
+            </button>
+            <button
+              className="btn btn-primary"
+              style={{ flex: 1, padding: '10px', fontWeight: 700 }}
+              disabled={scoringTotal !== 100 || !hasRole(user?.role, 'SUPER_ADMIN')}
+              onClick={handleSaveScoring}
+            >
+              Save Lead Scoring Weights ({scoringTotal === 100 ? 'Total: 100%' : `Invalid: ${scoringTotal}%`})
+            </button>
+          </div>
         </div>
 
         {/* Feature 2: School Matching Weights */}
@@ -1400,14 +1840,55 @@ export function SettingsView({
             </div>
           </div>
 
-          <button
-            className="btn btn-primary"
-            style={{ width: '100%', marginTop: '14px', padding: '10px', fontWeight: 700 }}
-            disabled={matchingTotal !== 100 || !hasRole(user?.role, 'SUPER_ADMIN')}
-            onClick={handleSaveMatching}
-          >
-            Save Matching Criteria ({matchingTotal === 100 ? 'Total: 100%' : `Invalid: ${matchingTotal}%`})
-          </button>
+          <div style={{ display: 'flex', gap: '8px', marginTop: '14px', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={() =>
+                setMatchingWeights({
+                  class: 15,
+                  board: 15,
+                  fees_range: 15,
+                  state: 10,
+                  gender: 15,
+                  school_type: 10,
+                  facilities: 10,
+                  ranking: 10,
+                })
+              }
+            >
+              Reset Defaults
+            </button>
+            <button
+              type="button"
+              className="btn btn-outline"
+              disabled={testingMatch}
+              onClick={handleTestMatchingPreview}
+            >
+              {testingMatch ? 'Testing...' : 'Test Matching Preview'}
+            </button>
+            <button
+              className="btn btn-primary"
+              style={{ flex: 1, padding: '10px', fontWeight: 700 }}
+              disabled={matchingTotal !== 100 || !hasRole(user?.role, 'SUPER_ADMIN')}
+              onClick={handleSaveMatching}
+            >
+              Save Matching Criteria ({matchingTotal === 100 ? 'Total: 100%' : `Invalid: ${matchingTotal}%`})
+            </button>
+          </div>
+          {matchingPreviewList.length > 0 && (
+            <div style={{ marginTop: '12px', padding: '10px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0', fontSize: '11.5px' }}>
+              <strong style={{ color: '#0F172A' }}>Sample Matching Preview (CBSE • Dehradun • Class 8 • ₹6L):</strong>
+              <div style={{ marginTop: '6px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                {matchingPreviewList.map((s: any, idx: number) => (
+                  <div key={s.id || idx} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>{idx + 1}. <strong>{s.name}</strong> ({s.board}, {s.city})</span>
+                    <span className="badge badge-success">{Math.round(Number(s.matchScore ?? s.match_score ?? 0))}% Match</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -1441,13 +1922,38 @@ export function SettingsView({
             />
           </div>
           <div>
-            <label className="form-label">Leads / Hour Rate Limit</label>
+            <label className="form-label">Lead Creation / Hour (Default: 50)</label>
             <input
               type="number"
+              min={1}
               className="form-control"
               value={rateLimits.lead_create_per_hour}
               onChange={(e) =>
-                setRateLimits((r) => ({ ...r, lead_create_per_hour: Number(e.target.value || 0) }))
+                setRateLimits((r) => ({ ...r, lead_create_per_hour: Math.max(1, Number(e.target.value || 1)) }))
+              }
+            />
+          </div>
+          <div>
+            <label className="form-label">Lead Merge / Hour (Default: 10)</label>
+            <input
+              type="number"
+              min={1}
+              className="form-control"
+              value={rateLimits.lead_merge_per_hour ?? 10}
+              onChange={(e) =>
+                setRateLimits((r) => ({ ...r, lead_merge_per_hour: Math.max(1, Number(e.target.value || 1)) }))
+              }
+            />
+          </div>
+          <div>
+            <label className="form-label">Excel Import / Hour (Default: 2)</label>
+            <input
+              type="number"
+              min={1}
+              className="form-control"
+              value={rateLimits.excel_import_per_hour ?? 2}
+              onChange={(e) =>
+                setRateLimits((r) => ({ ...r, excel_import_per_hour: Math.max(1, Number(e.target.value || 1)) }))
               }
             />
           </div>

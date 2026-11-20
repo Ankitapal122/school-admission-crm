@@ -47,13 +47,48 @@ export function normalizeUserRecord(rawUser: any): User {
   };
 }
 
+function loadInitialAuth(): {
+  user: User | null;
+  accessToken: string | null;
+  refreshToken: string | null;
+  isAuthenticated: boolean;
+  rememberMe: boolean;
+} {
+  if (typeof window === 'undefined') {
+    return { user: null, accessToken: null, refreshToken: null, isAuthenticated: false, rememberMe: false };
+  }
+  try {
+    const token = localStorage.getItem('crm_token');
+    const refreshToken = localStorage.getItem('crm_refresh_token');
+    const rawUser = localStorage.getItem('crm_user');
+    const rememberMe = localStorage.getItem('crm_remember_me') === 'true';
+    if (token && rawUser) {
+      const parsed = JSON.parse(rawUser);
+      if (parsed && (parsed.id || parsed.email)) {
+        return {
+          user: normalizeUserRecord(parsed),
+          accessToken: token,
+          refreshToken: refreshToken || null,
+          isAuthenticated: true,
+          rememberMe,
+        };
+      }
+    }
+  } catch {
+    // Corrupted storage falls back cleanly to logged out
+  }
+  return { user: null, accessToken: null, refreshToken: null, isAuthenticated: false, rememberMe: false };
+}
+
+const initialAuth = loadInitialAuth();
+
 export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
-  accessToken: null,
-  refreshToken: null,
-  isAuthenticated: false,
+  user: initialAuth.user,
+  accessToken: initialAuth.accessToken,
+  refreshToken: initialAuth.refreshToken,
+  isAuthenticated: initialAuth.isAuthenticated,
   previewRole: null,
-  rememberMe: false,
+  rememberMe: initialAuth.rememberMe,
   lastActivityAt: Date.now(),
 
   setUser: (rawUser) => {

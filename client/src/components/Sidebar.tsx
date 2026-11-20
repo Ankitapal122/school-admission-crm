@@ -156,7 +156,7 @@ export default function Sidebar({
             }}
             title="WhatsApp Auto-Reply Bot: Scan QR Code or Link Phone Number"
           >
-            <span style={{ fontSize: '15px' }}>📱</span>
+            <CrmIcon name="message-square" size={16} />
             <span>WhatsApp Bot (QR)</span>
           </button>
         </div>
@@ -254,7 +254,6 @@ export default function Sidebar({
             >
               <span className="nav-icon"><CrmIcon name="rupee" size={17} /></span>
               <span>Commission Management</span>
-              <span className="nav-badge" style={{ fontSize: '9px', fontWeight: 800, padding: '2px 5px', background: '#FEF3C7', color: '#92400E', border: '1px solid #FCD34D' }}>29-30</span>
             </a>
             <a
               className={`nav-item ${currentTab === 'employee-monitoring' ? 'active' : ''}`}
@@ -276,7 +275,6 @@ export default function Sidebar({
             >
               <span className="nav-icon"><CrmIcon name="shield" size={17} /></span>
               <span>Audit Log Viewer</span>
-              <span className="nav-badge" style={{ fontSize: '9px', fontWeight: 800, padding: '2px 5px', background: '#DBEAFE', color: '#1E40AF', border: '1px solid #93C5FD' }}>Screen 31</span>
             </a>
             <a
               className={`nav-item ${currentTab === 'notifications' ? 'active' : ''}`}
@@ -305,6 +303,13 @@ export default function Sidebar({
             >
               <span className="nav-icon"><CrmIcon name="settings" size={17} /></span>
               <span>Settings</span>
+            </a>
+            <a
+              className={`nav-item ${currentTab === 'privacy-compliance' ? 'active' : ''}`}
+              onClick={() => handleNavClick('privacy-compliance')}
+            >
+              <span className="nav-icon"><CrmIcon name="lock" size={17} /></span>
+              <span>Privacy &amp; Compliance</span>
             </a>
             <a
               className="nav-item"
@@ -422,6 +427,13 @@ export default function Sidebar({
             >
               <span className="nav-icon"><CrmIcon name="settings" size={17} /></span>
               <span>Settings</span>
+            </a>
+            <a
+              className={`nav-item ${currentTab === 'privacy-compliance' ? 'active' : ''}`}
+              onClick={() => handleNavClick('privacy-compliance')}
+            >
+              <span className="nav-icon"><CrmIcon name="lock" size={17} /></span>
+              <span>Privacy &amp; Compliance</span>
             </a>
             <a
               className="nav-item"
@@ -582,6 +594,13 @@ export default function Sidebar({
             >
               <span className="nav-icon"><CrmIcon name="settings" size={17} /></span>
               <span>Settings</span>
+            </a>
+            <a
+              className={`nav-item ${currentTab === 'privacy-compliance' ? 'active' : ''}`}
+              onClick={() => handleNavClick('privacy-compliance')}
+            >
+              <span className="nav-icon"><CrmIcon name="lock" size={17} /></span>
+              <span>Privacy &amp; Compliance</span>
             </a>
             <a
               className="nav-item"

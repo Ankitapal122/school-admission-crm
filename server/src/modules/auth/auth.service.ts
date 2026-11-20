@@ -167,8 +167,8 @@ export class AuthService {
   ) {
     const family = existingFamily || crypto.randomUUID();
     const canonRole = normalizeCanonicalRole(user.role);
-    const accessExpires = this.configService.get<string>('JWT_ACCESS_EXPIRES_IN') || '15m';
-    const refreshExpires = this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') || '7d';
+    const accessExpires = this.configService.get<string>('JWT_ACCESS_EXPIRES_IN') || '12h';
+    const refreshExpires = this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') || '30d';
 
     const accessToken = this.jwtService.sign(
       {
@@ -202,7 +202,7 @@ export class AuthService {
         family,
         deviceInfo: userAgent || 'Unknown Device',
         ipAddress: ipAddress || '127.0.0.1',
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         isActive: true,
         isRevoked: false,
       },

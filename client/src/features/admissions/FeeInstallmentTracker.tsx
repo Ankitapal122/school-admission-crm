@@ -11,7 +11,7 @@ interface InstallmentItem {
   percentage: number;
   amount: number;
   dueDate: string;
-  status: 'PENDING' | 'PAID' | 'OVERDUE';
+  status: 'PENDING' | 'PAID' | 'OVERDUE' | 'PENDING_VERIFICATION';
   paidAt?: string | null;
   utrNumber?: string | null;
   paymentMode?: string | null;
@@ -27,7 +27,20 @@ export function FeeInstallmentTracker({
   onRefresh: () => void;
   onShowToast: (m: string, t?: 'success' | 'danger' | 'warning') => void;
 }) {
-  const { accessToken } = useAuthStore();
+  const { accessToken, user, previewRole } = useAuthStore();
+  const effectiveRoleStr = String(previewRole || user?.role || '').toLowerCase();
+  const canVerifyPayment =
+    effectiveRoleStr.includes('admin') || effectiveRoleStr.includes('manager');
+
+  const handleVerifyInstallment = async (admissionId: string, instId: string, studentName: string) => {
+    try {
+      await apiCall(`/applications/${admissionId}/installments/${instId}/verify`, 'POST', {});
+      onShowToast(`Payment verified & approved for ${studentName}! Receipt PDF unlocked.`, 'success');
+      onRefresh();
+    } catch (err: any) {
+      onShowToast(err?.message || 'Verification failed.', 'danger');
+    }
+  };
 
   // View tab: Student cards vs Complete Real Payment Ledger
   const [viewMode, setViewMode] = useState<'students' | 'ledger'>('students');
@@ -591,12 +604,13 @@ export function FeeInstallmentTracker({
                     >
                       {installments.map((ins) => {
                         const isPaid = ins.status === 'PAID';
+                        const isPendingVerify = ins.status === 'PENDING_VERIFICATION';
                         return (
                           <div
                             key={ins.id}
                             style={{
-                              background: isPaid ? '#F0FDF4' : '#F8FAFC',
-                              border: isPaid ? '1px solid #BBF7D0' : '1px solid #E2E8F0',
+                              background: isPaid ? '#F0FDF4' : isPendingVerify ? '#EFF6FF' : '#F8FAFC',
+                              border: isPaid ? '1px solid #BBF7D0' : isPendingVerify ? '1px solid #BFDBFE' : '1px solid #E2E8F0',
                               borderRadius: '10px',
                               padding: '14px',
                               display: 'flex',
@@ -616,15 +630,15 @@ export function FeeInstallmentTracker({
                                 style={{
                                   fontSize: '12px',
                                   fontWeight: 800,
-                                  color: isPaid ? '#166534' : '#1E293B',
+                                  color: isPaid ? '#166534' : isPendingVerify ? '#1E3A8A' : '#1E293B',
                                 }}
                               >
                                 #{ins.installmentNumber}: {ins.title} {ins.percentage ? `(${ins.percentage}%)` : ''}
                               </span>
                               <span
                                 style={{
-                                  background: isPaid ? '#DCFCE7' : '#FEF3C7',
-                                  color: isPaid ? '#15803D' : '#B45309',
+                                  background: isPaid ? '#DCFCE7' : isPendingVerify ? '#DBEAFE' : '#FEF3C7',
+                                  color: isPaid ? '#15803D' : isPendingVerify ? '#1D4ED8' : '#B45309',
                                   fontSize: '10.5px',
                                   fontWeight: 800,
                                   padding: '2px 8px',
@@ -632,7 +646,7 @@ export function FeeInstallmentTracker({
                                   flexShrink: 0,
                                 }}
                               >
-                                {isPaid ? 'PAID' : 'PENDING'}
+                                {isPaid ? 'PAID (VERIFIED)' : isPendingVerify ? 'AWAITING VERIFICATION' : 'PENDING'}
                               </span>
                             </div>
 
@@ -643,6 +657,36 @@ export function FeeInstallmentTracker({
                             <div style={{ fontSize: '11.5px', color: '#64748B' }}>
                               Due Date: <strong>{new Date(ins.dueDate).toLocaleDateString('en-IN')}</strong>
                             </div>
+
+                            {isPendingVerify && (
+                              <div
+                                style={{
+                                  background: '#FFFFFF',
+                                  border: '1px solid #BFDBFE',
+                                  borderRadius: '6px',
+                                  padding: '8px',
+                                  fontSize: '11px',
+                                  color: '#1E3A8A',
+                                  lineHeight: 1.5,
+                                }}
+                              >
+                                <div>UTR / Ref: <strong>{ins.utrNumber || 'Submitted'}</strong></div>
+                                <div>Mode: <strong>{ins.paymentMode || 'Bank Transfer'}</strong></div>
+                                <div style={{ color: '#475569', marginTop: '2px' }}>
+                                  Submitted by Counsellor — requires Manager/Admin verification.
+                                </div>
+                                {canVerifyPayment && (
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm btn-primary"
+                                    style={{ marginTop: '8px', width: '100%' }}
+                                    onClick={() => handleVerifyInstallment(adm.id, ins.id, adm.studentName)}
+                                  >
+                                    Verify &amp; Approve Payment
+                                  </button>
+                                )}
+                              </div>
+                            )}
 
                             {isPaid ? (
                               <div
@@ -656,7 +700,30 @@ export function FeeInstallmentTracker({
                                   lineHeight: 1.5,
                                 }}
                               >
-                                <div>UTR / Ref: <strong>{ins.utrNumber || 'N/A'}</strong></div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                  <span>UTR / Ref: <strong>{ins.utrNumber || 'N/A'}</strong></span>
+                                  {canVerifyPayment && (
+                                    <button
+                                      type="button"
+                                      className="btn btn-sm btn-outline"
+                                      style={{ padding: '2px 7px', fontSize: '10.5px' }}
+                                      onClick={() => {
+                                        setSelectedInstallment({ admission: adm, installment: ins });
+                                        setPayAmount(String(ins.amount || ''));
+                                        setPayUtr(ins.utrNumber || '');
+                                        setPayMode(ins.paymentMode || 'NEFT / RTGS / IMPS');
+                                        setPayDate(
+                                          ins.paidAt
+                                            ? new Date(ins.paidAt).toISOString().split('T')[0]
+                                            : new Date().toISOString().split('T')[0]
+                                        );
+                                        setPayNotes(ins.notes || '');
+                                      }}
+                                    >
+                                      <CrmIcon name="edit" size={11} /> Edit
+                                    </button>
+                                  )}
+                                </div>
                                 <div>Mode: <strong>{ins.paymentMode || 'Bank Transfer'}</strong></div>
                                 <div>
                                   Paid On:{' '}
@@ -679,7 +746,7 @@ export function FeeInstallmentTracker({
                                   </div>
                                 )}
                               </div>
-                            ) : (
+                            ) : !isPendingVerify ? (
                               <button
                                 type="button"
                                 className="btn btn-sm btn-success"
@@ -701,7 +768,7 @@ export function FeeInstallmentTracker({
                               >
                                 <CrmIcon name="check-circle" size={14} /> Record Payment (UTR)
                               </button>
-                            )}
+                            ) : null}
                           </div>
                         );
                       })}
@@ -1017,6 +1084,38 @@ export function FeeInstallmentTracker({
 
             <form onSubmit={handleCustomInstallmentSubmit}>
               <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {/* Quick Mode Selector: Full Fee vs Installment Plan */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <button
+                    type="button"
+                    className={`btn btn-sm ${customTitle.toLowerCase().includes('full') ? 'btn-success' : 'btn-outline'}`}
+                    onClick={() => {
+                      const totalFee = Number(customAdm.feeAgreed || customAdm.confirmedRevenue || 450000);
+                      const alreadyPaid = (customAdm.installments || [])
+                        .filter((i: any) => i.status === 'PAID')
+                        .reduce((s: number, i: any) => s + Number(i.amount || 0), 0);
+                      const remaining = Math.max(totalFee - alreadyPaid, totalFee);
+                      setCustomTitle('Full Admission Fee (100%)');
+                      setCustomAmount(String(remaining));
+                      setCustomStatus('PAID');
+                    }}
+                  >
+                    <CrmIcon name="check-circle" size={14} /> Full Fee Paid (100%)
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn btn-sm ${!customTitle.toLowerCase().includes('full') ? 'btn-primary' : 'btn-outline'}`}
+                    onClick={() => {
+                      const nextNum = (customAdm.installments || []).length + 1;
+                      const totalFee = Number(customAdm.feeAgreed || customAdm.confirmedRevenue || 450000);
+                      setCustomTitle(`Installment ${nextNum}`);
+                      setCustomAmount(String(Math.round(totalFee / 3)));
+                    }}
+                  >
+                    <CrmIcon name="calendar" size={14} /> Pay in Installments
+                  </button>
+                </div>
+
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                   <div className="form-group">
                     <label className="form-label">Installment Name *</label>

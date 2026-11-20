@@ -281,6 +281,49 @@ export class SchoolsService {
         relatedEntityId: updated.id,
         relatedEntityType: 'school',
       });
+
+      // Evaluate affected leads with active applications at this deactivated school
+      const affectedApps = await this.prisma.admission.findMany({
+        where: { schoolId: updated.id, deletedAt: null, stage: { notIn: ['closed'] } },
+        include: { lead: true },
+      });
+      const handledLeads = new Set<string>();
+      for (const app of affectedApps) {
+        if (!app.leadId || handledLeads.has(app.leadId)) continue;
+        handledLeads.add(app.leadId);
+        const otherActive = await this.prisma.admission.count({
+          where: {
+            leadId: app.leadId,
+            schoolId: { not: updated.id },
+            deletedAt: null,
+            stage: { notIn: ['closed'] },
+          },
+        });
+        if (otherActive > 0) continue; // Other active applications exist -> continue
+
+        // No other active applications -> Reopen lead for alternative school & notify Manager
+        await this.prisma.lead.update({
+          where: { id: app.leadId },
+          data: { status: 'reopened', expiryStatus: 'ACTIVE', version: { increment: 1 } },
+        });
+        await this.prisma.leadRemark.create({
+          data: {
+            leadId: app.leadId,
+            userId: actor?.id || null,
+            userName: actor?.fullName || 'System',
+            userRole: normalizeCanonicalRole(actor?.role || 'SUPER_ADMIN'),
+            content: `Reopened on ${new Date().toLocaleDateString('en-IN')} — School "${updated.name}" deactivated and no other active applications exist.`,
+          },
+        });
+        await this.notifications.notifyRoles(['SENIOR_MANAGER', 'SUPER_ADMIN'], {
+          type: 'lead_reopened',
+          title: `Lead ${app.lead?.leadNumber || app.leadId} — School Deactivated, Reopened`,
+          message: `Lead [${app.lead?.leadNumber || app.leadId}] (${app.lead?.studentName || 'Student'}) – school "${updated.name}" deactivated with no other active applications; marked reopened.`,
+          relatedEntityId: app.leadId,
+          relatedEntityType: 'lead',
+          link: `/leads/${app.leadId}`,
+        });
+      }
     }
 
     await this.prisma.auditLog.create({

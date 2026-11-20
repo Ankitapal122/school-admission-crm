@@ -704,6 +704,25 @@ export class AdmissionsService {
 
     const selectionStatus = body.selectionStatus || body.selection_status || 'selected';
     const stage = selectionStatus === 'rejected' ? 'closed' : 'selected';
+    const parentInterested = body.parentInterested !== false && body.parent_interested !== false;
+
+    let rejectionOutcome: 'continue' | 'reopened' | 'expired' | null = null;
+    if (selectionStatus === 'rejected') {
+      const otherActiveCount = await this.prisma.admission.count({
+        where: {
+          leadId: adm.leadId,
+          id: { not: adm.id },
+          deletedAt: null,
+          stage: { notIn: ['closed'] },
+          OR: [{ selectionStatus: null }, { selectionStatus: { not: 'rejected' } }],
+        },
+      });
+      if (otherActiveCount > 0) {
+        rejectionOutcome = 'continue';
+      } else {
+        rejectionOutcome = parentInterested ? 'reopened' : 'expired';
+      }
+    }
 
     const updated = await this.prisma.$transaction(async (tx) => {
       const upd = await tx.admission.update({
@@ -723,10 +742,31 @@ export class AdmissionsService {
         },
       });
 
-      await tx.lead.update({
-        where: { id: adm.leadId },
-        data: { status: this.stageToLeadStatus(stage, adm.subStage), version: { increment: 1 } },
-      });
+      if (rejectionOutcome === 'reopened') {
+        await tx.lead.update({
+          where: { id: adm.leadId },
+          data: { status: 'reopened', expiryStatus: 'ACTIVE', version: { increment: 1 } },
+        });
+        await tx.leadRemark.create({
+          data: {
+            leadId: adm.leadId,
+            userId: user?.id || null,
+            userName: user?.fullName || 'Manager',
+            userRole: user?.role || 'manager',
+            content: `Reopened on ${new Date().toLocaleDateString('en-IN')} — School rejected (${upd.school?.name || 'School'}), parent interested in alternative schools.`,
+          },
+        });
+      } else if (rejectionOutcome === 'expired') {
+        await tx.lead.update({
+          where: { id: adm.leadId },
+          data: { status: 'expired', expiryStatus: 'EXPIRED', version: { increment: 1 } },
+        });
+      } else if (rejectionOutcome !== 'continue') {
+        await tx.lead.update({
+          where: { id: adm.leadId },
+          data: { status: this.stageToLeadStatus(stage, adm.subStage), version: { increment: 1 } },
+        });
+      }
 
       await tx.auditLog.create({
         data: {
@@ -737,11 +777,24 @@ export class AdmissionsService {
           module: 'application',
           entity: 'Admission',
           entityId: adm.id,
-          newValue: { stage, selectionStatus },
+          newValue: { stage, selectionStatus, rejectionOutcome },
         },
       });
       return upd;
     });
+
+    if (rejectionOutcome === 'reopened') {
+      await this.notifications
+        ?.notifyRoles(['manager', 'super_admin', 'SENIOR_MANAGER', 'SUPER_ADMIN'], {
+          type: 'lead_reopened',
+          title: `Lead [${updated.lead?.leadNumber || updated.leadId}] — School Rejected, Reopened`,
+          message: `Lead [${updated.lead?.leadNumber || updated.leadId}] – school rejected (${updated.school?.name || 'School'}), parent interested, reopened.`,
+          relatedEntityId: updated.leadId,
+          relatedEntityType: 'lead',
+          link: `/leads/${updated.leadId}`,
+        })
+        .catch(() => {});
+    }
 
     const formatted = this.formatAdmission(updated);
     return apiEnvelope(formatted, `Selection result saved (${selectionStatus})`, {
@@ -1399,16 +1452,27 @@ export class AdmissionsService {
       admission.installments.reduce((m, i) => Math.max(m, i.installmentNumber || 0), 0) + 1;
     const feeAgreed = Number(admission.feeAgreed || amount);
     const percentage = feeAgreed > 0 ? Math.min(100, Math.round((amount / feeAgreed) * 100)) : 0;
-    const status = String(body.status || 'PAID').toUpperCase() === 'PENDING' ? 'PENDING' : 'PAID';
+    const actorRole = String(actor?.role || '').toLowerCase();
+    const isFinancialApprover =
+      actorRole.includes('admin') || actorRole.includes('manager');
+    const requestedStatus = String(body.status || 'PAID').toUpperCase();
+    const status =
+      requestedStatus === 'PENDING'
+        ? 'PENDING'
+        : isFinancialApprover
+        ? 'PAID'
+        : 'PENDING_VERIFICATION';
     const paidAtDate = body.paidAt ? new Date(body.paidAt) : new Date();
     const dueDate = body.dueDate ? new Date(body.dueDate) : paidAtDate;
     const utr =
-      status === 'PAID'
+      status !== 'PENDING'
         ? String(body.utrNumber || body.utr_number || `UTR-${Date.now().toString().slice(-8)}`).trim()
         : null;
     const mode = body.paymentMode || body.payment_mode || 'NEFT / RTGS / IMPS';
     const rawNotes = String(body.notes || '').trim();
-    const recorderTag = `Recorded by ${actor?.fullName || 'Staff'} (${actor?.role || 'user'})`;
+    const recorderTag = `Recorded by ${actor?.fullName || 'Staff'} (${actor?.role || 'user'})${
+      status === 'PENDING_VERIFICATION' ? ' • Awaiting Manager/Admin Verification' : ' • Verified'
+    }`;
     const notes = rawNotes ? `${rawNotes} • ${recorderTag}` : recorderTag;
     const title = String(body.title || '').trim() || `Installment #${nextNum}`;
 
@@ -1423,10 +1487,23 @@ export class AdmissionsService {
         status,
         paidAt: status === 'PAID' ? paidAtDate : null,
         utrNumber: utr,
-        paymentMode: status === 'PAID' ? mode : null,
+        paymentMode: status !== 'PENDING' ? mode : null,
         notes,
       },
     });
+
+    if (status === 'PENDING_VERIFICATION') {
+      try {
+        await this.notifications?.notifyRoles(['manager', 'super_admin', 'SENIOR_MANAGER', 'SUPER_ADMIN'], {
+          type: 'payment_verification_required',
+          title: `Payment Verification Required: ₹${amount.toLocaleString('en-IN')}`,
+          message: `${actor?.fullName || 'Counsellor'} submitted ${title} (₹${amount.toLocaleString('en-IN')}, UTR: ${utr}) for ${admission.studentName}. Manager/Admin verification required before receipt & commission.`,
+          relatedEntityId: admissionId,
+          relatedEntityType: 'admission',
+          link: `/admissions/${admissionId}`,
+        });
+      } catch {}
+    }
 
     if (status === 'PAID') {
       await this.finalizeIfFullyPaid(admissionId, paidAtDate, actor);
@@ -1493,25 +1570,33 @@ export class AdmissionsService {
     });
     if (!inst) throw new NotFoundException('Installment milestone not found');
 
+    const actorRole = String(actor?.role || '').toLowerCase();
+    const isFinancialApprover =
+      actorRole.includes('admin') || actorRole.includes('manager');
     const paidAtDate = body.paidAt ? new Date(body.paidAt) : new Date();
     const paidAmount = body.amount && Number(body.amount) > 0 ? Number(body.amount) : inst.amount;
     const rawNotes = String(body.notes || '').trim();
-    const recorderTag = `Recorded by ${actor?.fullName || 'Staff'} (${actor?.role || 'user'})`;
+    const nextStatus = isFinancialApprover ? 'PAID' : 'PENDING_VERIFICATION';
+    const recorderTag = `Recorded by ${actor?.fullName || 'Staff'} (${actor?.role || 'user'})${
+      isFinancialApprover ? ' • Verified' : ' • Awaiting Manager/Admin Verification'
+    }`;
     const notes = rawNotes ? `${rawNotes} • ${recorderTag}` : recorderTag;
 
     const updated = await this.prisma.admissionInstallment.update({
       where: { id: instId },
       data: {
-        status: 'PAID',
+        status: nextStatus,
         amount: paidAmount,
-        paidAt: paidAtDate,
+        paidAt: isFinancialApprover ? paidAtDate : null,
         utrNumber: body.utrNumber || body.utr_number || `UTR-${Date.now().toString().slice(-8)}`,
         paymentMode: body.paymentMode || body.payment_mode || 'NetBanking',
         notes,
       },
     });
 
-    await this.finalizeIfFullyPaid(admissionId, paidAtDate, actor);
+    if (isFinancialApprover) {
+      await this.finalizeIfFullyPaid(admissionId, paidAtDate, actor);
+    }
 
     const admission = await this.prisma.admission.findUnique({
       where: { id: admissionId },
@@ -1533,6 +1618,7 @@ export class AdmissionsService {
             studentName: admission?.studentName,
             title: inst.title,
             amount: paidAmount,
+            status: nextStatus,
             utrNumber: updated.utrNumber,
             paymentMode: updated.paymentMode,
             paidAt: paidAtDate.toISOString(),
@@ -1548,21 +1634,82 @@ export class AdmissionsService {
           userId: actor.id,
           userName: actor.fullName,
           userRole: actor.role,
-          content: `💰 Installment Payment Recorded: ${inst.title} - ₹${paidAmount.toLocaleString('en-IN')} (UTR: ${updated.utrNumber}, Mode: ${updated.paymentMode}) by ${actor.fullName}. Status: PAID`,
+          content: `💰 Installment Payment ${isFinancialApprover ? 'Verified' : 'Submitted for Verification'}: ${inst.title} - ₹${paidAmount.toLocaleString('en-IN')} (UTR: ${updated.utrNumber}, Mode: ${updated.paymentMode}) by ${actor.fullName}. Status: ${nextStatus}`,
         },
       });
     } catch {}
 
     try {
       await this.notifications?.notifyRoles(['manager', 'super_admin', 'SENIOR_MANAGER', 'SUPER_ADMIN'], {
-        type: 'payment_received',
-        title: `💰 Payment Received: ₹${paidAmount.toLocaleString('en-IN')}`,
-        message: `${inst.title} of ₹${paidAmount.toLocaleString('en-IN')} verified for ${admission?.studentName} by ${actor.fullName}. UTR: ${updated.utrNumber}`,
+        type: isFinancialApprover ? 'payment_received' : 'payment_verification_required',
+        title: isFinancialApprover
+          ? `💰 Payment Verified: ₹${paidAmount.toLocaleString('en-IN')}`
+          : `⏳ Payment Pending Verification: ₹${paidAmount.toLocaleString('en-IN')}`,
+        message: `${inst.title} of ₹${paidAmount.toLocaleString('en-IN')} ${
+          isFinancialApprover ? 'verified' : 'submitted for verification'
+        } for ${admission?.studentName} by ${actor.fullName}. UTR: ${updated.utrNumber}`,
         relatedEntityId: admissionId,
         relatedEntityType: 'admission',
         link: `/admissions/${admissionId}`,
       });
     } catch {}
+
+    return this.getInstallments(admissionId, actor);
+  }
+
+  async verifyInstallmentPayment(admissionId: string, instId: string, actor: any) {
+    const inst = await this.prisma.admissionInstallment.findFirst({
+      where: { id: instId, admissionId },
+    });
+    if (!inst) throw new NotFoundException('Installment milestone not found');
+
+    const verifiedAt = new Date();
+    const updated = await this.prisma.admissionInstallment.update({
+      where: { id: instId },
+      data: {
+        status: 'PAID',
+        paidAt: inst.paidAt || verifiedAt,
+        notes: `${inst.notes || ''} • Verified by ${actor?.fullName || 'Manager'} (${actor?.role || 'manager'}) on ${verifiedAt.toLocaleDateString('en-IN')}`.trim(),
+      },
+    });
+
+    await this.finalizeIfFullyPaid(admissionId, verifiedAt, actor);
+
+    const admission = await this.prisma.admission.findUnique({ where: { id: admissionId } });
+    try {
+      await this.prisma.auditLog.create({
+        data: {
+          userId: actor?.id || null,
+          userName: actor?.fullName || 'Manager',
+          userRole: actor?.role || 'manager',
+          action: 'VERIFY_PAYMENT',
+          module: 'admissions',
+          entity: 'AdmissionInstallment',
+          entityId: instId,
+          details: {
+            admissionId,
+            studentName: admission?.studentName,
+            amount: updated.amount,
+            utrNumber: updated.utrNumber,
+            verifiedAt: verifiedAt.toISOString(),
+          },
+        },
+      });
+    } catch {}
+
+    if (admission?.counsellorId) {
+      await this.notifications
+        ?.notifyUser({
+          userId: admission.counsellorId,
+          type: 'payment_verified',
+          title: `✅ Payment Verified: ₹${Number(updated.amount || 0).toLocaleString('en-IN')}`,
+          message: `${inst.title} for ${admission.studentName} has been verified by ${actor?.fullName || 'Manager'}. PDF Receipt is now authorized.`,
+          relatedEntityId: admissionId,
+          relatedEntityType: 'admission',
+          link: `/admissions/${admissionId}`,
+        })
+        .catch(() => {});
+    }
 
     return this.getInstallments(admissionId, actor);
   }

@@ -26,19 +26,32 @@ import {
 } from './features/views/CrmViews';
 import LeadReportModal from './features/leads/LeadReportModal';
 import AuditLogViewer from './features/analytics/AuditLogViewer';
+import PrivacyComplianceView, { FirstLoginPrivacyModal } from './features/views/PrivacyComplianceView';
 import PwaInstallPrompt from './components/PwaInstallPrompt';
 
 export default function App() {
-  const { isAuthenticated, user, previewRole, lastActivityAt, touchActivity, logout } = useAuthStore();
+  const { isAuthenticated, user, previewRole } = useAuthStore();
   const queryClient = useQueryClient();
 
-  const [currentTab, setCurrentTab] = useState('dashboard');
+  const [currentTab, setCurrentTabState] = useState<string>(() => {
+    try {
+      return sessionStorage.getItem('crm_active_tab') || 'dashboard';
+    } catch {
+      return 'dashboard';
+    }
+  });
+  const setCurrentTab = (tab: string) => {
+    setCurrentTabState(tab);
+    try {
+      sessionStorage.setItem('crm_active_tab', tab);
+    } catch {}
+  };
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
   const [createdReportLead, setCreatedReportLead] = useState<any | null>(null);
   const [wireframeScreenNum] = useState(1);
-  const [idleWarningSeconds, setIdleWarningSeconds] = useState<number | null>(null);
+  const [needsPrivacyAccept, setNeedsPrivacyAccept] = useState(false);
   const [toastMsg, setToastMsg] = useState<{
     text: string;
     type: 'success' | 'danger' | 'warning';
@@ -52,41 +65,36 @@ export default function App() {
     setTimeout(() => setToastMsg(null), 4000);
   };
 
-  // 15-minute Idle Timeout with 60-second warning modal
+  // Persistent session (no auto-logout on idle or refresh) + live presence heartbeat every 60s
+  // Also enforce mandatory Privacy Policy acceptance on first login
   useEffect(() => {
-    if (!isAuthenticated) {
-      setIdleWarningSeconds(null);
+    if (!isAuthenticated || !user?.id) {
+      setNeedsPrivacyAccept(false);
       return;
     }
-    const handleActivity = () => {
-      touchActivity();
-      setIdleWarningSeconds(null);
+    const sendHeartbeat = () => {
+      apiCall('/presence/heartbeat', 'POST', {}, { skipOfflineQueue: true }).catch(() => {});
     };
-    window.addEventListener('mousedown', handleActivity);
-    window.addEventListener('keydown', handleActivity);
-    window.addEventListener('touchstart', handleActivity);
+    sendHeartbeat();
+    const hbInterval = setInterval(sendHeartbeat, 60_000);
 
-    const timer = setInterval(() => {
-      const elapsed = Date.now() - useAuthStore.getState().lastActivityAt;
-      const limitMs = 15 * 60 * 1000;
-      const warnAtMs = 14 * 60 * 1000;
-      if (elapsed >= limitMs) {
-        apiCall('/auth/logout', 'POST', {}).catch(() => {});
-        logout(true);
-      } else if (elapsed >= warnAtMs) {
-        setIdleWarningSeconds(Math.max(1, Math.ceil((limitMs - elapsed) / 1000)));
-      } else {
-        setIdleWarningSeconds(null);
-      }
-    }, 5000);
+    const localKey = `crm_privacy_accepted_v2_${user.id}`;
+    if (localStorage.getItem(localKey) !== 'true') {
+      apiCall('/privacy/status', 'GET', null, { skipOfflineQueue: true })
+        .then((res) => {
+          const accepted = Boolean(res?.acceptedByCurrentUser ?? res?.data?.acceptedByCurrentUser);
+          if (accepted) {
+            try { localStorage.setItem(localKey, 'true'); } catch {}
+            setNeedsPrivacyAccept(false);
+          } else {
+            setNeedsPrivacyAccept(true);
+          }
+        })
+        .catch(() => {});
+    }
 
-    return () => {
-      clearInterval(timer);
-      window.removeEventListener('mousedown', handleActivity);
-      window.removeEventListener('keydown', handleActivity);
-      window.removeEventListener('touchstart', handleActivity);
-    };
-  }, [isAuthenticated, lastActivityAt]);
+    return () => clearInterval(hbInterval);
+  }, [isAuthenticated, user?.id]);
 
   const effectiveRole = previewRole || user?.role || 'SUPER_ADMIN';
   const normKey = normalizeRoleKey(effectiveRole);
@@ -286,6 +294,13 @@ export default function App() {
               currentTab === 'employee-monitoring' ||
               currentTab === 'roles-permissions') && (
               <UsersView
+                viewMode={
+                  currentTab === 'managers'
+                    ? 'managers'
+                    : currentTab === 'counsellors'
+                    ? 'counsellors'
+                    : 'all'
+                }
                 users={
                   currentTab === 'managers'
                     ? users.filter((u: any) =>
@@ -366,8 +381,24 @@ export default function App() {
             {currentTab === 'sessions' && <SessionsView onShowToast={showToast} />}
 
             {currentTab === 'settings' && <SettingsView onShowToast={showToast} />}
+
+            {currentTab === 'privacy-compliance' && (
+              <PrivacyComplianceView onShowToast={showToast} />
+            )}
           </main>
         </div>
+
+        {/* Mandatory First-Login Privacy Policy Acceptance Modal */}
+        <FirstLoginPrivacyModal
+          isOpen={needsPrivacyAccept}
+          onAccepted={() => {
+            if (user?.id) {
+              try { localStorage.setItem(`crm_privacy_accepted_v2_${user.id}`, 'true'); } catch {}
+            }
+            setNeedsPrivacyAccept(false);
+          }}
+          onShowToast={showToast}
+        />
 
         {/* Create Lead Modal */}
         <CreateLeadModal
@@ -392,44 +423,6 @@ export default function App() {
             onRefresh={refreshAll}
             onShowToast={showToast}
           />
-        )}
-
-        {idleWarningSeconds !== null && (
-          <div className="modal-overlay" style={{ zIndex: 2500 }}>
-            <div className="modal-content" style={{ maxWidth: '420px' }}>
-              <div className="modal-header">
-                <h3 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--primary-navy)' }}>
-                  <CrmIcon name="clock" size={16} /> Session Inactivity Warning
-                </h3>
-              </div>
-              <div className="modal-body">
-                <p style={{ fontSize: '13px', color: '#334155', margin: 0 }}>
-                  For DPDP security compliance, you will be automatically logged out in{' '}
-                  <strong>{idleWarningSeconds}s</strong> due to 15 minutes of inactivity.
-                </p>
-              </div>
-              <div className="modal-footer">
-                <button
-                  className="btn btn-outline"
-                  onClick={() => {
-                    apiCall('/auth/logout', 'POST', {}).catch(() => {});
-                    logout(true);
-                  }}
-                >
-                  Logout Now
-                </button>
-                <button
-                  className="btn btn-primary"
-                  onClick={() => {
-                    touchActivity();
-                    setIdleWarningSeconds(null);
-                  }}
-                >
-                  Stay Logged In
-                </button>
-              </div>
-            </div>
-          </div>
         )}
 
         {/* PWA Install Prompt & iOS Guide */}

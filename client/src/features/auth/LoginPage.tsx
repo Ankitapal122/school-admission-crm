@@ -3,6 +3,7 @@ import CrmIcon from '../../components/CrmIcon';
 import { useAuthStore, User } from '../../stores/authStore';
 import { apiCall } from '../../lib/api';
 import WireframeExplorer from '../wireframes/WireframeExplorer';
+import { PrivacyPolicyDocument } from '../views/PrivacyComplianceView';
 
 type AuthView =
   | 'login'
@@ -26,6 +27,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [toastMsg, setToastMsg] = useState<{ text: string; type: 'success' | 'danger' | 'warning' } | null>(null);
 
   // Forgot Password / OTP / Reset State
@@ -1504,6 +1506,39 @@ export default function LoginPage() {
               >
                 2FA Setup
               </a>
+              <a
+                href="#privacy-policy"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setShowPrivacyModal(true);
+                }}
+                style={{ color: '#2563EB', textDecoration: 'none', fontWeight: 600 }}
+              >
+                Privacy Policy
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showPrivacyModal && (
+        <div className="modal-overlay" style={{ zIndex: 3000 }} onClick={() => setShowPrivacyModal(false)}>
+          <div className="modal-content" style={{ maxWidth: '620px' }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
+                📜 BoardingEdu Privacy Policy &amp; DPDP Compliance
+              </h3>
+              <button type="button" className="btn btn-sm btn-outline" onClick={() => setShowPrivacyModal(false)}>
+                <CrmIcon name="x" size={16} />
+              </button>
+            </div>
+            <div className="modal-body" style={{ maxHeight: '65vh', overflowY: 'auto' }}>
+              <PrivacyPolicyDocument />
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn btn-primary" onClick={() => setShowPrivacyModal(false)}>
+                Close
+              </button>
             </div>
           </div>
         </div>

@@ -246,8 +246,23 @@ export class CrmCoreService implements OnModuleInit {
         where,
         orderBy: { createdAt: 'asc' },
         include: {
-          team: true,
-          managedTeams: true,
+          team: {
+            include: {
+              manager: { select: { id: true, fullName: true, employeeId: true } },
+              members: {
+                where: { deletedAt: null },
+                select: { id: true, fullName: true, role: true, email: true, status: true },
+              },
+            },
+          },
+          managedTeams: {
+            include: {
+              members: {
+                where: { deletedAt: null },
+                select: { id: true, fullName: true, role: true, email: true, status: true },
+              },
+            },
+          },
           manager: { select: { id: true, fullName: true, employeeId: true } },
         },
       }),
@@ -261,11 +276,27 @@ export class CrmCoreService implements OnModuleInit {
 
     const formatted = users.map((u) => {
       const managed = u.managedTeams?.[0];
+      const resolvedTeam = u.team || managed || null;
+      const resolvedTeamName = resolvedTeam?.name || null;
+      const resolvedTeamCode = resolvedTeam?.teamCode || null;
+      const resolvedManagerName =
+        u.manager?.fullName || (u.team as any)?.manager?.fullName || null;
+      const rawMembers = (resolvedTeam as any)?.members || [];
+      const teamMembers = rawMembers.map((m: any) => ({
+        id: m.id,
+        fullName: m.fullName,
+        role: this.mapRoleToFrontendUi(m.role),
+        email: m.email,
+        status: m.status,
+      }));
       const isOnline =
         activeUserIds.has(u.id) &&
         Boolean(u.lastLoginAt) &&
         (!u.lastLogoutAt ||
           new Date(u.lastLoginAt).getTime() >= new Date(u.lastLogoutAt).getTime());
+      const plainBank = u.bankAccountEncrypted
+        ? decryptSensitiveData(u.bankAccountEncrypted)
+        : '';
       return {
         _id: u.id,
         id: u.id,
@@ -275,6 +306,9 @@ export class CrmCoreService implements OnModuleInit {
         email: u.email,
         mobile: u.phone || '9876543210',
         phone: u.phone || '9876543210',
+        upiId: u.upiId || '',
+        bankAccountMasked: plainBank ? maskBankAccount(plainBank) : '',
+        hasEncryptedBank: Boolean(u.bankAccountEncrypted),
         role: this.mapRoleToFrontendUi(u.role),
         canonicalRole: toBlueprintRole(u.role),
         backendRole: u.role,
@@ -290,12 +324,19 @@ export class CrmCoreService implements OnModuleInit {
         fnfSettled: u.fnfSettled,
         twoFactorEnabled: u.isTwoFactorEnabled,
         version: u.version,
-        managerId: u.managerId,
-        managerName: u.manager?.fullName || null,
-        teamId: u.team
-          ? { _id: u.team.id, id: u.team.id, teamName: u.team.name, name: u.team.name }
-          : managed
-          ? { _id: managed.id, id: managed.id, teamName: managed.name, name: managed.name }
+        managerId: u.managerId || (u.team as any)?.manager?.id || null,
+        managerName: resolvedManagerName,
+        teamName: resolvedTeamName,
+        teamCode: resolvedTeamCode,
+        teamMembers,
+        teamId: resolvedTeam
+          ? {
+              _id: resolvedTeam.id,
+              id: resolvedTeam.id,
+              teamName: resolvedTeam.name,
+              name: resolvedTeam.name,
+              teamCode: resolvedTeam.teamCode,
+            }
           : null,
         createdAt: u.createdAt,
       };
@@ -447,6 +488,26 @@ export class CrmCoreService implements OnModuleInit {
         });
       }
       teamId = team ? team.id : null;
+    }
+
+    // Phase 3 Business Rule: 1 Manager can manage up to 5 active Jr. Counsellors
+    if (toBlueprintRole(role) === 'jr_counsellor' && (body.managerId || teamId)) {
+      const existingCounsellorsUnderMgr = await this.prisma.user.count({
+        where: {
+          deletedAt: null,
+          isActive: true,
+          role: { in: [Role.jr_counsellor, Role.COUNSELLOR] },
+          OR: [
+            ...(body.managerId ? [{ managerId: body.managerId }] : []),
+            ...(teamId ? [{ teamId }] : []),
+          ],
+        },
+      });
+      if (existingCounsellorsUnderMgr >= 5) {
+        throw new BadRequestException(
+          'A Manager / Team can manage up to 5 active Jr. Counsellors. Please select another Manager or Team.',
+        );
+      }
     }
 
     const user = await this.prisma.user.create({
@@ -2369,5 +2430,296 @@ export class CrmCoreService implements OnModuleInit {
       take: 50,
     });
     return apiEnvelope(jobs, 'User jobs loaded', { jobs });
+  }
+
+  // ============================================================================
+  // DATA PRIVACY & DPDP COMPLIANCE ENGINE
+  // ============================================================================
+  async getPrivacyComplianceStatus(user: any) {
+    const threeYearsAgo = new Date(Date.now() - 3 * 365 * 24 * 60 * 60 * 1000);
+    const [
+      acceptanceLog,
+      totalLeads,
+      consentedLeads,
+      totalCalls,
+      consentedCalls,
+      inactiveOldLeads,
+      archivedLeads,
+      encryptedBankCount,
+      twoFaCount,
+      deletionSetting,
+    ] = await Promise.all([
+      this.prisma.auditLog.findFirst({
+        where: { userId: user?.id, action: 'PRIVACY_POLICY_ACCEPTED' },
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.lead.count({ where: { deletedAt: null } }),
+      this.prisma.lead.count({ where: { deletedAt: null, dpdpConsent: true } }),
+      this.prisma.callLog.count(),
+      this.prisma.callLog.count({ where: { recordingConsent: true } }),
+      this.prisma.lead.count({
+        where: {
+          deletedAt: null,
+          updatedAt: { lt: threeYearsAgo },
+          status: { notIn: ['admission_done', 'commission_received', 'ADMISSION_CONFIRMED', 'ENROLLED'] },
+        },
+      }),
+      this.prisma.lead.count({ where: { deletedAt: { not: null } } }),
+      this.prisma.user.count({ where: { deletedAt: null, bankAccountEncrypted: { not: null } } }),
+      this.prisma.user.count({ where: { deletedAt: null, twoFactorSecret: { not: null } } }),
+      this.prisma.systemSetting.findUnique({ where: { key: 'privacy_deletion_requests' } }),
+    ]);
+
+    const deletionRequests = Array.isArray((deletionSetting?.value as any)?.requests)
+      ? (deletionSetting!.value as any).requests
+      : [];
+
+    const data = {
+      policyVersion: 'v2.0 (DPDP Act 2023)',
+      acceptedByCurrentUser: Boolean(acceptanceLog),
+      acceptedAt: acceptanceLog?.createdAt || null,
+      consentStats: {
+        totalLeads,
+        consentedLeads,
+        consentRate: totalLeads > 0 ? Math.round((consentedLeads / totalLeads) * 100) : 100,
+      },
+      callRecordingStats: {
+        totalCalls,
+        consentedCalls,
+        retentionYears: 3,
+      },
+      retentionStats: {
+        policyYears: 3,
+        cutoffDate: threeYearsAgo.toISOString(),
+        activeLeads: totalLeads,
+        inactiveEligibleForArchive: inactiveOldLeads,
+        archivedRecords: archivedLeads,
+      },
+      encryptionStatus: {
+        algorithm: 'AES-256-GCM',
+        atRestEnabled: true,
+        encryptedBankAccounts: encryptedBankCount,
+        encryptedTwoFactorSecrets: twoFaCount,
+        backupCodesProtected: true,
+      },
+      deletionRequests,
+    };
+
+    return apiEnvelope(data, 'Privacy & compliance status loaded', data);
+  }
+
+  async acceptPrivacyPolicy(user: any, version = 'v2.0 (DPDP Act 2023)') {
+    const now = new Date();
+    await this.prisma.auditLog.create({
+      data: {
+        userId: user?.id || null,
+        userName: user?.fullName || user?.email || 'CRM User',
+        userRole: user?.role || 'user',
+        action: 'PRIVACY_POLICY_ACCEPTED',
+        module: 'privacy',
+        entity: 'PrivacyPolicy',
+        entityId: user?.id || 'global',
+        details: {
+          version,
+          acceptedAt: now.toISOString(),
+          email: user?.email || null,
+        },
+      },
+    });
+    return apiEnvelope(
+      { accepted: true, version, acceptedAt: now.toISOString() },
+      'Privacy Policy accepted and recorded in audit trail.',
+    );
+  }
+
+  async createDataDeletionRequest(body: any, user: any) {
+    const requesterName = String(body.requesterName || body.name || '').trim();
+    const phone = String(body.phone || '').trim();
+    const email = String(body.email || '').trim();
+    const leadNumber = String(body.leadNumber || '').trim();
+    const reason = String(body.reason || '').trim();
+
+    if (!requesterName || (!phone && !email && !leadNumber)) {
+      throw new BadRequestException('Requester name and at least one identifier (Phone, Email, or Lead ID) are required.');
+    }
+
+    const existing = await this.prisma.systemSetting.findUnique({
+      where: { key: 'privacy_deletion_requests' },
+    });
+    const list: any[] = Array.isArray((existing?.value as any)?.requests)
+      ? [...(existing!.value as any).requests]
+      : [];
+
+    const newReq = {
+      id: `DEL-${Date.now().toString().slice(-6)}`,
+      requesterName,
+      phone: phone || null,
+      email: email || null,
+      leadNumber: leadNumber || null,
+      reason: reason || 'Parent / user requested erasure under DPDP Act',
+      status: 'PENDING',
+      submittedBy: user?.fullName || user?.email || 'Staff',
+      submittedByRole: user?.role || 'user',
+      createdAt: new Date().toISOString(),
+      processedAt: null,
+      processedBy: null,
+      resolutionNotes: null,
+    };
+
+    list.unshift(newReq);
+
+    await this.prisma.systemSetting.upsert({
+      where: { key: 'privacy_deletion_requests' },
+      create: {
+        key: 'privacy_deletion_requests',
+        value: { requests: list },
+        updatedById: user?.id || null,
+      },
+      update: {
+        value: { requests: list },
+        updatedById: user?.id || null,
+      },
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        userId: user?.id || null,
+        userName: user?.fullName || 'CRM User',
+        userRole: user?.role || 'user',
+        action: 'CREATE',
+        module: 'privacy',
+        entity: 'DataDeletionRequest',
+        entityId: newReq.id,
+        details: { requesterName, phone, email, leadNumber, reason: newReq.reason },
+        isSpecialFlag: true,
+      },
+    });
+
+    return apiEnvelope(newReq, 'Data deletion request submitted for compliance review.', { request: newReq });
+  }
+
+  async processDataDeletionRequest(id: string, body: any, actor: any) {
+    const decision = String(body.decision || body.status || '').toUpperCase();
+    if (!['APPROVED', 'REJECTED'].includes(decision)) {
+      throw new BadRequestException('Decision must be APPROVED or REJECTED');
+    }
+
+    const existing = await this.prisma.systemSetting.findUnique({
+      where: { key: 'privacy_deletion_requests' },
+    });
+    const list: any[] = Array.isArray((existing?.value as any)?.requests)
+      ? [...(existing!.value as any).requests]
+      : [];
+
+    const idx = list.findIndex((r) => r.id === id);
+    if (idx === -1) throw new NotFoundException(`Deletion request ${id} not found`);
+
+    const reqItem = list[idx];
+    let anonymizedCount = 0;
+
+    if (decision === 'APPROVED') {
+      const orConds: any[] = [];
+      if (reqItem.leadNumber) orConds.push({ leadNumber: reqItem.leadNumber });
+      if (reqItem.phone) {
+        const cleanDigits = String(reqItem.phone).replace(/\D/g, '').slice(-10);
+        if (cleanDigits) orConds.push({ parentPhone: { contains: cleanDigits } });
+      }
+      if (reqItem.email) orConds.push({ parentEmail: { equals: reqItem.email, mode: 'insensitive' } });
+
+      if (orConds.length > 0) {
+        const matchingLeads = await this.prisma.lead.findMany({
+          where: { deletedAt: null, OR: orConds },
+          select: { id: true },
+        });
+        for (const ml of matchingLeads) {
+          await this.prisma.lead.update({
+            where: { id: ml.id },
+            data: {
+              studentName: '[ERASED_DPDP]',
+              parentName: '[ERASED_DPDP]',
+              parentPhone: `ERASED-${ml.id.slice(0, 6)}`,
+              whatsappNumber: null,
+              parentEmail: null,
+              alternateMobile: null,
+              notes: 'Personal data erased per DPDP Data Deletion Request.',
+              deletedAt: new Date(),
+            },
+          });
+          anonymizedCount += 1;
+        }
+      }
+    }
+
+    list[idx] = {
+      ...reqItem,
+      status: decision,
+      processedAt: new Date().toISOString(),
+      processedBy: actor?.fullName || 'Super Admin',
+      resolutionNotes:
+        String(body.notes || '').trim() ||
+        (decision === 'APPROVED'
+          ? `Approved & PII erased (${anonymizedCount} matching lead record(s) anonymized).`
+          : 'Rejected — legal/financial retention applies.'),
+      anonymizedCount,
+    };
+
+    await this.prisma.systemSetting.update({
+      where: { key: 'privacy_deletion_requests' },
+      data: { value: { requests: list }, updatedById: actor?.id || null },
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        userId: actor?.id || null,
+        userName: actor?.fullName || 'Super Admin',
+        userRole: actor?.role || 'SUPER_ADMIN',
+        action: decision === 'APPROVED' ? 'DELETE' : 'UPDATE',
+        module: 'privacy',
+        entity: 'DataDeletionRequest',
+        entityId: id,
+        details: { decision, anonymizedCount, notes: list[idx].resolutionNotes },
+        isSpecialFlag: true,
+      },
+    });
+
+    return apiEnvelope(list[idx], `Data deletion request ${id} marked ${decision}.`, { request: list[idx] });
+  }
+
+  async runThreeYearRetentionCheck(actor: any) {
+    const threeYearsAgo = new Date(Date.now() - 3 * 365 * 24 * 60 * 60 * 1000);
+    const archived = await this.prisma.lead.updateMany({
+      where: {
+        deletedAt: null,
+        updatedAt: { lt: threeYearsAgo },
+        status: { notIn: ['admission_done', 'commission_received', 'ADMISSION_CONFIRMED', 'ENROLLED'] },
+      },
+      data: {
+        deletedAt: new Date(),
+        expiryStatus: 'ARCHIVED_3YR_RETENTION',
+      },
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        userId: actor?.id || null,
+        userName: actor?.fullName || 'Super Admin',
+        userRole: actor?.role || 'SUPER_ADMIN',
+        action: 'AUTO',
+        module: 'privacy',
+        entity: 'DataRetention',
+        entityId: '3-year-policy',
+        details: {
+          cutoffDate: threeYearsAgo.toISOString(),
+          archivedCount: archived.count,
+        },
+      },
+    });
+
+    return apiEnvelope(
+      { archivedCount: archived.count, cutoffDate: threeYearsAgo.toISOString() },
+      archived.count > 0
+        ? `Archived ${archived.count} inactive lead(s) older than 3 years.`
+        : 'All active records are within the 3-year retention window (0 records archived).',
+    );
   }
 }

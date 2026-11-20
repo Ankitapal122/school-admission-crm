@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuthStore } from '../stores/authStore';
-import { apiCall, flushPendingOfflineMutations, getApiBase } from '../lib/api';
+import { apiCall, downloadApiFile, flushPendingOfflineMutations, getApiBase } from '../lib/api';
 import { getPendingMutationCount } from '../lib/offlineDb';
 import { hasRole } from '../lib/roles';
 import CrmIcon from './CrmIcon';
@@ -28,6 +28,25 @@ interface NotificationItem {
   link?: string | null;
   relatedEntityType?: string | null;
 }
+
+const NOTIFICATION_EVENT_META: Record<
+  string,
+  { icon: string; label: string; bg: string; color: string }
+> = {
+  follow_up_reminder: { icon: 'bell', label: 'Follow-Up Reminder', bg: '#EFF6FF', color: '#1D4ED8' },
+  weekly_report: { icon: 'calendar', label: 'Weekly Report', bg: '#F5F3FF', color: '#6D28D9' },
+  merge_alert: { icon: 'refresh', label: 'Merge Alert', bg: '#FEF3C7', color: '#B45309' },
+  report_ready: { icon: 'bar-chart', label: 'Report Ready', bg: '#ECFDF5', color: '#047857' },
+  commission_reversed: { icon: 'rotate-ccw', label: 'Commission Reversed', bg: '#FEE2E2', color: '#B91C1C' },
+  recalculate_complete: { icon: 'zap', label: 'Score Recalculated', bg: '#ECFEFF', color: '#0E7490' },
+  lead_assigned: { icon: 'user-check', label: 'Lead Assigned', bg: '#DBEAFE', color: '#1E40AF' },
+  follow_up_overdue: { icon: 'clock', label: 'Follow-Up Overdue', bg: '#FEF2F2', color: '#DC2626' },
+  school_deactivated: { icon: 'alert', label: 'School Deactivated', bg: '#FFF7ED', color: '#C2410C' },
+  bulk_import_complete: { icon: 'download', label: 'Bulk Import Complete', bg: '#F0FDF4', color: '#15803D' },
+  lead_reopened: { icon: 'refresh', label: 'Lead Reopened', bg: '#EEF2FF', color: '#4338CA' },
+  lead_expiry_warning: { icon: 'clock', label: 'Expiry Warning', bg: '#FEF3C7', color: '#92400E' },
+  lead_suspended: { icon: 'pause', label: 'Lead Suspended', bg: '#F1F5F9', color: '#334155' },
+};
 
 export default function Navbar({
   currentTab,
@@ -129,11 +148,25 @@ export default function Navbar({
         socket?.emit('join_user', { userId: user.id, role: user.rawRole || user.role });
       });
       socket.on('notification', (payload: NotificationItem) => {
-        setNotifications((prev) => [payload, ...prev.slice(0, 14)]);
+        setNotifications((prev) => {
+          if (prev.some((x) => x.id === payload.id)) return prev;
+          return [payload, ...prev.slice(0, 19)];
+        });
         setUnreadCount((c) => c + 1);
         if (onShowToast && payload?.title) {
           onShowToast(`${payload.title}: ${payload.message}`, 'warning');
         }
+      });
+      socket.on('notification_read', (payload: { id?: string }) => {
+        if (!payload?.id) return;
+        setNotifications((prev) =>
+          prev.map((x) => (x.id === payload.id ? { ...x, isRead: true } : x))
+        );
+        setUnreadCount((c) => Math.max(0, c - 1));
+      });
+      socket.on('notifications_all_read', () => {
+        setNotifications((prev) => prev.map((x) => ({ ...x, isRead: true })));
+        setUnreadCount(0);
       });
     } catch {
       // Graceful fallback to REST polling when WebSocket cannot connect
@@ -232,11 +265,23 @@ export default function Navbar({
       }
     }
     setNotifOpen(false);
-    const ent = (n.relatedEntityType || n.link || '').toLowerCase();
-    if (ent.includes('lead')) onSelectTab('leads');
+    if (n.type === 'report_ready' && n.link && n.link.includes('/reports/download/')) {
+      const apiPath = n.link.replace(/^\/api/, '');
+      try {
+        await downloadApiFile(apiPath, `CRM_Report_${n.id.slice(0, 6)}.json`);
+        onShowToast?.('Report download started!', 'success');
+      } catch {
+        onSelectTab('reports');
+      }
+      return;
+    }
+    const ent = (n.type || n.relatedEntityType || n.link || '').toLowerCase();
+    if (ent.includes('report')) onSelectTab('reports');
+    else if (ent.includes('school')) onSelectTab('schools');
+    else if (ent.includes('follow')) onSelectTab('followups');
     else if (ent.includes('commission')) onSelectTab('commissions');
     else if (ent.includes('admission') || ent.includes('application')) onSelectTab('admissions');
-    else if (ent.includes('follow')) onSelectTab('followups');
+    else if (ent.includes('lead') || ent.includes('merge') || ent.includes('recalculate') || ent.includes('bulk_import')) onSelectTab('leads');
   };
 
   const handleManualOfflineSync = async () => {
@@ -555,28 +600,62 @@ export default function Navbar({
                     No notifications yet.
                   </div>
                 ) : (
-                  notifications.map((n) => (
-                    <div
-                      key={n.id}
-                      onClick={() => handleNotificationClick(n)}
-                      style={{
-                        padding: '10px 14px',
-                        borderBottom: '1px solid #F1F5F9',
-                        background: n.isRead ? '#FFFFFF' : '#EFF6FF',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#0F172A' }}>
-                        {n.title}
+                  notifications.map((n) => {
+                    const meta = NOTIFICATION_EVENT_META[n.type] || {
+                      icon: 'bell',
+                      label: String(n.type || 'Alert').replace(/_/g, ' '),
+                      bg: '#F1F5F9',
+                      color: '#334155',
+                    };
+                    return (
+                      <div
+                        key={n.id}
+                        onClick={() => handleNotificationClick(n)}
+                        style={{
+                          padding: '10px 14px',
+                          borderBottom: '1px solid #F1F5F9',
+                          background: n.isRead ? '#FFFFFF' : '#EFF6FF',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', marginBottom: '4px' }}>
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              background: meta.bg,
+                              color: meta.color,
+                              padding: '2px 7px',
+                              borderRadius: '999px',
+                              fontSize: '10px',
+                              fontWeight: 700,
+                            }}
+                          >
+                            <CrmIcon name={meta.icon} size={11} />
+                            <span>{meta.label}</span>
+                          </span>
+                          {!n.isRead && (
+                            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#2563EB', flexShrink: 0 }} />
+                          )}
+                        </div>
+                        <div style={{ fontSize: '12.5px', fontWeight: 700, color: '#0F172A' }}>
+                          {n.title}
+                        </div>
+                        <div style={{ fontSize: '12px', color: '#475569', marginTop: '2px', lineHeight: 1.4 }}>
+                          {n.message}
+                        </div>
+                        {n.type === 'report_ready' && n.link && (
+                          <div style={{ fontSize: '11px', fontWeight: 700, color: '#047857', marginTop: '5px' }}>
+                            ⬇ Click to Download Report
+                          </div>
+                        )}
+                        <div style={{ fontSize: '10.5px', color: '#94A3B8', marginTop: '4px' }}>
+                          {n.createdAt ? new Date(n.createdAt).toLocaleString('en-IN') : 'Just now'}
+                        </div>
                       </div>
-                      <div style={{ fontSize: '12px', color: '#475569', marginTop: '2px' }}>
-                        {n.message}
-                      </div>
-                      <div style={{ fontSize: '10.5px', color: '#94A3B8', marginTop: '4px' }}>
-                        {n.createdAt ? new Date(n.createdAt).toLocaleString() : 'Just now'}
-                      </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </div>

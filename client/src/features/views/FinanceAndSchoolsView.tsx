@@ -245,23 +245,27 @@ export function CommissionsView({
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div
             style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '50%',
-              backgroundColor: '#3B82F6',
+              width: '36px',
+              height: '36px',
+              borderRadius: '10px',
+              backgroundColor: 'rgba(255,255,255,0.16)',
+              border: '1px solid rgba(255,255,255,0.28)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontWeight: 800,
-              fontSize: '14px',
               color: '#FFFFFF',
             }}
           >
-            29
+            <CrmIcon name="rupee" size={18} />
           </div>
-          <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#FFFFFF' }}>
-            Commission Ledger
-          </h2>
+          <div>
+            <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#FFFFFF' }}>
+              Commission Ledger
+            </h2>
+            <div style={{ fontSize: '11.5px', color: 'rgba(255,255,255,0.85)', marginTop: '2px' }}>
+              End-to-end commission lifecycle (Pending → Received → Paid Out → Reversal &amp; FNF)
+            </div>
+          </div>
         </div>
         <span
           style={{
@@ -288,22 +292,6 @@ export function CommissionsView({
           borderTop: 'none',
         }}
       >
-        {/* Purpose Banner */}
-        <div
-          style={{
-            backgroundColor: '#FFFBEB',
-            borderLeft: '4px solid #F59E0B',
-            padding: '12px 16px',
-            borderRadius: '6px',
-            marginBottom: '20px',
-            fontSize: '12.5px',
-            color: '#92400E',
-            lineHeight: 1.5,
-          }}
-        >
-          <strong>Purpose:</strong> All commission entries. Month / year filter. Status tracking (Pending → Received → Paid). Reversal column.
-        </div>
-
         {/* 4 Top Metric KPI Cards */}
         <div
           style={{
@@ -401,7 +389,9 @@ export function CommissionsView({
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 600, color: '#475569' }}>📅 From</span>
+            <span style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <CrmIcon name="calendar" size={14} /> From
+            </span>
             <input
               type="date"
               className="form-control"
@@ -412,7 +402,9 @@ export function CommissionsView({
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 600, color: '#475569' }}>📅 To</span>
+            <span style={{ fontSize: '12px', fontWeight: 600, color: '#475569', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <CrmIcon name="calendar" size={14} /> To
+            </span>
             <input
               type="date"
               className="form-control"
@@ -430,7 +422,7 @@ export function CommissionsView({
               onChange={(e) => setSelectedSchool(e.target.value)}
               style={{ fontSize: '12px', padding: '6px 10px', borderRadius: '6px', minWidth: '130px' }}
             >
-              <option value="All">All ▾</option>
+              <option value="All">All</option>
               {Array.from(new Set(ledgerItems.map((i) => i.schoolName).filter(Boolean))).map((sch) => (
                 <option key={sch} value={sch}>
                   {sch}
@@ -447,7 +439,7 @@ export function CommissionsView({
               onChange={(e) => setSelectedStatus(e.target.value)}
               style={{ fontSize: '12px', padding: '6px 10px', borderRadius: '6px', minWidth: '120px' }}
             >
-              <option value="All">All ▾</option>
+              <option value="All">All</option>
               <option value="received">Received</option>
               <option value="pending">Pending</option>
               <option value="paid out">Paid Out</option>
@@ -467,12 +459,12 @@ export function CommissionsView({
               fontSize: '12px',
               fontWeight: 700,
               cursor: 'pointer',
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
             }}
           >
-            <span>🔍 Apply</span>
+            <CrmIcon name="search" size={14} /> Apply
           </button>
 
           <button
@@ -487,12 +479,12 @@ export function CommissionsView({
               fontSize: '12px',
               fontWeight: 700,
               cursor: 'pointer',
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
             }}
           >
-            <span>📥 Export</span>
+            <CrmIcon name="download" size={14} /> Export
           </button>
         </div>
 
@@ -569,8 +561,8 @@ export function CommissionsView({
                         </span>
                       )}
                       {item.status === 'reversed' && (
-                        <span style={{ backgroundColor: '#F87171', color: '#FFFFFF', padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 800 }}>
-                          Reversed ↩️
+                        <span style={{ backgroundColor: '#F87171', color: '#FFFFFF', padding: '3px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <CrmIcon name="rotate-ccw" size={12} /> Reversed
                         </span>
                       )}
                     </td>
@@ -589,12 +581,12 @@ export function CommissionsView({
                               fontSize: '11px',
                               fontWeight: 700,
                               cursor: 'pointer',
-                              display: 'flex',
+                              display: 'inline-flex',
                               alignItems: 'center',
                               gap: '4px',
                             }}
                           >
-                            💰 Mark Paid
+                            <CrmIcon name="rupee" size={13} /> Mark Paid
                           </button>
                         )}
                         {item.status === 'pending' && (
@@ -610,12 +602,12 @@ export function CommissionsView({
                               fontSize: '11px',
                               fontWeight: 700,
                               cursor: 'pointer',
-                              display: 'flex',
+                              display: 'inline-flex',
                               alignItems: 'center',
                               gap: '4px',
                             }}
                           >
-                            ✅ Mark Received
+                            <CrmIcon name="check-circle" size={13} /> Mark Received
                           </button>
                         )}
                         {item.status === 'paid_out' && (
@@ -632,9 +624,11 @@ export function CommissionsView({
                               fontSize: '11px',
                               fontWeight: 700,
                               cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
                             }}
                           >
-                            ↩️
+                            <CrmIcon name="rotate-ccw" size={14} />
                           </button>
                         )}
                         <button
@@ -649,9 +643,11 @@ export function CommissionsView({
                             padding: '5px 8px',
                             fontSize: '11px',
                             cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
                           }}
                         >
-                          👁️
+                          <CrmIcon name="eye" size={14} />
                         </button>
                       </div>
                     </td>
@@ -660,32 +656,6 @@ export function CommissionsView({
               })}
             </tbody>
           </table>
-        </div>
-
-        {/* API Notes Footer */}
-        <div
-          style={{
-            marginTop: '16px',
-            backgroundColor: '#0F172A',
-            color: '#94A3B8',
-            borderRadius: '8px',
-            padding: '10px 16px',
-            fontFamily: 'monospace',
-            fontSize: '11px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-          }}
-        >
-          <span style={{ backgroundColor: '#10B981', color: '#FFFFFF', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
-            GET
-          </span>
-          <span style={{ color: '#38BDF8' }}>/commission/ledger</span>
-          <span style={{ color: '#64748B' }}>|</span>
-          <span style={{ backgroundColor: '#2563EB', color: '#FFFFFF', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
-            POST
-          </span>
-          <span style={{ color: '#38BDF8' }}>/commission/:id/receive</span>
         </div>
       </div>
 
@@ -733,7 +703,7 @@ export function CommissionsView({
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#DC2626', fontWeight: 800, fontSize: '15.5px' }}>
-                <span>↩️</span> Reverse Commission {reversalModalItem.commissionCode}
+                <CrmIcon name="rotate-ccw" size={16} /> Reverse Commission {reversalModalItem.commissionCode}
               </div>
               <button
                 type="button"
@@ -741,12 +711,13 @@ export function CommissionsView({
                 style={{
                   border: 'none',
                   background: 'none',
-                  fontSize: '16px',
                   color: '#64748B',
                   cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
                 }}
               >
-                ✕
+                <CrmIcon name="x" size={16} />
               </button>
             </div>
 
@@ -827,8 +798,8 @@ export function CommissionsView({
                   lineHeight: 1.5,
                 }}
               >
-                <div style={{ fontWeight: 800, marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <span>⚠️</span> FNF Handling:
+                <div style={{ fontWeight: 800, marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <CrmIcon name="alert" size={15} /> FNF Handling:
                 </div>
                 <div>
                   The user is <strong>Active</strong> (not in the FNF period)
@@ -894,7 +865,7 @@ export function CommissionsView({
                     boxShadow: '0 2px 6px rgba(239, 68, 68, 0.3)',
                   }}
                 >
-                  <span>↩️ {reversalBusy ? 'Processing...' : 'Confirm Reversal'}</span>
+                  <CrmIcon name="rotate-ccw" size={14} /> {reversalBusy ? 'Processing...' : 'Confirm Reversal'}
                 </button>
               </div>
             </div>
@@ -1480,7 +1451,7 @@ export function AdmissionsView({
                       );
                     }}
                   >
-                    <CrmIcon name="rupee" size={16} /> Full Payment (Ek Saath)
+                    <CrmIcon name="rupee" size={16} /> Full Payment (100%)
                   </button>
                   <button
                     type="button"
@@ -1488,7 +1459,7 @@ export function AdmissionsView({
                     style={{ flex: 1 }}
                     onClick={() => setPaymentModeType('installment')}
                   >
-                    <CrmIcon name="bar-chart" size={16} /> Installment (Kist Mein)
+                    <CrmIcon name="bar-chart" size={16} /> Installment Plan
                   </button>
                 </div>
                 <div className="form-group">
@@ -1739,6 +1710,50 @@ export function SchoolsView({
   const [showImportModal, setShowImportModal] = useState(false);
   const [selectedSchool, setSelectedSchool] = useState<any | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [deactivatePrompt, setDeactivatePrompt] = useState<{
+    school: any;
+    activeCount: number;
+    warning?: string;
+  } | null>(null);
+  const [deactivating, setDeactivating] = useState(false);
+
+  const canManageSchoolStatus = hasRole(user?.role, 'SUPER_ADMIN');
+
+  const handleCheckAndDeactivateSchool = async (school: any) => {
+    try {
+      const res = await apiCall(`/schools/${school.id}/check-active-applications`, 'POST', {});
+      const data = res?.data || res || {};
+      const activeCount = Number(data.active_applications_count ?? data.activeCount ?? 0);
+      setDeactivatePrompt({
+        school,
+        activeCount,
+        warning:
+          data.warning ||
+          `This school has ${activeCount} active application(s). Are you sure you want to deactivate it?`,
+      });
+    } catch (err: any) {
+      onShowToast(err?.message || 'Could not check active applications for this school.', 'danger');
+    }
+  };
+
+  const handleConfirmDeactivateSchool = async () => {
+    if (!deactivatePrompt) return;
+    setDeactivating(true);
+    try {
+      await apiCall(`/schools/${deactivatePrompt.school.id}`, 'PUT', { status: 'inactive' });
+      onShowToast(
+        `${deactivatePrompt.school.name} deactivated. Existing applications preserved; new applications blocked.`,
+        'warning'
+      );
+      setDeactivatePrompt(null);
+      setSelectedSchool(null);
+      onRefresh();
+    } catch (err: any) {
+      onShowToast(err?.message || 'School deactivation failed.', 'danger');
+    } finally {
+      setDeactivating(false);
+    }
+  };
 
   const openSchoolDetails = async (school: any) => {
     setSelectedSchool(school);
@@ -2433,8 +2448,59 @@ export function SchoolsView({
             </div>
 
             <div className="modal-footer">
+              {canManageSchoolStatus && selectedSchool.status !== 'inactive' && (
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  onClick={() => handleCheckAndDeactivateSchool(selectedSchool)}
+                >
+                  Deactivate School
+                </button>
+              )}
               <button className="btn btn-outline" onClick={() => setSelectedSchool(null)}>
                 Close Dossier
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* School Deactivation Active Applications Warning Modal */}
+      {deactivatePrompt && (
+        <div className="modal-overlay" style={{ zIndex: 2400 }} onClick={() => setDeactivatePrompt(null)}>
+          <div className="modal-content" style={{ maxWidth: '480px' }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header" style={{ background: '#FEF2F2', borderBottom: '1px solid #FECACA' }}>
+              <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#991B1B' }}>
+                <CrmIcon name="alert" size={16} /> Confirm School Deactivation
+              </h3>
+              <button type="button" className="btn btn-sm btn-outline" onClick={() => setDeactivatePrompt(null)}>
+                <CrmIcon name="x" size={16} />
+              </button>
+            </div>
+            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13px' }}>
+              <div style={{ padding: '12px', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '10px', color: '#92400E', fontWeight: 700 }}>
+                This school has <strong>{deactivatePrompt.activeCount}</strong> active application(s). Are you sure you want to deactivate it?
+              </div>
+              <div>
+                <strong>School:</strong> {deactivatePrompt.school.name} ({deactivatePrompt.school.schoolCode})
+              </div>
+              <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.5 }}>
+                • Existing applications &amp; historical records remain preserved.<br />
+                • New applications to this school will be blocked.<br />
+                • Leads with no other active applications will be reopened for alternative schools &amp; Managers will be notified.
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn btn-outline" onClick={() => setDeactivatePrompt(null)}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-danger"
+                disabled={deactivating}
+                onClick={handleConfirmDeactivateSchool}
+              >
+                {deactivating ? 'Deactivating...' : 'Confirm Deactivate'}
               </button>
             </div>
           </div>

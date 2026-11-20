@@ -698,39 +698,7 @@ export default function LeadReportModal({
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Yellow Notice Banner Matching Image 2 */}
-        <div
-          style={{
-            backgroundColor: '#FEF3C7',
-            borderBottom: '1px solid #FDE68A',
-            padding: '10px 18px',
-            fontSize: '12px',
-            color: '#92400E',
-            fontWeight: 500,
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          <div>
-            <strong style={{ color: '#78350F' }}>Purpose:</strong> Complete lead info + history timeline + remarks. Jr. = limited edit (name, mobile, remark). Manager = full edit.
-          </div>
-          <button
-            onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: '#92400E',
-              fontSize: '16px',
-              padding: '0 4px',
-            }}
-          >
-            ✕
-          </button>
-        </div>
-
-        {/* Top Header Row Matching Image 2 */}
+        {/* Top Header Row */}
         <div
           style={{
             backgroundColor: '#FFFFFF',

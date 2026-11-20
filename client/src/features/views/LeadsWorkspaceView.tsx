@@ -44,6 +44,10 @@ export function LeadsView({
     placeholder: string;
   } | null>(null);
   const [actionReason, setActionReason] = useState('');
+  const [suspendPeriod, setSuspendPeriod] = useState<'30' | '90' | '180' | 'custom'>('90');
+  const [customSuspendDays, setCustomSuspendDays] = useState('45');
+  const [reopenAssignTo, setReopenAssignTo] = useState('');
+  const [expireDecision, setExpireDecision] = useState<'EXPIRE' | 'EXTEND'>('EXPIRE');
   const [busyAction, setBusyAction] = useState(false);
 
   // Fetch server-scoped bucket for expired/suspended/reopened tabs
@@ -101,14 +105,24 @@ export function LeadsView({
         await apiCall(`/leads/${id}/restore`, 'POST', { reason });
         onShowToast(`Lead restored cleanly.`, 'success');
       } else if (reasonModal.action === 'reopen') {
-        await apiCall(`/leads/${id}/reopen`, 'POST', { reason });
-        onShowToast(`Lead reopened into active workflow.`, 'success');
+        await apiCall(`/leads/${id}/reopen`, 'POST', {
+          reason,
+          assign_to: reopenAssignTo || undefined,
+          assignTo: reopenAssignTo || undefined,
+        });
+        onShowToast(`Lead reopened into active workflow (+3 day follow-up set, score recalculated).`, 'success');
       } else if (reasonModal.action === 'suspend') {
-        await apiCall(`/leads/${id}/suspend`, 'POST', { reason });
-        onShowToast(`Lead suspended (cycle timer paused).`, 'warning');
+        const days = suspendPeriod === 'custom' ? Math.max(1, Number(customSuspendDays) || 30) : Number(suspendPeriod);
+        await apiCall(`/leads/${id}/suspend`, 'POST', { reason, suspend_days: days, suspendDays: days });
+        onShowToast(`Lead suspended for ${days} days (Manager approved; early exit allowed).`, 'warning');
       } else if (reasonModal.action === 'expire') {
-        await apiCall(`/leads/${id}/expire`, 'POST', { action: 'EXPIRE', reason, force: false });
-        onShowToast(`Lead marked expired (soft — can still reopen).`, 'warning');
+        if (expireDecision === 'EXTEND') {
+          await apiCall(`/leads/${id}/expire`, 'POST', { action: 'EXTEND', reason, force: false });
+          onShowToast(`Lead extended by +90 days (new 90-day cycle started).`, 'success');
+        } else {
+          await apiCall(`/leads/${id}/expire`, 'POST', { action: 'EXPIRE', reason, force: false });
+          onShowToast(`Lead marked expired (soft — can still reopen).`, 'warning');
+        }
       } else if (reasonModal.action === 'force-expire') {
         await apiCall(`/leads/${id}/expire`, 'POST', { action: 'EXPIRE', reason, force: true });
         onShowToast(`Lead force-expired permanently (cannot reopen).`, 'danger');
@@ -500,6 +514,88 @@ export function LeadsView({
                     }}
                   >
                     <CrmIcon name="alert" size={16} /> This lead was <strong>Force-Expired at Day 360</strong>. Server business rule #4 rejects reopening and returns: &quot;Please create a new lead.&quot;
+                  </div>
+                )}
+                {reasonModal.action === 'reopen' && !reasonModal.lead.forceExpired && (
+                  <div className="form-group">
+                    <label className="form-label">Assign Reopened Lead to Counsellor (Commission Beneficiary)</label>
+                    <select
+                      className="form-control"
+                      value={reopenAssignTo}
+                      onChange={(e) => setReopenAssignTo(e.target.value)}
+                    >
+                      <option value="">Keep Current / Default Counsellor</option>
+                      {users
+                        .filter((u: any) =>
+                          String(u.role || u.canonicalRole || '').toLowerCase().includes('counsellor') ||
+                          String(u.role || u.canonicalRole || '').toLowerCase().includes('manager')
+                        )
+                        .map((u: any) => (
+                          <option key={u.id} value={u.id}>
+                            {u.fullName} ({u.role})
+                          </option>
+                        ))}
+                    </select>
+                    <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px' }}>
+                      Same Lead ID preserved &bull; Old remarks preserved &bull; Score auto-recalculated &bull; Follow-up auto-set (+3 days)
+                    </div>
+                  </div>
+                )}
+                {reasonModal.action === 'suspend' && (
+                  <div className="form-group">
+                    <label className="form-label">Suspend Period (Manager Approval)</label>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', marginBottom: '8px' }}>
+                      {[
+                        { val: '30', label: '1 Month' },
+                        { val: '90', label: '3 Months' },
+                        { val: '180', label: '6 Months' },
+                        { val: 'custom', label: 'Custom' },
+                      ].map((opt) => (
+                        <button
+                          key={opt.val}
+                          type="button"
+                          className={`btn btn-sm ${suspendPeriod === opt.val ? 'btn-primary' : 'btn-outline'}`}
+                          onClick={() => setSuspendPeriod(opt.val as any)}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                    {suspendPeriod === 'custom' && (
+                      <input
+                        type="number"
+                        min={1}
+                        max={365}
+                        className="form-control"
+                        placeholder="Enter custom days (e.g. 45)"
+                        value={customSuspendDays}
+                        onChange={(e) => setCustomSuspendDays(e.target.value)}
+                      />
+                    )}
+                    <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px' }}>
+                      Early exit allowed anytime if parent calls back. After suspend ends with no response, a new 90-day cycle begins.
+                    </div>
+                  </div>
+                )}
+                {reasonModal.action === 'expire' && (
+                  <div className="form-group">
+                    <label className="form-label">90-Day Cycle Decision (No Auto-Expire)</label>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                      <button
+                        type="button"
+                        className={`btn btn-sm ${expireDecision === 'EXTEND' ? 'btn-success' : 'btn-outline'}`}
+                        onClick={() => setExpireDecision('EXTEND')}
+                      >
+                        +90 More Days (Extend)
+                      </button>
+                      <button
+                        type="button"
+                        className={`btn btn-sm ${expireDecision === 'EXPIRE' ? 'btn-warning' : 'btn-outline'}`}
+                        onClick={() => setExpireDecision('EXPIRE')}
+                      >
+                        Mark Expired (Reopenable)
+                      </button>
+                    </div>
                   </div>
                 )}
                 <div className="form-group">
@@ -1659,17 +1755,17 @@ const LEAD_STATES = [
   'West Bengal', 'Bihar', 'Jharkhand', 'Odisha', 'Telangana', 'Kerala', 'Other',
 ];
 const LEAD_BUDGETS = [
-  { value: '1L-2L', label: '₹1L – ₹2L', min: 100000, max: 200000 },
-  { value: '2L-4L', label: '₹2L – ₹4L', min: 200000, max: 400000 },
-  { value: '4L-5L', label: '₹4L – ₹5L', min: 400000, max: 500000 },
-  { value: '5L-6L', label: '₹5L – ₹6L', min: 500000, max: 600000 },
-  { value: '6L-8L', label: '₹6L – ₹8L', min: 600000, max: 800000 },
-  { value: '8L-12L', label: '₹8L – ₹12L', min: 800000, max: 1200000 },
-  { value: '12L+', label: '₹12L and above', min: 1200000, max: 2500000 },
+  { value: 'Under ₹1L', label: 'Under ₹1L', min: 50000, max: 100000 },
+  { value: 'Below ₹2L', label: 'Below ₹2L', min: 100000, max: 200000 },
+  { value: '₹2L – ₹2.5L', label: '₹2L – ₹2.5L', min: 200000, max: 250000 },
+  { value: '₹2.5L – ₹3L', label: '₹2.5L – ₹3L', min: 250000, max: 300000 },
+  { value: '₹3L – ₹4L', label: '₹3L – ₹4L', min: 300000, max: 400000 },
+  { value: '₹4L – ₹5L', label: '₹4L – ₹5L', min: 400000, max: 500000 },
+  { value: '₹5L – ₹6L', label: '₹5L – ₹6L', min: 500000, max: 600000 },
+  { value: 'custom', label: 'And more (Custom)', min: 600000, max: 1500000 },
 ];
 const LEAD_SOURCES = [
-  'Call', 'Website', 'WhatsApp', 'Referral', 'Walk-in', 'Social Media Ad',
-  'Facebook', 'Instagram', 'Google Ads', 'Education Fair',
+  'Call', 'WhatsApp', 'Website', 'Referral', 'Ad', 'Walk-in',
 ];
 
 export function CreateLeadModal({
@@ -1705,7 +1801,8 @@ export function CreateLeadModal({
     cityResident: '',
     cityPreferred: '',
     state: 'Uttarakhand',
-    budget: '4L-5L',
+    budget: '₹3L – ₹4L',
+    customBudget: '',
     studentGender: 'male',
     schoolGenderPref: 'co_ed',
     prevClassPct: '',
@@ -1716,6 +1813,7 @@ export function CreateLeadModal({
   const [dpdpConsent, setDpdpConsent] = useState(false);
   const [dupWarning, setDupWarning] = useState<any>(null);
   const [expiredMatch, setExpiredMatch] = useState<any>(null);
+  const [allowCreateNewAfterExpiry, setAllowCreateNewAfterExpiry] = useState(false);
   const [phoneAlreadyRegistered, setPhoneAlreadyRegistered] = useState<{
     id?: string;
     leadNumber?: string;
@@ -1748,24 +1846,33 @@ export function CreateLeadModal({
         apiCall('/leads/check-duplicate', 'POST', {
           mobile: f.mobile.trim(),
           studentName: f.studentName.trim(),
+          classGrade: f.admissionClass,
         }).catch(() => null),
         apiCall('/leads/check-expired-match', 'POST', {
           mobile: f.mobile.trim(),
           studentName: f.studentName.trim(),
+          classGrade: f.admissionClass,
+          admissionClass: f.admissionClass,
         }).catch(() => null),
       ]);
+      const exp =
+        eRes?.expiredLead ||
+        eRes?.expired_lead ||
+        eRes?.match ||
+        eRes?.data?.expiredLead ||
+        eRes?.data?.expired_lead ||
+        null;
+      setExpiredMatch(exp);
       const dups = dRes?.duplicates || dRes?.matches || dRes?.data?.duplicates || dRes?.data?.matches || [];
       const matched = dRes?.phoneMatchedLead || (Array.isArray(dups)
         ? dups.find((m: any) => (m.parentPhone || '').replace(/\D/g, '').slice(-10) === rawMobile.slice(-10))
         : null);
-      if (dRes?.phoneAlreadyExists || matched) {
+      if ((dRes?.phoneAlreadyExists || matched) && !exp) {
         setPhoneAlreadyRegistered(matched || { leadNumber: 'LD-EXISTING', studentName: 'Registered Student' });
       } else {
         setPhoneAlreadyRegistered(null);
       }
       setDupWarning(Array.isArray(dups) && dups.length > 0 ? dups[0] : null);
-      const exp = eRes?.expiredLead || eRes?.match || eRes?.data?.expiredLead || null;
-      setExpiredMatch(exp);
     } catch {
       // ignore pre-check errors
     }
@@ -1804,7 +1911,9 @@ export function CreateLeadModal({
       onShowToast('DPDP parent data consent checkbox is required.', 'warning');
       return;
     }
-    const budget = LEAD_BUDGETS.find((b) => b.value === f.budget) || LEAD_BUDGETS[2];
+    const budget = LEAD_BUDGETS.find((b) => b.value === f.budget) || LEAD_BUDGETS[4];
+    const resolvedBudgetLabel =
+      f.budget === 'custom' && f.customBudget.trim() ? f.customBudget.trim() : budget.value;
     setSubmitting(true);
     try {
       const res = await apiCall('/leads', 'POST', {
@@ -1832,8 +1941,8 @@ export function CreateLeadModal({
         city: f.cityResident.trim() || undefined,
         preferredLocation: f.cityPreferred.trim() || f.state,
         state: f.state,
-        budget_range: budget.value,
-        annualBudget: budget.value,
+        budget_range: resolvedBudgetLabel,
+        annualBudget: resolvedBudgetLabel,
         budgetMin: budget.min,
         budgetMax: budget.max,
         gender: f.studentGender,
@@ -1844,6 +1953,7 @@ export function CreateLeadModal({
         sourceDetail: f.sourceDetail.trim() || undefined,
         initial_remark: f.remark.trim() || undefined,
         dpdpConsent,
+        allowCreateNewAfterExpiry: allowCreateNewAfterExpiry || Boolean(expiredMatch),
       });
       const createdLead = res?.lead || res?.data?.lead || res?.data || {
         studentName: f.studentName.trim(),
@@ -2005,44 +2115,63 @@ export function CreateLeadModal({
             {expiredMatch && (
               <div
                 style={{
-                  background: '#EFF6FF', border: '1px solid #93C5FD', color: '#1E3A8A',
-                  padding: '10px', borderRadius: '8px', fontSize: '12px', marginBottom: '12px',
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px',
+                  background: '#EFF6FF', border: '1.5px solid #3B82F6', color: '#1E3A8A',
+                  padding: '12px 14px', borderRadius: '10px', fontSize: '12.5px', marginBottom: '12px',
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', flexWrap: 'wrap',
                 }}
               >
-                <span>
-                  {expiredMatch.forceExpired
-                    ? 'Matched a Force-Expired (360d) lead. Please create a new lead.'
-                    : `Matched expired lead ${expiredMatch.leadNumber || ''}.`}
-                </span>
-                {!expiredMatch.forceExpired && (
-                  <button type="button" className="btn btn-sm btn-primary" onClick={handleReopenExpiredMatch}>
-                    Reopen Instead
+                <div>
+                  <div style={{ fontWeight: 800 }}>
+                    {expiredMatch.forceExpired || expiredMatch.force_expired
+                      ? `This lead [${expiredMatch.leadNumber || expiredMatch.lead_id || ''}] was Force-Expired (Day 360). Please create a new lead.`
+                      : `This lead was expired [${expiredMatch.leadNumber || expiredMatch.lead_id || ''}] – ${expiredMatch.daysAgo ?? expiredMatch.days_ago ?? 90} days ago. Reopen?`}
+                  </div>
+                  <div style={{ fontSize: '11.5px', color: '#334155', marginTop: '2px' }}>
+                    Choose whether to reopen the existing lead (same ID, remarks preserved) or create a brand-new lead.
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {!(expiredMatch.forceExpired || expiredMatch.force_expired) && (
+                    <button type="button" className="btn btn-sm btn-primary" onClick={handleReopenExpiredMatch}>
+                      Reopen (Same ID)
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline"
+                    onClick={() => {
+                      setAllowCreateNewAfterExpiry(true);
+                      setPhoneAlreadyRegistered(null);
+                      setExpiredMatch(null);
+                      onShowToast('Proceeding to create a new lead record.', 'warning');
+                    }}
+                  >
+                    Create New
                   </button>
-                )}
+                </div>
               </div>
             )}
 
             {/* STUDENT & FAMILY */}
             <div id="sec-student" style={{ ...secTitle, marginTop: 0 }}>
-              <CrmIcon name="users" size={14} /> Student & Family
+              <CrmIcon name="users" size={14} /> Section 1 — Student & Family
             </div>
             <div style={grid}>
               <div className="form-group">
                 <label className="form-label">Student Name *</label>
-                <input className="form-control" required value={f.studentName} onChange={set('studentName')} placeholder="e.g. Aarav Rawat" />
+                <input className="form-control" required value={f.studentName} onChange={set('studentName')} onBlur={runDuplicateAndExpiredChecks} placeholder="e.g. Aarav Rawat" />
               </div>
               <div className="form-group">
                 <label className="form-label">Academic Year *</label>
                 <select className="form-control" value={f.academicYear} onChange={set('academicYear')}>
-                  {['2025-26', '2026-27', '2027-28'].map((y) => (
+                  {['2025-26', '2026-27', '2027-28', '2028-29'].map((y) => (
                     <option key={y} value={y}>{y}</option>
                   ))}
                 </select>
               </div>
               <div className="form-group">
-                <label className="form-label">Class *</label>
-                <select className="form-control" required value={f.admissionClass} onChange={set('admissionClass')}>
+                <label className="form-label">Class / Grade *</label>
+                <select className="form-control" required value={f.admissionClass} onChange={set('admissionClass')} onBlur={runDuplicateAndExpiredChecks}>
                   <option value="">Select</option>
                   {LEAD_CLASSES.map((c) => (
                     <option key={c} value={c}>{c}</option>
@@ -2193,6 +2322,18 @@ export function CreateLeadModal({
                   ))}
                 </select>
               </div>
+              {f.budget === 'custom' && (
+                <div className="form-group">
+                  <label className="form-label">Custom Budget Amount *</label>
+                  <input
+                    className="form-control"
+                    required
+                    placeholder="e.g. ₹7L – ₹10L / ₹12L+"
+                    value={f.customBudget}
+                    onChange={set('customBudget')}
+                  />
+                </div>
+              )}
               <div className="form-group">
                 <label className="form-label">Student Gender</label>
                 <select className="form-control" value={f.studentGender} onChange={set('studentGender')}>
