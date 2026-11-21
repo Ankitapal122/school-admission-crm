@@ -228,6 +228,171 @@ export default function AuditLogViewer({
     );
   };
 
+  const formatHumanValue = (v: string) => {
+    const map: Record<string, string> = {
+      A_waiting: 'A • Waiting',
+      B_only_registration: 'B • Registration Only',
+      C_formalities_done: 'C • Confirmed',
+      true: 'Yes',
+      false: 'No',
+    };
+    if (map[v]) return map[v];
+    return v.replace(/_/g, ' ');
+  };
+
+  const formatHumanKey = (k: string) => {
+    const map: Record<string, string> = {
+      'app Code': 'App Ref',
+      appCode: 'App Ref',
+      'new Sub Stage': 'New Stage',
+      newSubStage: 'New Stage',
+      'old Sub Stage': 'Previous Stage',
+      oldSubStage: 'Previous Stage',
+      'commissions Generated': 'Commission',
+      commissionsGenerated: 'Commission',
+    };
+    return map[k] || k.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
+  };
+
+  const renderStructuredDetails = (details: string) => {
+    const raw = String(details || '').trim();
+    if (!raw) return <span style={{ color: '#94A3B8' }}>—</span>;
+    const [headPart, ...restParts] = raw.split('—').map((s) => s.trim());
+    const segments = (restParts.length > 0 ? restParts.join(' — ') : headPart)
+      .split('•')
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    if (restParts.length === 0 && segments.length <= 1) {
+      return <span style={{ color: '#1E293B', lineHeight: 1.45 }}>{raw}</span>;
+    }
+
+    // Extract structured key-values to detect clean stage transitions (e.g. Old -> New)
+    const pairs: Array<{ key: string; val: string }> = [];
+    const plainNotes: string[] = [];
+    for (const seg of segments) {
+      const colonIdx = seg.indexOf(':');
+      if (colonIdx > 0 && colonIdx < 32) {
+        pairs.push({ key: seg.slice(0, colonIdx).trim(), val: seg.slice(colonIdx + 1).trim() });
+      } else {
+        plainNotes.push(seg);
+      }
+    }
+
+    const appRefPair = pairs.find((p) => p.key === 'app Code' || p.key === 'appCode');
+    const oldStagePair = pairs.find((p) => p.key === 'old Sub Stage' || p.key === 'oldSubStage');
+    const newStagePair = pairs.find((p) => p.key === 'new Sub Stage' || p.key === 'newSubStage');
+    const commPair = pairs.find((p) => p.key === 'commissions Generated' || p.key === 'commissionsGenerated');
+    const otherPairs = pairs.filter(
+      (p) => p !== appRefPair && p !== oldStagePair && p !== newStagePair && p !== commPair
+    );
+
+    const displayTitle = appRefPair
+      ? `Application ${appRefPair.val}`
+      : restParts.length > 0 && headPart
+      ? headPart
+      : null;
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+        {displayTitle && (
+          <div style={{ fontWeight: 700, color: '#0F172A', fontSize: '12.5px' }}>{displayTitle}</div>
+        )}
+
+        {(oldStagePair || newStagePair) && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', fontSize: '11.5px' }}>
+            {oldStagePair && (
+              <span
+                style={{
+                  padding: '2px 8px',
+                  borderRadius: '6px',
+                  backgroundColor: '#F1F5F9',
+                  color: '#475569',
+                  fontWeight: 600,
+                }}
+              >
+                {formatHumanValue(oldStagePair.val)}
+              </span>
+            )}
+            {oldStagePair && newStagePair && <span style={{ color: '#94A3B8', fontWeight: 700 }}>→</span>}
+            {newStagePair && (
+              <span
+                style={{
+                  padding: '2px 8px',
+                  borderRadius: '6px',
+                  backgroundColor: newStagePair.val === 'C_formalities_done' ? '#ECFDF5' : '#EFF6FF',
+                  border: `1px solid ${newStagePair.val === 'C_formalities_done' ? '#A7F3D0' : '#BFDBFE'}`,
+                  color: newStagePair.val === 'C_formalities_done' ? '#047857' : '#1D4ED8',
+                  fontWeight: 700,
+                }}
+              >
+                {formatHumanValue(newStagePair.val)}
+              </span>
+            )}
+            {commPair && (
+              <span
+                style={{
+                  padding: '2px 8px',
+                  borderRadius: '999px',
+                  backgroundColor: commPair.val === 'true' ? '#ECFDF5' : '#F8FAFC',
+                  border: `1px solid ${commPair.val === 'true' ? '#A7F3D0' : '#E2E8F0'}`,
+                  color: commPair.val === 'true' ? '#047857' : '#64748B',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                }}
+              >
+                {commPair.val === 'true' ? 'Commission Generated ✓' : 'No Commission'}
+              </span>
+            )}
+          </div>
+        )}
+
+        {(otherPairs.length > 0 || plainNotes.length > 0) && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+            {otherPairs.map((p, idx) => (
+              <span
+                key={`p-${idx}`}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  padding: '2px 8px',
+                  borderRadius: '6px',
+                  backgroundColor: '#F1F5F9',
+                  border: '1px solid #E2E8F0',
+                  fontSize: '11px',
+                  lineHeight: 1.4,
+                  maxWidth: '100%',
+                  wordBreak: 'break-word',
+                }}
+              >
+                <span style={{ color: '#64748B', fontWeight: 600 }}>{formatHumanKey(p.key)}:</span>
+                <span style={{ color: '#0F172A', fontWeight: 700 }}>{formatHumanValue(p.val)}</span>
+              </span>
+            ))}
+            {plainNotes.map((seg, idx) => (
+              <span
+                key={`n-${idx}`}
+                style={{
+                  display: 'inline-block',
+                  padding: '2px 8px',
+                  borderRadius: '6px',
+                  backgroundColor: '#F8FAFC',
+                  border: '1px solid #E2E8F0',
+                  fontSize: '11px',
+                  color: '#334155',
+                  fontWeight: 600,
+                }}
+              >
+                {seg}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div style={{ padding: '4px 0', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       {/* Header Bar */}
@@ -367,8 +532,99 @@ export default function AuditLogViewer({
           </button>
         </div>
 
-        {/* Data Table */}
-        <div style={{ overflowX: 'auto', border: '1px solid #E2E8F0', borderRadius: '8px' }}>
+        {/* Mobile Card View (Professional Responsive Details Layout) */}
+        <div className="flex flex-col gap-2.5 md:hidden">
+          {loading ? (
+            <div style={{ padding: '24px', textAlign: 'center', color: '#64748B', fontSize: '13px', border: '1px solid #E2E8F0', borderRadius: '10px' }}>
+              Loading real audit trail...
+            </div>
+          ) : filteredLogs.length === 0 ? (
+            <div style={{ padding: '24px', textAlign: 'center', color: '#64748B', fontSize: '13px', border: '1px solid #E2E8F0', borderRadius: '10px' }}>
+              No audit log entries recorded for this filter yet.
+            </div>
+          ) : (
+            filteredLogs.map((log) => {
+              const isSpecial = log.isSpecial || log.action === 'REVERSE';
+              return (
+                <div
+                  key={`mob-${log.id}`}
+                  style={{
+                    border: `1px solid ${isSpecial ? '#FECACA' : '#E2E8F0'}`,
+                    backgroundColor: isSpecial ? '#FEF2F2' : '#FFFFFF',
+                    borderRadius: '10px',
+                    padding: '12px',
+                    boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                      {getActionBadge(log.action)}
+                      <span
+                        style={{
+                          padding: '2px 8px',
+                          borderRadius: '6px',
+                          backgroundColor: '#EFF6FF',
+                          color: '#1D4ED8',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          textTransform: 'capitalize',
+                        }}
+                      >
+                        {log.module}
+                      </span>
+                      {isSpecial && (
+                        <span style={{ color: '#DC2626', fontSize: '11px', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                          <CrmIcon name="alert" size={12} /> Special
+                        </span>
+                      )}
+                    </div>
+                    <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
+                      {log.timestamp}
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
+                    <span style={{ fontWeight: 700, color: '#0F172A' }}>{log.user}</span>
+                    {log.role && (
+                      <span
+                        style={{
+                          fontSize: '10px',
+                          fontWeight: 700,
+                          color: '#475569',
+                          backgroundColor: '#F1F5F9',
+                          padding: '1px 6px',
+                          borderRadius: '999px',
+                        }}
+                      >
+                        {log.role}
+                      </span>
+                    )}
+                  </div>
+
+                  <div
+                    style={{
+                      backgroundColor: '#F8FAFC',
+                      border: '1px solid #E2E8F0',
+                      borderRadius: '8px',
+                      padding: '8px 10px',
+                    }}
+                  >
+                    <div style={{ fontSize: '10px', fontWeight: 800, color: '#64748B', letterSpacing: '0.04em', marginBottom: '4px' }}>
+                      DETAILS
+                    </div>
+                    {renderStructuredDetails(log.details)}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Desktop Data Table */}
+        <div className="hidden md:block" style={{ overflowX: 'auto', border: '1px solid #E2E8F0', borderRadius: '8px' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
             <thead>
               <tr style={{ backgroundColor: '#F8FAFC', borderBottom: '2px solid #E2E8F0', color: '#475569' }}>
@@ -420,8 +676,8 @@ export default function AuditLogViewer({
                       <td style={{ padding: '12px 14px', color: '#334155', fontWeight: 700, textTransform: 'capitalize' }}>
                         {log.module}
                       </td>
-                      <td style={{ padding: '12px 14px', color: '#1E293B', fontWeight: 500, maxWidth: '420px', wordBreak: 'break-word' }}>
-                        {log.details}
+                      <td style={{ padding: '12px 14px', color: '#1E293B', fontWeight: 500, maxWidth: '460px', wordBreak: 'break-word' }}>
+                        {renderStructuredDetails(log.details)}
                       </td>
                       <td style={{ padding: '12px 14px', whiteSpace: 'nowrap' }}>
                         {isSpecial ? (

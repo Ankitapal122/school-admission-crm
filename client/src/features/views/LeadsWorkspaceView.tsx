@@ -32,6 +32,9 @@ export function LeadsView({
   const [selectedLead, setSelectedLead] = useState<any | null>(null);
   const [editingLead, setEditingLead] = useState<any | null>(null);
   const [selectedReportLead, setSelectedReportLead] = useState<any | null>(null);
+  const [selectedScoreLead, setSelectedScoreLead] = useState<any | null>(null);
+  const [scoreBreakdown, setScoreBreakdown] = useState<Record<string, number> | null>(null);
+  const [scoreLoading, setScoreLoading] = useState(false);
   const [showMergeModal, setShowMergeModal] = useState(false);
   const [mergePrimaryId, setMergePrimaryId] = useState('');
   const [mergeSecondaryId, setMergeSecondaryId] = useState('');
@@ -49,6 +52,24 @@ export function LeadsView({
   const [reopenAssignTo, setReopenAssignTo] = useState('');
   const [expireDecision, setExpireDecision] = useState<'EXPIRE' | 'EXTEND'>('EXPIRE');
   const [busyAction, setBusyAction] = useState(false);
+
+  const openScoreModal = async (lead: any) => {
+    setSelectedScoreLead(lead);
+    setScoreBreakdown(lead?.scoreBreakdown || null);
+    setScoreLoading(true);
+    try {
+      const res = await apiCall(`/leads/${lead.id}`);
+      const detail = res?.lead || res?.data?.lead || res?.data || res;
+      if (detail && detail.id) {
+        setSelectedScoreLead(detail);
+        setScoreBreakdown(detail.scoreBreakdown || null);
+      }
+    } catch {
+      // Fallback to existing lead fields if detail fetch fails
+    } finally {
+      setScoreLoading(false);
+    }
+  };
 
   // Fetch server-scoped bucket for expired/suspended/reopened tabs
   useEffect(() => {
@@ -300,42 +321,95 @@ export function LeadsView({
                     </td>
                   </tr>
                 ) : (
-                  displayLeads.map((l: any) => (
-                    <tr key={l.id}>
-                      <td>
-                        <strong>{l.leadNumber || l.id?.slice(0, 8)}</strong>
-                        <div style={{ fontSize: '10px', color: '#94A3B8' }}>v{l.version || 1}</div>
+                  displayLeads.map((l: any) => {
+                    const scoreVal = Number(l.leadScore ?? l.score ?? 0);
+                    const scoreBadgeBg =
+                      scoreVal >= 80 ? '#ECFDF5' : scoreVal >= 55 ? '#EFF6FF' : '#FFFBEB';
+                    const scoreBadgeBorder =
+                      scoreVal >= 80 ? '#A7F3D0' : scoreVal >= 55 ? '#BFDBFE' : '#FDE68A';
+                    const scoreBadgeText =
+                      scoreVal >= 80 ? '#047857' : scoreVal >= 55 ? '#1D4ED8' : '#B45309';
+
+                    return (
+                    <tr key={l.id} style={{ borderBottom: '1px solid #F1F5F9', transition: 'background 0.15s ease' }}>
+                      <td style={{ verticalAlign: 'middle' }}>
+                        <div style={{ fontWeight: 700, color: '#0F172A', fontSize: '13px', letterSpacing: '0.01em' }}>
+                          {l.leadNumber || l.id?.slice(0, 8)}
+                        </div>
+                        <span
+                          style={{
+                            display: 'inline-block',
+                            marginTop: '2px',
+                            padding: '1px 6px',
+                            borderRadius: '999px',
+                            fontSize: '10px',
+                            fontWeight: 600,
+                            background: '#F1F5F9',
+                            color: '#64748B',
+                          }}
+                        >
+                          v{l.version || 1}
+                        </span>
                       </td>
-                      <td>
-                        <div style={{ fontWeight: 700, color: '#0F172A' }}>{l.studentName}</div>
-                        <div style={{ fontSize: '11.5px', color: '#64748B' }}>
+                      <td style={{ verticalAlign: 'middle' }}>
+                        <div style={{ fontWeight: 700, color: '#0F172A', fontSize: '13.5px' }}>{l.studentName}</div>
+                        <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '2px' }}>
                           {l.admissionClass || 'Class 6'} &bull; {l.preferredBoard || 'CBSE'} &bull;{' '}
                           {l.city || 'Uttarakhand'}
                         </div>
                       </td>
-                      <td>
-                        <div>{l.fatherName || l.parentName || 'Parent'}</div>
-                        <div style={{ fontSize: '11.5px', color: '#475569' }}>
+                      <td style={{ verticalAlign: 'middle' }}>
+                        <div style={{ fontWeight: 600, color: '#1E293B', fontSize: '13px' }}>
+                          {l.fatherName || l.parentName || 'Parent'}
+                        </div>
+                        <div style={{ fontSize: '11.5px', color: '#64748B', fontFamily: 'monospace', marginTop: '2px' }}>
                           {l.fatherPhone || l.parentPhone || l.mobile || 'N/A'}
                         </div>
                       </td>
-                      <td>
-                        <span className="badge badge-info">{l.stage || l.current_stage || 'new'}</span>{' '}
-                        <span className="badge badge-success">{l.leadScore ?? l.score ?? 0} pts</span>
+                      <td style={{ verticalAlign: 'middle' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                          <span className="badge badge-info" style={{ textTransform: 'capitalize' }}>
+                            {l.stage || l.current_stage || 'new'}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => openScoreModal(l)}
+                            title="Click to view Lead Score breakdown"
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              padding: '3px 9px',
+                              borderRadius: '999px',
+                              fontSize: '11.5px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              background: scoreBadgeBg,
+                              border: `1px solid ${scoreBadgeBorder}`,
+                              color: scoreBadgeText,
+                              transition: 'transform 0.12s ease, box-shadow 0.12s ease',
+                            }}
+                          >
+                            <CrmIcon name="bar-chart" size={12} />
+                            {scoreVal} pts
+                          </button>
+                        </div>
                         {l.verificationStatus === 'RETURNED' && (
                           <div style={{ marginTop: '4px' }}>
                             <span className="badge badge-danger" title={l.returnRemarks || ''}>
-                              <CrmIcon name="alert" size={16} /> Correction Required: {l.returnRemarks || 'Fix Info'}
+                              <CrmIcon name="alert" size={14} /> Correction Required: {l.returnRemarks || 'Fix Info'}
                             </span>
                           </div>
                         )}
                         {l.verificationStatus === 'APPROVED' && (
                           <div style={{ marginTop: '4px' }}>
-                            <span className="badge badge-success"><CrmIcon name="check-circle" size={16} /> Verified Genuine</span>
+                            <span className="badge badge-success">
+                              <CrmIcon name="check-circle" size={14} /> Verified Genuine
+                            </span>
                           </div>
                         )}
                       </td>
-                      <td>
+                      <td style={{ verticalAlign: 'middle' }}>
                         <span
                           className={`badge ${
                             l.forceExpired
@@ -344,22 +418,45 @@ export function LeadsView({
                               ? 'badge-warning'
                               : 'badge-navy'
                           }`}
+                          style={{ textTransform: 'capitalize' }}
                         >
-                          {l.forceExpired ? 'Force-Expired (360d)' : l.status || 'new'}
+                          {l.forceExpired ? 'Force-Expired (360d)' : String(l.status || 'new').replace(/_/g, ' ')}
                         </span>
                       </td>
-                      <td>
-                        <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                      <td style={{ verticalAlign: 'middle' }}>
+                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'nowrap' }}>
                           <a
                             href={`tel:${(l.fatherPhone || l.parentPhone || l.mobile || '').replace(/\s+/g, '')}`}
                             className="btn btn-sm btn-outline"
-                            style={{ textDecoration: 'none' }}
-                            title="Direct Call Parent"
+                            style={{
+                              textDecoration: 'none',
+                              width: '32px',
+                              height: '32px',
+                              padding: 0,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              borderRadius: '8px',
+                            }}
+                            title="Call Parent"
+                            aria-label="Call Parent"
                           >
-                            <CrmIcon name="phone" size={16} /> Call
+                            <CrmIcon name="phone" size={15} />
                           </a>
                           <button
+                            type="button"
                             className="btn btn-sm btn-success"
+                            style={{
+                              width: '32px',
+                              height: '32px',
+                              padding: 0,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              borderRadius: '8px',
+                            }}
+                            title="Send WhatsApp Message"
+                            aria-label="Send WhatsApp Message"
                             onClick={async () => {
                               const tpl = `Namaste ${l.fatherName || l.parentName || 'Parent'}! Sharing BoardingEdu admission details for ${l.studentName} (${l.admissionClass || l.applyingForGrade || 'Class 6'}, Budget: ₹${Number(l.budgetMax || 450000).toLocaleString('en-IN')}). Documents upload & school brochure link: https://boardingedu.com/docs/${l.leadNumber || l.id?.slice(0, 6)}`;
                               try {
@@ -376,32 +473,60 @@ export function LeadsView({
                               }
                             }}
                           >
-                            <CrmIcon name="message-square" size={16} /> WhatsApp
+                            <CrmIcon name="whatsapp" size={16} />
                           </button>
                           <button
+                            type="button"
                             className="btn btn-sm btn-navy"
+                            style={{
+                              width: '32px',
+                              height: '32px',
+                              padding: 0,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              borderRadius: '8px',
+                            }}
                             onClick={() => setSelectedReportLead(l)}
-                            title="Student Admission Report & Budget Match"
+                            title="Student Admission Report"
+                            aria-label="Student Admission Report"
                           >
-                            <CrmIcon name="file-text" size={16} /> Report
+                            <CrmIcon name="file-text" size={15} />
                           </button>
                           <button
+                            type="button"
                             className="btn btn-sm btn-warning"
-                            style={{ background: '#F59E0B', borderColor: '#D97706', color: '#fff', display: 'flex', alignItems: 'center', gap: '4px' }}
+                            style={{
+                              background: '#F59E0B',
+                              borderColor: '#D97706',
+                              color: '#fff',
+                              width: '32px',
+                              height: '32px',
+                              padding: 0,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              borderRadius: '8px',
+                            }}
                             onClick={() => setEditingLead(l)}
                             title="Edit Student & Parent Details"
+                            aria-label="Edit Student & Parent Details"
                           >
-                            <CrmIcon name="edit" size={15} /> Edit
+                            <CrmIcon name="edit" size={15} />
                           </button>
                           <button
+                            type="button"
                             className="btn btn-sm btn-primary"
+                            style={{ height: '32px', borderRadius: '8px', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
                             onClick={() => setSelectedLead(l)}
                           >
-                            <CrmIcon name="folder-open" size={16} /> Open Dossier
+                            <CrmIcon name="folder-open" size={15} /> Open Dossier
                           </button>
                           {(l.status === 'expired' || l.forceExpired) && (
                             <button
+                              type="button"
                               className="btn btn-sm btn-warning"
+                              style={{ height: '32px', borderRadius: '8px' }}
                               onClick={() =>
                                 setReasonModal({
                                   lead: l,
@@ -413,12 +538,24 @@ export function LeadsView({
                                 })
                               }
                             >
-                              <CrmIcon name="unlock" size={16} /> Reopen
+                              <CrmIcon name="unlock" size={15} /> Reopen
                             </button>
                           )}
                           {hasRole(user?.role, 'SUPER_ADMIN', 'SENIOR_MANAGER') && (
                             <button
+                              type="button"
                               className="btn btn-sm btn-outline"
+                              style={{
+                                width: '32px',
+                                height: '32px',
+                                padding: 0,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                borderRadius: '8px',
+                              }}
+                              title={l.deletedAt ? 'Restore Lead' : 'Delete Lead'}
+                              aria-label={l.deletedAt ? 'Restore Lead' : 'Delete Lead'}
                               onClick={() =>
                                 setReasonModal({
                                   lead: l,
@@ -434,7 +571,8 @@ export function LeadsView({
                         </div>
                       </td>
                     </tr>
-                  ))
+                    );
+                  })
                 )}
               </tbody>
             </table>
@@ -481,6 +619,119 @@ export function LeadsView({
           onRefresh={onRefresh}
           onShowToast={onShowToast}
         />
+      )}
+
+      {/* Clickable Lead Score Breakdown Modal */}
+      {selectedScoreLead && (
+        <div className="modal-overlay" style={{ zIndex: 2150 }} onClick={() => setSelectedScoreLead(null)}>
+          <div className="modal-content" style={{ maxWidth: '480px' }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div>
+                <h3 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--primary-navy)' }}>
+                  <CrmIcon name="bar-chart" size={16} /> Lead Score Breakdown
+                </h3>
+                <span style={{ fontSize: '12px', color: '#64748B' }}>
+                  {selectedScoreLead.studentName} ({selectedScoreLead.leadNumber || selectedScoreLead.id?.slice(0, 8)})
+                </span>
+              </div>
+              <button type="button" className="btn btn-sm btn-outline" onClick={() => setSelectedScoreLead(null)}>
+                <CrmIcon name="x" size={16} />
+              </button>
+            </div>
+            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {(() => {
+                const total = Number(selectedScoreLead.leadScore ?? selectedScoreLead.score ?? 0);
+                const tier =
+                  total >= 80
+                    ? { label: 'Hot / High Intent', color: '#047857', bg: '#ECFDF5', border: '#A7F3D0' }
+                    : total >= 55
+                    ? { label: 'Warm / Active', color: '#1D4ED8', bg: '#EFF6FF', border: '#BFDBFE' }
+                    : { label: 'Nurture / Early Stage', color: '#B45309', bg: '#FFFBEB', border: '#FDE68A' };
+                const bd = scoreBreakdown || {};
+                const rows = [
+                  { key: 'budget_match', label: 'Budget Match', max: 30 },
+                  { key: 'engagement', label: 'Parent Engagement (Calls & WA)', max: 25 },
+                  { key: 'source_quality', label: 'Lead Source Quality', max: 20 },
+                  { key: 'timeline_urgency', label: 'Session & Timeline Urgency', max: 15 },
+                  { key: 'class_demand', label: 'Class / Grade Demand', max: 10 },
+                ];
+                return (
+                  <>
+                    <div
+                      style={{
+                        padding: '12px 14px',
+                        borderRadius: '10px',
+                        background: tier.bg,
+                        border: `1px solid ${tier.border}`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontSize: '11.5px', color: '#64748B', fontWeight: 600 }}>TOTAL LEAD SCORE</div>
+                        <div style={{ fontSize: '24px', fontWeight: 800, color: tier.color }}>{total} / 100 pts</div>
+                      </div>
+                      <span
+                        style={{
+                          padding: '4px 10px',
+                          borderRadius: '999px',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          background: '#fff',
+                          color: tier.color,
+                          border: `1px solid ${tier.border}`,
+                        }}
+                      >
+                        {tier.label}
+                      </span>
+                    </div>
+
+                    {scoreLoading && !scoreBreakdown ? (
+                      <div style={{ fontSize: '12.5px', color: '#64748B', textAlign: 'center', padding: '10px' }}>
+                        Loading score breakdown...
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {rows.map((r) => {
+                          const val = Number((bd as any)[r.key] ?? 0);
+                          const pct = Math.min(100, Math.round((val / r.max) * 100));
+                          return (
+                            <div key={r.key} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 600, color: '#334155' }}>
+                                <span>{r.label}</span>
+                                <span>{val} pts</span>
+                              </div>
+                              <div style={{ height: '7px', borderRadius: '999px', background: '#E2E8F0', overflow: 'hidden' }}>
+                                <div style={{ width: `${pct}%`, height: '100%', background: '#2563EB', borderRadius: '999px' }} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
+            <div className="modal-footer" style={{ display: 'flex', justifyContent: 'space-between', gap: '8px' }}>
+              <button
+                type="button"
+                className="btn btn-sm btn-primary"
+                onClick={() => {
+                  const target = selectedScoreLead;
+                  setSelectedScoreLead(null);
+                  setSelectedLead(target);
+                }}
+              >
+                <CrmIcon name="folder-open" size={14} /> Open Full Dossier
+              </button>
+              <button type="button" className="btn btn-sm btn-outline" onClick={() => setSelectedScoreLead(null)}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Styled Reason Modal (Zero window.prompt) */}

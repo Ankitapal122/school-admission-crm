@@ -443,6 +443,14 @@ export function UsersView({
   const [loginHistoryTarget, setLoginHistoryTarget] = useState<{ user: any; logs: any[] } | null>(
     null
   );
+  const [openActionsUserId, setOpenActionsUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!openActionsUserId) return;
+    const close = () => setOpenActionsUserId(null);
+    window.addEventListener('click', close);
+    return () => window.removeEventListener('click', close);
+  }, [openActionsUserId]);
 
   // Roles & Permissions Matrix
   const [rolesMatrix, setRolesMatrix] = useState<any[]>([]);
@@ -493,6 +501,15 @@ export function UsersView({
   };
 
   const handleUserAction = async (id: string, path: string, method: 'POST' | 'PATCH', okMsg: string) => {
+    const targetUser = users.find((x: any) => x.id === id);
+    const isSuperAdmin = targetUser && (
+      String(targetUser.role || '').toUpperCase().includes('ADMIN') ||
+      String(targetUser.rawRole || '').toUpperCase().includes('ADMIN')
+    );
+    if ((path === 'toggle-status' || path === 'suspend') && isSuperAdmin) {
+      onShowToast('Super Admin accounts cannot be suspended or deactivated.', 'warning');
+      return;
+    }
     try {
       await apiCall(`/users/${id}/${path}`, method, {});
       onShowToast(okMsg, 'success');
@@ -651,6 +668,9 @@ export function UsersView({
                     : null;
                 const loginTimeStr = formatDateTime(u.lastLoginAt);
                 const logoutTimeStr = formatDateTime(u.lastLogoutAt);
+                const isSuperAdminTarget =
+                  String(u.role || '').toUpperCase().includes('ADMIN') ||
+                  String(u.rawRole || '').toUpperCase().includes('ADMIN');
                 return (
                 <tr key={u.id}>
                   <td>
@@ -764,65 +784,238 @@ export function UsersView({
                     </div>
                   </td>
                   <td>
-                    <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'nowrap', alignItems: 'center' }}>
                       <button
+                        type="button"
                         className="btn btn-sm btn-outline"
+                        style={{ whiteSpace: 'nowrap' }}
                         onClick={() => handleViewLoginHistory(u)}
                       >
-                        <CrmIcon name="clock" size={16} /> Logins
+                        <CrmIcon name="clock" size={14} /> Logs
                       </button>
                       {hasRole(currentUser?.role, 'SUPER_ADMIN') && (
                         <>
                           <button
+                            type="button"
                             className="btn btn-sm btn-outline"
+                            style={{ whiteSpace: 'nowrap' }}
                             onClick={() => {
+                              if (isSuperAdminTarget) {
+                                onShowToast('Super Admin role cannot be changed.', 'warning');
+                                return;
+                              }
                               setRoleTarget(u);
                               setTargetRoleVal(u.role || 'COUNSELLOR');
                             }}
                           >
-                            <CrmIcon name="refresh" size={16} /> Role
+                            <CrmIcon name="shield" size={14} /> Role
                           </button>
                           <button
+                            type="button"
                             className="btn btn-sm btn-outline"
+                            style={{ whiteSpace: 'nowrap' }}
                             onClick={() =>
                               handleUserAction(u.id, 'unlock', 'POST', `${u.fullName} unlocked!`)
                             }
                           >
-                            <CrmIcon name="unlock" size={16} /> Unlock
+                            <CrmIcon name="unlock" size={14} /> Unlock
                           </button>
-                          <button
-                            className="btn btn-sm btn-warning"
-                            onClick={() =>
-                              handleUserAction(
-                                u.id,
-                                'force-logout',
-                                'POST',
-                                `Forced logout on all devices for ${u.fullName}.`
-                              )
-                            }
-                          >
-                            <CrmIcon name="logout" size={16} /> Force Logout
-                          </button>
-                          <button
-                            className="btn btn-sm btn-outline"
-                            onClick={() =>
-                              handleUserAction(
-                                u.id,
-                                'toggle-status',
-                                'PATCH',
-                                `Status toggled for ${u.fullName}.`
-                              )
-                            }
-                            title="Activate or Suspend this employee account"
-                          >
-                            <CrmIcon name="play" size={16} /> Toggle Active
-                          </button>
-                          <button
-                            className="btn btn-sm btn-outline"
-                            onClick={() => setResetTarget(u)}
-                          >
-                            <CrmIcon name="key" size={16} /> Reset Pass
-                          </button>
+                          <div style={{ position: 'relative' }} onClick={(e) => e.stopPropagation()}>
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-primary"
+                              style={{ whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                              onClick={() =>
+                                setOpenActionsUserId((prev) => (prev === u.id ? null : u.id))
+                              }
+                            >
+                              Actions <span style={{ fontSize: '10px', lineHeight: 1 }}>▾</span>
+                            </button>
+                            {openActionsUserId === u.id && (
+                              <div
+                                style={{
+                                  position: 'absolute',
+                                  right: 0,
+                                  top: 'calc(100% + 4px)',
+                                  minWidth: '175px',
+                                  backgroundColor: '#FFFFFF',
+                                  border: '1px solid #E2E8F0',
+                                  borderRadius: '10px',
+                                  boxShadow: '0 10px 25px rgba(15, 23, 42, 0.14)',
+                                  padding: '5px',
+                                  zIndex: 60,
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: '2px',
+                                }}
+                              >
+                                {!isSuperAdminTarget && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setOpenActionsUserId(null);
+                                      handleUserAction(
+                                        u.id,
+                                        'toggle-status',
+                                        'PATCH',
+                                        `Status toggled for ${u.fullName}.`
+                                      );
+                                    }}
+                                    style={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '8px',
+                                      width: '100%',
+                                      padding: '7px 10px',
+                                      border: 'none',
+                                      background: 'transparent',
+                                      borderRadius: '6px',
+                                      fontSize: '12.5px',
+                                      fontWeight: 600,
+                                      color: '#1E293B',
+                                      cursor: 'pointer',
+                                      textAlign: 'left',
+                                    }}
+                                  >
+                                    <CrmIcon name="play" size={14} /> Toggle Active
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setOpenActionsUserId(null);
+                                    handleUserAction(
+                                      u.id,
+                                      'force-logout',
+                                      'POST',
+                                      `Forced logout on all devices for ${u.fullName}.`
+                                    );
+                                  }}
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    width: '100%',
+                                    padding: '7px 10px',
+                                    border: 'none',
+                                    background: 'transparent',
+                                    borderRadius: '6px',
+                                    fontSize: '12.5px',
+                                    fontWeight: 600,
+                                    color: '#1E293B',
+                                    cursor: 'pointer',
+                                    textAlign: 'left',
+                                  }}
+                                >
+                                  <CrmIcon name="logout" size={14} /> Force Logout
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setOpenActionsUserId(null);
+                                    setResetTarget(u);
+                                  }}
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    width: '100%',
+                                    padding: '7px 10px',
+                                    border: 'none',
+                                    background: 'transparent',
+                                    borderRadius: '6px',
+                                    fontSize: '12.5px',
+                                    fontWeight: 600,
+                                    color: '#1E293B',
+                                    cursor: 'pointer',
+                                    textAlign: 'left',
+                                  }}
+                                >
+                                  <CrmIcon name="key" size={14} /> Reset Password
+                                </button>
+                                {!isSuperAdminTarget && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setOpenActionsUserId(null);
+                                      setRoleTarget(u);
+                                      setTargetRoleVal(u.role || 'COUNSELLOR');
+                                    }}
+                                    style={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '8px',
+                                      width: '100%',
+                                      padding: '7px 10px',
+                                      border: 'none',
+                                      background: 'transparent',
+                                      borderRadius: '6px',
+                                      fontSize: '12.5px',
+                                      fontWeight: 600,
+                                      color: '#1E293B',
+                                      cursor: 'pointer',
+                                      textAlign: 'left',
+                                    }}
+                                  >
+                                    <CrmIcon name="user-cog" size={14} /> Edit Role
+                                  </button>
+                                )}
+                                {isSuperAdminTarget ? (
+                                  <div
+                                    style={{
+                                      margin: '4px 0 2px',
+                                      padding: '6px 10px',
+                                      backgroundColor: '#EFF6FF',
+                                      border: '1px solid #BFDBFE',
+                                      borderRadius: '6px',
+                                      fontSize: '11px',
+                                      fontWeight: 700,
+                                      color: '#1D4ED8',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '5px',
+                                    }}
+                                  >
+                                    <CrmIcon name="shield-check" size={13} color="#2563EB" /> Protected (Cannot Suspend)
+                                  </div>
+                                ) : (
+                                  <>
+                                    <div style={{ height: '1px', background: '#F1F5F9', margin: '2px 0' }} />
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setOpenActionsUserId(null);
+                                        handleUserAction(
+                                          u.id,
+                                          'toggle-status',
+                                          'PATCH',
+                                          `${u.fullName} ${u.status === 'suspended' ? 'activated' : 'deactivated'}.`
+                                        );
+                                      }}
+                                      style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        width: '100%',
+                                        padding: '7px 10px',
+                                        border: 'none',
+                                        background: 'transparent',
+                                        borderRadius: '6px',
+                                        fontSize: '12.5px',
+                                        fontWeight: 700,
+                                        color: u.status === 'suspended' ? '#16A34A' : '#DC2626',
+                                        cursor: 'pointer',
+                                        textAlign: 'left',
+                                      }}
+                                    >
+                                      <CrmIcon name={u.status === 'suspended' ? 'check-circle' : 'trash'} size={14} />
+                                      {u.status === 'suspended' ? 'Activate' : 'Deactivate'}
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </>
                       )}
                     </div>
@@ -1236,50 +1429,56 @@ export function UsersView({
                 )}
 
                 {hasRole(currentUser?.role, 'SUPER_ADMIN') && (
-                  <div style={{ padding: '10px 12px', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '10px', fontSize: '12px' }}>
-                    <strong style={{ color: '#92400E', display: 'block', marginBottom: '6px' }}>
-                      Suspend Account &amp; Reassign Active Leads (90-Day FNF)
-                    </strong>
-                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                      <select
-                        className="form-control"
-                        style={{ flex: 1, fontSize: '12px', padding: '5px 8px' }}
-                        value={fnfTransferToId}
-                        onChange={(e) => setFnfTransferToId(e.target.value)}
-                      >
-                        <option value="">-- Optional: Reassign Active Leads To --</option>
-                        {users
-                          .filter((u: any) => u.id !== st.id && u.isActive !== false)
-                          .map((u: any) => (
-                            <option key={u.id} value={u.id}>
-                              {u.fullName} ({u.role})
-                            </option>
-                          ))}
-                      </select>
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-warning"
-                        onClick={async () => {
-                          try {
-                            await apiCall(`/users/${st.id}/suspend`, 'PUT', {
-                              transferToId: fnfTransferToId || undefined,
-                            });
-                            onShowToast(
-                              `${st.fullName} suspended (history preserved${fnfTransferToId ? ', active leads reassigned' : ''}).`,
-                              'warning'
-                            );
-                            setFnfTransferToId('');
-                            setSelectedStaffDetail(null);
-                            onRefresh();
-                          } catch (err: any) {
-                            onShowToast(err?.message || 'Suspend failed.', 'danger');
-                          }
-                        }}
-                      >
-                        Suspend &amp; Transfer
-                      </button>
+                  String(st.role || '').toUpperCase().includes('ADMIN') ? (
+                    <div style={{ padding: '10px 12px', background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: '10px', fontSize: '12px', color: '#1E40AF', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <CrmIcon name="shield-check" size={16} /> Super Admin account is permanently active and cannot be suspended.
                     </div>
-                  </div>
+                  ) : (
+                    <div style={{ padding: '10px 12px', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '10px', fontSize: '12px' }}>
+                      <strong style={{ color: '#92400E', display: 'block', marginBottom: '6px' }}>
+                        Suspend Account &amp; Reassign Active Leads (90-Day FNF)
+                      </strong>
+                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                        <select
+                          className="form-control"
+                          style={{ flex: 1, fontSize: '12px', padding: '5px 8px' }}
+                          value={fnfTransferToId}
+                          onChange={(e) => setFnfTransferToId(e.target.value)}
+                        >
+                          <option value="">-- Optional: Reassign Active Leads To --</option>
+                          {users
+                            .filter((u: any) => u.id !== st.id && u.isActive !== false)
+                            .map((u: any) => (
+                              <option key={u.id} value={u.id}>
+                                {u.fullName} ({u.role})
+                              </option>
+                            ))}
+                        </select>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-warning"
+                          onClick={async () => {
+                            try {
+                              await apiCall(`/users/${st.id}/suspend`, 'PUT', {
+                                transferToId: fnfTransferToId || undefined,
+                              });
+                              onShowToast(
+                                `${st.fullName} suspended (history preserved${fnfTransferToId ? ', active leads reassigned' : ''}).`,
+                                'warning'
+                              );
+                              setFnfTransferToId('');
+                              setSelectedStaffDetail(null);
+                              onRefresh();
+                            } catch (err: any) {
+                              onShowToast(err?.message || 'Suspend failed.', 'danger');
+                            }
+                          }}
+                        >
+                          Suspend &amp; Transfer
+                        </button>
+                      </div>
+                    </div>
+                  )
                 )}
 
                 <div>

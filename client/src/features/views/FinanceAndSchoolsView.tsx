@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import CrmIcon from '../../components/CrmIcon';
 import { apiCall, downloadApiFile } from '../../lib/api';
 import { useAuthStore } from '../../stores/authStore';
@@ -982,6 +983,8 @@ export function AdmissionsView({
   const [visitZoomLink, setVisitZoomLink] = useState('https://zoom.us/j/boardingedu-virtual-tour');
   const [visitNotes, setVisitNotes] = useState('');
 
+  const queryClient = useQueryClient();
+  const [optimisticSubStages, setOptimisticSubStages] = useState<Record<string, string>>({});
   const [paymentModalApp, setPaymentModalApp] = useState<any | null>(null);
   const [paymentModeType, setPaymentModeType] = useState<'full' | 'installment'>('installment');
   const [paidNowAmount, setPaidNowAmount] = useState('150000');
@@ -989,6 +992,21 @@ export function AdmissionsView({
   const [paymentRefNote, setPaymentRefNote] = useState('');
 
   const handleSubStage = async (app: any, subStage: string) => {
+    const prevStage = optimisticSubStages[app.id] ?? app.subStage ?? 'A_waiting';
+    if (prevStage === subStage) return;
+
+    // Instant optimistic UI update (zero wait on click)
+    setOptimisticSubStages((prev) => ({ ...prev, [app.id]: subStage }));
+    queryClient.setQueryData(['admissions'], (old: any) => {
+      if (!old?.admissions) return old;
+      return {
+        ...old,
+        admissions: old.admissions.map((item: any) =>
+          item.id === app.id ? { ...item, subStage } : item
+        ),
+      };
+    });
+
     try {
       const res = await apiCall(`/applications/${app.id}/sub-stage`, 'PUT', {
         sub_stage: subStage,
@@ -1001,8 +1019,15 @@ export function AdmissionsView({
           : `Application updated to ${subStage}.`,
         'success'
       );
-      onRefresh();
+      queryClient.invalidateQueries({ queryKey: ['admissions'] });
+      if (subStage === 'C_formalities_done') {
+        queryClient.invalidateQueries({ queryKey: ['commissions'] });
+        queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      }
     } catch (err: any) {
+      // Rollback on failure
+      setOptimisticSubStages((prev) => ({ ...prev, [app.id]: prevStage }));
+      queryClient.invalidateQueries({ queryKey: ['admissions'] });
       onShowToast(err?.message || 'Sub-stage update failed.', 'danger');
     }
   };
@@ -1277,39 +1302,60 @@ export function AdmissionsView({
                       </div>
                     </td>
                     <td>
-                      <span
-                        className={`badge ${
-                          a.subStage === 'C_formalities_done' ? 'badge-success' : 'badge-warning'
-                        }`}
-                      >
-                        {a.subStage || 'A_waiting'}
-                      </span>
-                      {hasRole(user?.role, 'SUPER_ADMIN', 'SENIOR_MANAGER') ? (
-                        <div style={{ display: 'flex', gap: '4px', marginTop: '6px', flexWrap: 'wrap' }}>
-                          <button
-                            className="btn btn-sm btn-outline"
-                            onClick={() => handleSubStage(a, 'A_waiting')}
-                          >
-                            A
-                          </button>
-                          <button
-                            className="btn btn-sm btn-outline"
-                            onClick={() => handleSubStage(a, 'B_only_registration')}
-                          >
-                            B
-                          </button>
-                          <button
-                            className="btn btn-sm btn-success"
-                            onClick={() => handleSubStage(a, 'C_formalities_done')}
-                          >
-                            <CrmIcon name="check" size={16} /> Confirm Admission (C)
-                          </button>
-                        </div>
-                      ) : (
-                        <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px' }}>
-                          <CrmIcon name="lock" size={16} /> Manager confirms admission
-                        </div>
-                      )}
+                      {(() => {
+                        const currentSubStage = optimisticSubStages[a.id] ?? a.subStage ?? 'A_waiting';
+                        const stageMeta: Record<string, { label: string; badgeClass: string }> = {
+                          A_waiting: { label: 'A • Waiting', badgeClass: 'badge-warning' },
+                          B_only_registration: { label: 'B • Registration Only', badgeClass: 'badge-info' },
+                          C_formalities_done: { label: 'C • Confirmed', badgeClass: 'badge-success' },
+                        };
+                        const meta = stageMeta[currentSubStage] || {
+                          label: currentSubStage,
+                          badgeClass: 'badge-warning',
+                        };
+                        return (
+                          <>
+                            <span className={`badge ${meta.badgeClass}`} title={currentSubStage}>
+                              {meta.label}
+                            </span>
+                            {hasRole(user?.role, 'SUPER_ADMIN', 'SENIOR_MANAGER') ? (
+                              <div style={{ display: 'flex', gap: '4px', marginTop: '6px', flexWrap: 'nowrap', alignItems: 'center' }}>
+                                <button
+                                  type="button"
+                                  className={`btn btn-sm ${currentSubStage === 'A_waiting' ? 'btn-warning' : 'btn-outline'}`}
+                                  style={{ minWidth: '30px', padding: '4px 9px' }}
+                                  title="A — Waiting (Pending Parent / School Decision)"
+                                  onClick={() => handleSubStage(a, 'A_waiting')}
+                                >
+                                  A
+                                </button>
+                                <button
+                                  type="button"
+                                  className={`btn btn-sm ${currentSubStage === 'B_only_registration' ? 'btn-primary' : 'btn-outline'}`}
+                                  style={{ minWidth: '30px', padding: '4px 9px' }}
+                                  title="B — Only Registration Done"
+                                  onClick={() => handleSubStage(a, 'B_only_registration')}
+                                >
+                                  B
+                                </button>
+                                <button
+                                  type="button"
+                                  className={`btn btn-sm ${currentSubStage === 'C_formalities_done' ? 'btn-success' : 'btn-outline'}`}
+                                  style={{ minWidth: '30px', padding: '4px 9px' }}
+                                  title="C — Confirm Admission (Formalities Done & Trigger Commission)"
+                                  onClick={() => handleSubStage(a, 'C_formalities_done')}
+                                >
+                                  C
+                                </button>
+                              </div>
+                            ) : (
+                              <div style={{ fontSize: '11px', color: '#64748B', marginTop: '4px' }}>
+                                <CrmIcon name="lock" size={16} /> Manager confirms admission
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
                     </td>
                     <td>
                       <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>

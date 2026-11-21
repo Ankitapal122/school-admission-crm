@@ -36,6 +36,7 @@ import {
 import {
   apiEnvelope,
   matchingRoleVariants,
+  normalizeCanonicalRole,
   normalizeIndianPhone,
   parseClassGrade,
   sanitizeSpreadsheetCell,
@@ -580,6 +581,12 @@ export class CrmCoreService implements OnModuleInit {
       );
     }
 
+    if (body.status === 'suspended' || body.status === 'inactive' || body.isActive === false) {
+      if (normalizeCanonicalRole(user.role) === 'SUPER_ADMIN') {
+        throw new BadRequestException('Super Admin accounts cannot be suspended or deactivated.');
+      }
+    }
+
     const data: any = { version: { increment: 1 } };
     if (body.fullName || body.name) data.fullName = String(body.fullName || body.name).trim();
     if (body.phone !== undefined || body.mobile !== undefined) {
@@ -627,6 +634,10 @@ export class CrmCoreService implements OnModuleInit {
     });
     if (!user) throw new NotFoundException('User not found');
 
+    if (normalizeCanonicalRole(user.role) === 'SUPER_ADMIN') {
+      throw new BadRequestException('Super Admin accounts cannot be suspended or deactivated.');
+    }
+
     const newActive = !user.isActive;
     const newStatus = newActive ? 'active' : 'suspended';
 
@@ -666,6 +677,10 @@ export class CrmCoreService implements OnModuleInit {
       where: { OR: [{ id }, { employeeId: id }], deletedAt: null },
     });
     if (!user) throw new NotFoundException('User not found');
+
+    if (normalizeCanonicalRole(user.role) === 'SUPER_ADMIN') {
+      throw new BadRequestException('Super Admin accounts cannot be suspended.');
+    }
 
     const fnfDate = body.fnfDate || body.fnf_date ? new Date(body.fnfDate || body.fnf_date) : new Date();
     const transferToId = body.transferToId || body.transfer_to_id || null;
@@ -984,6 +999,9 @@ export class CrmCoreService implements OnModuleInit {
     if (!user) throw new NotFoundException('User not found');
     if (actor?.id === user.id) {
       throw new BadRequestException('Cannot delete your own active account');
+    }
+    if (normalizeCanonicalRole(user.role) === 'SUPER_ADMIN') {
+      throw new BadRequestException('Super Admin accounts cannot be deleted.');
     }
 
     await this.prisma.user.update({
