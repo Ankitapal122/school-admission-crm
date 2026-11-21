@@ -2053,7 +2053,7 @@ export function CreateLeadModal({
     cityPreferred: '',
     state: 'Uttarakhand',
     budget: '₹3L – ₹4L',
-    customBudget: '',
+    customBudget: '₹3L – ₹4L',
     studentGender: 'male',
     schoolGenderPref: 'co_ed',
     prevClassPct: '',
@@ -2136,6 +2136,7 @@ export function CreateLeadModal({
       motherName: '', motherOccupation: '', guardianName: '', guardianMobile: '',
       mobile: '', altMobile: '', whatsapp: '', email: '', cityResident: '',
       cityPreferred: '', prevClassPct: '', sourceDetail: '', remark: '',
+      budget: '₹3L – ₹4L', customBudget: '₹3L – ₹4L',
     }));
     setDpdpConsent(false);
     setDupWarning(null);
@@ -2162,9 +2163,30 @@ export function CreateLeadModal({
       onShowToast('DPDP parent data consent checkbox is required.', 'warning');
       return;
     }
-    const budget = LEAD_BUDGETS.find((b) => b.value === f.budget) || LEAD_BUDGETS[4];
-    const resolvedBudgetLabel =
-      f.budget === 'custom' && f.customBudget.trim() ? f.customBudget.trim() : budget.value;
+
+    const rawBudgetString = (f.customBudget || f.budget || '').trim();
+    const matchedPreset = LEAD_BUDGETS.find((b) => b.value === rawBudgetString || b.label === rawBudgetString);
+    let budgetMin = 200000;
+    let budgetMax = 300000;
+    if (matchedPreset && matchedPreset.value !== 'custom') {
+      budgetMin = matchedPreset.min;
+      budgetMax = matchedPreset.max;
+    } else if (rawBudgetString) {
+      const cleanNums = rawBudgetString.replace(/,/g, '');
+      const lakhMatch = cleanNums.match(/(\d+(\.\d+)?)\s*(l|lac|lakh)/i);
+      const pureNumMatch = cleanNums.match(/\d{4,8}/);
+      if (lakhMatch) {
+        const val = parseFloat(lakhMatch[1]) * 100000;
+        budgetMin = Math.round(val * 0.9);
+        budgetMax = Math.round(val * 1.1);
+      } else if (pureNumMatch) {
+        const val = parseInt(pureNumMatch[0], 10);
+        budgetMin = Math.round(val * 0.9);
+        budgetMax = Math.round(val * 1.1);
+      }
+    }
+    const resolvedBudgetLabel = rawBudgetString || '₹3L – ₹4L';
+
     setSubmitting(true);
     try {
       const res = await apiCall('/leads', 'POST', {
@@ -2194,8 +2216,8 @@ export function CreateLeadModal({
         state: f.state,
         budget_range: resolvedBudgetLabel,
         annualBudget: resolvedBudgetLabel,
-        budgetMin: budget.min,
-        budgetMax: budget.max,
+        budgetMin,
+        budgetMax,
         gender: f.studentGender,
         studentGender: f.studentGender,
         schoolGenderPref: f.schoolGenderPref,
@@ -2215,8 +2237,8 @@ export function CreateLeadModal({
         fatherPhone: f.mobile.trim(),
         alternateMobile: f.altMobile.trim(),
         email: f.email.trim(),
-        annualBudget: budget.value,
-        budget_range: budget.value,
+        annualBudget: resolvedBudgetLabel,
+        budget_range: resolvedBudgetLabel,
         score: 85,
       };
       onShowToast(
@@ -2565,26 +2587,55 @@ export function CreateLeadModal({
                   <option value="day">Day School</option>
                 </select>
               </div>
-              <div className="form-group">
-                <label className="form-label">Budget Range *</label>
-                <select className="form-control" value={f.budget} onChange={set('budget')}>
-                  {LEAD_BUDGETS.map((b) => (
-                    <option key={b.value} value={b.value}>{b.label}</option>
-                  ))}
-                </select>
-              </div>
-              {f.budget === 'custom' && (
-                <div className="form-group">
-                  <label className="form-label">Custom Budget Amount *</label>
+              <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px', flexWrap: 'wrap', gap: '4px' }}>
+                  <label className="form-label" style={{ margin: 0, fontWeight: 700 }}>Annual Fees / Budget (₹) *</label>
+                  <span style={{ fontSize: '11px', color: '#2563EB', fontWeight: 600 }}>Type amount manually or tap a preset below</span>
+                </div>
+                <div style={{ position: 'relative' }}>
+                  <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8', fontWeight: 700, fontSize: '14px' }}>₹</span>
                   <input
+                    type="text"
                     className="form-control"
+                    style={{ paddingLeft: '28px', fontWeight: 600, fontSize: '14px', background: '#FFFFFF' }}
+                    placeholder="e.g. 3,50,000 or ₹4L – ₹5L"
+                    value={f.customBudget || f.budget}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setF((prev) => ({ ...prev, customBudget: val, budget: val }));
+                    }}
                     required
-                    placeholder="e.g. ₹7L – ₹10L / ₹12L+"
-                    value={f.customBudget}
-                    onChange={set('customBudget')}
                   />
                 </div>
-              )}
+                {/* 1-tap quick preset pills */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
+                  {LEAD_BUDGETS.filter((b) => b.value !== 'custom').map((b) => {
+                    const isSelected = (f.customBudget || f.budget) === b.value;
+                    return (
+                      <button
+                        type="button"
+                        key={b.value}
+                        onClick={() => {
+                          setF((prev) => ({ ...prev, budget: b.value, customBudget: b.value }));
+                        }}
+                        style={{
+                          padding: '4px 10px',
+                          fontSize: '11.5px',
+                          borderRadius: '20px',
+                          border: isSelected ? '1px solid #2563EB' : '1px solid #CBD5E1',
+                          background: isSelected ? '#2563EB' : '#F8FAFC',
+                          color: isSelected ? '#FFFFFF' : '#334155',
+                          fontWeight: isSelected ? 700 : 500,
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        {b.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
               <div className="form-group">
                 <label className="form-label">Student Gender</label>
                 <select className="form-control" value={f.studentGender} onChange={set('studentGender')}>

@@ -1817,16 +1817,7 @@ export function SettingsView({
     <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
       {/* Executive Settings Header Bar */}
       <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '16px 22px',
-          background: '#ffffff',
-          borderRadius: '12px',
-          border: '1px solid #E2E8F0',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-        }}
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 sm:p-5 bg-white rounded-xl border border-slate-200 shadow-sm"
       >
         <div>
           <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#0F172A', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1836,7 +1827,7 @@ export function SettingsView({
             Fine-tune Lead Scoring (100%), School Recommendation Matching (100%), and Tax Governance in real time.
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
           <span
             className="badge badge-success"
             style={{ fontSize: '12px', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '6px' }}
@@ -1847,12 +1838,12 @@ export function SettingsView({
       </div>
 
       {/* Feature 1 & Feature 2: Strict Total = 100 Weight Configurators */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Feature 1: Lead Scoring Weights */}
         <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
             <div
-              className="card-header"
+              className="card-header flex flex-col sm:flex-row sm:items-center justify-between gap-2"
               style={{ paddingBottom: '12px', borderBottom: '1px solid #F1F5F9', marginBottom: '14px' }}
             >
               <div>
@@ -1864,14 +1855,14 @@ export function SettingsView({
                 </span>
               </div>
               <span
-                className={`badge ${scoringTotal === 100 ? 'badge-success' : 'badge-danger'}`}
+                className={`badge ${scoringTotal === 100 ? 'badge-success' : 'badge-danger'} shrink-0`}
                 style={{ fontSize: '12.5px', fontWeight: 700, padding: '4px 10px', display: 'flex', alignItems: 'center', gap: '5px' }}
               >
                 Total: {scoringTotal}% {scoringTotal === 100 ? <CrmIcon name="check" size={14} /> : <CrmIcon name="x" size={14} />}
               </span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {Object.entries(scoringWeights).map(([k, v]) => {
                 const conf = SCORING_LABELS_MAP[k] || { label: k, icon: 'target' };
                 return (
@@ -1894,7 +1885,7 @@ export function SettingsView({
                         <div style={{ fontSize: '10px', color: '#94A3B8' }}>Weight</div>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
                       <input
                         type="number"
                         min={0}
@@ -1920,6 +1911,7 @@ export function SettingsView({
               })}
 
               <div
+                className="col-span-1 sm:col-span-2"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -1939,10 +1931,10 @@ export function SettingsView({
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '8px', marginTop: '14px' }}>
+          <div className="flex flex-col sm:flex-row gap-2 mt-3.5">
             <button
               type="button"
-              className="btn btn-outline"
+              className="btn btn-outline w-full sm:w-auto"
               onClick={() =>
                 setScoringWeights({
                   budget_match: 25,
@@ -1956,8 +1948,8 @@ export function SettingsView({
               Reset Defaults
             </button>
             <button
-              className="btn btn-primary"
-              style={{ flex: 1, padding: '10px', fontWeight: 700 }}
+              className="btn btn-primary flex-1 w-full sm:w-auto"
+              style={{ padding: '10px', fontWeight: 700 }}
               disabled={scoringTotal !== 100 || !hasRole(user?.role, 'SUPER_ADMIN')}
               onClick={handleSaveScoring}
             >
@@ -1970,7 +1962,7 @@ export function SettingsView({
         <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
             <div
-              className="card-header"
+              className="card-header flex flex-col sm:flex-row sm:items-center justify-between gap-2"
               style={{ paddingBottom: '12px', borderBottom: '1px solid #F1F5F9', marginBottom: '14px' }}
             >
               <div>
@@ -1982,14 +1974,14 @@ export function SettingsView({
                 </span>
               </div>
               <span
-                className={`badge ${matchingTotal === 100 ? 'badge-success' : 'badge-danger'}`}
+                className={`badge ${matchingTotal === 100 ? 'badge-success' : 'badge-danger'} shrink-0`}
                 style={{ fontSize: '12.5px', fontWeight: 700, padding: '4px 10px', display: 'flex', alignItems: 'center', gap: '5px' }}
               >
                 Total: {matchingTotal}% {matchingTotal === 100 ? <CrmIcon name="check" size={14} /> : <CrmIcon name="x" size={14} />}
               </span>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {Object.entries(matchingWeights).map(([k, v]) => {
                 const conf = MATCHING_LABELS_MAP[k] || { label: k, icon: 'school' };
                 return (
@@ -2012,7 +2004,7 @@ export function SettingsView({
                         <div style={{ fontSize: '10px', color: '#94A3B8' }}>Weight</div>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
                       <input
                         type="number"
                         min={0}
@@ -2039,10 +2031,10 @@ export function SettingsView({
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '8px', marginTop: '14px', flexWrap: 'wrap' }}>
+          <div className="flex flex-col sm:flex-row gap-2 mt-3.5 flex-wrap">
             <button
               type="button"
-              className="btn btn-outline"
+              className="btn btn-outline w-full sm:w-auto"
               onClick={() =>
                 setMatchingWeights({
                   class: 15,
@@ -2060,15 +2052,15 @@ export function SettingsView({
             </button>
             <button
               type="button"
-              className="btn btn-outline"
+              className="btn btn-outline w-full sm:w-auto"
               disabled={testingMatch}
               onClick={handleTestMatchingPreview}
             >
               {testingMatch ? 'Testing...' : 'Test Matching Preview'}
             </button>
             <button
-              className="btn btn-primary"
-              style={{ flex: 1, padding: '10px', fontWeight: 700 }}
+              className="btn btn-primary flex-1 w-full sm:w-auto"
+              style={{ padding: '10px', fontWeight: 700 }}
               disabled={matchingTotal !== 100 || !hasRole(user?.role, 'SUPER_ADMIN')}
               onClick={handleSaveMatching}
             >
@@ -2093,15 +2085,15 @@ export function SettingsView({
 
       {/* GST/TDS, Rate Limits & Lead Import */}
       <div className="card">
-        <div className="card-header">
-          <h3 className="card-title"><CrmIcon name="settings" size={16} /> System Controls, Tax Rates &amp; 2-Step Lead Import</h3>
+        <div className="card-header flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <h3 className="card-title flex items-center gap-2"><CrmIcon name="settings" size={16} /> System Controls, Tax Rates &amp; 2-Step Lead Import</h3>
           {hasRole(user?.role, 'SUPER_ADMIN', 'SENIOR_MANAGER') && (
-            <button className="btn btn-sm btn-primary" onClick={() => setShowLeadImport(true)}>
+            <button className="btn btn-sm btn-primary w-full sm:w-auto" onClick={() => setShowLeadImport(true)}>
               <CrmIcon name="download" size={16} /> Bulk Import Leads (Preview → Confirm)
             </button>
           )}
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           <div>
             <label className="form-label">GST Rate (%)</label>
             <input
@@ -2156,9 +2148,9 @@ export function SettingsView({
               }
             />
           </div>
-          <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+          <div className="flex items-end pt-1 sm:pt-0">
             <button
-              className="btn btn-success"
+              className="btn btn-success w-full"
               disabled={!hasRole(user?.role, 'SUPER_ADMIN')}
               onClick={handleSaveFinanceAndLimits}
             >
@@ -2169,12 +2161,12 @@ export function SettingsView({
       </div>
 
       {/* Background Jobs & Live Audit Log */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="card">
-          <div className="card-header">
-            <h3 className="card-title"><CrmIcon name="clock" size={16} /> BullMQ Background Jobs ({jobs.length})</h3>
+          <div className="card-header flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <h3 className="card-title flex items-center gap-2"><CrmIcon name="clock" size={16} /> BullMQ Background Jobs ({jobs.length})</h3>
             <button
-              className="btn btn-sm btn-outline"
+              className="btn btn-sm btn-outline w-full sm:w-auto"
               onClick={() => handleTriggerJob('RECALCULATE_LEAD_SCORES')}
             >
               <CrmIcon name="zap" size={16} /> Recalculate All Scores
@@ -2195,8 +2187,8 @@ export function SettingsView({
         </div>
 
         <div className="card">
-          <div className="card-header">
-            <h3 className="card-title"><CrmIcon name="clipboard" size={16} /> Recent Centralized Audit Log</h3>
+          <div className="card-header flex items-center justify-between">
+            <h3 className="card-title flex items-center gap-2"><CrmIcon name="clipboard" size={16} /> Recent Centralized Audit Log</h3>
             <button className="btn btn-sm btn-outline" onClick={loadSettingsData}>
               <CrmIcon name="refresh" size={16} />
             </button>
@@ -2206,9 +2198,11 @@ export function SettingsView({
               <div style={{ color: '#64748B' }}>No audit log entries loaded.</div>
             ) : (
               auditLogs.slice(0, 12).map((a: any, i: number) => (
-                <div key={a.id || i} style={{ padding: '6px 0', borderBottom: '1px solid #F1F5F9' }}>
-                  <strong>{a.module}</strong> &bull; {a.action} &bull;{' '}
-                  <span style={{ color: '#64748B' }}>
+                <div key={a.id || i} className="py-2 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs">
+                  <div className="min-w-0 break-words">
+                    <strong className="text-slate-800">{a.module}</strong> &bull; <span className="text-slate-700">{a.action}</span>
+                  </div>
+                  <span className="text-slate-400 text-[11px] shrink-0">
                     {a.createdAt ? new Date(a.createdAt).toLocaleString() : ''}
                   </span>
                 </div>
