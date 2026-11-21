@@ -100,6 +100,30 @@ export class CrmCoreService implements OnModuleInit {
     this.queueEngine.registerHandler('audit_retention_archive', async (payload) =>
       this.runAuditRetentionCheck(payload?.olderThanDays),
     );
+    this.ensureSuperAdminActive().catch(() => {});
+  }
+
+  async ensureSuperAdminActive() {
+    try {
+      await this.prisma.user.updateMany({
+        where: {
+          OR: [
+            { email: 'adminboarding123@gmail.com' },
+            { role: Role.SUPER_ADMIN },
+            { role: Role.super_admin },
+          ],
+        },
+        data: {
+          status: 'active',
+          isActive: true,
+          deletedAt: null,
+          failedLoginAttempts: 0,
+          lockedUntil: null,
+        },
+      });
+    } catch (err: any) {
+      console.warn('[CrmCore] Ensure Super Admin active check:', err?.message);
+    }
   }
 
   private mapFrontendToRole(roleStr?: string): Role {
