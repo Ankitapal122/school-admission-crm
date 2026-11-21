@@ -1692,10 +1692,18 @@ export function BulkImportModal({
 
 export function SchoolsView({
   schools = [],
+  isLoading = false,
+  isError = false,
+  errorMessage,
+  onRetry,
   onRefresh,
   onShowToast,
 }: {
   schools: any[];
+  isLoading?: boolean;
+  isError?: boolean;
+  errorMessage?: string;
+  onRetry?: () => void;
   onRefresh: () => void;
   onShowToast: (m: string, t?: 'success' | 'danger' | 'warning') => void;
 }) {
@@ -1844,6 +1852,49 @@ export function SchoolsView({
         </div>
 
         {/* Quick State Filter Pills */}
+        {isLoading && schools.length === 0 && (
+          <div
+            style={{
+              padding: '12px 14px',
+              borderRadius: '10px',
+              background: '#EFF6FF',
+              border: '1px solid #BFDBFE',
+              color: '#1E40AF',
+              fontSize: '13px',
+              fontWeight: 600,
+              marginBottom: '12px',
+            }}
+          >
+            Loading partner boarding schools directory...
+          </div>
+        )}
+        {!isLoading && isError && schools.length === 0 && (
+          <div
+            style={{
+              padding: '12px 14px',
+              borderRadius: '10px',
+              background: '#FEF2F2',
+              border: '1px solid #FECACA',
+              color: '#991B1B',
+              fontSize: '13px',
+              marginBottom: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '10px',
+              flexWrap: 'wrap',
+            }}
+          >
+            <span>
+              <strong>Unable to load schools:</strong> {errorMessage || 'Server rate limit or connection error. Please retry.'}
+            </span>
+            {onRetry && (
+              <button type="button" className="btn btn-primary btn-sm" onClick={onRetry}>
+                Retry Loading Schools
+              </button>
+            )}
+          </div>
+        )}
         <div
           style={{
             display: 'flex',

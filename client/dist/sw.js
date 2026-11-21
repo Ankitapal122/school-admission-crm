@@ -1,5 +1,5 @@
-﻿// BoardingEdu Enterprise CRM - Progressive Web App Service Worker (v4.0)
-const CACHE_NAME = 'boardingedu-crm-shell-v4';
+﻿// BoardingEdu Enterprise CRM - Progressive Web App Service Worker (v5.0)
+const CACHE_NAME = 'boardingedu-crm-shell-v5';
 const APP_SHELL_ASSETS = [
   '/',
   '/index.html',

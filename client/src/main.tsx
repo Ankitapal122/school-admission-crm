@@ -38,6 +38,14 @@ const queryClient = new QueryClient({
     queries: {
       refetchOnWindowFocus: false,
       staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: (failureCount, error: any) => {
+        const status = error?.status;
+        if (status && [400, 401, 403, 404, 422, 423, 429].includes(status)) {
+          return false;
+        }
+        return failureCount < 1;
+      },
+      retryDelay: 3000,
     },
   },
 });

@@ -70,6 +70,18 @@ function buildHeaders(token: string | null, isFormData: boolean, extra?: Record<
 }
 
 const OFFLINE_AUTH_PREFIXES = ['/auth/', '/security/'];
+const inFlightGets = new Map<string, Promise<any>>();
+
+function parseRetryAfterMs(res: Response, attempt: number): number {
+  const retryAfter = res.headers.get('Retry-After');
+  if (retryAfter) {
+    const sec = Number(retryAfter);
+    if (!Number.isNaN(sec) && sec > 0) {
+      return Math.min(8000, Math.max(1000, sec * 1000));
+    }
+  }
+  return Math.min(8000, attempt * 2000 + Math.floor(Math.random() * 400));
+}
 
 export async function apiCall<T = any>(
   endpoint: string,
@@ -77,6 +89,12 @@ export async function apiCall<T = any>(
   body: any = null,
   opts?: { skipOfflineQueue?: boolean; headers?: Record<string, string> }
 ): Promise<T> {
+  if (method === 'GET' && !opts?.headers) {
+    const existing = inFlightGets.get(endpoint);
+    if (existing) return existing as Promise<T>;
+  }
+
+  const execPromise = (async (): Promise<T> => {
   const apiBase = getApiBase();
   const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
   const isAuthRoute = OFFLINE_AUTH_PREFIXES.some((p) => endpoint.startsWith(p));
@@ -120,10 +138,16 @@ export async function apiCall<T = any>(
     try {
       res = await performFetch();
       lastNetworkErr = null;
-      // Transparent auto-retry on transient gateway errors (502/503/504) during Render cold start or redeploy
-      if ((res.status === 502 || res.status === 503 || res.status === 504) && attempt < maxAttempts && (method === 'GET' || isAuthRoute)) {
-        await new Promise((r) => setTimeout(r, 2200));
-        continue;
+      // Transparent auto-retry on transient gateway errors (502/503/504) or rate limit (429) on GET
+      if (
+        ((res.status === 502 || res.status === 503 || res.status === 504) && (method === 'GET' || isAuthRoute)) ||
+        (res.status === 429 && method === 'GET')
+      ) {
+        if (attempt < maxAttempts) {
+          const delay = res.status === 429 ? parseRetryAfterMs(res, attempt) : 2200;
+          await new Promise((r) => setTimeout(r, delay));
+          continue;
+        }
       }
       break;
     } catch (networkErr: any) {
@@ -173,6 +197,10 @@ export async function apiCall<T = any>(
 
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
+    if (method === 'GET' && !isAuthRoute && (res.status === 429 || res.status >= 500)) {
+      const cached = await getCachedCollection<T>(endpoint);
+      if (cached) return { ...(cached as any), _offlineCached: true };
+    }
     const msg = Array.isArray(data?.message) ? data.message.join(', ') : data?.message;
     throw new ApiError(msg || `API Error: ${res.statusText || res.status}`, res.status, data);
   }
@@ -182,6 +210,18 @@ export async function apiCall<T = any>(
   }
 
   return data as T;
+  })();
+
+  if (method === 'GET' && !opts?.headers) {
+    inFlightGets.set(endpoint, execPromise);
+    execPromise.finally(() => {
+      if (inFlightGets.get(endpoint) === execPromise) {
+        inFlightGets.delete(endpoint);
+      }
+    });
+  }
+
+  return execPromise;
 }
 
 export async function downloadApiFile(endpoint: string, fallbackFilename = 'export.xlsx'): Promise<void> {

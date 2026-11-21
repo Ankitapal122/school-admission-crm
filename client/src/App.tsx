@@ -72,11 +72,6 @@ export default function App() {
       setNeedsPrivacyAccept(false);
       return;
     }
-    const sendHeartbeat = () => {
-      apiCall('/presence/heartbeat', 'POST', {}, { skipOfflineQueue: true }).catch(() => {});
-    };
-    sendHeartbeat();
-    const hbInterval = setInterval(sendHeartbeat, 60_000);
 
     const localKey = `crm_privacy_accepted_v2_${user.id}`;
     if (localStorage.getItem(localKey) !== 'true') {
@@ -92,8 +87,6 @@ export default function App() {
         })
         .catch(() => {});
     }
-
-    return () => clearInterval(hbInterval);
   }, [isAuthenticated, user?.id]);
 
   const effectiveRole = previewRole || user?.role || 'SUPER_ADMIN';
@@ -118,10 +111,17 @@ export default function App() {
     enabled: isAuthenticated,
   });
 
-  const { data: schoolsRes } = useQuery({
+  const {
+    data: schoolsRes,
+    isLoading: schoolsLoading,
+    isError: schoolsError,
+    error: schoolsErrObj,
+    refetch: refetchSchools,
+  } = useQuery({
     queryKey: ['schools'],
     queryFn: () => apiCall('/schools?limit=1500'),
     enabled: isAuthenticated,
+    staleTime: 1000 * 60 * 15,
   });
 
   const { data: commissionsRes } = useQuery({
@@ -348,6 +348,10 @@ export default function App() {
             {currentTab === 'schools' && (
               <SchoolsView
                 schools={schools}
+                isLoading={schoolsLoading}
+                isError={schoolsError}
+                errorMessage={(schoolsErrObj as any)?.message}
+                onRetry={() => refetchSchools()}
                 onRefresh={refreshAll}
                 onShowToast={showToast}
               />

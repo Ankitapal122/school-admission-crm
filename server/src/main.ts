@@ -21,6 +21,7 @@ process.on('uncaughtException', (err: Error) => {
 async function bootstrap() {
   console.log(`[Boot] Initializing BoardingEdu CRM (Node ${process.version}, PORT=${process.env.PORT || 5000})...`);
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  app.set('trust proxy', 1);
 
   // Security headers & response compression (avoid HSTS on plain HTTP localhost)
   app.use(
