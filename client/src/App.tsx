@@ -174,9 +174,14 @@ export default function App() {
     queryClient.invalidateQueries({ queryKey: ['users'] });
   };
 
-  // If not logged in, show the exact BoardingEdu Login Page (manual credentials required)
+  // If not logged in, show the exact BoardingEdu Login Page (manual credentials required) along with PWA Installer
   if (!isAuthenticated) {
-    return <LoginPage />;
+    return (
+      <>
+        <LoginPage />
+        <PwaInstallPrompt />
+      </>
+    );
   }
 
   const leads = leadsRes?.leads || [];

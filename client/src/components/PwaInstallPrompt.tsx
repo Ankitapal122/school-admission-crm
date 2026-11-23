@@ -10,8 +10,28 @@ export default function PwaInstallPrompt() {
   const [isStandalone, setIsStandalone] = useState(false);
   const [showBanner, setShowBanner] = useState(false);
   const [showGuideModal, setShowGuideModal] = useState(false);
+  const [showDownloadCardModal, setShowDownloadCardModal] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
   const [activeTab, setActiveTab] = useState<'android' | 'desktop' | 'ios'>('desktop');
   const [hasUpdate, setHasUpdate] = useState(false);
+
+  const getShareableInstallLink = () => {
+    if (typeof window === 'undefined') return 'https://boardingedu-crm.onrender.com/?install=app';
+    return `${window.location.origin}/?install=app`;
+  };
+
+  const handleCopyInstallLink = () => {
+    const link = getShareableInstallLink();
+    navigator.clipboard?.writeText(link).catch(() => {});
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 3000);
+  };
+
+  const handleShareWhatsAppInstallLink = () => {
+    const link = getShareableInstallLink();
+    const msg = `📲 *Download & Install BoardingEdu CRM App*\n\nClick the official link below to install the BoardingEdu CRM app directly on your Android Phone, iPhone, or Laptop/PC:\n👉 ${link}\n\n1. Open the link in Chrome / Safari\n2. Tap *"Download & Install App"*`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
+  };
 
   const handleInstallClick = async () => {
     const promptEvent = (window as any).__deferredPwaPrompt || deferredPrompt;
@@ -76,11 +96,24 @@ export default function PwaInstallPrompt() {
     const handleUpdate = () => setHasUpdate(true);
     window.addEventListener('pwa-update-available', handleUpdate);
 
-    // 5. Manual trigger from Sidebar / Hamburger menu
+    // 5. Manual trigger from Sidebar / Hamburger menu / Login page
     const handleManualShow = () => {
-      handleInstallClick();
+      setShowDownloadCardModal(true);
     };
     window.addEventListener('pwa-show-install-prompt', handleManualShow);
+
+    // 6. Auto-open Download & Install Card if user opened the direct install link (?install=app or /install)
+    const params = new URLSearchParams(window.location.search);
+    if (
+      !isStandaloneMode &&
+      (params.get('install') === 'app' ||
+        params.get('install') === '1' ||
+        params.get('download') === 'app' ||
+        window.location.pathname === '/install' ||
+        window.location.pathname === '/download')
+    ) {
+      setShowDownloadCardModal(true);
+    }
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -236,7 +269,236 @@ export default function PwaInstallPrompt() {
         </div>
       )}
 
-      {/* 3. Universal Multi-Platform Installation Guide Modal */}
+      {/* 3. Direct App Download & Shareable Install Link Modal */}
+      {showDownloadCardModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 999999,
+            background: 'rgba(15, 23, 42, 0.75)',
+            backdropFilter: 'blur(6px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+          }}
+          onClick={() => setShowDownloadCardModal(false)}
+        >
+          <div
+            style={{
+              background: '#FFFFFF',
+              borderRadius: '22px',
+              width: '100%',
+              maxWidth: '480px',
+              padding: '24px',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+              border: '1px solid #E2E8F0',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <img
+                  src="/boardingedu-logo.png"
+                  alt="BoardingEdu CRM"
+                  style={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '12px',
+                    objectFit: 'contain',
+                    border: '1px solid #E2E8F0',
+                    padding: '3px',
+                    background: '#F8FAFC',
+                  }}
+                />
+                <div>
+                  <h3 style={{ fontSize: '17px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                    BoardingEdu CRM App
+                  </h3>
+                  <div style={{ fontSize: '11.5px', color: '#16A34A', fontWeight: 700, marginTop: '2px' }}>
+                    ✓ Official App Installer (Android • iPhone • Windows/Mac)
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowDownloadCardModal(false)}
+                style={{
+                  background: '#F1F5F9',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '32px',
+                  height: '32px',
+                  cursor: 'pointer',
+                  fontWeight: 700,
+                  color: '#64748B',
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* 1-Tap Direct Download & Install Button */}
+            <div
+              style={{
+                background: 'linear-gradient(135deg, #EFF6FF 0%, #F0FDF4 100%)',
+                border: '1.5px solid #BFDBFE',
+                borderRadius: '16px',
+                padding: '16px',
+                textAlign: 'center',
+                marginBottom: '16px',
+              }}
+            >
+              <div style={{ fontSize: '12.5px', color: '#1E293B', fontWeight: 600, marginBottom: '12px' }}>
+                Click below to download and install <strong>BoardingEdu CRM</strong> directly onto your Phone or Laptop Home Screen:
+              </div>
+              <button
+                type="button"
+                onClick={async () => {
+                  const promptEvent = (window as any).__deferredPwaPrompt || deferredPrompt;
+                  if (promptEvent) {
+                    try {
+                      await promptEvent.prompt();
+                      const choice = await promptEvent.userChoice;
+                      if (choice && choice.outcome === 'accepted') {
+                        setShowDownloadCardModal(false);
+                        setDeferredPrompt(null);
+                        (window as any).__deferredPwaPrompt = null;
+                        return;
+                      }
+                    } catch {}
+                  }
+                  setShowDownloadCardModal(false);
+                  setShowGuideModal(true);
+                }}
+                style={{
+                  width: '100%',
+                  background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  padding: '13px 18px',
+                  borderRadius: '12px',
+                  fontSize: '14.5px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  boxShadow: '0 8px 20px -4px rgba(37, 99, 235, 0.45)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                }}
+              >
+                <span>📲</span>
+                <span>Download &amp; Install BoardingEdu CRM Now</span>
+              </button>
+            </div>
+
+            {/* Shareable Direct App Install Link Box */}
+            <div
+              style={{
+                background: '#F8FAFC',
+                border: '1px solid #E2E8F0',
+                borderRadius: '14px',
+                padding: '14px',
+                marginBottom: '14px',
+              }}
+            >
+              <div style={{ fontSize: '12px', fontWeight: 800, color: '#0F172A', marginBottom: '6px' }}>
+                🔗 Share Direct App Download Link with Team (Managers &amp; Counsellors):
+              </div>
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '8px',
+                  alignItems: 'center',
+                  background: '#FFFFFF',
+                  border: '1px solid #CBD5E1',
+                  borderRadius: '10px',
+                  padding: '8px 10px',
+                }}
+              >
+                <input
+                  type="text"
+                  readOnly
+                  value={getShareableInstallLink()}
+                  style={{
+                    flex: 1,
+                    border: 'none',
+                    outline: 'none',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    color: '#1D4ED8',
+                    background: 'transparent',
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={handleCopyInstallLink}
+                  style={{
+                    background: copiedLink ? '#16A34A' : '#123B70',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '6px 12px',
+                    fontSize: '11.5px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {copiedLink ? '✓ Copied!' : '📋 Copy Link'}
+                </button>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+                <button
+                  type="button"
+                  onClick={handleShareWhatsAppInstallLink}
+                  style={{
+                    flex: 1,
+                    background: '#16A34A',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: '9px',
+                    padding: '9px 12px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <span>💬</span>
+                  <span>Share Install Link on WhatsApp</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowDownloadCardModal(false);
+                    setShowGuideModal(true);
+                  }}
+                  style={{
+                    background: '#FFFFFF',
+                    color: '#334155',
+                    border: '1px solid #CBD5E1',
+                    borderRadius: '9px',
+                    padding: '9px 12px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  📖 Step-by-Step Guide
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 4. Universal Multi-Platform Installation Guide Modal */}
       {showGuideModal && (
         <div
           style={{
