@@ -272,7 +272,7 @@ export default function PwaInstallPrompt() {
         </div>
       )}
 
-      {/* 3. Direct App Download & Shareable Install Link Modal */}
+      {/* 3. Direct App Download & Install Popup (Clean Single-Action Installer) */}
       {showDownloadCardModal && (
         <div
           style={{
@@ -286,217 +286,113 @@ export default function PwaInstallPrompt() {
             justifyContent: 'center',
             padding: '16px',
           }}
-          onClick={() => setShowDownloadCardModal(false)}
         >
           <div
             style={{
               background: '#FFFFFF',
               borderRadius: '22px',
               width: '100%',
-              maxWidth: '480px',
-              padding: '24px',
+              maxWidth: '410px',
+              padding: '26px 22px',
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
               border: '1px solid #E2E8F0',
+              textAlign: 'center',
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <img
-                  src="/boardingedu-logo.png"
-                  alt="BoardingEdu CRM"
-                  style={{
-                    width: '48px',
-                    height: '48px',
-                    borderRadius: '12px',
-                    objectFit: 'contain',
-                    border: '1px solid #E2E8F0',
-                    padding: '3px',
-                    background: '#F8FAFC',
-                  }}
-                />
-                <div>
-                  <h3 style={{ fontSize: '17px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
-                    BoardingEdu CRM App
-                  </h3>
-                  <div style={{ fontSize: '11.5px', color: '#16A34A', fontWeight: 700, marginTop: '2px' }}>
-                    ✓ Official App Installer (Android • iPhone • Windows/Mac)
-                  </div>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowDownloadCardModal(false)}
+            {/* App Icon & Title */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '18px' }}>
+              <img
+                src="/icon-192.png"
+                alt="BoardingEdu CRM"
                 style={{
-                  background: '#F1F5F9',
-                  border: 'none',
-                  borderRadius: '50%',
-                  width: '32px',
-                  height: '32px',
-                  cursor: 'pointer',
-                  fontWeight: 700,
-                  color: '#64748B',
-                }}
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* 1-Tap Direct Download & Install Button */}
-            <div
-              style={{
-                background: 'linear-gradient(135deg, #EFF6FF 0%, #F0FDF4 100%)',
-                border: '1.5px solid #BFDBFE',
-                borderRadius: '16px',
-                padding: '16px',
-                textAlign: 'center',
-                marginBottom: '16px',
-              }}
-            >
-              <div style={{ fontSize: '12.5px', color: '#1E293B', fontWeight: 600, marginBottom: '12px' }}>
-                Click below to download and install <strong>BoardingEdu CRM</strong> directly onto your Phone or Laptop Home Screen:
-              </div>
-              <button
-                type="button"
-                onClick={async () => {
-                  const promptEvent = (window as any).__deferredPwaPrompt || deferredPrompt;
-                  if (promptEvent) {
-                    try {
-                      await promptEvent.prompt();
-                      const choice = await promptEvent.userChoice;
-                      if (choice && choice.outcome === 'accepted') {
-                        setShowDownloadCardModal(false);
-                        setDeferredPrompt(null);
-                        (window as any).__deferredPwaPrompt = null;
-                        return;
-                      }
-                    } catch {}
-                  }
-                  setShowDownloadCardModal(false);
-                  setShowGuideModal(true);
-                }}
-                style={{
-                  width: '100%',
-                  background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
-                  color: '#FFFFFF',
-                  border: 'none',
-                  padding: '13px 18px',
-                  borderRadius: '12px',
-                  fontSize: '14.5px',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                  boxShadow: '0 8px 20px -4px rgba(37, 99, 235, 0.45)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                }}
-              >
-                <span>📲</span>
-                <span>Download &amp; Install BoardingEdu CRM Now</span>
-              </button>
-            </div>
-
-            {/* Shareable Direct App Install Link Box */}
-            <div
-              style={{
-                background: '#F8FAFC',
-                border: '1px solid #E2E8F0',
-                borderRadius: '14px',
-                padding: '14px',
-                marginBottom: '14px',
-              }}
-            >
-              <div style={{ fontSize: '12px', fontWeight: 800, color: '#0F172A', marginBottom: '6px' }}>
-                🔗 Share Direct App Download Link with Team (Managers &amp; Counsellors):
-              </div>
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '8px',
-                  alignItems: 'center',
+                  width: '72px',
+                  height: '72px',
+                  borderRadius: '18px',
+                  objectFit: 'contain',
+                  border: '1.5px solid #E2E8F0',
+                  padding: '6px',
                   background: '#FFFFFF',
-                  border: '1px solid #CBD5E1',
-                  borderRadius: '10px',
-                  padding: '8px 10px',
+                  boxShadow: '0 8px 20px rgba(15, 23, 42, 0.08)',
+                  marginBottom: '12px',
                 }}
-              >
-                <input
-                  type="text"
-                  readOnly
-                  value={getShareableInstallLink()}
-                  style={{
-                    flex: 1,
-                    border: 'none',
-                    outline: 'none',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    color: '#1D4ED8',
-                    background: 'transparent',
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={handleCopyInstallLink}
-                  style={{
-                    background: copiedLink ? '#16A34A' : '#123B70',
-                    color: '#FFFFFF',
-                    border: 'none',
-                    borderRadius: '8px',
-                    padding: '6px 12px',
-                    fontSize: '11.5px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {copiedLink ? '✓ Copied!' : '📋 Copy Link'}
-                </button>
+              />
+              <h3 style={{ fontSize: '19px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                Install BoardingEdu CRM
+              </h3>
+              <div style={{ fontSize: '12px', color: '#16A34A', fontWeight: 700, marginTop: '4px' }}>
+                ✓ Official Mobile &amp; Desktop App
               </div>
-              <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
-                <button
-                  type="button"
-                  onClick={handleShareWhatsAppInstallLink}
-                  style={{
-                    flex: 1,
-                    background: '#16A34A',
-                    color: '#FFFFFF',
-                    border: 'none',
-                    borderRadius: '9px',
-                    padding: '9px 12px',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '6px',
-                  }}
-                >
-                  <span>💬</span>
-                  <span>Share Install Link on WhatsApp</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowDownloadCardModal(false);
-                    setShowGuideModal(true);
-                  }}
-                  style={{
-                    background: '#FFFFFF',
-                    color: '#334155',
-                    border: '1px solid #CBD5E1',
-                    borderRadius: '9px',
-                    padding: '9px 12px',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                  }}
-                >
-                  📖 Step-by-Step Guide
-                </button>
-              </div>
+              <p style={{ fontSize: '12.5px', color: '#475569', marginTop: '8px', marginBottom: 0, lineHeight: 1.5 }}>
+                Download and install the <strong>BoardingEdu CRM App</strong> on your device for instant full-screen access.
+              </p>
             </div>
+
+            {/* 1-Tap Install App Button */}
+            <button
+              type="button"
+              onClick={async () => {
+                // Wait up to 1.2s if Chrome is still finalizing service worker registration
+                let promptEvent = (window as any).__deferredPwaPrompt || deferredPrompt;
+                if (!promptEvent) {
+                  for (let i = 0; i < 6; i++) {
+                    await new Promise((r) => setTimeout(r, 200));
+                    promptEvent = (window as any).__deferredPwaPrompt;
+                    if (promptEvent) break;
+                  }
+                }
+                if (promptEvent) {
+                  try {
+                    await promptEvent.prompt();
+                    const choice = await promptEvent.userChoice;
+                    if (choice && choice.outcome === 'accepted') {
+                      setShowDownloadCardModal(false);
+                      setDeferredPrompt(null);
+                      (window as any).__deferredPwaPrompt = null;
+                      return;
+                    }
+                  } catch {}
+                }
+                // If opened inside WhatsApp In-App Browser or iOS Safari where native prompt is blocked, show 1-step open-in-Chrome/Add-to-Home prompt
+                setShowDownloadCardModal(false);
+                setShowGuideModal(true);
+              }}
+              style={{
+                width: '100%',
+                background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
+                color: '#FFFFFF',
+                border: 'none',
+                padding: '14px 18px',
+                borderRadius: '12px',
+                fontSize: '15px',
+                fontWeight: 800,
+                cursor: 'pointer',
+                boxShadow: '0 8px 20px -4px rgba(37, 99, 235, 0.45)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+              }}
+            >
+              <span>📲</span>
+              <span>Install App</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowDownloadCardModal(false)}
+              style={{
+                marginTop: '12px',
+                background: 'none',
+                border: 'none',
+                color: '#64748B',
+                fontSize: '12.5px',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              Continue to Login →
+            </button>
           </div>
         </div>
       )}
