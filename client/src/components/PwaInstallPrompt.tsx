@@ -102,7 +102,7 @@ export default function PwaInstallPrompt() {
     };
     window.addEventListener('pwa-show-install-prompt', handleManualShow);
 
-    // 6. Auto-open Download & Install Card if user opened the direct install link (?install=app or /install)
+    // 6. Auto-open Download & Install Card ONLY if user opened the dedicated install link (?install=app or /install)
     const params = new URLSearchParams(window.location.search);
     if (
       !isStandaloneMode &&
@@ -113,6 +113,9 @@ export default function PwaInstallPrompt() {
         window.location.pathname === '/download')
     ) {
       setShowDownloadCardModal(true);
+    } else {
+      setShowDownloadCardModal(false);
+      setShowBanner(false);
     }
 
     return () => {

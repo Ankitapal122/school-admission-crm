@@ -1381,31 +1381,6 @@ export default function LoginPage() {
               <button type="submit" id="btnLogin" className="auth-btn-primary" disabled={isLoading}>
                 {isLoading ? 'Signing in...' : 'Login'}
               </button>
-
-              {/* Direct Download & Install App Button on Login Screen */}
-              <button
-                type="button"
-                onClick={() => window.dispatchEvent(new CustomEvent('pwa-show-install-prompt'))}
-                style={{
-                  width: '100%',
-                  marginTop: '10px',
-                  padding: '10px 14px',
-                  borderRadius: '10px',
-                  border: '1.5px solid #BFDBFE',
-                  background: '#EFF6FF',
-                  color: '#1D4ED8',
-                  fontSize: '13px',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                }}
-              >
-                <span>📲</span>
-                <span>Download &amp; Install BoardingEdu CRM App</span>
-              </button>
             </form>
 
             {/* Divider: Login with Role */}
