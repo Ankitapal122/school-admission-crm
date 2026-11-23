@@ -1472,18 +1472,22 @@ textarea.form-control {
    - Desktops (> 1024px)
    ========================================================================== */
 
+/* Mobile / Desktop Visibility Helpers */
+.mobile-only {
+  display: none !important;
+}
+
 /* Mobile Hamburger Menu Button */
 .mobile-menu-btn {
   display: none;
-  background: #F8FAFC;
-  border: 1px solid var(--border-color);
-  color: var(--primary-navy);
-  width: 38px;
-  height: 38px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  color: #1E293B;
+  width: 36px;
+  height: 36px;
   border-radius: 8px;
   align-items: center;
   justify-content: center;
-  font-size: 19px;
   cursor: pointer;
   flex-shrink: 0;
   transition: all 0.2s ease;
@@ -1587,6 +1591,10 @@ textarea.form-control {
 
   .desktop-only {
     display: none !important;
+  }
+
+  .mobile-only {
+    display: flex !important;
   }
 
   .sidebar-dock-trigger {
@@ -2078,7 +2086,7 @@ textarea.form-control {
 
 /* All Mobile & Phablet Screens (<= 768px) */
 @media (max-width: 768px) {
-  /* Force single-line clean topbar header: Hamburger -> Search -> Notifications -> Lead */
+  /* Force single-line clean topbar header matching Image 4: Logo -> Search -> Hamburger -> Notification */
   .topbar {
     padding: 6px 10px !important;
     height: 56px !important;
@@ -2086,13 +2094,15 @@ textarea.form-control {
     flex-wrap: nowrap !important;
     align-items: center !important;
     justify-content: space-between !important;
-    gap: 6px !important;
+    gap: 8px !important;
+    background: #FFFFFF !important;
+    border-bottom: 1px solid #E2E8F0 !important;
   }
 
   .topbar-left {
     display: flex !important;
     align-items: center !important;
-    gap: 6px !important;
+    gap: 8px !important;
     flex: 1 1 auto !important;
     min-width: 0 !important;
   }
@@ -2112,13 +2122,23 @@ textarea.form-control {
   .topbar-search-form {
     min-width: 0 !important;
     flex: 1 1 auto !important;
-    padding: 5px 8px !important;
+    background: #F1F5F9 !important;
+    border: 1px solid #CBD5E1 !important;
+    border-radius: 999px !important;
+    padding: 6px 12px !important;
     max-width: 100% !important;
   }
 
   .topbar-search-form input {
     font-size: 12px !important;
     min-width: 0 !important;
+  }
+
+  .mobile-brand-header {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex-shrink: 0 !important;
   }
 
   /* Responsive School Suggestion Cards for Mobile */

@@ -335,14 +335,33 @@ export default function Navbar({
             <span className="expand-brand-pill">BoardingEdu CRM</span>
           </button>
         )}
-        <button
-          className="mobile-menu-btn"
-          onClick={onToggleMobileMenu}
-          aria-label="Open navigation menu"
-          title="Menu"
+        {/* Mobile Brand Logo & Name matching Image 4 */}
+        <div
+          className="mobile-brand-header mobile-only"
+          onClick={() => onSelectTab('dashboard')}
+          style={{
+            alignItems: 'center',
+            gap: '6px',
+            cursor: 'pointer',
+            flexShrink: 0,
+            textDecoration: 'none',
+          }}
+          title="BoardingEdu CRM"
         >
-          <CrmIcon name="menu" size={18} />
-        </button>
+          <img
+            src="/boardingedu-logo.png"
+            alt="BoardingEdu"
+            style={{ width: '30px', height: '30px', objectFit: 'contain' }}
+          />
+          <div className="mobile-brand-text" style={{ lineHeight: 1.15 }}>
+            <div style={{ fontWeight: 800, fontSize: '13px', color: '#1E3A8A', letterSpacing: '-0.2px' }}>
+              BoardingEdu
+            </div>
+            <div className="brand-subtext" style={{ fontSize: '8px', color: '#16A34A', fontWeight: 700, whiteSpace: 'nowrap' }}>
+              Connecting Parents &amp; Schools
+            </div>
+          </div>
+        </div>
 
         {/* Global Search Bar matching reference screenshot */}
         <form
@@ -516,6 +535,16 @@ export default function Navbar({
           </div>
         )}
 
+        {/* Mobile Hamburger Menu Button - positioned right before notification bell to match Image 4 */}
+        <button
+          className="mobile-menu-btn"
+          onClick={onToggleMobileMenu}
+          aria-label="Open navigation menu"
+          title="Menu"
+        >
+          <CrmIcon name="menu" size={18} />
+        </button>
+
         <div ref={notifRef} style={{ position: 'relative' }}>
           <button
             className="topbar-btn"
@@ -662,7 +691,7 @@ export default function Navbar({
           )}
         </div>
 
-        <button className="btn btn-primary btn-sm" onClick={onOpenNewLead}>
+        <button className="btn btn-primary btn-sm desktop-only" onClick={onOpenNewLead}>
           <CrmIcon name="plus" size={15} /> <span className="hidden sm:inline">New </span>Lead
         </button>
 
