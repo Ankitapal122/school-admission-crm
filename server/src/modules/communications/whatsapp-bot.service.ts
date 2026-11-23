@@ -301,17 +301,17 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
 
     if (isAskingContact && !/^(1|2|3|4|option\s*[1-4])$/i.test(lowerText)) {
       const helplineReply =
-        `Namaste ${parentName} ji 🙏\n\n` +
-        `BoardingEdu Official Admission Counselling Helpline number:\n` +
-        `📞 *+91 7249417658* (Direct Calling & WhatsApp)\n\n` +
+        `Hello ${parentName}! 👋 Welcome to *BoardingEdu*\n\n` +
+        `Thank you for reaching out! We help parents find the best Boarding & Day Schools across India with free admission guidance.\n\n` +
+        `📞 *Official Admission Helpline:* +91 7249417658 (Direct Call & WhatsApp)\n` +
         `📍 *Central Admission Desk:* BoardingEdu India\n` +
-        `⏰ *Counselling Timings:* 9:00 AM – 8:30 PM (Daily Mon to Sun)\n\n` +
-        `👨‍💼 *Aapko BoardingEdu se Direct Admission lene par Special Benefits:*\n` +
-        `✅ *Guaranteed Seat Reservation:* Hamare verified partner schools mein reserved seats quota.\n` +
-        `✅ *Special Fee Relief & Scholarship:* Direct counselling support se fees concession guidance.\n` +
-        `✅ *100% Free Campus Visit Assistance:* School tour, hostel inspection aur principal meeting booking.\n` +
-        `✅ *Zero Consultancy Charges:* Parents ke liye hamari poori service 100% free hai.\n\n` +
-        `Aap abhi helpline number *+91 7249417658* par direct call kar sakte hain. Kya hum aapki baat Senior Admission Counsellor se abhi arrange karwayen?`;
+        `⏰ *Counselling Hours:* 9:00 AM – 8:30 PM (Monday to Sunday)\n\n` +
+        `👨‍💼 *Why Choose BoardingEdu for School Admissions?*\n` +
+        `✅ *Priority Seat Reservation:* Verified admission quota in top partner boarding schools.\n` +
+        `✅ *Fee Structure & Scholarship Guidance:* Transparent annual fee details & merit scholarship support.\n` +
+        `✅ *Free Campus & Virtual Zoom Tours:* Complete assistance for school visits and principal interactions.\n` +
+        `✅ *100% Free Counselling:* Zero consultancy charges for parents.\n\n` +
+        `Feel free to call us at *+91 7249417658* or reply with any school name to get its complete fee structure & admission process! 😊`;
 
       await this.sendAutomatedResponse(remoteJid, helplineReply);
       if (lead) {
@@ -328,6 +328,19 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
       }
       return;
     }
+
+    // Intent A1: Asking about Fees / Budget / Fee Structure specifically
+    const isAskingFees =
+      lowerText.includes('fee') ||
+      lowerText.includes('fees') ||
+      lowerText.includes('budget') ||
+      lowerText.includes('cost') ||
+      lowerText.includes('charges') ||
+      lowerText.includes('kharcha') ||
+      lowerText.includes('kitna lagta') ||
+      lowerText.includes('kitni fee') ||
+      lowerText.includes('price') ||
+      lowerText.includes('tuition');
 
     // Intent A2: Virtual Zoom Tour Request ("online", "zoom", "virtual tour", "online school dekhna")
     const isAskingOnlineTour =
@@ -434,13 +447,13 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
     }
 
     if (isAskingOnlineTour) {
-      const targetSchoolName = sortedShortlists[0]?.school?.name || 'School';
+      const targetSchoolName = sortedShortlists[0]?.school?.name || 'our Partner Boarding School';
       const askTimeReply =
-        `Namaste ${parentName} ji 🙏\n\n` +
-        `*${targetSchoolName}* ka Live Virtual Zoom Tour select karne ke liye dhanyawad! 🎥🏫\n\n` +
-        `Aap kal kis samay Online School Tour attend karna chahenge?\n` +
-        `(Jaise: *"Kal 2 baje"* ya *"Tomorrow 2:00 PM"* reply karein).\n\n` +
-        `Hum turant meeting slot lock kar denge! 😊\n\n` +
+        `Hello ${parentName}! 👋 Welcome to *BoardingEdu*\n\n` +
+        `Thank you for selecting a Live Virtual Zoom Campus Tour for *${targetSchoolName}*! 🎥🏫\n\n` +
+        `What time tomorrow would you prefer to attend the Online School Tour?\n` +
+        `(Simply reply with your preferred time, e.g., *"Tomorrow 2:00 PM"* or *"11:00 AM"*).\n\n` +
+        `We will lock your Zoom slot right away! 😊\n\n` +
         `📞 Helpline: +91 7249417658`;
 
       await this.sendAutomatedResponse(remoteJid, askTimeReply);
@@ -701,16 +714,17 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
         .join('\n\n');
 
       const regionalReply =
-        `Namaste ${parentName} ji 🙏\n\n` +
-        `Aapke request ke mutabiq *${regionTitle} ke Top Verified Boarding Schools* ki verified list niche di gayi hai:\n\n` +
+        `Hello ${parentName}! 👋 Welcome to *BoardingEdu*\n\n` +
+        `Thank you for reaching out! We help parents find the best Boarding & Day Schools across India with free admission guidance.\n\n` +
+        `Here is the curated list of *Top Verified Boarding Schools in ${regionTitle}* along with their annual fee structure:\n\n` +
         `${schoolListText}\n\n` +
         `━━━━━━━━━━━━━━━━━━━━\n` +
         `💼 *BoardingEdu Official Admission Advantages (100% Free):*\n` +
-        `✅ *Guaranteed Seat Allocation:* Official partner schools mein confirmed seat booking quota.\n` +
-        `✅ *Special Fee Concession:* BoardingEdu parents ko fee concession aur scholarship priority.\n` +
-        `✅ *Free Campus Visit:* Campus tour, hostel inspection aur principal interaction booking.\n\n` +
-        `Aap inme se kis school ki complete details (Brochure, Hostel & Mess Facilities, Ranking, Fees) dekhna chahte hain?\n` +
-        `Bas option number (*"1"*, *"2"*, *"3"*, *"4"*) ya school ka naam reply karein! 😊\n\n` +
+        `✅ *Priority Seat Reservation:* Verified admission quota in official partner boarding schools.\n` +
+        `✅ *Fee Concession & Scholarships:* Direct guidance on fee structures and merit scholarships.\n` +
+        `✅ *Free Campus & Virtual Tour:* Complete assistance for school visits, hostel inspection, and principal meetings.\n\n` +
+        `Which of these schools would you like complete details for (Annual Fee Breakdown, Hostel & Dining Facilities, Rankings & Admission Process)?\n` +
+        `Simply reply with the option number (*"1"*, *"2"*, *"3"*, *"4"*) or the school name! 😊\n\n` +
         `📞 *Direct Helpline:* +91 7249417658`;
 
       await this.sendAutomatedResponse(remoteJid, regionalReply);
@@ -797,9 +811,9 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
       // Build options footer for next school switching and admission booking
       let optionsFooter =
         `\n\n━━━━━━━━━━━━━━━━━━━━\n` +
-        `💡 *Admission Aage Proceed Karne Ke Liye 2 Options:*\n` +
-        `👉 *Option 1 (Physical Campus Visit):* Reply karein *"Visit"* - School campus visit schedule karne ke liye.\n` +
-        `👉 *Option 2 (Virtual Zoom Tour):* Reply karein *"Online"* - Ghar baithe Live Zoom Tour par school dekhne ke liye.\n`;
+        `💡 *Next Steps to Proceed with Admission:*\n` +
+        `👉 *Option 1 (Physical Campus Visit):* Reply *"Visit"* to schedule an in-person school campus tour.\n` +
+        `👉 *Option 2 (Virtual Zoom Tour):* Reply *"Online"* to book a Live Virtual Zoom Walkthrough from home.\n`;
 
       if (sortedShortlists.length > 0) {
         const remaining = sortedShortlists.filter(
@@ -807,45 +821,45 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
         );
         if (remaining.length > 0) {
           optionsFooter +=
-            `\n🔄 *Doosra School Dekhne Ke Liye:* Bas number (*"${remaining[0]?.priorityOrder || 2}"*) ya school ka naam reply karein.`;
+            `\n🔄 *View Another Shortlisted School:* Simply reply with the option number (*"${remaining[0]?.priorityOrder || 2}"*) or any school name.`;
         }
       }
 
       const reply =
-        `Namaste ${parentName} ji 🙏\n\n` +
-        `BoardingEdu Admission Counselling Team ki taraf se pranam!\n\n` +
-        `Aapke request ke anusaar *${studentName} (Class ${classGrade} – ${leadBoard})* ke liye *${schoolName}* ki complete school details niche di gayi hain:\n\n` +
-        `🏫 *${schoolName.toUpperCase()} – FULL DOSSIER*\n\n` +
+        `Hello ${parentName}! 👋 Welcome to *BoardingEdu*\n\n` +
+        `Thank you for reaching out! We help parents find the best Boarding & Day Schools across India with free admission guidance.\n\n` +
+        `Here is the complete official fee structure & school dossier for *${schoolName}* for *${studentName} (${classGrade.toLowerCase().startsWith('class') ? classGrade : `Class ${classGrade}`} – ${leadBoard})*:\n\n` +
+        `🏫 *${schoolName.toUpperCase()} – FEE STRUCTURE & FULL DOSSIER*\n\n` +
+        `💰 *Annual Fee Structure:*\n` +
+        `   • *Total Annual Fees:* *${feeText} / Year*\n` +
+        `   • *Fee Inclusions:* Academic Tuition, AC Boarding Hostel, 4 Daily Nutritious Meals, Laundry, Sports Coaching & 24/7 Infirmary Medical Care.\n\n` +
         `📍 *Location:* ${location}\n` +
         `🌳 *Campus Area:* ${campusSize} (Lush Green Eco-Friendly Campus)\n` +
         `🏆 *School Ranking:*\n` +
         `   • *State Ranking:* Rank #${stateRank} in ${state}\n` +
         `   • *National Ranking:* ${nationalRank}\n` +
         `📚 *Affiliated Board:* ${s.board || 'CBSE'} | Gender: ${s.genderType || 'Co-Ed'}\n\n` +
-        `💰 *Annual Fee Structure:*\n` +
-        `   • *Total Fees:* ${feeText} / Year\n` +
-        `   • *Includes:* School Tuition, AC Boarding Hostel, 4-time Nutritious Meals, Laundry, Sports Coaching, 24/7 Medical Care.\n\n` +
         `🥗 *Mess & Dining (Pure Veg & Non-Veg):*\n` +
-        `   • Pure Vegetarian aur Non-Vegetarian ke liye bilkul separate hygienic kitchen aur dining hall.\n` +
-        `   • Daily 4 balanced meals (Breakfast, Lunch, Evening Snacks, Dinner) prepared under dietitian supervision.\n` +
-        `   • Jain food request par available hai.\n\n` +
+        `   • Separate hygienic preparation kitchens & dining halls for Pure Vegetarian and Non-Vegetarian students.\n` +
+        `   • 4 balanced meals daily (Breakfast, Lunch, Evening High-Tea Snacks, Dinner) supervised by a certified nutritionist.\n` +
+        `   • Jain food and special dietary options available on request.\n\n` +
         `🏊 *Sports & Campus Facilities:*\n` +
-        `   • Sports Complex: Swimming Pool, Cricket oval, Football turf, Tennis & Basketball courts.\n` +
-        `   • Modern Boarding Hostels with 24/7 House Parents and security.\n` +
-        `   • Mentorship: ${ratio} Student-Teacher Ratio for personalized care.\n` +
+        `   • Sports Complex: Swimming Pool, Cricket Oval, Football Turf, Tennis & Basketball Courts.\n` +
+        `   • Modern Boarding Hostels with 24/7 resident House Parents and CCTV security.\n` +
+        `   • Mentorship: ${ratio} Student-to-Teacher Ratio for personalized attention.\n` +
         `   • 24/7 On-Campus Infirmary with resident Doctor & nursing staff.\n` +
-        `   • Robotics, Smart Classes, Music, Arts & Dance Studios.\n\n` +
-        `📝 *Admission Process for Class ${classGrade}:*\n` +
-        `   1. Registration & Application Submission\n` +
-        `   2. Basic Student Interaction & Assessment\n` +
+        `   • Robotics Lab, Smart Classrooms, Music, Fine Arts & Dance Studios.\n\n` +
+        `📝 *Admission Process:*\n` +
+        `   1. Online Registration & Application Submission\n` +
+        `   2. Student Interaction & Baseline Assessment\n` +
         `   3. Document Verification & Seat Confirmation\n\n` +
         `━━━━━━━━━━━━━━━━━━━━\n` +
-        `💼 *BoardingEdu Official Admission Partnership (Special Quota):*\n` +
-        `• Is school mein confirmed seat allocation aur special fee concession/scholarship BoardingEdu official partnership ke through milti hai.\n` +
-        `• Direct seat lock karne ya campus visit schedule karne ke liye abhi call karein:\n` +
+        `💼 *BoardingEdu Official Admission Partnership:*\n` +
+        `• Get priority seat reservation and guidance on merit scholarships / fee concessions through BoardingEdu.\n` +
+        `• To lock a seat or schedule a campus visit, call our Senior Counsellor directly:\n` +
         `📞 *Admission Helpline: +91 7249417658*${optionsFooter}\n\n` +
         `Warm Regards,\n` +
-        `*BoardingEdu Counselling Team*`;
+        `*BoardingEdu Admission Counselling Team*`;
 
       await this.sendAutomatedResponse(remoteJid, reply);
 
@@ -856,35 +870,127 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
               leadId: lead.id,
               userName: 'AI WhatsApp Bot',
               userRole: 'BOT',
-              content: `🤖 WhatsApp Auto-Reply: Sent complete ${schoolName} dossier & brochure to parent (${cleanPhone}) in response to: "${text.slice(0, 80)}"`,
+              content: `🤖 WhatsApp Auto-Reply: Sent complete ${schoolName} fee structure & dossier to parent (${cleanPhone}) in response to: "${text.slice(0, 80)}"`,
             },
           });
         } catch {
           // Non-fatal
         }
       }
+    } else if (isAskingFees) {
+      // Parent asked about fees/budget without naming a specific school (or named a budget)
+      let feeSchools: any[] = sortedShortlists.map((sl: any) => sl.school).filter(Boolean);
+      if (feeSchools.length === 0) {
+        const budgetInText = lowerText.match(/(\d+)\s*(l|lakh|lac)/i);
+        const maxCap = budgetInText
+          ? parseInt(budgetInText[1], 10) * 100000
+          : Number(lead?.budgetMax || 800000);
+        feeSchools = schools
+          .filter((s) => !s.minFeeAnnual || s.minFeeAnnual <= maxCap * 1.3)
+          .slice(0, 5);
+        if (feeSchools.length === 0) {
+          feeSchools = schools.slice(0, 5);
+        }
+      }
+
+      this.lastRecommendedSchoolsByJid.set(
+        remoteJid,
+        feeSchools.map((s: any) => s.id),
+      );
+
+      const feeBreakdownLines = feeSchools
+        .map((s: any, idx: number) => {
+          const fee =
+            s.feesDisplay ||
+            (s.minFeeAnnual
+              ? `₹${(s.minFeeAnnual / 100000).toFixed(2)}L – ₹${((s.maxFeeAnnual || s.minFeeAnnual) / 100000).toFixed(2)}L / Year`
+              : '₹3.50L – ₹5.50L / Year');
+          return (
+            `*${idx + 1}. ${s.name}* (${s.city || 'Dehradun'}, ${s.state || 'Uttarakhand'})\n` +
+            `   • *Board:* ${s.board || 'CBSE'} | *Annual Fee:* *${fee}*\n` +
+            `   • *Includes:* Tuition, Boarding Hostel, 4 Daily Meals, Sports & Medical Care`
+          );
+        })
+        .join('\n\n');
+
+      const feeReply =
+        `Hello ${parentName}! 👋 Welcome to *BoardingEdu*\n\n` +
+        `Thank you for reaching out! We help parents find the best Boarding & Day Schools across India with free admission guidance.\n\n` +
+        `💰 *Annual Boarding School Fee Structure Overview:*\n` +
+        `Here are the annual fee details for top verified boarding schools:\n\n` +
+        `${feeBreakdownLines}\n\n` +
+        `📌 *Note:* Annual fees cover Academic Tuition, Hostel Accommodation, 4 Nutritious Meals Daily, Sports Coaching, and 24/7 Medical Care.\n\n` +
+        `👉 Reply with an option number (*"1"*, *"2"*, *"3"*) or *type any School Name* to receive its complete fee breakup, facilities, and admission process!\n\n` +
+        `📞 *Free Admission Guidance Helpline:* +91 7249417658\n` +
+        `Warm Regards,\n*BoardingEdu Admission Counselling Team*`;
+
+      await this.sendAutomatedResponse(remoteJid, feeReply);
+      if (lead) {
+        try {
+          await this.prisma.leadRemark.create({
+            data: {
+              leadId: lead.id,
+              userName: 'AI WhatsApp Bot',
+              userRole: 'BOT',
+              content: `🤖 WhatsApp Auto-Reply: Sent Annual Fee Structure comparison in response to: "${text.slice(0, 80)}"`,
+            },
+          });
+        } catch {}
+      }
     } else {
-      // General greeting / prompt with shortlist options if available
-      let shortlistPrompt = '';
+      // General greeting / welcome message when a parent messages "Hi", "Hello", or any general enquiry
+      let shortlistSection = '';
       if (sortedShortlists.length > 0) {
-        shortlistPrompt =
-          `\n\nAapke student *${studentName}* ke liye counsellors ne yeh schools shortlist kiye hain:\n` +
+        this.lastRecommendedSchoolsByJid.set(
+          remoteJid,
+          sortedShortlists.map((sl: any) => sl.school?.id).filter(Boolean),
+        );
+        shortlistSection =
+          `\n\n🏫 *Shortlisted Schools & Annual Fee Structure for ${studentName}:*\n` +
           sortedShortlists
-            .map(
-              (sl: any, idx: number) =>
-                `   ${sl.priorityOrder || idx + 1}. *${sl.school?.name}* – ${sl.school?.feesDisplay || 'Fees on request'}`,
-            )
+            .map((sl: any, idx: number) => {
+              const s = sl.school;
+              const fee =
+                s?.feesDisplay ||
+                (s?.minFeeAnnual
+                  ? `₹${(s.minFeeAnnual / 100000).toFixed(2)}L – ₹${((s.maxFeeAnnual || s.minFeeAnnual) / 100000).toFixed(2)}L / Year`
+                  : 'Fees on request');
+              return `   *${sl.priorityOrder || idx + 1}. ${s?.name}* (${s?.city || 'India'}) – *${fee}*`;
+            })
             .join('\n') +
-          `\n\nAap inme se kis school ki details (Campus, Ranking, Fees, Veg/Non-Veg mess) dekhna chahte hain? Bas number (*"1"*, *"2"*, *"3"*) ya school ka naam likh kar bhejein! 😊`;
+          `\n\n💡 *How can we help you today?*\n` +
+          `• Reply *"1"*, *"2"*, or *"3"* to view full fee structure, hostel & mess facilities of a shortlisted school.\n` +
+          `• Reply *"Fees"* or any *School Name* (e.g., *Doon, Kasiga, Birla, Welham*) to check its exact annual fee structure.\n` +
+          `• Reply *"Online"* to book a Free Live Zoom Virtual Campus Tour.`;
       } else {
-        shortlistPrompt = `\n\nAap *${studentName}* ke liye kis school ki complete details (Campus, Fees, Veg/Non-Veg, Ranking) janna chahte hain?\n\nKripya school ya city ka naam batayein (jaise: *Birla, Kasiga, Maharashtra, Dehradun*), hum turant poora brochure aur fee structure bhej denge! 😊`;
+        const topDefault = schools.slice(0, 4);
+        this.lastRecommendedSchoolsByJid.set(
+          remoteJid,
+          topDefault.map((s) => s.id),
+        );
+        shortlistSection =
+          `\n\n🏫 *Popular Verified Boarding Schools & Annual Fees:*\n` +
+          topDefault
+            .map((s, idx) => {
+              const fee =
+                s.feesDisplay ||
+                (s.minFeeAnnual
+                  ? `₹${(s.minFeeAnnual / 100000).toFixed(2)}L – ₹${((s.maxFeeAnnual || s.minFeeAnnual) / 100000).toFixed(2)}L / Year`
+                  : '₹4.00L – ₹6.00L / Year');
+              return `   *${idx + 1}. ${s.name}* (${s.city || 'Dehradun'}) – *${fee}*`;
+            })
+            .join('\n') +
+          `\n\n💡 *How can we assist you today?*\n` +
+          `• Reply with any *School Name* or *"Fees"* to get its complete Annual Fee Structure, Hostel, Mess & Admission Process.\n` +
+          `• Reply *"1"*, *"2"*, *"3"*, or *"4"* to explore any of the top schools above.\n` +
+          `• Reply with a *City/State* (e.g., *Dehradun, Mussoorie, Nainital, Pune, Maharashtra*) to get top schools in your preferred location.`;
       }
 
       const reply =
-        `Namaste ${parentName} ji 🙏\n\n` +
-        `BoardingEdu Official Counselling Team mein aapka swagat hai!${shortlistPrompt}\n\n` +
-        `📞 Helpline: *+91 7249417658*\n` +
-        `Warm Regards,\n*BoardingEdu Team*`;
+        `Hello! 👋 Welcome to *BoardingEdu*\n\n` +
+        `Thank you for reaching out! We help parents find the best Boarding & Day Schools across India with free admission guidance.${shortlistSection}\n\n` +
+        `📞 *Admission Helpline:* +91 7249417658\n` +
+        `Warm Regards,\n*BoardingEdu Admission Counselling Team*`;
       await this.sendAutomatedResponse(remoteJid, reply);
     }
   }

@@ -24,11 +24,79 @@ export function normalizeIndianPhone(input?: string | null, required = false): s
 
   if (!/^[6-9]\d{9}$/.test(digits)) {
     throw new BadRequestException(
-      `Invalid Indian mobile number "${input}". Expected 10 digits or +91XXXXXXXXXX.`,
+      `Invalid Indian mobile number "${input}". Mobile number must be a real 10-digit Indian number starting with 6, 7, 8, or 9.`,
+    );
+  }
+
+  // Reject obviously fake / dummy / sequential / repeated numbers
+  if (
+    /^(\d)\1{9}$/.test(digits) || // e.g., 9999999999, 8888888888
+    /^(\d)\1{6,}/.test(digits) || // 7+ repeated digits at start
+    /(\d)\1{6,}$/.test(digits) || // 7+ repeated digits at end
+    [
+      '9876543210',
+      '9123456789',
+      '8765432109',
+      '7654321098',
+      '6543210987',
+      '9012345678',
+      '9000000000',
+      '8000000000',
+      '7000000000',
+      '6000000000',
+    ].includes(digits)
+  ) {
+    throw new BadRequestException(
+      `Fake or test mobile number "${input}" is not allowed. Please enter a real mobile number.`,
     );
   }
 
   return `+91${digits}`;
+}
+
+/**
+ * Validates that an email address is a real, well-formed email and not a fake/disposable address.
+ */
+export function validateRealEmail(input?: string | null, required = false): string | null {
+  if (input === undefined || input === null || String(input).trim() === '') {
+    if (required) {
+      throw new BadRequestException('A valid email address is required.');
+    }
+    return null;
+  }
+
+  const email = String(input).trim().toLowerCase();
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  if (!emailRegex.test(email)) {
+    throw new BadRequestException(`Invalid email address "${input}". Please enter a valid email.`);
+  }
+
+  const [localPart, domain] = email.split('@');
+  const blockedDomains = [
+    'test.com',
+    'example.com',
+    'fake.com',
+    'dummy.com',
+    'abc.com',
+    'xyz.com',
+    'mailinator.com',
+    'tempmail.com',
+    '10minutemail.com',
+    'yopmail.com',
+  ];
+  const blockedLocals = ['test', 'dummy', 'fake', 'asdf', 'qwerty', '12345', '123456', 'abc', 'xyz'];
+
+  if (
+    blockedDomains.includes(domain) ||
+    blockedLocals.includes(localPart) ||
+    /^([a-z0-9])\1{4,}$/.test(localPart)
+  ) {
+    throw new BadRequestException(
+      `Fake or dummy email "${input}" is not allowed. Please enter a real email address.`,
+    );
+  }
+
+  return email;
 }
 
 /**

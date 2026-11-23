@@ -132,6 +132,10 @@ export default function RoleDashboard({
 
   useEffect(() => {
     fetchDashboardData();
+    const interval = setInterval(() => {
+      fetchDashboardData();
+    }, 30000);
+    return () => clearInterval(interval);
   }, [role]);
 
   // Real presence (heartbeat-based). Admin sees everyone, Manager sees own team.

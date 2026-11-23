@@ -65,13 +65,20 @@ export default function App() {
     setTimeout(() => setToastMsg(null), 4000);
   };
 
-  // Persistent session (no auto-logout on idle or refresh) + live presence heartbeat every 60s
+  // Persistent session (no auto-logout on idle or refresh) + live presence heartbeat every 30s
   // Also enforce mandatory Privacy Policy acceptance on first login
   useEffect(() => {
     if (!isAuthenticated || !user?.id) {
       setNeedsPrivacyAccept(false);
       return;
     }
+
+    // Immediate heartbeat on login/mount + every 30s so user stays "Online" only while active in CRM
+    const sendHeartbeat = () => {
+      apiCall('/presence/heartbeat', 'POST', {}, { skipOfflineQueue: true }).catch(() => {});
+    };
+    sendHeartbeat();
+    const hbInterval = setInterval(sendHeartbeat, 30000);
 
     const localKey = `crm_privacy_accepted_v2_${user.id}`;
     if (localStorage.getItem(localKey) !== 'true') {
@@ -87,6 +94,8 @@ export default function App() {
         })
         .catch(() => {});
     }
+
+    return () => clearInterval(hbInterval);
   }, [isAuthenticated, user?.id]);
 
   const effectiveRole = previewRole || user?.role || 'SUPER_ADMIN';

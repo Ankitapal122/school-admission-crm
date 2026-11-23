@@ -2001,19 +2001,58 @@ const LEAD_CLASSES = [
   'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11', 'Class 12',
 ];
 const LEAD_STATES = [
-  'Uttarakhand', 'Himachal Pradesh', 'Rajasthan', 'Maharashtra', 'Karnataka', 'Delhi NCR',
-  'Uttar Pradesh', 'Punjab', 'Haryana', 'Gujarat', 'Madhya Pradesh', 'Tamil Nadu',
-  'West Bengal', 'Bihar', 'Jharkhand', 'Odisha', 'Telangana', 'Kerala', 'Other',
+  'Andhra Pradesh',
+  'Arunachal Pradesh',
+  'Assam',
+  'Bihar',
+  'Chhattisgarh',
+  'Goa',
+  'Gujarat',
+  'Haryana',
+  'Himachal Pradesh',
+  'Jammu & Kashmir',
+  'Jharkhand',
+  'Karnataka',
+  'Kerala',
+  'Madhya Pradesh',
+  'Maharashtra',
+  'Manipur',
+  'Meghalaya',
+  'Mizoram',
+  'Nagaland',
+  'Odisha',
+  'Punjab',
+  'Rajasthan',
+  'Sikkim',
+  'Tamil Nadu',
+  'Telangana',
+  'Tripura',
+  'Uttar Pradesh',
+  'Uttarakhand',
+  'West Bengal',
+  'Delhi NCR',
+  'Chandigarh',
+  'Puducherry',
+  'Ladakh',
+  'Andaman & Nicobar Islands',
+  'Dadra & Nagar Haveli and Daman & Diu',
+  'Lakshadweep',
+  'Other / NRI',
 ];
 const LEAD_BUDGETS = [
   { value: 'Under ₹1L', label: 'Under ₹1L', min: 50000, max: 100000 },
-  { value: 'Below ₹2L', label: 'Below ₹2L', min: 100000, max: 200000 },
-  { value: '₹2L – ₹2.5L', label: '₹2L – ₹2.5L', min: 200000, max: 250000 },
-  { value: '₹2.5L – ₹3L', label: '₹2.5L – ₹3L', min: 250000, max: 300000 },
+  { value: '₹1L – ₹2L', label: '₹1L – ₹2L', min: 100000, max: 200000 },
+  { value: '₹2L – ₹3L', label: '₹2L – ₹3L', min: 200000, max: 300000 },
   { value: '₹3L – ₹4L', label: '₹3L – ₹4L', min: 300000, max: 400000 },
   { value: '₹4L – ₹5L', label: '₹4L – ₹5L', min: 400000, max: 500000 },
   { value: '₹5L – ₹6L', label: '₹5L – ₹6L', min: 500000, max: 600000 },
-  { value: 'custom', label: 'And more (Custom)', min: 600000, max: 1500000 },
+  { value: '₹6L – ₹7L', label: '₹6L – ₹7L', min: 600000, max: 700000 },
+  { value: '₹7L – ₹8L', label: '₹7L – ₹8L', min: 700000, max: 800000 },
+  { value: '₹8L – ₹10L', label: '₹8L – ₹10L', min: 800000, max: 1000000 },
+  { value: '₹10L – ₹12L', label: '₹10L – ₹12L', min: 1000000, max: 1200000 },
+  { value: '₹12L – ₹15L', label: '₹12L – ₹15L', min: 1200000, max: 1500000 },
+  { value: '₹15L – ₹20L', label: '₹15L – ₹20L', min: 1500000, max: 2000000 },
+  { value: 'Above ₹20L', label: 'Above ₹20L', min: 2000000, max: 3000000 },
 ];
 const LEAD_SOURCES = [
   'Call', 'WhatsApp', 'Website', 'Referral', 'Ad', 'Walk-in',
@@ -2047,6 +2086,7 @@ export function CreateLeadModal({
     whatsapp: '',
     email: '',
     contactTime: 'morning',
+    customContactDateTime: '',
     board: 'CBSE',
     schoolType: 'boarding',
     cityResident: '',
@@ -2072,10 +2112,62 @@ export function CreateLeadModal({
     parentPhone?: string;
     counsellor?: string;
   } | null>(null);
+  const [emailAlreadyRegistered, setEmailAlreadyRegistered] = useState<{
+    id?: string;
+    leadNumber?: string;
+    studentName?: string;
+    parentEmail?: string;
+    counsellor?: string;
+  } | null>(null);
+  const [phoneFormatError, setPhoneFormatError] = useState<string | null>(null);
+  const [emailFormatError, setEmailFormatError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [activeSection, setActiveSection] = useState('sec-student');
 
   if (!isOpen) return null;
+
+  const isFakeIndianMobile = (digits10: string) => {
+    if (!/^[6-9]\d{9}$/.test(digits10)) return true;
+    if (/^(\d)\1{9}$/.test(digits10)) return true;
+    if (/^(\d)\1{6,}/.test(digits10) || /(\d)\1{6,}$/.test(digits10)) return true;
+    return [
+      '9876543210',
+      '9123456789',
+      '8765432109',
+      '7654321098',
+      '6543210987',
+      '9012345678',
+      '9000000000',
+      '8000000000',
+      '7000000000',
+      '6000000000',
+    ].includes(digits10);
+  };
+
+  const isFakeEmail = (rawEmail: string) => {
+    const clean = rawEmail.trim().toLowerCase();
+    if (!clean) return false;
+    if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(clean)) return true;
+    const [localPart, domain] = clean.split('@');
+    const blockedDomains = [
+      'test.com',
+      'example.com',
+      'fake.com',
+      'dummy.com',
+      'abc.com',
+      'xyz.com',
+      'mailinator.com',
+      'tempmail.com',
+      '10minutemail.com',
+      'yopmail.com',
+    ];
+    const blockedLocals = ['test', 'dummy', 'fake', 'asdf', 'qwerty', '12345', '123456', 'abc', 'xyz'];
+    return (
+      blockedDomains.includes(domain) ||
+      blockedLocals.includes(localPart) ||
+      /^([a-z0-9])\1{4,}$/.test(localPart)
+    );
+  };
 
   const set = (k: string) => (e: React.ChangeEvent<any>) =>
     setF((p) => ({ ...p, [k]: e.target.value }));
@@ -2087,8 +2179,10 @@ export function CreateLeadModal({
 
   const runDuplicateAndExpiredChecks = async () => {
     const rawMobile = f.mobile.replace(/\D/g, '');
-    if (rawMobile.length < 10) {
+    const rawEmail = f.email.trim().toLowerCase();
+    if (rawMobile.length < 10 && !rawEmail) {
       setPhoneAlreadyRegistered(null);
+      setEmailAlreadyRegistered(null);
       setDupWarning(null);
       return;
     }
@@ -2096,15 +2190,18 @@ export function CreateLeadModal({
       const [dRes, eRes] = await Promise.all([
         apiCall('/leads/check-duplicate', 'POST', {
           mobile: f.mobile.trim(),
+          email: rawEmail || undefined,
           studentName: f.studentName.trim(),
           classGrade: f.admissionClass,
         }).catch(() => null),
-        apiCall('/leads/check-expired-match', 'POST', {
-          mobile: f.mobile.trim(),
-          studentName: f.studentName.trim(),
-          classGrade: f.admissionClass,
-          admissionClass: f.admissionClass,
-        }).catch(() => null),
+        rawMobile.length >= 10
+          ? apiCall('/leads/check-expired-match', 'POST', {
+              mobile: f.mobile.trim(),
+              studentName: f.studentName.trim(),
+              classGrade: f.admissionClass,
+              admissionClass: f.admissionClass,
+            }).catch(() => null)
+          : Promise.resolve(null),
       ]);
       const exp =
         eRes?.expiredLead ||
@@ -2115,13 +2212,18 @@ export function CreateLeadModal({
         null;
       setExpiredMatch(exp);
       const dups = dRes?.duplicates || dRes?.matches || dRes?.data?.duplicates || dRes?.data?.matches || [];
-      const matched = dRes?.phoneMatchedLead || (Array.isArray(dups)
+      const matched = dRes?.phoneMatchedLead || (Array.isArray(dups) && rawMobile.length >= 10
         ? dups.find((m: any) => (m.parentPhone || '').replace(/\D/g, '').slice(-10) === rawMobile.slice(-10))
         : null);
       if ((dRes?.phoneAlreadyExists || matched) && !exp) {
         setPhoneAlreadyRegistered(matched || { leadNumber: 'LD-EXISTING', studentName: 'Registered Student' });
       } else {
         setPhoneAlreadyRegistered(null);
+      }
+      if (dRes?.emailAlreadyExists && dRes?.emailMatchedLead) {
+        setEmailAlreadyRegistered(dRes.emailMatchedLead);
+      } else if (!rawEmail) {
+        setEmailAlreadyRegistered(null);
       }
       setDupWarning(Array.isArray(dups) && dups.length > 0 ? dups[0] : null);
     } catch {
@@ -2136,25 +2238,47 @@ export function CreateLeadModal({
       motherName: '', motherOccupation: '', guardianName: '', guardianMobile: '',
       mobile: '', altMobile: '', whatsapp: '', email: '', cityResident: '',
       cityPreferred: '', prevClassPct: '', sourceDetail: '', remark: '',
+      contactTime: 'morning', customContactDateTime: '',
       budget: '₹3L – ₹4L', customBudget: '₹3L – ₹4L',
     }));
     setDpdpConsent(false);
     setDupWarning(null);
     setExpiredMatch(null);
     setPhoneAlreadyRegistered(null);
+    setEmailAlreadyRegistered(null);
+    setPhoneFormatError(null);
+    setEmailFormatError(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!/^\d{10}$/.test(f.mobile.replace(/\D/g, '').slice(-10))) {
-      onShowToast('Valid 10-digit primary mobile number is required.', 'warning');
+    const tenDigits = f.mobile.replace(/\D/g, '').slice(-10);
+    if (tenDigits.length !== 10 || isFakeIndianMobile(tenDigits)) {
+      const errMsg = 'Kripya ek real 10-digit Indian mobile number enter karein (starting with 6, 7, 8, or 9; dummy numbers allowed nahi hain).';
+      setPhoneFormatError(errMsg);
+      onShowToast(errMsg, 'danger');
+      return;
+    }
+    if (f.email.trim() && isFakeEmail(f.email.trim())) {
+      const errMsg = 'Kripya ek real aur valid email address enter karein (fake/test email allowed nahi hai).';
+      setEmailFormatError(errMsg);
+      onShowToast(errMsg, 'danger');
       return;
     }
     if (phoneAlreadyRegistered) {
       onShowToast(
-        `This phone number is already registered! (Lead ID: ${
+        `Ye mobile number pehle se registered hai! (Lead ID: ${
           phoneAlreadyRegistered.leadNumber || 'Existing'
-        }${phoneAlreadyRegistered.studentName ? `, Student: "${phoneAlreadyRegistered.studentName}"` : ''}). Duplicate leads cannot be submitted.`,
+        }${phoneAlreadyRegistered.studentName ? `, Student: "${phoneAlreadyRegistered.studentName}"` : ''}). Same mobile number dobara submit nahi ho sakta.`,
+        'danger'
+      );
+      return;
+    }
+    if (emailAlreadyRegistered) {
+      onShowToast(
+        `Ye email address pehle se registered hai! (Lead ID: ${
+          emailAlreadyRegistered.leadNumber || 'Existing'
+        }${emailAlreadyRegistered.studentName ? `, Student: "${emailAlreadyRegistered.studentName}"` : ''}). Kripya unique email enter karein.`,
         'danger'
       );
       return;
@@ -2207,7 +2331,10 @@ export function CreateLeadModal({
         whatsappNumber: f.whatsapp.trim() || undefined,
         email: f.email.trim() || undefined,
         parentEmail: f.email.trim() || undefined,
-        preferredContactTime: f.contactTime,
+        preferredContactTime:
+          f.contactTime === 'custom'
+            ? f.customContactDateTime.trim() || 'Custom Date & Time'
+            : f.contactTime,
         board: f.board,
         preferredBoard: f.board,
         schoolType: f.schoolType,
@@ -2362,14 +2489,44 @@ export function CreateLeadModal({
                 <CrmIcon name="alert" size={20} />
                 <div>
                   <div style={{ fontWeight: 800, fontSize: '13px' }}>
-                    ⛔ This phone number is already registered!
+                    ⛔ Ye Mobile Number pehle se registered hai! (This phone number already exists)
                   </div>
                   <div style={{ marginTop: '2px', lineHeight: '1.4' }}>
-                    This mobile number is already registered: Lead ID <strong>{phoneAlreadyRegistered.leadNumber}</strong>
+                    Ye mobile number pehle se database me darj hai: Lead ID <strong>{phoneAlreadyRegistered.leadNumber}</strong>
                     {phoneAlreadyRegistered.studentName && <> (Student: <strong>{phoneAlreadyRegistered.studentName}</strong>)</>}
                     {phoneAlreadyRegistered.counsellor && <> — Counsellor: <strong>{phoneAlreadyRegistered.counsellor}</strong></>}.
                     <br />
-                    Duplicate lead submission is not permitted. Please verify the existing lead.
+                    Same mobile number se dobara lead submit nahi ho sakti.
+                  </div>
+                </div>
+              </div>
+            )}
+            {emailAlreadyRegistered && (
+              <div
+                style={{
+                  background: '#FEF2F2',
+                  border: '1.5px solid #EF4444',
+                  color: '#991B1B',
+                  padding: '12px 14px',
+                  borderRadius: '10px',
+                  fontSize: '12.5px',
+                  marginBottom: '14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                }}
+              >
+                <CrmIcon name="alert" size={20} />
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: '13px' }}>
+                    ⛔ Ye Email Address pehle se registered hai! (This email already exists)
+                  </div>
+                  <div style={{ marginTop: '2px', lineHeight: '1.4' }}>
+                    Ye email address pehle se database me darj hai: Lead ID <strong>{emailAlreadyRegistered.leadNumber}</strong>
+                    {emailAlreadyRegistered.studentName && <> (Student: <strong>{emailAlreadyRegistered.studentName}</strong>)</>}
+                    {emailAlreadyRegistered.counsellor && <> — Counsellor: <strong>{emailAlreadyRegistered.counsellor}</strong></>}.
+                    <br />
+                    Har parent/student ka email real aur unique hona chahiye.
                   </div>
                 </div>
               </div>
@@ -2487,7 +2644,12 @@ export function CreateLeadModal({
                   Mobile Primary (+91) *
                   {phoneAlreadyRegistered && (
                     <span style={{ color: '#DC2626', marginLeft: '6px', fontWeight: 700, fontSize: '11px' }}>
-                      (⚠️ Already Registered)
+                      (⚠️ Pehle se registered hai)
+                    </span>
+                  )}
+                  {phoneFormatError && !phoneAlreadyRegistered && (
+                    <span style={{ color: '#DC2626', marginLeft: '6px', fontWeight: 700, fontSize: '11px' }}>
+                      (⚠️ Invalid / Fake Number)
                     </span>
                   )}
                 </label>
@@ -2496,12 +2658,19 @@ export function CreateLeadModal({
                   required
                   inputMode="tel"
                   maxLength={13}
-                  placeholder="9876543210"
+                  placeholder="Enter real 10-digit mobile number"
                   value={f.mobile}
                   onChange={(e) => {
                     set('mobile')(e);
                     const digits = e.target.value.replace(/\D/g, '');
                     if (digits.length >= 10) {
+                      const ten = digits.slice(-10);
+                      if (isFakeIndianMobile(ten)) {
+                        setPhoneFormatError('Fake ya dummy mobile number allowed nahi hai. Real 10-digit number likhein.');
+                        setPhoneAlreadyRegistered(null);
+                        return;
+                      }
+                      setPhoneFormatError(null);
                       apiCall('/leads/check-duplicate', 'POST', { mobile: e.target.value })
                         .then((res) => {
                           if (res?.phoneAlreadyExists && res?.phoneMatchedLead) {
@@ -2513,17 +2682,23 @@ export function CreateLeadModal({
                         .catch(() => {});
                     } else {
                       setPhoneAlreadyRegistered(null);
+                      setPhoneFormatError(null);
                     }
                   }}
                   onBlur={runDuplicateAndExpiredChecks}
                   style={{
-                    borderColor: phoneAlreadyRegistered ? '#EF4444' : undefined,
-                    backgroundColor: phoneAlreadyRegistered ? '#FEF2F2' : undefined,
+                    borderColor: phoneAlreadyRegistered || phoneFormatError ? '#EF4444' : undefined,
+                    backgroundColor: phoneAlreadyRegistered || phoneFormatError ? '#FEF2F2' : undefined,
                   }}
                 />
                 {phoneAlreadyRegistered && (
                   <div style={{ color: '#DC2626', fontSize: '11px', marginTop: '4px', fontWeight: 600 }}>
-                    ⚠️ This phone number is already registered: Lead ID {phoneAlreadyRegistered.leadNumber} ({phoneAlreadyRegistered.studentName})
+                    ⚠️ Ye mobile number pehle se likha/registered hai: Lead ID {phoneAlreadyRegistered.leadNumber} ({phoneAlreadyRegistered.studentName})
+                  </div>
+                )}
+                {phoneFormatError && !phoneAlreadyRegistered && (
+                  <div style={{ color: '#DC2626', fontSize: '11px', marginTop: '4px', fontWeight: 600 }}>
+                    ⚠️ {phoneFormatError}
                   </div>
                 )}
               </div>
@@ -2536,8 +2711,69 @@ export function CreateLeadModal({
                 <input className="form-control" inputMode="tel" placeholder="Same as primary if empty" value={f.whatsapp} onChange={set('whatsapp')} />
               </div>
               <div className="form-group">
-                <label className="form-label">Email</label>
-                <input className="form-control" type="email" placeholder="parent@example.com" value={f.email} onChange={set('email')} />
+                <label className="form-label">
+                  Email *
+                  {emailAlreadyRegistered && (
+                    <span style={{ color: '#DC2626', marginLeft: '6px', fontWeight: 700, fontSize: '11px' }}>
+                      (⚠️ Pehle se registered hai)
+                    </span>
+                  )}
+                  {emailFormatError && !emailAlreadyRegistered && (
+                    <span style={{ color: '#DC2626', marginLeft: '6px', fontWeight: 700, fontSize: '11px' }}>
+                      (⚠️ Invalid / Fake Email)
+                    </span>
+                  )}
+                </label>
+                <input
+                  className="form-control"
+                  type="email"
+                  required
+                  placeholder="Enter real & unique email address"
+                  value={f.email}
+                  onChange={(e) => {
+                    set('email')(e);
+                    const val = e.target.value.trim().toLowerCase();
+                    if (!val) {
+                      setEmailAlreadyRegistered(null);
+                      setEmailFormatError(null);
+                      return;
+                    }
+                    if (val.includes('@') && val.includes('.')) {
+                      if (isFakeEmail(val)) {
+                        setEmailFormatError('Fake ya test email allowed nahi hai. Real email enter karein.');
+                        setEmailAlreadyRegistered(null);
+                        return;
+                      }
+                      setEmailFormatError(null);
+                      apiCall('/leads/check-duplicate', 'POST', { email: val })
+                        .then((res) => {
+                          if (res?.emailAlreadyExists && res?.emailMatchedLead) {
+                            setEmailAlreadyRegistered(res.emailMatchedLead);
+                          } else {
+                            setEmailAlreadyRegistered(null);
+                          }
+                        })
+                        .catch(() => {});
+                    } else {
+                      setEmailAlreadyRegistered(null);
+                    }
+                  }}
+                  onBlur={runDuplicateAndExpiredChecks}
+                  style={{
+                    borderColor: emailAlreadyRegistered || emailFormatError ? '#EF4444' : undefined,
+                    backgroundColor: emailAlreadyRegistered || emailFormatError ? '#FEF2F2' : undefined,
+                  }}
+                />
+                {emailAlreadyRegistered && (
+                  <div style={{ color: '#DC2626', fontSize: '11px', marginTop: '4px', fontWeight: 600 }}>
+                    ⚠️ Ye email address pehle se registered hai: Lead ID {emailAlreadyRegistered.leadNumber} ({emailAlreadyRegistered.studentName})
+                  </div>
+                )}
+                {emailFormatError && !emailAlreadyRegistered && (
+                  <div style={{ color: '#DC2626', fontSize: '11px', marginTop: '4px', fontWeight: 600 }}>
+                    ⚠️ {emailFormatError}
+                  </div>
+                )}
               </div>
               <div className="form-group">
                 <label className="form-label">Preferred Contact Time</label>
@@ -2546,7 +2782,36 @@ export function CreateLeadModal({
                   <option value="afternoon">Afternoon</option>
                   <option value="evening">Evening</option>
                   <option value="anytime">Anytime</option>
+                  <option value="custom">Custom Date &amp; Time (Manual)</option>
                 </select>
+                {f.contactTime === 'custom' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '8px' }}>
+                    <input
+                      type="datetime-local"
+                      className="form-control"
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          const formatted = new Date(e.target.value).toLocaleString('en-IN', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: true,
+                          });
+                          setF((p) => ({ ...p, customContactDateTime: formatted }));
+                        }
+                      }}
+                    />
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Or type date & time manually (e.g. 25 Nov, 4:30 PM)"
+                      value={f.customContactDateTime}
+                      onChange={set('customContactDateTime')}
+                    />
+                  </div>
+                )}
               </div>
               <div className="form-group">
                 <label className="form-label">State *</label>
@@ -2587,54 +2852,23 @@ export function CreateLeadModal({
                   <option value="day">Day School</option>
                 </select>
               </div>
-              <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px', flexWrap: 'wrap', gap: '4px' }}>
-                  <label className="form-label" style={{ margin: 0, fontWeight: 700 }}>Annual Fees / Budget (₹) *</label>
-                  <span style={{ fontSize: '11px', color: '#2563EB', fontWeight: 600 }}>Type amount manually or tap a preset below</span>
-                </div>
-                <div style={{ position: 'relative' }}>
-                  <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8', fontWeight: 700, fontSize: '14px' }}>₹</span>
-                  <input
-                    type="text"
-                    className="form-control"
-                    style={{ paddingLeft: '28px', fontWeight: 600, fontSize: '14px', background: '#FFFFFF' }}
-                    placeholder="e.g. 3,50,000 or ₹4L – ₹5L"
-                    value={f.customBudget || f.budget}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setF((prev) => ({ ...prev, customBudget: val, budget: val }));
-                    }}
-                    required
-                  />
-                </div>
-                {/* 1-tap quick preset pills */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
-                  {LEAD_BUDGETS.filter((b) => b.value !== 'custom').map((b) => {
-                    const isSelected = (f.customBudget || f.budget) === b.value;
-                    return (
-                      <button
-                        type="button"
-                        key={b.value}
-                        onClick={() => {
-                          setF((prev) => ({ ...prev, budget: b.value, customBudget: b.value }));
-                        }}
-                        style={{
-                          padding: '4px 10px',
-                          fontSize: '11.5px',
-                          borderRadius: '20px',
-                          border: isSelected ? '1px solid #2563EB' : '1px solid #CBD5E1',
-                          background: isSelected ? '#2563EB' : '#F8FAFC',
-                          color: isSelected ? '#FFFFFF' : '#334155',
-                          fontWeight: isSelected ? 700 : 500,
-                          cursor: 'pointer',
-                          transition: 'all 0.15s ease',
-                        }}
-                      >
-                        {b.label}
-                      </button>
-                    );
-                  })}
-                </div>
+              <div className="form-group">
+                <label className="form-label">Annual Fees / Budget (₹) *</label>
+                <select
+                  className="form-control"
+                  value={f.budget}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setF((prev) => ({ ...prev, budget: val, customBudget: val }));
+                  }}
+                  required
+                >
+                  {LEAD_BUDGETS.map((b) => (
+                    <option key={b.value} value={b.value}>
+                      {b.label}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="form-group">
                 <label className="form-label">Student Gender</label>
@@ -2699,16 +2933,50 @@ export function CreateLeadModal({
             <button
               type="submit"
               className="btn btn-primary"
-              disabled={submitting || !!phoneAlreadyRegistered}
+              disabled={
+                submitting ||
+                !!phoneAlreadyRegistered ||
+                !!emailAlreadyRegistered ||
+                !!phoneFormatError ||
+                !!emailFormatError
+              }
               style={{
-                opacity: phoneAlreadyRegistered ? 0.6 : 1,
-                cursor: phoneAlreadyRegistered ? 'not-allowed' : 'pointer',
-                background: phoneAlreadyRegistered ? '#DC2626' : undefined,
-                borderColor: phoneAlreadyRegistered ? '#DC2626' : undefined,
+                opacity:
+                  phoneAlreadyRegistered ||
+                  emailAlreadyRegistered ||
+                  phoneFormatError ||
+                  emailFormatError
+                    ? 0.6
+                    : 1,
+                cursor:
+                  phoneAlreadyRegistered ||
+                  emailAlreadyRegistered ||
+                  phoneFormatError ||
+                  emailFormatError
+                    ? 'not-allowed'
+                    : 'pointer',
+                background:
+                  phoneAlreadyRegistered ||
+                  emailAlreadyRegistered ||
+                  phoneFormatError ||
+                  emailFormatError
+                    ? '#DC2626'
+                    : undefined,
+                borderColor:
+                  phoneAlreadyRegistered ||
+                  emailAlreadyRegistered ||
+                  phoneFormatError ||
+                  emailFormatError
+                    ? '#DC2626'
+                    : undefined,
               }}
             >
               {phoneAlreadyRegistered
-                ? '⛔ Number Already Registered (Cannot Submit)'
+                ? '⛔ Ye Number Pehle Se Registered Hai (Cannot Submit)'
+                : emailAlreadyRegistered
+                ? '⛔ Ye Email Pehle Se Registered Hai (Cannot Submit)'
+                : phoneFormatError || emailFormatError
+                ? '⛔ Enter Real Mobile & Email (Cannot Submit)'
                 : submitting
                 ? 'Creating Lead...'
                 : 'Create Lead'}

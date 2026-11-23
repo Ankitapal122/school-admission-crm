@@ -154,22 +154,6 @@ export default function LoginPage() {
         deviceName: navigator.userAgent,
       });
 
-      if (res.require2FA || res.requiresTwoFactor || res.requires_2fa) {
-        setTempToken(res.tempToken || res.temp_token);
-        setIsNewDevice(Boolean(res.isNewDevice));
-        setAdminEmail(res.adminEmail || emailTrimmed || 'adminboarding123@gmail.com');
-        setTfaDigits(['', '', '', '', '', '']);
-        setOtpExpirySeconds(Number(res.expiresInSeconds || 300));
-        setResendCooldown(0);
-        showToast(
-          res.message || '6-digit verification OTP sent to adminboarding123@gmail.com (valid for 1 minute).',
-          'warning'
-        );
-        setAuthView('two-factor');
-        setIsLoading(false);
-        return;
-      }
-
       if (res.user) {
         const backendRole = String(res.user.backendRole || res.user.role || '').toUpperCase();
         const roleEnum: User['role'] =
@@ -1478,7 +1462,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Footer Links: Change Password & 2FA Setup */}
+            {/* Footer Links: Change Password & Privacy Policy */}
             <div
               style={{
                 display: 'flex',
@@ -1497,16 +1481,6 @@ export default function LoginPage() {
                 style={{ color: '#2563EB', textDecoration: 'none', fontWeight: 500 }}
               >
                 Change Password
-              </a>
-              <a
-                href="#two-factor"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setAuthView('two-factor');
-                }}
-                style={{ color: '#2563EB', textDecoration: 'none', fontWeight: 500 }}
-              >
-                2FA Setup
               </a>
               <a
                 href="#privacy-policy"

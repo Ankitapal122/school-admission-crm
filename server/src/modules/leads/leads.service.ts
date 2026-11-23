@@ -17,6 +17,7 @@ import {
   parseClassGrade,
   sanitizeSpreadsheetCell,
   toBlueprintLeadStatus,
+  validateRealEmail,
 } from '../../common/utils/crm.utils';
 import {
   BLUEPRINT_MATCHING_KEYS,
@@ -360,6 +361,8 @@ export class LeadsService implements OnModuleInit {
     mobile?: string;
     parentPhone?: string;
     mobile_primary?: string;
+    email?: string;
+    parentEmail?: string;
     studentName?: string;
     student_name?: string;
     admissionClass?: string;
@@ -373,11 +376,18 @@ export class LeadsService implements OnModuleInit {
     const phoneCandidates = tenDigits
       ? [`+91${tenDigits}`, `91${tenDigits}`, tenDigits]
       : [];
+    const emailInput = String(body.email || body.parentEmail || '').trim().toLowerCase();
     const studentName = (body.studentName || body.student_name || '').trim();
     const classGrade = parseClassGrade(body.classGrade ?? body.class ?? body.admissionClass, 0);
 
-    if (!tenDigits && !studentName) {
-      return { isDuplicate: false, is_duplicate: false, phoneAlreadyExists: false, matches: [] };
+    if (!tenDigits && !emailInput && !studentName) {
+      return {
+        isDuplicate: false,
+        is_duplicate: false,
+        phoneAlreadyExists: false,
+        emailAlreadyExists: false,
+        matches: [],
+      };
     }
 
     const matches = await this.prisma.lead.findMany({
@@ -391,7 +401,11 @@ export class LeadsService implements OnModuleInit {
                 { parentPhone: { in: phoneCandidates } },
                 { alternateMobile: { in: phoneCandidates } },
                 { whatsappNumber: { in: phoneCandidates } },
+                { guardianMobile: { in: phoneCandidates } },
               ]
+            : []),
+          ...(emailInput
+            ? [{ parentEmail: { equals: emailInput, mode: 'insensitive' as const } }]
             : []),
           ...(studentName
             ? [{ studentName: { equals: studentName, mode: 'insensitive' as const } }]
@@ -403,6 +417,10 @@ export class LeadsService implements OnModuleInit {
         leadNumber: true,
         studentName: true,
         parentPhone: true,
+        alternateMobile: true,
+        whatsappNumber: true,
+        guardianMobile: true,
+        parentEmail: true,
         applyingForGrade: true,
         classGrade: true,
         status: true,
@@ -414,8 +432,21 @@ export class LeadsService implements OnModuleInit {
     });
 
     const phoneMatch = matches.find((m) => {
-      const mDigits = (m.parentPhone || '').replace(/\D/g, '').slice(-10);
-      return tenDigits && mDigits === tenDigits;
+      if (!tenDigits) return false;
+      const allMPhones = [
+        m.parentPhone,
+        m.alternateMobile,
+        m.whatsappNumber,
+        m.guardianMobile,
+      ]
+        .filter(Boolean)
+        .map((p) => String(p).replace(/\D/g, '').slice(-10));
+      return allMPhones.includes(tenDigits);
+    });
+
+    const emailMatch = matches.find((m) => {
+      if (!emailInput || !m.parentEmail) return false;
+      return m.parentEmail.trim().toLowerCase() === emailInput;
     });
 
     return {
@@ -430,6 +461,17 @@ export class LeadsService implements OnModuleInit {
             parentPhone: phoneMatch.parentPhone,
             status: phoneMatch.status,
             counsellor: phoneMatch.assignedCounsellor?.fullName || 'Unassigned',
+          }
+        : null,
+      emailAlreadyExists: !!emailMatch,
+      emailMatchedLead: emailMatch
+        ? {
+            id: emailMatch.id,
+            leadNumber: emailMatch.leadNumber,
+            studentName: emailMatch.studentName,
+            parentEmail: emailMatch.parentEmail,
+            status: emailMatch.status,
+            counsellor: emailMatch.assignedCounsellor?.fullName || 'Unassigned',
           }
         : null,
       matches: matches.map((m) => ({
@@ -510,6 +552,7 @@ export class LeadsService implements OnModuleInit {
       body.guardian_mobile || body.guardianMobile,
       false,
     );
+    const parentEmail = validateRealEmail(body.email || body.parentEmail, false);
 
     const studentName = String(body.student_name || body.studentName || '').trim();
     if (!studentName) throw new BadRequestException('student_name is required.');
@@ -534,13 +577,16 @@ export class LeadsService implements OnModuleInit {
           'Parent',
       ).trim();
 
-    const tenDigitPhone = parentPhone.replace(/\D/g, '').slice(-10);
-    const phoneCandidates = [
-      parentPhone,
-      `+91${tenDigitPhone}`,
-      `91${tenDigitPhone}`,
-      tenDigitPhone,
-    ];
+    const allInputTenDigits = [parentPhone, alternateMobile, whatsappNumber, guardianMobile]
+      .filter(Boolean)
+      .map((p) => String(p).replace(/\D/g, '').slice(-10))
+      .filter((d) => d.length === 10);
+
+    const phoneCandidates = Array.from(
+      new Set(
+        allInputTenDigits.flatMap((d) => [`+91${d}`, `91${d}`, d]),
+      ),
+    );
 
     const allowAfterExpiry = Boolean(
       body.allowCreateNewAfterExpiry || body.allow_create_new_after_expiry || body.forceCreateNew,
@@ -553,6 +599,7 @@ export class LeadsService implements OnModuleInit {
           { parentPhone: { in: phoneCandidates } },
           { alternateMobile: { in: phoneCandidates } },
           { whatsappNumber: { in: phoneCandidates } },
+          { guardianMobile: { in: phoneCandidates } },
         ],
       },
       select: {
@@ -571,10 +618,38 @@ export class LeadsService implements OnModuleInit {
         ? ` (Counsellor: ${existingPhoneLead.assignedCounsellor.fullName})`
         : '';
       throw new ConflictException(
-        `A lead with this mobile number is already registered (Lead ID: ${
+        `Ye mobile number pehle se registered hai! (Lead ID: ${
           existingPhoneLead.leadNumber || existingPhoneLead.id
-        }, Student: "${existingPhoneLead.studentName}"${counsellor}). Duplicate leads with the same phone number are not permitted.`
+        }, Student: "${existingPhoneLead.studentName}"${counsellor}). Same mobile number se dobara lead submit nahi ho sakti.`
       );
+    }
+
+    if (parentEmail) {
+      const existingEmailLead = await this.prisma.lead.findFirst({
+        where: {
+          deletedAt: null,
+          status: { notIn: allowAfterExpiry ? ['merged', 'MERGED', 'expired'] : ['merged', 'MERGED'] },
+          parentEmail: { equals: parentEmail, mode: 'insensitive' },
+        },
+        select: {
+          id: true,
+          leadNumber: true,
+          studentName: true,
+          parentEmail: true,
+          assignedCounsellor: { select: { fullName: true } },
+        },
+      });
+
+      if (existingEmailLead) {
+        const counsellor = existingEmailLead.assignedCounsellor?.fullName
+          ? ` (Counsellor: ${existingEmailLead.assignedCounsellor.fullName})`
+          : '';
+        throw new ConflictException(
+          `Ye email address (${parentEmail}) pehle se registered hai! (Lead ID: ${
+            existingEmailLead.leadNumber || existingEmailLead.id
+          }, Student: "${existingEmailLead.studentName}"${counsellor}). Please use a unique email address.`
+        );
+      }
     }
 
     const dup = await this.checkDuplicate({
@@ -633,7 +708,7 @@ export class LeadsService implements OnModuleInit {
         parentPhone,
         alternateMobile,
         whatsappNumber,
-        parentEmail: body.email || body.parentEmail || null,
+        parentEmail,
         preferredContactTime: body.preferred_contact_time || body.preferredContactTime || 'anytime',
         city: body.city_resident || body.city || null,
         preferredLocation: body.city_preferred || body.preferredLocation || null,
@@ -823,7 +898,26 @@ export class LeadsService implements OnModuleInit {
       updateData.whatsappNumber = normalizeIndianPhone(body.whatsapp_number ?? body.whatsappNumber, false);
     }
     if (body.parentEmail !== undefined || body.email !== undefined) {
-      updateData.parentEmail = body.email ?? body.parentEmail;
+      const validatedEmail = validateRealEmail(body.email ?? body.parentEmail, false);
+      updateData.parentEmail = validatedEmail;
+      if (validatedEmail && validatedEmail !== (existing.parentEmail || '').toLowerCase()) {
+        const otherEmailLead = await this.prisma.lead.findFirst({
+          where: {
+            id: { not: existing.id },
+            deletedAt: null,
+            status: { notIn: ['merged', 'MERGED'] },
+            parentEmail: { equals: validatedEmail, mode: 'insensitive' },
+          },
+          select: { id: true, leadNumber: true, studentName: true },
+        });
+        if (otherEmailLead) {
+          throw new ConflictException(
+            `Ye email address (${validatedEmail}) pehle se registered hai (Lead ID: ${
+              otherEmailLead.leadNumber || otherEmailLead.id
+            }, Student: "${otherEmailLead.studentName}"). Updating to a duplicate email is not permitted.`
+          );
+        }
+      }
     }
     if (body.preferredContactTime !== undefined || body.preferred_contact_time !== undefined) {
       updateData.preferredContactTime = body.preferred_contact_time ?? body.preferredContactTime;

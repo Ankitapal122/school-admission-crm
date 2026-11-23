@@ -308,6 +308,7 @@ export class DashboardService {
           status: true,
           lastLoginAt: true,
           lastLogoutAt: true,
+          lastActiveAt: true,
           team: { select: { id: true, name: true } },
         },
       }),
@@ -317,9 +318,14 @@ export class DashboardService {
       }),
     ]);
     const activeUserIds = new Set(activeSessionRows.map((s) => s.userId));
+    const ONLINE_WINDOW_MS = 2 * 60 * 1000;
     const teamMembers = rawTeamMembers.map((m) => {
+      const recentlyActive =
+        Boolean(m.lastActiveAt) &&
+        Date.now() - new Date(m.lastActiveAt as any).getTime() <= ONLINE_WINDOW_MS;
       const isOnline =
         activeUserIds.has(m.id) &&
+        recentlyActive &&
         Boolean(m.lastLoginAt) &&
         (!m.lastLogoutAt ||
           new Date(m.lastLoginAt).getTime() >= new Date(m.lastLogoutAt).getTime());
@@ -534,6 +540,7 @@ export class DashboardService {
           status: true,
           lastLoginAt: true,
           lastLogoutAt: true,
+          lastActiveAt: true,
           manager: { select: { id: true, fullName: true } },
           team: {
             select: {
@@ -605,6 +612,7 @@ export class DashboardService {
     ]);
 
     const activeUserIds = new Set((activeSessions as any[]).map((s) => s.userId));
+    const ONLINE_WINDOW_MS = 2 * 60 * 1000;
     const presenceUsers = liveUsers.map((u: any) => {
       const resolvedTeam = u.team || u.managedTeams?.[0] || null;
       const teamName = resolvedTeam?.name || null;
@@ -616,8 +624,12 @@ export class DashboardService {
         role: m.role,
         email: m.email,
       }));
+      const recentlyActive =
+        Boolean(u.lastActiveAt) &&
+        Date.now() - new Date(u.lastActiveAt).getTime() <= ONLINE_WINDOW_MS;
       const isOnline =
         activeUserIds.has(u.id) &&
+        recentlyActive &&
         Boolean(u.lastLoginAt) &&
         (!u.lastLogoutAt ||
           new Date(u.lastLoginAt).getTime() >= new Date(u.lastLogoutAt).getTime());

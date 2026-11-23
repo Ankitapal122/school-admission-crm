@@ -443,14 +443,70 @@ export default function EditLeadModal({
                   />
                 </div>
                 <div>
-                  <label className="form-label" style={{ fontWeight: 600 }}>Annual Budget Range</label>
-                  <input
-                    type="text"
+                  <label className="form-label" style={{ fontWeight: 600 }}>Annual Fees / Budget (₹) *</label>
+                  <select
                     className="form-control"
                     value={annualBudget}
-                    onChange={(e) => setAnnualBudget(e.target.value)}
-                    placeholder="e.g. ₹4.0 - 6.0 Lakhs"
-                  />
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setAnnualBudget(val);
+                      const presetMap: Record<string, number> = {
+                        'Under ₹1L': 100000,
+                        '₹1L – ₹2L': 200000,
+                        '₹2L – ₹3L': 300000,
+                        '₹3L – ₹4L': 400000,
+                        '₹4L – ₹5L': 500000,
+                        '₹5L – ₹6L': 600000,
+                        '₹6L – ₹7L': 700000,
+                        '₹7L – ₹8L': 800000,
+                        '₹8L – ₹10L': 1000000,
+                        '₹10L – ₹12L': 1200000,
+                        '₹12L – ₹15L': 1500000,
+                        '₹15L – ₹20L': 2000000,
+                        'Above ₹20L': 2500000,
+                      };
+                      if (presetMap[val]) {
+                        setBudgetMax(String(presetMap[val]));
+                      }
+                    }}
+                  >
+                    {[
+                      'Under ₹1L',
+                      '₹1L – ₹2L',
+                      '₹2L – ₹3L',
+                      '₹3L – ₹4L',
+                      '₹4L – ₹5L',
+                      '₹5L – ₹6L',
+                      '₹6L – ₹7L',
+                      '₹7L – ₹8L',
+                      '₹8L – ₹10L',
+                      '₹10L – ₹12L',
+                      '₹12L – ₹15L',
+                      '₹15L – ₹20L',
+                      'Above ₹20L',
+                    ].map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
+                    {![
+                      'Under ₹1L',
+                      '₹1L – ₹2L',
+                      '₹2L – ₹3L',
+                      '₹3L – ₹4L',
+                      '₹4L – ₹5L',
+                      '₹5L – ₹6L',
+                      '₹6L – ₹7L',
+                      '₹7L – ₹8L',
+                      '₹8L – ₹10L',
+                      '₹10L – ₹12L',
+                      '₹12L – ₹15L',
+                      '₹15L – ₹20L',
+                      'Above ₹20L',
+                    ].includes(annualBudget) && (
+                      <option value={annualBudget}>{annualBudget}</option>
+                    )}
+                  </select>
                 </div>
                 <div>
                   <label className="form-label" style={{ fontWeight: 600 }}>Max Budget Cap (₹)</label>
@@ -459,7 +515,7 @@ export default function EditLeadModal({
                     className="form-control"
                     value={budgetMax}
                     onChange={(e) => setBudgetMax(e.target.value)}
-                    placeholder="600000"
+                    placeholder="1200000"
                   />
                 </div>
                 <div>
@@ -479,14 +535,54 @@ export default function EditLeadModal({
                   <label className="form-label" style={{ fontWeight: 600 }}>Preferred Calling Time</label>
                   <select
                     className="form-control"
-                    value={preferredContactTime}
-                    onChange={(e) => setPreferredContactTime(e.target.value)}
+                    value={
+                      ['morning', 'afternoon', 'evening', 'anytime'].includes(preferredContactTime)
+                        ? preferredContactTime
+                        : 'custom'
+                    }
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === 'custom') {
+                        setPreferredContactTime('');
+                      } else {
+                        setPreferredContactTime(val);
+                      }
+                    }}
                   >
                     <option value="morning">Morning (9 AM - 12 PM)</option>
                     <option value="afternoon">Afternoon (12 PM - 4 PM)</option>
                     <option value="evening">Evening (4 PM - 8 PM)</option>
                     <option value="anytime">Anytime</option>
+                    <option value="custom">Custom Date &amp; Time (Manual)</option>
                   </select>
+                  {!['morning', 'afternoon', 'evening', 'anytime'].includes(preferredContactTime) && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '8px' }}>
+                      <input
+                        type="datetime-local"
+                        className="form-control"
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            const formatted = new Date(e.target.value).toLocaleString('en-IN', {
+                              day: '2-digit',
+                              month: 'short',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              hour12: true,
+                            });
+                            setPreferredContactTime(formatted);
+                          }
+                        }}
+                      />
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Or type date & time manually (e.g. 25 Nov, 4:30 PM)"
+                        value={preferredContactTime}
+                        onChange={(e) => setPreferredContactTime(e.target.value)}
+                      />
+                    </div>
+                  )}
                 </div>
                 <div style={{ gridColumn: 'span 2' }}>
                   <label className="form-label" style={{ fontWeight: 600 }}>Parent Requirements &amp; Special Needs</label>

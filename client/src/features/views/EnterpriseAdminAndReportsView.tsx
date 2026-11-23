@@ -470,6 +470,44 @@ export function UsersView({
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
+    const cleanEmail = newEmail.trim().toLowerCase();
+    const cleanPhoneDigits = newMobile.replace(/\D/g, '').slice(-10);
+
+    const existingEmailUser = users.find(
+      (u: any) => String(u.email || '').trim().toLowerCase() === cleanEmail
+    );
+    if (existingEmailUser) {
+      onShowToast(
+        `Ye email address (${cleanEmail}) pehle se registered hai (${existingEmailUser.fullName}). Har staff ka email unique hona chahiye!`,
+        'danger'
+      );
+      return;
+    }
+
+    if (cleanPhoneDigits) {
+      if (
+        !/^[6-9]\d{9}$/.test(cleanPhoneDigits) ||
+        /^(\d)\1{9}$/.test(cleanPhoneDigits) ||
+        ['9876543210', '9123456789', '9000000000', '8000000000'].includes(cleanPhoneDigits)
+      ) {
+        onShowToast(
+          'Kripya ek real 10-digit Indian mobile number enter karein (dummy number allowed nahi hai).',
+          'danger'
+        );
+        return;
+      }
+      const existingPhoneUser = users.find(
+        (u: any) => String(u.phone || u.mobile || '').replace(/\D/g, '').slice(-10) === cleanPhoneDigits
+      );
+      if (existingPhoneUser) {
+        onShowToast(
+          `Ye mobile number (${cleanPhoneDigits}) pehle se registered hai (${existingPhoneUser.fullName}). Same number dobara add nahi ho sakta!`,
+          'danger'
+        );
+        return;
+      }
+    }
+
     try {
       await apiCall('/users', 'POST', {
         fullName: newFullName.trim(),
@@ -1092,24 +1130,46 @@ export function UsersView({
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Work Email *</label>
+                  <label className="form-label">Work Email (Real &amp; Unique) *</label>
                   <input
                     type="email"
                     className="form-control"
                     required
+                    placeholder="e.g. name@gmail.com"
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
                   />
+                  {newEmail.trim() &&
+                    users.some(
+                      (u: any) =>
+                        String(u.email || '').trim().toLowerCase() === newEmail.trim().toLowerCase()
+                    ) && (
+                      <div style={{ color: '#DC2626', fontSize: '11px', marginTop: '4px', fontWeight: 600 }}>
+                        ⚠️ Ye email address pehle se registered hai! Duplicate email submit nahi hoga.
+                      </div>
+                    )}
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Mobile Number (+91)</label>
+                  <label className="form-label">Mobile Number (+91 Real &amp; Unique) *</label>
                   <input
                     type="tel"
                     className="form-control"
-                    placeholder="9876543210"
+                    required
+                    maxLength={13}
+                    placeholder="Enter real 10-digit mobile number"
                     value={newMobile}
                     onChange={(e) => setNewMobile(e.target.value)}
                   />
+                  {newMobile.replace(/\D/g, '').length >= 10 &&
+                    users.some(
+                      (u: any) =>
+                        String(u.phone || u.mobile || '').replace(/\D/g, '').slice(-10) ===
+                        newMobile.replace(/\D/g, '').slice(-10)
+                    ) && (
+                      <div style={{ color: '#DC2626', fontSize: '11px', marginTop: '4px', fontWeight: 600 }}>
+                        ⚠️ Ye mobile number pehle se registered hai! Duplicate number submit nahi hoga.
+                      </div>
+                    )}
                 </div>
                 <div className="form-group">
                   <label className="form-label">Initial Password *</label>

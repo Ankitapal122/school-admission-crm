@@ -363,122 +363,14 @@ export class AuthService {
       }
     }
 
-    // Check 2FA requirement
-    const admin2faPolicy = await this.prisma.systemSetting.findUnique({
-      where: { key: 'require_admin_2fa' },
-    });
-    const policyEnabled = Boolean((admin2faPolicy?.value as any)?.enabled);
-
-    // 2FA Email OTP Verification on Login (always required; email dispatch stays non-blocking)
-    const deviceId = (dto.deviceId || '').trim();
-    const deviceName = dto.deviceName || userAgent || 'Web Browser';
-
-    const otp = String(Math.floor(100000 + Math.random() * 900000));
-    const primaryAdminEmail =
-      process.env.ADMIN_NOTIFY_EMAIL ||
-      'adminboarding123@gmail.com';
-    const isDemoDomain =
-      user.email.endsWith('@crm.edu') || user.email.endsWith('@boardingedu.com');
-    const targetOtpEmail = isDemoDomain
-      ? primaryAdminEmail
-      : user.email.toLowerCase() === 'adminboarding123@gmail.com'
-      ? 'adminboarding123@gmail.com'
-      : user.email;
-
-    const tempToken = this.jwtService.sign(
-      {
-        sub: user.id,
-        purpose: 'device_2fa_pending',
-        role: userCanonRole,
-        deviceId: deviceId || crypto.randomUUID(),
-        deviceName,
-        adminEmail: targetOtpEmail,
-      },
-      { secret: this.getAccessSecret(), expiresIn: '15m' },
-    );
-
-    await this.prisma.passwordReset.updateMany({
-      where: { email: user.email, used: false },
-      data: { used: true },
-    });
-
-    await this.prisma.passwordReset.create({
-      data: {
-        email: user.email,
-        otp,
-        token: tempToken,
-        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-      },
-    });
-
-    const emailHtml = `
-      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; max-width: 540px; background: #ffffff; color: #1e293b;">
-        <div style="background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%); padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 22px;">
-          <h2 style="color: #ffffff; margin: 8px 0 2px 0; font-size: 20px; font-weight: 700;">BoardingEdu Security Verification</h2>
-          <p style="color: #93C5FD; margin: 0; font-size: 13px;">Login 2FA Verification (Valid for 5 Minutes)</p>
-        </div>
-        <p style="font-size: 14px; line-height: 1.5; margin-top: 0;">Hello <strong>${user.fullName}</strong>,</p>
-        <p style="font-size: 14px; line-height: 1.5;">Your 6-digit login verification code for BoardingEdu CRM is:</p>
-        <div style="background: #EFF6FF; border: 2px dashed #3B82F6; padding: 18px; border-radius: 10px; text-align: center; margin: 20px 0;">
-          <div style="font-size: 12px; color: #1D4ED8; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;">6-DIGIT VERIFICATION OTP</div>
-          <div style="font-size: 36px; font-weight: 800; color: #1E40AF; letter-spacing: 8px; margin: 8px 0;">${otp}</div>
-        </div>
-      </div>
-    `;
-
-    // Non-blocking async email dispatch so login never hangs or triggers 502
-    this.emailProcessor
-      .sendEmail({
-        to: targetOtpEmail,
-        subject: `[BoardingEdu OTP] ${otp} is your Verification Code`,
-        html: emailHtml,
-        text: `BoardingEdu CRM Verification OTP for ${user.fullName} (${user.email}): ${otp}.`,
-      })
-      .catch((mailErr: any) => {
-        console.error(`[Email Send Error] Failed to send verification OTP email:`, mailErr?.message);
-      });
-
-    return {
-      require2FA: true,
-      requiresTwoFactor: true,
-      requires_2fa: true,
-      isNewDevice: true,
-      deviceVerificationRequired: true,
-      tempToken,
-      temp_token: tempToken,
-      adminEmail: targetOtpEmail,
-      fullAdminEmail: targetOtpEmail,
-      userEmail: user.email,
-      expiresInSeconds: 300,
-      deviceId: deviceId || crypto.randomUUID(),
-      deviceName,
-      message: `6-digit verification OTP sent to ${targetOtpEmail}.`,
-    };
-
-    if (user.isTwoFactorEnabled) {
-      const tempToken = this.jwtService.sign(
-        { sub: user.id, purpose: '2fa_pending', role: userCanonRole },
-        { secret: this.getAccessSecret(), expiresIn: '5m' },
-      );
-      return {
-        requiresTwoFactor: true,
-        require2FA: true,
-        requires_2fa: true,
-        isNewDevice: false,
-        tempToken,
-        temp_token: tempToken,
-        user_id: user.id,
-        userId: user.id,
-        message: '2FA verification code required.',
-      };
-    }
-
+    const nowLogin = new Date();
     await this.prisma.user.update({
       where: { id: user.id },
       data: {
         failedLoginAttempts: 0,
         lockedUntil: null,
-        lastLoginAt: new Date(),
+        lastLoginAt: nowLogin,
+        lastActiveAt: nowLogin,
       },
     });
 
@@ -502,7 +394,6 @@ export class AuthService {
         details: {
           loginMethod: 'password',
           deviceAuthorized: true,
-          enforce2faRecommended: policyEnabled && userCanonRole === 'SUPER_ADMIN',
         },
       },
     });
@@ -513,9 +404,6 @@ export class AuthService {
       refreshToken,
       refresh_token: refreshToken,
       user: this.sanitizeUser(user),
-      ...(policyEnabled && userCanonRole === 'SUPER_ADMIN'
-        ? { recommendation: 'Super Admin 2FA policy is enabled; please configure 2FA in Profile/Security.' }
-        : {}),
     };
   }
 
@@ -1064,7 +952,7 @@ export class AuthService {
 
     await this.prisma.user.update({
       where: { id: userId },
-      data: { lastLogoutAt: new Date() },
+      data: { lastLogoutAt: new Date(), lastActiveAt: null },
     });
 
     await this.prisma.auditLog.create({

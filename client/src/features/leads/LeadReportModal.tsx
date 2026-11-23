@@ -42,9 +42,9 @@ export default function LeadReportModal({
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
   const [customWaMessage, setCustomWaMessage] = useState('');
   const [translatedWaMessage, setTranslatedWaMessage] = useState('');
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('hi');
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
   const [activeSendVersion, setActiveSendVersion] = useState<'english' | 'translated' | 'both'>('english');
-  const [includeTranslateLink, setIncludeTranslateLink] = useState(true);
+  const [includeTranslateLink, setIncludeTranslateLink] = useState(false);
   const [copiedSuccess, setCopiedSuccess] = useState(false);
   const [lastWaLogUuid, setLastWaLogUuid] = useState<string | null>(null);
   const [isSendingWa, setIsSendingWa] = useState(false);
@@ -303,7 +303,8 @@ export default function LeadReportModal({
   const generateEnglishMessage = (schoolsToSend?: any[]) => {
     const parentName = lead.fatherName || lead.motherName || lead.parentName || 'Parent';
     const studentName = lead.studentName || 'Student';
-    const classGrade = lead.admissionClass || lead.applyingForGrade || lead.classGrade || 'Class 6';
+    const rawGrade = String(lead.admissionClass || lead.applyingForGrade || lead.classGrade || 'Class 6');
+    const classGrade = rawGrade.toLowerCase().startsWith('class') ? rawGrade : `Class ${rawGrade}`;
     const board = lead.board || lead.preferredBoard || 'CBSE';
     const counsellorName = user?.fullName || 'Rahul Sharma';
 
@@ -316,14 +317,19 @@ export default function LeadReportModal({
       return `${num} ${s.name} – ${formatSchoolFee(s)}`;
     }).join('\n');
 
-    return `Namaste ${parentName} ji 🙏\n\nGreetings from *BoardingEdu!*\n\nBased on your requirements for *${studentName} (${classGrade} – ${board})*, our counselling team has shortlisted the following boarding schools for admission:\n\n🏫 *Recommended Schools & Fee Structure*\n\n${schoolLines}\n\nOur team has carefully shortlisted these options to help you find a suitable school for ${studentName}.\n\n*Would you like to know more about these schools, their facilities, admission process and fee structure?*\n\nWe would be happy to assist you! 😊\n\nWarm Regards,\n*${counsellorName}*\nBoardingEdu – School Admission Counselling Team`;
+    return `Hello ${parentName}! 👋 Welcome to *BoardingEdu*\n\nThank you for reaching out! We help parents find the best Boarding & Day Schools across India with free admission guidance.\n\nBased on your requirements for *${studentName} (${classGrade} – ${board})*, our counselling team has shortlisted the following boarding schools for admission:\n\n🏫 *Recommended Schools & Fee Structure*\n\n${schoolLines}\n\nOur team has carefully shortlisted these options to help you find a suitable school for ${studentName}.\n\n*Would you like to know more about these schools, their facilities, admission process and fee structure?*\n\nWe would be happy to assist you! 😊\n\nWarm Regards,\n*${counsellorName}*\nBoardingEdu – School Admission Counselling Team`;
   };
 
-  // Generate Translated Message (Hindi, Gujarati, Marathi, Bengali, Punjabi, Hinglish, etc.)
+  // Generate Translated Message (English, Hindi, Gujarati, Marathi, Bengali, Punjabi, Telugu, Tamil, Hinglish)
   const generateTranslatedMessage = (lang: string, schoolsToSend?: any[]) => {
+    if (lang === 'en' || lang === 'english') {
+      return generateEnglishMessage(schoolsToSend);
+    }
+
     const parentName = lead.fatherName || lead.motherName || lead.parentName || 'अभिभावक';
     const studentName = lead.studentName || 'विद्यार्थी';
-    const classGrade = lead.admissionClass || lead.applyingForGrade || lead.classGrade || 'कक्षा 6';
+    const rawGrade = String(lead.admissionClass || lead.applyingForGrade || lead.classGrade || '6');
+    const cleanGradeNum = rawGrade.replace(/^class\s*/i, '');
     const board = lead.board || lead.preferredBoard || 'CBSE';
     const counsellorName = user?.fullName || 'राहुल शर्मा';
 
@@ -347,27 +353,35 @@ export default function LeadReportModal({
     }).join('\n');
 
     if (lang === 'hi') {
-      return `नमस्ते ${parentName} जी 🙏\nBoardingEdu की ओर से शुभकामनाएं!\n\nआपके बच्चों (${studentName}, ${classGrade} – ${board}) के लिए, हमने निम्नलिखित आवासीय विद्यालयों को प्रवेश के लिए चुना है:\n\n🏫 *अनुशंसित विद्यालय और शुल्क विवरण*\n\n${schoolLines}\n\nहमारी टीम ने ${studentName} के लिए सर्वोत्तम विद्यालय खोजने हेतु इन विकल्पों को सावधानीपूर्वक चुना है।\n\n*क्या आप इन विद्यालयों, इनकी सुविधाओं, प्रवेश प्रक्रिया और शुल्क विवरण के बारे में और जानकारी चाहेंगे?*\n\nहमें खुशी होगी आपकी सहायता करने में! 😊\n\nसादर,\n*${counsellorName}*\nBoardingEdu – स्कूल प्रवेश परामर्श टीम`;
+      return `नमस्ते ${parentName} जी 🙏\nBoardingEdu की ओर से शुभकामनाएं!\n\nआपके बच्चे (${studentName}, कक्षा ${cleanGradeNum} – ${board}) के लिए, हमने निम्नलिखित आवासीय विद्यालयों को प्रवेश के लिए चुना है:\n\n🏫 *अनुशंसित विद्यालय और शुल्क विवरण*\n\n${schoolLines}\n\nहमारी टीम ने ${studentName} के लिए सर्वोत्तम विद्यालय खोजने हेतु इन विकल्पों को सावधानीपूर्वक चुना है।\n\n*क्या आप इन विद्यालयों, इनकी सुविधाओं, प्रवेश प्रक्रिया और शुल्क विवरण के बारे में और जानकारी चाहेंगे?*\n\nहमें खुशी होगी आपकी सहायता करने में! 😊\n\nसादर,\n*${counsellorName}*\nBoardingEdu – स्कूल प्रवेश परामर्श टीम`;
     }
 
     if (lang === 'gu') {
-      return `નમસ્તે ${parentName} જી 🙏\nBoardingEdu તરફથી શુભેચ્છાઓ!\n\n${studentName} (ધોરણ ${classGrade} – ${board}) માટે અમારી કાઉન્સેલિંગ ટીમે એડમિશન માટે નીચે મુજબની બોર્ડિંગ સ્કૂલો પસંદ કરી છે:\n\n🏫 *ભલામણ કરેલ શાળાઓ અને ફીનું માળખું*\n\n${schoolLines}\n\nશું તમે આ શાળાઓ, તેમની સુવિધાઓ, પ્રવેશ પ્રક્રિયા અને ફી માળખા વિશે વધુ જાણવા માંગો છો?\n\nઅમને તમારી મદદ કરવામાં આનંદ થશે! 😊\n\nસાદર,\n*${counsellorName}*\nBoardingEdu – શાળા પ્રવેશ પરામર્શ ટીમ`;
+      return `નમસ્તે ${parentName} જી 🙏\nBoardingEdu તરફથી શુભેચ્છાઓ!\n\n${studentName} (ધોરણ ${cleanGradeNum} – ${board}) માટે અમારી કાઉન્સેલિંગ ટીમે એડમિશન માટે નીચે મુજબની બોર્ડિંગ સ્કૂલો પસંદ કરી છે:\n\n🏫 *ભલામણ કરેલ શાળાઓ અને ફીનું માળખું*\n\n${schoolLines}\n\nશું તમે આ શાળાઓ, તેમની સુવિધાઓ, પ્રવેશ પ્રક્રિયા અને ફી માળખા વિશે વધુ જાણવા માંગો છો?\n\nઅમને તમારી મદદ કરવામાં આનંદ થશે! 😊\n\nસાદર,\n*${counsellorName}*\nBoardingEdu – શાળા પ્રવેશ પરામર્શ ટીમ`;
     }
 
     if (lang === 'mr') {
-      return `नमस्ते ${parentName} जी 🙏\nBoardingEdu कडून मनःपूर्वक शुभेच्छा!\n\n${studentName} (इयत्ता ${classGrade} – ${board}) च्या प्रवेशासाठी आमच्या समुपदेशन संघाने खालील बोर्डिंग शाळा निवडल्या आहेत:\n\n🏫 *शिफारस केलेल्या शाळा आणि फी रचना*\n\n${schoolLines}\n\nतुम्हाला या शाळा, त्यांच्या सुविधा, प्रवेश प्रक्रिया आणि फी रचनेबद्दल अधिक माहिती हवी आहे का?\n\nआम्हाला तुम्हाला मदत करण्यास आनंद होईल! 😊\n\nसादर,\n*${counsellorName}*\nBoardingEdu – शाळा प्रवेश समुपदेशन संघ`;
+      return `नमस्ते ${parentName} जी 🙏\nBoardingEdu कडून मनःपूर्वक शुभेच्छा!\n\n${studentName} (इयत्ता ${cleanGradeNum} – ${board}) च्या प्रवेशासाठी आमच्या समुपदेशन संघाने खालील बोर्डिंग शाळा निवडल्या आहेत:\n\n🏫 *शिफारस केलेल्या शाळा आणि फी रचना*\n\n${schoolLines}\n\nतुम्हाला या शाळा, त्यांच्या सुविधा, प्रवेश प्रक्रिया आणि फी रचनेबद्दल अधिक माहिती हवी आहे का?\n\nआम्हाला तुम्हाला मदत करण्यास आनंद होईल! 😊\n\nसादर,\n*${counsellorName}*\nBoardingEdu – शाळा प्रवेश समुपदेशन संघ`;
     }
 
     if (lang === 'bn') {
-      return `নমস্কার ${parentName} বাবু 🙏\nBoardingEdu-এর পক্ষ থেকে শুভেচ্ছা!\n\n${studentName} (শ্রেণী ${classGrade} – ${board})-এর ভর্তির জন্য আমাদের কাউন্সেলিং টিম নিম্নলিখিত বোর্ডিং স্কুলগুলি শর্টলিস্ট করেছে:\n\n🏫 *প্রস্তাবিত স্কুল ও ফি কাঠামো*\n\n${schoolLines}\n\nআপনি কি এই স্কুলগুলি, এদের সুবিধা, ভর্তি প্রক্রিয়া এবং ফি কাঠামো সম্পর্কে আরও জানতে চান?\n\nআমরা আপনাকে সাহায্য করতে পেরে আনন্দিত হব! 😊\n\nবিনীত,\n*${counsellorName}*\nBoardingEdu – স্কুল ভর্তি কাউন্সেলিং দল`;
+      return `নমস্কার ${parentName} বাবু 🙏\nBoardingEdu-এর পক্ষ থেকে শুভেচ্ছা!\n\n${studentName} (শ্রেণী ${cleanGradeNum} – ${board})-এর ভর্তির জন্য আমাদের কাউন্সেলিং টিম নিম্নলিখিত বোর্ডিং স্কুলগুলি শর্টলিস্ট করেছে:\n\n🏫 *প্রস্তাবিত স্কুল ও ফি কাঠামো*\n\n${schoolLines}\n\nআপনি কি এই স্কুলগুলি, এদের সুবিধা, ভর্তি প্রক্রিয়া এবং ফি কাঠামো সম্পর্কে আরও জানতে চান?\n\nআমরা আপনাকে সাহায্য করতে পেরে আনন্দিত হব! 😊\n\nবিনীত,\n*${counsellorName}*\nBoardingEdu – স্কুল ভর্তি কাউন্সেলিং দল`;
     }
 
     if (lang === 'pa') {
-      return `ਸਤਿ ਸ਼੍ਰੀ ਅਕਾਲ ${parentName} ਜੀ 🙏\nBoardingEdu ਵੱਲੋਂ ਸ਼ੁਭਕਾਮਨਾਵਾਂ!\n\n${studentName} (ਜਮਾਤ ${classGrade} – ${board}) ਦੇ ਦਾਖਲੇ ਲਈ ਸਾਡੀ ਕਾਉਂਸਲਿੰਗ ਟੀਮ ਨੇ ਇਹ ਬੋਰਡਿੰਗ ਸਕੂਲ ਚੁਣੇ ਹਨ:\n\n🏫 *ਸਿਫ਼ਾਰਸ਼ ਕੀਤੇ ਸਕੂਲ ਅਤੇ ਫੀਸ ਢਾਂਚਾ*\n\n${schoolLines}\n\nਕੀ ਤੁਸੀਂ ਇਹਨਾਂ ਸਕੂਲਾਂ, ਇਹਨਾਂ ਦੀਆਂ ਸਹੂਲਤਾਂ, ਦਾਖਲਾ ਪ੍ਰਕਿਰਿਆ ਅਤੇ ਫੀਸ ਬਾਰੇ ਹੋਰ ਜਾਣਨਾ ਚਾਹੋਗੇ?\n\nਸਾਨੂੰ ਤੁਹਾਡੀ ਮਦਦ ਕਰਨ ਵਿੱਚ ਖੁਸ਼ੀ ਹੋਵੇਗੀ! 😊\n\nਨਿੱਘੀਆਂ ਸ਼ੁਭਕਾਮਨਾਵਾਂ,\n*${counsellorName}*\nBoardingEdu – ਸਕੂਲ ਦਾਖਲਾ ਕਾਉਂਸਲਿੰਗ ਟੀਮ`;
+      return `ਸਤਿ ਸ਼੍ਰੀ ਅਕਾਲ ${parentName} ਜੀ 🙏\nBoardingEdu ਵੱਲੋਂ ਸ਼ੁਭਕਾਮਨਾਵਾਂ!\n\n${studentName} (ਜਮਾਤ ${cleanGradeNum} – ${board}) ਦੇ ਦਾਖਲੇ ਲਈ ਸਾਡੀ ਕਾਉਂਸਲਿੰਗ ਟੀਮ ਨੇ ਇਹ ਬੋਰਡਿੰਗ ਸਕੂਲ ਚੁਣੇ ਹਨ:\n\n🏫 *ਸਿਫ਼ਾਰਸ਼ ਕੀਤੇ ਸਕੂਲ ਅਤੇ ਫੀਸ ਢਾਂਚਾ*\n\n${schoolLines}\n\nਕੀ ਤੁਸੀਂ ਇਹਨਾਂ ਸਕੂਲਾਂ, ਇਹਨਾਂ ਦੀਆਂ ਸਹੂਲਤਾਂ, ਦਾਖਲਾ ਪ੍ਰਕਿਰਿਆ ਅਤੇ ਫੀਸ ਬਾਰੇ ਹੋਰ ਜਾਣਨਾ ਚਾਹੋਗੇ?\n\nਸਾਨੂੰ ਤੁਹਾਡੀ ਮਦਦ ਕਰਨ ਵਿੱਚ ਖੁਸ਼ੀ ਹੋਵੇਗੀ! 😊\n\nਨਿੱਘੀਆਂ ਸ਼ੁਭਕਾਮਨਾਵਾਂ,\n*${counsellorName}*\nBoardingEdu – ਸਕੂਲ ਦਾਖਲਾ ਕਾਉਂਸਲਿੰਗ ਟੀਮ`;
+    }
+
+    if (lang === 'te') {
+      return `నమస్తే ${parentName} గారు 🙏\nBoardingEdu తరపున శుభాకాంక్షలు!\n\n${studentName} (${cleanGradeNum}వ తరగతి – ${board}) ప్రవేశం కోసం మా కౌన్సెలింగ్ బృందం క్రింది బోర్డింగ్ పాఠశాలలను షార్ట్‌లిస్ట్ చేసింది:\n\n🏫 *సిఫార్సు చేయబడిన పాఠశాలలు & ఫీజు వివరాలు*\n\n${schoolLines}\n\nఈ పాఠశాలలు, సౌకర్యాలు, ప్రవేశ ప్రక్రియ మరియు ఫీజు వివరాల గురించి మీరు మరింత తెలుసుకోవాలనుకుంటున్నారా?\n\nమీకు సహాయం చేయడానికి మేము సంతోషిస్తాము! 😊\n\nశుభాకాంక్షలతో,\n*${counsellorName}*\nBoardingEdu – స్కూల్ అడ్మిషన్ కౌన్సెలింగ్ టీమ్`;
+    }
+
+    if (lang === 'ta') {
+      return `வணக்கம் ${parentName} அவர்களே 🙏\nBoardingEdu சார்பாக வாழ்த்துக்கள்!\n\n${studentName} (வகுப்பு ${cleanGradeNum} – ${board}) சேர்க்கைக்காக எங்கள் ஆலோசனைக் குழு பின்வரும் உறைவிடப் பள்ளிகளைத் தேர்ந்தெடுத்துள்ளது:\n\n🏫 *பரிந்துரைக்கப்பட்ட பள்ளிகள் & கட்டண விவரம்*\n\n${schoolLines}\n\nஇந்தப் பள்ளிகள், வசதிகள், சேர்க்கை முறை மற்றும் கட்டண விவரங்கள் பற்றி மேலும் அறிய விரும்புகிறீர்களா?\n\nஉங்களுக்கு உதவ நாங்கள் மகிழ்ச்சியடைகிறோம்! 😊\n\nஅன்புடன்,\n*${counsellorName}*\nBoardingEdu – பள்ளி சேர்க்கை ஆலோசனைக் குழு`;
     }
 
     // Default Hinglish
-    return `Namaste ${parentName} ji 🙏\nBoardingEdu ki taraf se shubhkaamnayein!\n\n${studentName} (Class ${classGrade} – ${board}) ke boarding school admission ke liye humne aapke liye ye schools shortlist kiye hain:\n\n🏫 *Recommended Schools & Fee Structure*\n\n${schoolLines}\n\nKya aap in schools ke baare me, facilities, admission process aur fees ke baare me aur jaanna chahenge?\n\nHumein aapki madad karne me khushi hogi! 😊\n\nWarm Regards,\n*${counsellorName}*\nBoardingEdu – School Admission Counselling Team`;
+    return `Namaste ${parentName} ji 🙏\nBoardingEdu ki taraf se shubhkaamnayein!\n\n${studentName} (Class ${cleanGradeNum} – ${board}) ke boarding school admission ke liye humne aapke liye ye schools shortlist kiye hain:\n\n🏫 *Recommended Schools & Fee Structure*\n\n${schoolLines}\n\nKya aap in schools ke baare me, facilities, admission process aur fees ke baare me aur jaanna chahenge?\n\nHumein aapki madad karne me khushi hogi! 😊\n\nWarm Regards,\n*${counsellorName}*\nBoardingEdu – School Admission Counselling Team`;
   };
 
   // Get active text to send based on selected options
@@ -515,7 +529,7 @@ export default function LeadReportModal({
       return `Namaste ${parentName} ji 🙏\n\nBoardingEdu Admission Counselling Team ki taraf se pranam!\n\nAapke request ke anusaar *${studentName} (Class ${classGrade} – ${board})* ke liye *${schoolName}* ki complete school report & prospectus details niche di gayi hain:\n\n🏫 *${schoolName.toUpperCase()} – FULL SCHOOL DOSSIER*\n\n📍 *Location:* ${location}\n🌳 *Campus Size:* ${campusSize} (Sprawling Eco-Friendly Green Campus)\n🏆 *School Ranking:*\n   • *State Ranking:* Rank #${stateRank} in ${state}\n   • *National Ranking:* ${nationalRank} Residential School\n📚 *Affiliated Board:* ${s.board || 'CBSE / Cambridge'} | Gender: ${s.genderType || s.gender || 'Co-Ed Boarding'} | Classes: ${s.details?.classes || '4 to 12'}\n\n💰 *Annual Fee Structure:*\n   • *Total Annual Fee:* ${feeText}\n   • *Includes:* School Tuition, AC Boarding Hostel, 4-time Nutritious Meals, Uniform & Laundry, Sports Coaching, 24/7 Infirmary Medical Care.\n\n🥗 *Mess & Dining Facilities (Veg & Non-Veg):*\n   • Separate hygienic preparation kitchens & dining halls for Pure Veg and Non-Veg.\n   • 4 nutritious meals daily (Breakfast, Lunch, Evening High-Tea Snacks, Dinner) managed under certified dietitian.\n   • Jain food aur special dietary needs request par available hain.\n\n🏊 *Sports & World-Class Campus Facilities:*\n   • *Sports Complex:* Swimming Pool, Cricket Oval, Football Turf, Basketball & Badminton courts, Lawn Tennis.\n   • *Hostel Living:* Air-conditioned dorms with 24/7 dedicated House Parents and CCTV security.\n   • *Academics:* ${ratio} Student-Teacher Ratio (Har student par personal mentor care).\n   • *Health & Medical:* 24/7 On-Campus Infirmary with Full-time Resident Doctor and Nurses.\n   • *Innovation:* Robotics Lab, STEM Science Labs, Music, Dance & Theatre Studios.\n\n📝 *Admission Process for Class ${classGrade}:*\n   1. Registration & Application Submission\n   2. Student Interaction & Baseline Assessment\n   3. Document Verification & Seat Confirmation\n\nKya aap ${schoolName} ka campus visit plan karna chahte hain ya direct admission head se discussion arrange karein?\n\nWarm Regards,\n*${counsellorName}*\nBoardingEdu – School Admission Counselling Team\n📞 Direct Helpline: +91 7249417658`;
     }
 
-    return `Namaste ${parentName} ji 🙏\n\nGreetings from *BoardingEdu Admission Counselling Team*!\n\nAs requested, here is the complete official prospectus and detailed dossier for *${schoolName}* for *${studentName} (Class ${classGrade} – ${board})*:\n\n🏫 *${schoolName.toUpperCase()} – COMPREHENSIVE SCHOOL DOSSIER*\n\n📍 *Location:* ${location}\n🌳 *Campus Area:* ${campusSize} (Lush Green Pollution-Free Campus)\n🏆 *Rankings & Recognition:*\n   • *State Ranking:* #${stateRank} Top Boarding School in ${state}\n   • *National Ranking:* ${nationalRank} Residential School in India\n📚 *Affiliation & Boards:* ${s.board || 'CBSE & Cambridge'} | ${s.genderType || s.gender || 'Co-Ed Boarding'} | Classes: ${s.details?.classes || '4 to 12'}\n\n💰 *Annual Fee Structure:*\n   • *Total Annual Fee:* ${feeText}\n   • *Fee Inclusions:* Academic Tuition, AC Boarding Hostel, Wholesome Meals, Laundry, Professional Sports Coaching, 24/7 Medical Care.\n\n🥗 *Food & Dining (Pure Veg & Non-Veg):*\n   • Separate hygienic kitchen & dining sections for 100% Pure Vegetarian and Non-Vegetarian food.\n   • 4 balanced, nutritionist-planned meals daily (Breakfast, Lunch, High Tea & Snacks, Dinner).\n   • Jain food and special dietary requirements provided on request.\n\n🏊 *World-Class Facilities & Sports Infrastructure:*\n   • *Sports:* International-standard Swimming Pool, Cricket Oval, Football Field, Tennis & Basketball Courts, Indoor Badminton & Table Tennis.\n   • *Boarding Hostels:* Modern Air-Conditioned dorms with 24/7 resident House Parents & security.\n   • *Mentorship:* ${ratio} Student-to-Teacher Ratio for personalized academic attention.\n   • *Healthcare:* 24/7 On-Campus Infirmary with full-time resident Doctor & nursing staff.\n   • *Co-Curricular:* Advanced Robotics Lab, Modern Science Labs, Music, Dance & Fine Arts Studios.\n\n📝 *Admission Process for Class ${classGrade}:*\n   1. Online Registration & Application Form\n   2. Student Interaction & Skill Assessment\n   3. Offer Letter Issuance & Seat Confirmation\n\nWould you like to schedule a campus tour or arrange a direct interaction with the ${schoolName} Admission Committee?\n\nWarm Regards,\n*${counsellorName}*\nBoardingEdu – School Admission Counselling Team\n📞 Helpline / WhatsApp: +91 7249417658`;
+    return `Hello ${parentName}! 👋 Welcome to *BoardingEdu*\n\nThank you for reaching out! We help parents find the best Boarding & Day Schools across India with free admission guidance.\n\nAs requested, here is the complete official prospectus and detailed fee & campus dossier for *${schoolName}* for *${studentName} (Class ${classGrade.replace(/^class\s*/i, '')} – ${board})*:\n\n🏫 *${schoolName.toUpperCase()} – COMPREHENSIVE SCHOOL DOSSIER*\n\n📍 *Location:* ${location}\n🌳 *Campus Area:* ${campusSize} (Lush Green Pollution-Free Campus)\n🏆 *Rankings & Recognition:*\n   • *State Ranking:* #${stateRank} Top Boarding School in ${state}\n   • *National Ranking:* ${nationalRank} Residential School in India\n📚 *Affiliation & Boards:* ${s.board || 'CBSE & Cambridge'} | ${s.genderType || s.gender || 'Co-Ed Boarding'} | Classes: ${s.details?.classes || '4 to 12'}\n\n💰 *Annual Fee Structure:*\n   • *Total Annual Fee:* ${feeText}\n   • *Fee Inclusions:* Academic Tuition, AC Boarding Hostel, Wholesome Meals, Laundry, Professional Sports Coaching, 24/7 Medical Care.\n\n🥗 *Food & Dining (Pure Veg & Non-Veg):*\n   • Separate hygienic kitchen & dining sections for 100% Pure Vegetarian and Non-Vegetarian food.\n   • 4 balanced, nutritionist-planned meals daily (Breakfast, Lunch, High Tea & Snacks, Dinner).\n   • Jain food and special dietary requirements provided on request.\n\n🏊 *World-Class Facilities & Sports Infrastructure:*\n   • *Sports:* International-standard Swimming Pool, Cricket Oval, Football Field, Tennis & Basketball Courts, Indoor Badminton & Table Tennis.\n   • *Boarding Hostels:* Modern Air-Conditioned dorms with 24/7 resident House Parents & security.\n   • *Mentorship:* ${ratio} Student-to-Teacher Ratio for personalized academic attention.\n   • *Healthcare:* 24/7 On-Campus Infirmary with full-time resident Doctor & nursing staff.\n   • *Co-Curricular:* Advanced Robotics Lab, Modern Science Labs, Music, Dance & Fine Arts Studios.\n\n📝 *Admission Process for Class ${classGrade.replace(/^class\s*/i, '')}:*\n   1. Online Registration & Application Form\n   2. Student Interaction & Skill Assessment\n   3. Offer Letter Issuance & Seat Confirmation\n\nWould you like to schedule a campus tour or arrange a direct interaction with the ${schoolName} Admission Committee?\n\nWarm Regards,\n*${counsellorName}*\nBoardingEdu – School Admission Counselling Team\n📞 Helpline / WhatsApp: +91 7249417658`;
   };
 
   // Open Dossier Modal

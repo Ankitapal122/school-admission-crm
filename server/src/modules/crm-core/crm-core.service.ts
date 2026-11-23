@@ -41,6 +41,7 @@ import {
   parseClassGrade,
   sanitizeSpreadsheetCell,
   toBlueprintRole,
+  validateRealEmail,
 } from '../../common/utils/crm.utils';
 
 interface ImportPreviewCacheItem {
@@ -298,6 +299,7 @@ export class CrmCoreService implements OnModuleInit {
     ]);
 
     const activeUserIds = new Set(activeSessionRows.map((s) => s.userId));
+    const ONLINE_WINDOW_MS = 2 * 60 * 1000;
 
     const formatted = users.map((u) => {
       const managed = u.managedTeams?.[0];
@@ -314,8 +316,12 @@ export class CrmCoreService implements OnModuleInit {
         email: m.email,
         status: m.status,
       }));
+      const recentlyActive =
+        Boolean(u.lastActiveAt) &&
+        Date.now() - new Date(u.lastActiveAt as any).getTime() <= ONLINE_WINDOW_MS;
       const isOnline =
         activeUserIds.has(u.id) &&
+        recentlyActive &&
         Boolean(u.lastLoginAt) &&
         (!u.lastLogoutAt ||
           new Date(u.lastLoginAt).getTime() >= new Date(u.lastLogoutAt).getTime());
@@ -450,12 +456,33 @@ export class CrmCoreService implements OnModuleInit {
   }
 
   async createUser(body: any, actor?: any) {
-    const email = String(body.email || '').toLowerCase().trim();
-    if (!email) throw new BadRequestException('Email is required');
+    const email = validateRealEmail(body.email, true)!;
 
-    const existing = await this.prisma.user.findUnique({ where: { email } });
+    const existing = await this.prisma.user.findFirst({
+      where: { email: { equals: email, mode: 'insensitive' }, deletedAt: null },
+    });
     if (existing) {
-      throw new BadRequestException('A user with this email already exists');
+      throw new BadRequestException(
+        `Ye email address (${email}) pehle se registered hai (${existing.fullName} - ${existing.employeeId}). Har staff member ka email unique hona chahiye.`,
+      );
+    }
+
+    const rawPhoneInput = String(body.mobile || body.phone || '').trim();
+    const normalizedPhone = rawPhoneInput ? normalizeIndianPhone(rawPhoneInput, true)! : null;
+    if (normalizedPhone) {
+      const tenDigit = normalizedPhone.replace(/\D/g, '').slice(-10);
+      const phoneCandidates = [normalizedPhone, `+91${tenDigit}`, `91${tenDigit}`, tenDigit];
+      const existingPhoneUser = await this.prisma.user.findFirst({
+        where: {
+          phone: { in: phoneCandidates },
+          deletedAt: null,
+        },
+      });
+      if (existingPhoneUser) {
+        throw new BadRequestException(
+          `Ye mobile number (${tenDigit}) pehle se registered hai (${existingPhoneUser.fullName} - ${existingPhoneUser.employeeId}). Same mobile number dobara add nahi ho sakta.`,
+        );
+      }
     }
 
     const rawPassword = String(body.password || 'Password@123');
@@ -541,7 +568,7 @@ export class CrmCoreService implements OnModuleInit {
         email,
         passwordHash,
         fullName: body.name || body.fullName || 'New Employee',
-        phone: body.mobile || body.phone || '9876543210',
+        phone: normalizedPhone || null,
         role,
         status: 'active',
         isActive: true,
@@ -819,7 +846,7 @@ export class CrmCoreService implements OnModuleInit {
 
     await this.prisma.user.update({
       where: { id: user.id },
-      data: { lastLogoutAt: new Date() },
+      data: { lastLogoutAt: new Date(), lastActiveAt: null },
     });
 
     await this.prisma.auditLog.create({
