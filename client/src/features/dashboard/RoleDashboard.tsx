@@ -4486,6 +4486,30 @@ export default function RoleDashboard({
 
             <form onSubmit={handleSaveCallFeedback}>
               <div className="modal-body" style={{ padding: '0 20px 16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {/* Select Any Lead / Parent */}
+                {leads && leads.length > 1 && (
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label className="form-label" style={{ fontSize: '12px', fontWeight: 700, color: '#1E293B' }}>
+                      Select Student / Parent *
+                    </label>
+                    <select
+                      className="form-control"
+                      value={selectedLeadForCall.id}
+                      onChange={(e) => {
+                        const found = leads.find((l: any) => l.id === e.target.value);
+                        if (found) handleOpenCallLogger(found);
+                      }}
+                      style={{ fontWeight: 600, color: '#1E3A8A', backgroundColor: '#FFFFFF' }}
+                    >
+                      {leads.map((l: any) => (
+                        <option key={l.id} value={l.id}>
+                          {l.studentName} ({l.admissionClass || 'Class 10'}) &bull; {l.mobile || l.parentPhone || l.guardianMobile || 'No Phone'}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
                 {/* Lead Info Strip */}
                 <div
                   style={{
@@ -4601,7 +4625,7 @@ export default function RoleDashboard({
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                     <div>
                       <label className="form-label" style={{ fontSize: '11px', fontWeight: 700 }}>
-                        Parent Ki Jarurat (Requirements)
+                        Parent Requirements
                       </label>
                       <input
                         type="text"
