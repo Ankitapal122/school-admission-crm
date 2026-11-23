@@ -335,7 +335,7 @@ export default function Navbar({
             <span className="expand-brand-pill">BoardingEdu CRM</span>
           </button>
         )}
-        {/* Mobile Brand Logo & Name matching Image 4 */}
+        {/* Mobile Brand Logo only (BoardingEdu text removed as requested) */}
         <div
           className="mobile-brand-header mobile-only"
           onClick={() => onSelectTab('dashboard')}
@@ -346,14 +346,6 @@ export default function Navbar({
             alt="BoardingEdu"
             className="mobile-brand-logo"
           />
-          <div className="mobile-brand-text">
-            <div className="mobile-brand-title">
-              BoardingEdu
-            </div>
-            <div className="brand-subtext">
-              Connecting Parents &amp; Schools
-            </div>
-          </div>
         </div>
 
         {/* Global Search Bar matching reference screenshot */}
