@@ -301,29 +301,136 @@ export class AuthService {
       }).catch(() => {});
     }
 
-    if (!isSuperAdminUser && (user.status === 'locked' || (user.lockedUntil && user.lockedUntil > now))) {
-      throw new UnauthorizedException(
-        'Account locked due to 5 failed login attempts. Ask Admin to unlock or retry after 15 minutes.',
-      );
-    }
-
     if (!isSuperAdminUser && (!user.isActive || user.status === 'suspended')) {
       throw new UnauthorizedException('Account is suspended or inactive. Contact Super Admin.');
     }
 
+    const userCanonRole = normalizeCanonicalRole(user.role);
     const passwordValid = await bcrypt.compare(dto.password, user.passwordHash);
-    if (!passwordValid) {
+    const roleMismatch =
+      Boolean(dto.role) && normalizeCanonicalRole(dto.role) !== userCanonRole;
+    const isCurrentlyLocked =
+      !isSuperAdminUser &&
+      (user.status === 'locked' ||
+        (user.lockedUntil && user.lockedUntil > now) ||
+        (user.failedLoginAttempts || 0) >= 5);
+
+    const sendLockoutUnlockOtp = async (attemptsCount: number, lockMins: number) => {
+      const otp = String(Math.floor(100000 + Math.random() * 900000));
+      const primaryAdminEmail =
+        process.env.ADMIN_NOTIFY_EMAIL || 'adminboarding123@gmail.com';
+      const isDemoDomain =
+        user.email.endsWith('@crm.edu') || user.email.endsWith('@boardingedu.com');
+      const targetOtpEmail = isDemoDomain ? primaryAdminEmail : user.email;
+
+      const tempToken = this.jwtService.sign(
+        {
+          sub: user.id,
+          purpose: 'device_2fa_pending',
+          role: userCanonRole,
+          deviceId: dto.deviceId || crypto.randomUUID(),
+          deviceName: dto.deviceName || userAgent || 'Web Browser',
+          adminEmail: targetOtpEmail,
+        },
+        { secret: this.getAccessSecret(), expiresIn: '15m' },
+      );
+
+      await this.prisma.passwordReset.updateMany({
+        where: { email: user.email, used: false },
+        data: { used: true },
+      });
+
+      await this.prisma.passwordReset.create({
+        data: {
+          email: user.email,
+          otp,
+          token: tempToken,
+          expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+        },
+      });
+
+      const emailHtml = `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; max-width: 540px; background: #ffffff; color: #1e293b;">
+          <div style="background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%); padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 22px;">
+            <h2 style="color: #ffffff; margin: 8px 0 2px 0; font-size: 20px; font-weight: 700;">BoardingEdu Account Unlock &amp; Login OTP</h2>
+            <p style="color: #93C5FD; margin: 0; font-size: 13px;">Triggered after ${attemptsCount} failed login attempts</p>
+          </div>
+          <p style="font-size: 14px; line-height: 1.5; margin-top: 0;">Hello <strong>${user.fullName}</strong>,</p>
+          <p style="font-size: 14px; line-height: 1.5;">Your account reached ${attemptsCount} failed login attempts (locked for ${lockMins} minutes). Enter this 6-digit verification OTP on the CRM screen to unlock your account and open your Dashboard immediately:</p>
+          <div style="background: #EFF6FF; border: 2px dashed #3B82F6; padding: 18px; border-radius: 10px; text-align: center; margin: 20px 0;">
+            <div style="font-size: 12px; color: #1D4ED8; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;">6-DIGIT UNLOCK &amp; LOGIN OTP</div>
+            <div style="font-size: 36px; font-weight: 800; color: #1E40AF; letter-spacing: 8px; margin: 8px 0;">${otp}</div>
+          </div>
+        </div>
+      `;
+
+      this.emailProcessor
+        .sendEmail({
+          to: targetOtpEmail,
+          subject: `[BoardingEdu OTP] ${otp} is your Account Unlock & Login Code`,
+          html: emailHtml,
+          text: `BoardingEdu CRM Unlock & Login OTP for ${user.fullName} (${user.email}): ${otp}.`,
+        })
+        .catch(() => {});
+
+      if (targetOtpEmail.toLowerCase() !== primaryAdminEmail.toLowerCase()) {
+        this.emailProcessor
+          .sendEmail({
+            to: primaryAdminEmail,
+            subject: `[BoardingEdu OTP] ${otp} is the Account Unlock OTP for ${user.email}`,
+            html: emailHtml,
+            text: `BoardingEdu CRM Unlock & Login OTP for ${user.fullName} (${user.email}): ${otp}.`,
+          })
+          .catch(() => {});
+      }
+
+      const remainingLockSecs =
+        user.lockedUntil && user.lockedUntil > now
+          ? Math.max(60, Math.round((user.lockedUntil.getTime() - now.getTime()) / 1000))
+          : lockMins * 60;
+
+      return {
+        require2FA: true,
+        requiresTwoFactor: true,
+        requires_2fa: true,
+        isNewDevice: true,
+        isLockedOtpRequired: true,
+        lockoutSeconds: remainingLockSecs,
+        tempToken,
+        temp_token: tempToken,
+        adminEmail: targetOtpEmail,
+        fullAdminEmail: targetOtpEmail,
+        userEmail: user.email,
+        expiresInSeconds: 300,
+        deviceId: dto.deviceId || crypto.randomUUID(),
+        deviceName: dto.deviceName || userAgent || 'Web Browser',
+        message: `5 wrong attempts reached! Account locked with ${lockMins}-min timer. A 6-digit verification OTP has been sent to ${targetOtpEmail} — enter the OTP to unlock and open your Dashboard.`,
+      };
+    };
+
+    // If account is already locked from 5 wrong attempts, send OTP so user can verify OTP and open dashboard
+    if (isCurrentlyLocked) {
       const policy = await this.getPasswordPolicy();
+      return sendLockoutUnlockOtp(
+        Math.max(5, user.failedLoginAttempts || 5),
+        policy.lockDurationMinutes || 15,
+      );
+    }
+
+    if (!passwordValid || roleMismatch) {
+      const policy = await this.getPasswordPolicy();
+      const maxAttempts = Math.max(5, policy.maxFailedAttempts || 5);
+      const lockMins = policy.lockDurationMinutes || 15;
       const nextAttempts = (user.failedLoginAttempts || 0) + 1;
-      const shouldLock = nextAttempts >= policy.maxFailedAttempts;
+      const shouldLock = !isSuperAdminUser && nextAttempts >= maxAttempts;
       const lockedUntil = shouldLock
-        ? new Date(Date.now() + policy.lockDurationMinutes * 60 * 1000)
+        ? new Date(Date.now() + lockMins * 60 * 1000)
         : null;
 
       await this.prisma.user.update({
         where: { id: user.id },
         data: {
-          failedLoginAttempts: nextAttempts,
+          failedLoginAttempts: isSuperAdminUser ? 0 : nextAttempts,
           ...(shouldLock ? { status: 'locked', lockedUntil } : {}),
         },
       });
@@ -332,35 +439,39 @@ export class AuthService {
         data: {
           userId: user.id,
           userName: user.fullName,
-          userRole: normalizeCanonicalRole(user.role),
+          userRole: userCanonRole,
           action: 'LOGIN',
           module: 'auth',
           entity: 'User',
           entityId: user.id,
           isSpecialFlag: shouldLock,
-          details: { failedAttempt: nextAttempts, locked: shouldLock },
+          details: {
+            failedAttempt: nextAttempts,
+            locked: shouldLock,
+            reason: !passwordValid ? 'wrong_password' : 'role_mismatch',
+          },
           ipAddress,
           userAgent,
         },
       });
 
       if (shouldLock) {
-        throw new UnauthorizedException(
-          `Account locked after ${policy.maxFailedAttempts} failed login attempts for ${policy.lockDurationMinutes} minutes.`,
-        );
+        user.status = 'locked';
+        user.lockedUntil = lockedUntil;
+        user.failedLoginAttempts = nextAttempts;
+        return sendLockoutUnlockOtp(nextAttempts, lockMins);
       }
-      throw new UnauthorizedException('Invalid email or password.');
-    }
 
-    // Check role match ONLY if role was explicitly selected in Login UI
-    const userCanonRole = normalizeCanonicalRole(user.role);
-    if (dto.role) {
-      const selectedCanon = normalizeCanonicalRole(dto.role);
-      if (selectedCanon !== userCanonRole) {
+      const attemptsLeft = Math.max(0, maxAttempts - nextAttempts);
+      if (roleMismatch && passwordValid) {
+        const selectedCanon = normalizeCanonicalRole(dto.role);
         throw new UnauthorizedException(
-          `Role mismatch! This account belongs to ${userCanonRole}, not ${selectedCanon}.`,
+          `Role mismatch! This account belongs to ${userCanonRole}, not ${selectedCanon}. (${attemptsLeft} attempt${attemptsLeft === 1 ? '' : 's'} remaining before OTP verification)`,
         );
       }
+      throw new UnauthorizedException(
+        `Invalid email or password. (${attemptsLeft} attempt${attemptsLeft === 1 ? '' : 's'} remaining before OTP verification)`,
+      );
     }
 
     const nowLogin = new Date();
@@ -431,13 +542,13 @@ export class AuthService {
     }
 
     const user = await this.prisma.user.findUnique({ where: { id: decoded.sub } });
-    if (!user || user.deletedAt || !user.isActive) {
+    if (!user || user.deletedAt || !user.isActive || user.status === 'suspended') {
       throw new UnauthorizedException('User account not found or inactive.');
     }
 
     const cleanCode = String(code).trim();
 
-    // Handling One-Time Email OTP Verification (Valid for 1 minute)
+    // Handling One-Time Email OTP Verification (Unlocks account if locked after 5 failed attempts)
     if (decoded?.purpose === 'device_2fa_pending') {
       const otpRecord = await this.prisma.passwordReset.findFirst({
         where: {
@@ -451,7 +562,7 @@ export class AuthService {
 
       if (!otpRecord) {
         throw new UnauthorizedException(
-          'Invalid or expired OTP (valid for 1 minute only). Please click Resend OTP to receive a fresh 6-digit code.',
+          'Invalid or expired OTP. Please click Resend OTP to receive a fresh 6-digit code.',
         );
       }
 
@@ -540,17 +651,21 @@ export class AuthService {
           details: {
             deviceId: resolvedDeviceId,
             deviceName: resolvedDeviceName,
-            approvedVia: 'ADMIN_EMAIL_OTP',
+            approvedVia: 'EMAIL_OTP_UNLOCK',
           },
         },
       });
 
+      const nowVerify = new Date();
       await this.prisma.user.update({
         where: { id: user.id },
         data: {
+          status: 'active',
+          isActive: true,
           failedLoginAttempts: 0,
           lockedUntil: null,
-          lastLoginAt: new Date(),
+          lastLoginAt: nowVerify,
+          lastActiveAt: nowVerify,
         },
       });
 

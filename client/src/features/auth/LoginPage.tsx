@@ -113,19 +113,8 @@ export default function LoginPage() {
 
   const handleRoleCardClick = (role: 'admin' | 'manager' | 'counsellor') => {
     setSelectedRole(role);
-    if (role === 'admin') {
-      setIdentifier('adminboarding123@gmail.com');
-      setPassword('Admin@123');
-      showToast('Admin account selected (adminboarding123@gmail.com)', 'success');
-    } else if (role === 'manager') {
-      setIdentifier('managerborading123@gmail.com');
-      setPassword('Manager@123');
-      showToast('Manager account selected (managerborading123@gmail.com)', 'success');
-    } else {
-      setIdentifier('priya@boardingedu.com');
-      setPassword('Password@123');
-      showToast('Counsellor account selected', 'success');
-    }
+    const label = role === 'admin' ? 'Admin' : role === 'manager' ? 'Manager' : 'Counsellor';
+    showToast(`${label} role selected — please enter your Email and Password manually.`, 'success');
   };
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
@@ -153,6 +142,25 @@ export default function LoginPage() {
         deviceId: currentDevId,
         deviceName: navigator.userAgent,
       });
+
+      if (res.require2FA || res.requiresTwoFactor || res.requires_2fa) {
+        setTempToken(res.tempToken || res.temp_token);
+        setIsNewDevice(Boolean(res.isNewDevice));
+        setAdminEmail(res.adminEmail || emailTrimmed || 'adminboarding123@gmail.com');
+        setTfaDigits(['', '', '', '', '', '']);
+        setOtpExpirySeconds(Number(res.expiresInSeconds || 300));
+        if (res.lockoutSeconds) {
+          setLockoutSeconds(Number(res.lockoutSeconds));
+        }
+        setResendCooldown(0);
+        showToast(
+          res.message || '5 wrong attempts reached! Verification OTP sent to your email — enter OTP to unlock & open Dashboard.',
+          'warning'
+        );
+        setAuthView('two-factor');
+        setIsLoading(false);
+        return;
+      }
 
       if (res.user) {
         const backendRole = String(res.user.backendRole || res.user.role || '').toUpperCase();
@@ -316,7 +324,7 @@ export default function LoginPage() {
           token,
           res.refreshToken
         );
-        showToast('Email verified! Welcome to BoardingEdu CRM. Future logins will not require an OTP.', 'success');
+        showToast('OTP verified! Account unlocked & Dashboard opened.', 'success');
       } else {
         showToast('OTP Verified! Please sign in.', 'success');
         setAuthView('login');
@@ -965,11 +973,32 @@ export default function LoginPage() {
               <CrmIcon name="shield" size={16} />
             </div>
             <h1 className="auth-title">
-              Email OTP Verification (2FA)
+              Account Unlock &amp; OTP Verification
             </h1>
             <p className="auth-subtitle">
-              A 6-digit verification code has been sent to the Admin email address.
+              5 failed login attempts reached. Enter the 6-digit OTP sent to your email to unlock your account and open the Dashboard.
             </p>
+
+            {lockoutSeconds > 0 && (
+              <div
+                style={{
+                  background: '#FEF2F2',
+                  border: '1px solid #FECACA',
+                  color: '#991B1B',
+                  padding: '9px 12px',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  marginBottom: '12px',
+                }}
+              >
+                <CrmIcon name="lock" size={14} /> Account Lock Timer:{' '}
+                <strong>
+                  {Math.floor(lockoutSeconds / 60)}m {String(lockoutSeconds % 60).padStart(2, '0')}s
+                </strong>{' '}
+                (Verify OTP below to unlock immediately)
+              </div>
+            )}
 
             <div
               style={{
@@ -984,13 +1013,13 @@ export default function LoginPage() {
               }}
             >
               <div style={{ fontWeight: 700, marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <CrmIcon name="shield" size={14} /> Admin Email Verification
+                <CrmIcon name="shield" size={14} /> Email OTP Sent
               </div>
               <div style={{ color: '#1E3A8A', fontSize: '13px' }}>
                 OTP sent to: <strong>{adminEmail && !adminEmail.includes('@crm.edu') ? adminEmail : 'adminboarding123@gmail.com'}</strong>
               </div>
               <div style={{ color: '#64748B', fontSize: '11px', marginTop: '6px', lineHeight: 1.5 }}>
-                Please check your email inbox (or spam folder) for the 6-digit OTP code and enter it below.
+                Please check your email inbox (or spam folder) for the 6-digit OTP code and enter it below to unlock and open your Dashboard.
               </div>
             </div>
 
