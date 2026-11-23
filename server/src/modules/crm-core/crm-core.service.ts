@@ -463,7 +463,7 @@ export class CrmCoreService implements OnModuleInit {
     });
     if (existing) {
       throw new BadRequestException(
-        `Ye email address (${email}) pehle se registered hai (${existing.fullName} - ${existing.employeeId}). Har staff member ka email unique hona chahiye.`,
+        `This email address (${email}) is already registered (${existing.fullName} - ${existing.employeeId}). Every employee must have a unique email address.`,
       );
     }
 
@@ -480,7 +480,7 @@ export class CrmCoreService implements OnModuleInit {
       });
       if (existingPhoneUser) {
         throw new BadRequestException(
-          `Ye mobile number (${tenDigit}) pehle se registered hai (${existingPhoneUser.fullName} - ${existingPhoneUser.employeeId}). Same mobile number dobara add nahi ho sakta.`,
+          `This mobile number (${tenDigit}) is already registered (${existingPhoneUser.fullName} - ${existingPhoneUser.employeeId}). Duplicate mobile numbers are not permitted.`,
         );
       }
     }

@@ -201,8 +201,9 @@ export async function apiCall<T = any>(
       const cached = await getCachedCollection<T>(endpoint);
       if (cached) return { ...(cached as any), _offlineCached: true };
     }
-    const msg = Array.isArray(data?.message) ? data.message.join(', ') : data?.message;
-    throw new ApiError(msg || `API Error: ${res.statusText || res.status}`, res.status, data);
+    const rawMsg = Array.isArray(data?.message) ? data.message.join(', ') : data?.message;
+    const msg = rawMsg || (res.status === 429 ? 'Too many requests. Please wait a moment and try again.' : `API Error: ${res.statusText || res.status}`);
+    throw new ApiError(msg, res.status, data);
   }
 
   if (method === 'GET' && !isAuthRoute && data && typeof data === 'object') {

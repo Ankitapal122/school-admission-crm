@@ -67,7 +67,6 @@ export class LeadsController {
     return apiEnvelope(leads, undefined, { leads });
   }
 
-  @CrmRateLimit({ settingKey: 'lead_create_per_hour', defaultLimit: 50, windowMs: 3_600_000 })
   @Post()
   async create(@Body() body: any, @Req() req: any) {
     const result = await this.leadsService.createLead(body, req.user);

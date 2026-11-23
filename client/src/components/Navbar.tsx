@@ -456,7 +456,7 @@ export default function Navbar({
         </div>
         {(!isOnline || offlineCount > 0) && (
           <button
-            className="btn btn-sm btn-outline"
+            className="btn btn-sm btn-outline desktop-only"
             onClick={handleManualOfflineSync}
             disabled={syncingOffline}
             title="Offline PWA Queue (Dexie.js)"
@@ -484,7 +484,7 @@ export default function Navbar({
 
         {pendingLogCount > 0 && (
           <button
-            className="btn btn-sm btn-warning"
+            className="btn btn-sm btn-warning desktop-only"
             onClick={() => {
               onSelectTab('dashboard');
               if (onShowToast) {
@@ -502,7 +502,7 @@ export default function Navbar({
 
         {/* Admin Dashboard Switcher Preview Feature */}
         {hasRole(user?.role, 'SUPER_ADMIN') && (
-          <div className="dashboard-switcher">
+          <div className="dashboard-switcher desktop-only">
             <label>Dashboard Preview:</label>
             <select
               className="dashboard-select"
@@ -551,16 +551,16 @@ export default function Navbar({
           {notifOpen && (
             <div
               style={{
-                position: 'absolute',
-                right: 0,
-                top: '46px',
-                width: '340px',
-                maxWidth: '90vw',
+                position: 'fixed',
+                right: '12px',
+                top: '58px',
+                width: '360px',
+                maxWidth: 'calc(100vw - 24px)',
                 background: '#FFFFFF',
                 border: '1px solid #CBD5E1',
                 borderRadius: '12px',
-                boxShadow: '0 12px 32px rgba(15, 23, 42, 0.16)',
-                zIndex: 1200,
+                boxShadow: '0 12px 32px rgba(15, 23, 42, 0.18)',
+                zIndex: 1400,
                 overflow: 'hidden',
               }}
             >

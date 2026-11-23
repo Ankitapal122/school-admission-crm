@@ -217,7 +217,7 @@ export class CommunicationsService {
     }
 
     if (!messageBody) {
-      messageBody = `Namaste ${lead.parentName} ji! Reaching out from BoardingEdu regarding ${lead.studentName}'s admission enquiry (${lead.leadNumber}).`;
+      messageBody = `Hello ${lead.parentName || 'Parent'}! Reaching out from BoardingEdu regarding ${lead.studentName}'s admission inquiry (${lead.leadNumber}).`;
     }
 
     const limits = await this.getWhatsappLimits();

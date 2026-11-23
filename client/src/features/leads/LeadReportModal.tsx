@@ -380,42 +380,14 @@ export default function LeadReportModal({
       return `வணக்கம் ${parentName} அவர்களே 🙏\nBoardingEdu சார்பாக வாழ்த்துக்கள்!\n\n${studentName} (வகுப்பு ${cleanGradeNum} – ${board}) சேர்க்கைக்காக எங்கள் ஆலோசனைக் குழு பின்வரும் உறைவிடப் பள்ளிகளைத் தேர்ந்தெடுத்துள்ளது:\n\n🏫 *பரிந்துரைக்கப்பட்ட பள்ளிகள் & கட்டண விவரம்*\n\n${schoolLines}\n\nஇந்தப் பள்ளிகள், வசதிகள், சேர்க்கை முறை மற்றும் கட்டண விவரங்கள் பற்றி மேலும் அறிய விரும்புகிறீர்களா?\n\nஉங்களுக்கு உதவ நாங்கள் மகிழ்ச்சியடைகிறோம்! 😊\n\nஅன்புடன்,\n*${counsellorName}*\nBoardingEdu – பள்ளி சேர்க்கை ஆலோசனைக் குழு`;
     }
 
-    // Default Hinglish
-    return `Namaste ${parentName} ji 🙏\nBoardingEdu ki taraf se shubhkaamnayein!\n\n${studentName} (Class ${cleanGradeNum} – ${board}) ke boarding school admission ke liye humne aapke liye ye schools shortlist kiye hain:\n\n🏫 *Recommended Schools & Fee Structure*\n\n${schoolLines}\n\nKya aap in schools ke baare me, facilities, admission process aur fees ke baare me aur jaanna chahenge?\n\nHumein aapki madad karne me khushi hogi! 😊\n\nWarm Regards,\n*${counsellorName}*\nBoardingEdu – School Admission Counselling Team`;
+    // Default clean English
+    return generateEnglishMessage(getActiveSchoolsForWhatsApp());
   };
 
-  // Get active text to send based on selected options
+  // Get active text to send based on selected options - ALWAYS in clean English, NO translation link
   const getFinalMessageToSend = () => {
     const schoolsList = getActiveSchoolsForWhatsApp();
-    const eng = customWaMessage || generateEnglishMessage(schoolsList);
-    const trans = translatedWaMessage || generateTranslatedMessage(selectedLanguage, schoolsList);
-
-    let finalMsg = '';
-    if (activeSendVersion === 'english') {
-      finalMsg = eng;
-    } else if (activeSendVersion === 'translated') {
-      finalMsg = trans;
-    } else {
-      finalMsg = `${eng}\n\n━━━━━━━━━━━━━━━━━━━━\n${trans}`;
-    }
-
-    // If translate link is enabled and active version is English, append one-tap Google Translate link for parent
-    if (includeTranslateLink && activeSendVersion === 'english') {
-      const langNames: Record<string, string> = {
-        hi: 'हिंदी (Hindi)',
-        gu: 'ગુજરાતી (Gujarati)',
-        mr: 'मराठी (Marathi)',
-        bn: 'বাংলা (Bengali)',
-        pa: 'ਪੰਜਾਬੀ (Punjabi)',
-        te: 'తెలుగు (Telugu)',
-        ta: 'தமிழ் (Tamil)',
-        hinglish: 'हिंदी',
-      };
-      const lName = langNames[selectedLanguage] || 'हिंदी';
-      finalMsg += `\n\n🌐 *Translate to ${lName} (भाषा अनुवाद):*\nhttps://translate.google.com/?sl=en&tl=${selectedLanguage}&text=${encodeURIComponent(eng.slice(0, 450))}`;
-    }
-
-    return finalMsg;
+    return customWaMessage || generateEnglishMessage(schoolsList);
   };
 
   // Open WhatsApp Preview Modal (Image 2)
@@ -524,10 +496,6 @@ export default function LeadReportModal({
 
     // Student teacher ratio
     const ratio = s.details?.student_teacher_ratio || '5:1';
-
-    if (lang === 'hinglish') {
-      return `Namaste ${parentName} ji 🙏\n\nBoardingEdu Admission Counselling Team ki taraf se pranam!\n\nAapke request ke anusaar *${studentName} (Class ${classGrade} – ${board})* ke liye *${schoolName}* ki complete school report & prospectus details niche di gayi hain:\n\n🏫 *${schoolName.toUpperCase()} – FULL SCHOOL DOSSIER*\n\n📍 *Location:* ${location}\n🌳 *Campus Size:* ${campusSize} (Sprawling Eco-Friendly Green Campus)\n🏆 *School Ranking:*\n   • *State Ranking:* Rank #${stateRank} in ${state}\n   • *National Ranking:* ${nationalRank} Residential School\n📚 *Affiliated Board:* ${s.board || 'CBSE / Cambridge'} | Gender: ${s.genderType || s.gender || 'Co-Ed Boarding'} | Classes: ${s.details?.classes || '4 to 12'}\n\n💰 *Annual Fee Structure:*\n   • *Total Annual Fee:* ${feeText}\n   • *Includes:* School Tuition, AC Boarding Hostel, 4-time Nutritious Meals, Uniform & Laundry, Sports Coaching, 24/7 Infirmary Medical Care.\n\n🥗 *Mess & Dining Facilities (Veg & Non-Veg):*\n   • Separate hygienic preparation kitchens & dining halls for Pure Veg and Non-Veg.\n   • 4 nutritious meals daily (Breakfast, Lunch, Evening High-Tea Snacks, Dinner) managed under certified dietitian.\n   • Jain food aur special dietary needs request par available hain.\n\n🏊 *Sports & World-Class Campus Facilities:*\n   • *Sports Complex:* Swimming Pool, Cricket Oval, Football Turf, Basketball & Badminton courts, Lawn Tennis.\n   • *Hostel Living:* Air-conditioned dorms with 24/7 dedicated House Parents and CCTV security.\n   • *Academics:* ${ratio} Student-Teacher Ratio (Har student par personal mentor care).\n   • *Health & Medical:* 24/7 On-Campus Infirmary with Full-time Resident Doctor and Nurses.\n   • *Innovation:* Robotics Lab, STEM Science Labs, Music, Dance & Theatre Studios.\n\n📝 *Admission Process for Class ${classGrade}:*\n   1. Registration & Application Submission\n   2. Student Interaction & Baseline Assessment\n   3. Document Verification & Seat Confirmation\n\nKya aap ${schoolName} ka campus visit plan karna chahte hain ya direct admission head se discussion arrange karein?\n\nWarm Regards,\n*${counsellorName}*\nBoardingEdu – School Admission Counselling Team\n📞 Direct Helpline: +91 7249417658`;
-    }
 
     return `Hello ${parentName}! 👋 Welcome to *BoardingEdu*\n\nThank you for reaching out! We help parents find the best Boarding & Day Schools across India with free admission guidance.\n\nAs requested, here is the complete official prospectus and detailed fee & campus dossier for *${schoolName}* for *${studentName} (Class ${classGrade.replace(/^class\s*/i, '')} – ${board})*:\n\n🏫 *${schoolName.toUpperCase()} – COMPREHENSIVE SCHOOL DOSSIER*\n\n📍 *Location:* ${location}\n🌳 *Campus Area:* ${campusSize} (Lush Green Pollution-Free Campus)\n🏆 *Rankings & Recognition:*\n   • *State Ranking:* #${stateRank} Top Boarding School in ${state}\n   • *National Ranking:* ${nationalRank} Residential School in India\n📚 *Affiliation & Boards:* ${s.board || 'CBSE & Cambridge'} | ${s.genderType || s.gender || 'Co-Ed Boarding'} | Classes: ${s.details?.classes || '4 to 12'}\n\n💰 *Annual Fee Structure:*\n   • *Total Annual Fee:* ${feeText}\n   • *Fee Inclusions:* Academic Tuition, AC Boarding Hostel, Wholesome Meals, Laundry, Professional Sports Coaching, 24/7 Medical Care.\n\n🥗 *Food & Dining (Pure Veg & Non-Veg):*\n   • Separate hygienic kitchen & dining sections for 100% Pure Vegetarian and Non-Vegetarian food.\n   • 4 balanced, nutritionist-planned meals daily (Breakfast, Lunch, High Tea & Snacks, Dinner).\n   • Jain food and special dietary requirements provided on request.\n\n🏊 *World-Class Facilities & Sports Infrastructure:*\n   • *Sports:* International-standard Swimming Pool, Cricket Oval, Football Field, Tennis & Basketball Courts, Indoor Badminton & Table Tennis.\n   • *Boarding Hostels:* Modern Air-Conditioned dorms with 24/7 resident House Parents & security.\n   • *Mentorship:* ${ratio} Student-to-Teacher Ratio for personalized academic attention.\n   • *Healthcare:* 24/7 On-Campus Infirmary with full-time resident Doctor & nursing staff.\n   • *Co-Curricular:* Advanced Robotics Lab, Modern Science Labs, Music, Dance & Fine Arts Studios.\n\n📝 *Admission Process for Class ${classGrade.replace(/^class\s*/i, '')}:*\n   1. Online Registration & Application Form\n   2. Student Interaction & Skill Assessment\n   3. Offer Letter Issuance & Seat Confirmation\n\nWould you like to schedule a campus tour or arrange a direct interaction with the ${schoolName} Admission Committee?\n\nWarm Regards,\n*${counsellorName}*\nBoardingEdu – School Admission Counselling Team\n📞 Helpline / WhatsApp: +91 7249417658`;
   };
@@ -1108,11 +1076,13 @@ export default function LeadReportModal({
                               display: 'flex',
                               justifyContent: 'space-between',
                               alignItems: 'center',
-                              padding: '6px 10px',
+                              padding: '8px 10px',
                               backgroundColor: '#FFFFFF',
                               borderRadius: '6px',
                               border: '1px solid #DCFCE7',
                               fontSize: '11.5px',
+                              flexWrap: 'wrap',
+                              gap: '6px',
                             }}
                           >
                             <div>
@@ -1236,28 +1206,31 @@ export default function LeadReportModal({
                           return (
                             <div
                               key={s.id}
+                              className="school-suggestion-card"
                               style={{
                                 display: 'flex',
                                 justifyContent: 'space-between',
                                 alignItems: 'center',
-                                padding: '8px 12px',
+                                padding: '10px 12px',
                                 backgroundColor: '#FFFFFF',
                                 borderRadius: '8px',
                                 border: '1px solid #E2E8F0',
                                 fontSize: '12px',
                                 transition: 'all 0.15s ease',
+                                flexWrap: 'wrap',
+                                gap: '8px',
                               }}
                             >
-                              <div style={{ flex: 1, marginRight: '10px' }}>
+                              <div style={{ flex: '1 1 180px', minWidth: 0 }}>
                                 <strong style={{ color: '#0F172A', fontSize: '12.5px' }}>{s.name}</strong>{' '}
-                                <span style={{ color: '#64748B', fontSize: '11px' }}>
+                                <span style={{ color: '#64748B', fontSize: '11px', display: 'block' }}>
                                   ({s.city || 'Uttarakhand'}{s.state ? `, ${s.state}` : ''} • {s.board || 'CBSE'}{s.gender || s.genderType ? ` • ${s.gender || s.genderType}` : ''})
                                 </span>
                                 <div style={{ color: '#059669', fontWeight: 700, fontSize: '12px', marginTop: '2px' }}>
                                   Annual Fee: {feeText}
                                 </div>
                               </div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <div className="school-card-actions" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                                 <button
                                   type="button"
                                   onClick={() => handleOpenDossierModal(s)}
@@ -1295,7 +1268,7 @@ export default function LeadReportModal({
                                     whiteSpace: 'nowrap',
                                   }}
                                 >
-                                  {isShortlisted ? '✓ Shortlisted for WhatsApp' : addingSchoolId === s.id ? 'Adding...' : '+ Add to WhatsApp Shortlist'}
+                                  {isShortlisted ? '✓ Shortlisted' : addingSchoolId === s.id ? 'Adding...' : '+ Add to Shortlist'}
                                 </button>
                               </div>
                             </div>
@@ -1316,27 +1289,30 @@ export default function LeadReportModal({
                     return (
                       <div
                         key={schoolId}
+                        className="school-suggestion-card"
                         style={{
                           display: 'flex',
                           justifyContent: 'space-between',
                           alignItems: 'center',
-                          padding: '8px 10px',
+                          padding: '10px 12px',
                           backgroundColor: '#F8FAFC',
                           borderRadius: '8px',
                           border: '1px solid #E2E8F0',
                           fontSize: '12px',
+                          flexWrap: 'wrap',
+                          gap: '8px',
                         }}
                       >
-                        <div>
-                          <strong style={{ color: '#0F172A' }}>{s.name}</strong>{' '}
-                          <span style={{ color: '#64748B', fontSize: '11px' }}>
+                        <div style={{ flex: '1 1 180px', minWidth: 0 }}>
+                          <strong style={{ color: '#0F172A', fontSize: '12.5px' }}>{s.name}</strong>{' '}
+                          <span style={{ color: '#64748B', fontSize: '11px', display: 'block' }}>
                             ({s.city || 'Dehradun'} • {s.board || 'CBSE'} • Rank #{s.rank || 1})
                           </span>
                           <div style={{ color: '#059669', fontWeight: 600, fontSize: '11.5px', marginTop: '2px' }}>
                             Annual Fee: {s.feesDisplay || formatSchoolFee(s)} &bull; Budget Match: {s.matchScore || s.match_score || 90}%
                           </div>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <div className="school-card-actions" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                           <button
                             type="button"
                             onClick={() => handleOpenDossierModal(s)}
@@ -1345,7 +1321,7 @@ export default function LeadReportModal({
                               color: '#1D4ED8',
                               border: '1px solid #BFDBFE',
                               borderRadius: '6px',
-                              padding: '4px 10px',
+                              padding: '5px 10px',
                               fontSize: '11px',
                               fontWeight: 700,
                               cursor: 'pointer',
@@ -1363,18 +1339,18 @@ export default function LeadReportModal({
                             disabled={isAlreadyShortlisted || addingSchoolId === schoolId}
                             onClick={() => handleAddSchoolToShortlist(s)}
                             style={{
-                              backgroundColor: isAlreadyShortlisted ? '#DCFCE7' : '#EFF6FF',
-                              color: isAlreadyShortlisted ? '#15803D' : '#1D4ED8',
-                              border: isAlreadyShortlisted ? '1px solid #86EFAC' : '1px solid #BFDBFE',
+                              backgroundColor: isAlreadyShortlisted ? '#DCFCE7' : '#1D4ED8',
+                              color: isAlreadyShortlisted ? '#15803D' : '#FFFFFF',
+                              border: isAlreadyShortlisted ? '1px solid #86EFAC' : 'none',
                               borderRadius: '6px',
-                              padding: '4px 10px',
+                              padding: '5px 12px',
                               fontSize: '11px',
                               fontWeight: 700,
                               cursor: isAlreadyShortlisted ? 'default' : 'pointer',
                               whiteSpace: 'nowrap',
                             }}
                           >
-                            {isAlreadyShortlisted ? '✓ Shortlisted for WhatsApp' : addingSchoolId === schoolId ? 'Adding...' : '+ Shortlist for WhatsApp'}
+                            {isAlreadyShortlisted ? '✓ Shortlisted' : addingSchoolId === schoolId ? 'Adding...' : '+ Add to Shortlist'}
                           </button>
                         </div>
                       </div>
@@ -2326,7 +2302,6 @@ export default function LeadReportModal({
                           onChange={(e) => handleLanguageChange(e.target.value)}
                         >
                           <option value="hi">Hindi (हिंदी)</option>
-                          <option value="hinglish">Hinglish (हिंग्लिश)</option>
                           <option value="gu">Gujarati (ગુજરાતી)</option>
                           <option value="mr">Marathi (मराठी)</option>
                           <option value="bn">Bengali (বাংলা)</option>
@@ -2528,31 +2503,6 @@ export default function LeadReportModal({
                           📑 Both (Eng + Trans)
                         </button>
                       </div>
-                    </div>
-
-                    {/* One-tap Google Translate Link for Parent */}
-                    <div
-                      style={{
-                        backgroundColor: '#F8FAFC',
-                        borderRadius: '10px',
-                        padding: '10px 12px',
-                        border: '1px solid #E2E8F0',
-                        marginBottom: '16px',
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        gap: '10px',
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        id="includeTranslateLinkCheck"
-                        checked={includeTranslateLink}
-                        onChange={(e) => setIncludeTranslateLink(e.target.checked)}
-                        style={{ marginTop: '2px', cursor: 'pointer', width: '15px', height: '15px' }}
-                      />
-                      <label htmlFor="includeTranslateLinkCheck" style={{ fontSize: '11px', color: '#334155', cursor: 'pointer', margin: 0 }}>
-                        <strong style={{ color: '#0F172A' }}>Include parent 1-tap translation link:</strong> If parent prefers opening Google Translate directly from their WhatsApp message to translate into their regional dialect.
-                      </label>
                     </div>
                   </div>
 
@@ -2949,41 +2899,24 @@ export default function LeadReportModal({
                       <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '6px' }}>
                         🌐 Message Language / Format:
                       </label>
-                      <div className="lead-form-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                        <button
-                          type="button"
-                          onClick={() => handleToggleDossierLanguage('english')}
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <div
                           style={{
-                            padding: '8px',
+                            padding: '8px 12px',
                             borderRadius: '8px',
                             fontSize: '12px',
                             fontWeight: 700,
-                            cursor: 'pointer',
                             textAlign: 'center',
-                            border: dossierLang === 'english' ? '2px solid #2563EB' : '1px solid #CBD5E1',
-                            backgroundColor: dossierLang === 'english' ? '#EFF6FF' : '#FFFFFF',
-                            color: dossierLang === 'english' ? '#1D4ED8' : '#475569',
+                            border: '1.5px solid #2563EB',
+                            backgroundColor: '#EFF6FF',
+                            color: '#1D4ED8',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
                           }}
                         >
-                          🇬🇧 English (Official Dossier)
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleToggleDossierLanguage('hinglish')}
-                          style={{
-                            padding: '8px',
-                            borderRadius: '8px',
-                            fontSize: '12px',
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                            textAlign: 'center',
-                            border: dossierLang === 'hinglish' ? '2px solid #16A34A' : '1px solid #CBD5E1',
-                            backgroundColor: dossierLang === 'hinglish' ? '#F0FDF4' : '#FFFFFF',
-                            color: dossierLang === 'hinglish' ? '#15803D' : '#475569',
-                          }}
-                        >
-                          🇮🇳 Hinglish (Friendly Chat)
-                        </button>
+                          🇬🇧 Official English Dossier
+                        </div>
                       </div>
                     </div>
 

@@ -432,13 +432,13 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
           `✅ *Virtual Zoom Tour Confirmed!*\n\n` +
           `👤 *Student:* ${studentName}\n` +
           `🏫 *School:* ${targetSchool?.name}\n` +
-          `📅 *Date & Time:* Kal (${formattedTimeStr})\n` +
+          `📅 *Date & Time:* Tomorrow (${formattedTimeStr})\n` +
           `🎥 *Mode:* Live Virtual Zoom Campus Walkthrough\n\n` +
           `━━━━━━━━━━━━━━━━━━━━\n` +
           `💡 *Important Instructions:*\n` +
-          `• Meeting shuru hone se 10 minute pehle hum aapko yahi WhatsApp par *Direct Zoom Link* bhej denge.\n` +
-          `• Zoom meeting website ke through live chalegi jisme aap hostel, mess aur class rooms dekh sakenge.\n\n` +
-          `Aapki appointment lock ho gayi hai! Koi query ho toh call karein:\n` +
+          `• 10 minutes prior to the session, we will send you the *Direct Zoom Link* here on WhatsApp.\n` +
+          `• You will be able to tour the campus, hostels, dining facilities, and classrooms in real-time.\n\n` +
+          `Your appointment is confirmed! For any questions, please contact our helpline:\n` +
           `📞 *Helpline:* +91 7249417658`;
 
         await this.sendAutomatedResponse(remoteJid, tourConfirmReply);
@@ -1038,12 +1038,12 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
             const schoolName = tour.schoolName || tour.school?.name || 'Partner School';
 
             const zoomMsg =
-              `Namaste ${tour.lead.fatherName || tour.lead.parentName || 'Parent'} ji 🙏\n\n` +
-              `*${schoolName}* ka Live Virtual Zoom Tour agle 10 minute mein start hone ja raha hai! 🎥🏫\n\n` +
-              `Niche diye gaye link par click karke turant join karein:\n` +
+              `Hello ${tour.lead.fatherName || tour.lead.parentName || 'Parent'}! 👋\n\n` +
+              `The Live Virtual Zoom Tour for *${schoolName}* will begin in 10 minutes! 🎥🏫\n\n` +
+              `Please click the link below to join directly:\n` +
               `🔗 *Direct Zoom Meeting Link:*\n${zoomUrl}\n\n` +
               `👤 *Student:* ${tour.lead.studentName}\n` +
-              `👨‍💼 Hamare Senior Admission Coordinator live online connect ho chuke hain.\n\n` +
+              `👨‍💼 Our Senior Admission Coordinator is online and ready to guide you.\n\n` +
               `📞 Helpline: +91 7249417658`;
 
             try {

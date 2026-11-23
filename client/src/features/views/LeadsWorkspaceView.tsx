@@ -2254,31 +2254,31 @@ export function CreateLeadModal({
     e.preventDefault();
     const tenDigits = f.mobile.replace(/\D/g, '').slice(-10);
     if (tenDigits.length !== 10 || isFakeIndianMobile(tenDigits)) {
-      const errMsg = 'Kripya ek real 10-digit Indian mobile number enter karein (starting with 6, 7, 8, or 9; dummy numbers allowed nahi hain).';
+      const errMsg = 'Please enter a valid 10-digit Indian mobile number (starting with 6, 7, 8, or 9; dummy numbers are not allowed).';
       setPhoneFormatError(errMsg);
       onShowToast(errMsg, 'danger');
       return;
     }
     if (f.email.trim() && isFakeEmail(f.email.trim())) {
-      const errMsg = 'Kripya ek real aur valid email address enter karein (fake/test email allowed nahi hai).';
+      const errMsg = 'Please enter a valid email address (test or placeholder emails are not allowed).';
       setEmailFormatError(errMsg);
       onShowToast(errMsg, 'danger');
       return;
     }
     if (phoneAlreadyRegistered) {
       onShowToast(
-        `Ye mobile number pehle se registered hai! (Lead ID: ${
+        `This mobile number is already registered! (Lead ID: ${
           phoneAlreadyRegistered.leadNumber || 'Existing'
-        }${phoneAlreadyRegistered.studentName ? `, Student: "${phoneAlreadyRegistered.studentName}"` : ''}). Same mobile number dobara submit nahi ho sakta.`,
+        }${phoneAlreadyRegistered.studentName ? `, Student: "${phoneAlreadyRegistered.studentName}"` : ''}). Duplicate mobile numbers cannot be submitted.`,
         'danger'
       );
       return;
     }
     if (emailAlreadyRegistered) {
       onShowToast(
-        `Ye email address pehle se registered hai! (Lead ID: ${
+        `This email address is already registered! (Lead ID: ${
           emailAlreadyRegistered.leadNumber || 'Existing'
-        }${emailAlreadyRegistered.studentName ? `, Student: "${emailAlreadyRegistered.studentName}"` : ''}). Kripya unique email enter karein.`,
+        }${emailAlreadyRegistered.studentName ? `, Student: "${emailAlreadyRegistered.studentName}"` : ''}). Please enter a unique email address.`,
         'danger'
       );
       return;
@@ -2489,14 +2489,14 @@ export function CreateLeadModal({
                 <CrmIcon name="alert" size={20} />
                 <div>
                   <div style={{ fontWeight: 800, fontSize: '13px' }}>
-                    ⛔ Ye Mobile Number pehle se registered hai! (This phone number already exists)
+                    ⛔ This Phone Number is Already Registered!
                   </div>
                   <div style={{ marginTop: '2px', lineHeight: '1.4' }}>
-                    Ye mobile number pehle se database me darj hai: Lead ID <strong>{phoneAlreadyRegistered.leadNumber}</strong>
+                    This mobile number is already registered in the database: Lead ID <strong>{phoneAlreadyRegistered.leadNumber}</strong>
                     {phoneAlreadyRegistered.studentName && <> (Student: <strong>{phoneAlreadyRegistered.studentName}</strong>)</>}
                     {phoneAlreadyRegistered.counsellor && <> — Counsellor: <strong>{phoneAlreadyRegistered.counsellor}</strong></>}.
                     <br />
-                    Same mobile number se dobara lead submit nahi ho sakti.
+                    Duplicate leads with the same mobile number cannot be submitted.
                   </div>
                 </div>
               </div>
@@ -2519,14 +2519,14 @@ export function CreateLeadModal({
                 <CrmIcon name="alert" size={20} />
                 <div>
                   <div style={{ fontWeight: 800, fontSize: '13px' }}>
-                    ⛔ Ye Email Address pehle se registered hai! (This email already exists)
+                    ⛔ This Email Address is Already Registered!
                   </div>
                   <div style={{ marginTop: '2px', lineHeight: '1.4' }}>
-                    Ye email address pehle se database me darj hai: Lead ID <strong>{emailAlreadyRegistered.leadNumber}</strong>
+                    This email address is already registered in the database: Lead ID <strong>{emailAlreadyRegistered.leadNumber}</strong>
                     {emailAlreadyRegistered.studentName && <> (Student: <strong>{emailAlreadyRegistered.studentName}</strong>)</>}
                     {emailAlreadyRegistered.counsellor && <> — Counsellor: <strong>{emailAlreadyRegistered.counsellor}</strong></>}.
                     <br />
-                    Har parent/student ka email real aur unique hona chahiye.
+                    Each parent or student lead requires a unique email address.
                   </div>
                 </div>
               </div>
@@ -2644,7 +2644,7 @@ export function CreateLeadModal({
                   Mobile Primary (+91) *
                   {phoneAlreadyRegistered && (
                     <span style={{ color: '#DC2626', marginLeft: '6px', fontWeight: 700, fontSize: '11px' }}>
-                      (⚠️ Pehle se registered hai)
+                      (⚠️ Already Registered)
                     </span>
                   )}
                   {phoneFormatError && !phoneAlreadyRegistered && (
@@ -2666,7 +2666,7 @@ export function CreateLeadModal({
                     if (digits.length >= 10) {
                       const ten = digits.slice(-10);
                       if (isFakeIndianMobile(ten)) {
-                        setPhoneFormatError('Fake ya dummy mobile number allowed nahi hai. Real 10-digit number likhein.');
+                        setPhoneFormatError('Dummy or repeated numbers are not allowed. Please enter a valid 10-digit number.');
                         setPhoneAlreadyRegistered(null);
                         return;
                       }
@@ -2693,7 +2693,7 @@ export function CreateLeadModal({
                 />
                 {phoneAlreadyRegistered && (
                   <div style={{ color: '#DC2626', fontSize: '11px', marginTop: '4px', fontWeight: 600 }}>
-                    ⚠️ Ye mobile number pehle se likha/registered hai: Lead ID {phoneAlreadyRegistered.leadNumber} ({phoneAlreadyRegistered.studentName})
+                    ⚠️ This mobile number is already registered: Lead ID {phoneAlreadyRegistered.leadNumber} ({phoneAlreadyRegistered.studentName})
                   </div>
                 )}
                 {phoneFormatError && !phoneAlreadyRegistered && (
@@ -2715,7 +2715,7 @@ export function CreateLeadModal({
                   Email *
                   {emailAlreadyRegistered && (
                     <span style={{ color: '#DC2626', marginLeft: '6px', fontWeight: 700, fontSize: '11px' }}>
-                      (⚠️ Pehle se registered hai)
+                      (⚠️ Already Registered)
                     </span>
                   )}
                   {emailFormatError && !emailAlreadyRegistered && (
@@ -2740,7 +2740,7 @@ export function CreateLeadModal({
                     }
                     if (val.includes('@') && val.includes('.')) {
                       if (isFakeEmail(val)) {
-                        setEmailFormatError('Fake ya test email allowed nahi hai. Real email enter karein.');
+                        setEmailFormatError('Test or placeholder emails are not allowed. Please enter a valid email address.');
                         setEmailAlreadyRegistered(null);
                         return;
                       }
@@ -2766,7 +2766,7 @@ export function CreateLeadModal({
                 />
                 {emailAlreadyRegistered && (
                   <div style={{ color: '#DC2626', fontSize: '11px', marginTop: '4px', fontWeight: 600 }}>
-                    ⚠️ Ye email address pehle se registered hai: Lead ID {emailAlreadyRegistered.leadNumber} ({emailAlreadyRegistered.studentName})
+                    ⚠️ This email address is already registered: Lead ID {emailAlreadyRegistered.leadNumber} ({emailAlreadyRegistered.studentName})
                   </div>
                 )}
                 {emailFormatError && !emailAlreadyRegistered && (
@@ -2972,11 +2972,11 @@ export function CreateLeadModal({
               }}
             >
               {phoneAlreadyRegistered
-                ? '⛔ Ye Number Pehle Se Registered Hai (Cannot Submit)'
+                ? '⛔ Phone Number Already Registered (Cannot Submit)'
                 : emailAlreadyRegistered
-                ? '⛔ Ye Email Pehle Se Registered Hai (Cannot Submit)'
+                ? '⛔ Email Already Registered (Cannot Submit)'
                 : phoneFormatError || emailFormatError
-                ? '⛔ Enter Real Mobile & Email (Cannot Submit)'
+                ? '⛔ Enter Valid Phone & Email (Cannot Submit)'
                 : submitting
                 ? 'Creating Lead...'
                 : 'Create Lead'}

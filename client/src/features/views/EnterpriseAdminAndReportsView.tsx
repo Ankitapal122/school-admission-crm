@@ -478,7 +478,7 @@ export function UsersView({
     );
     if (existingEmailUser) {
       onShowToast(
-        `Ye email address (${cleanEmail}) pehle se registered hai (${existingEmailUser.fullName}). Har staff ka email unique hona chahiye!`,
+        `This email address (${cleanEmail}) is already registered (${existingEmailUser.fullName}). Every employee must have a unique email address!`,
         'danger'
       );
       return;
@@ -491,7 +491,7 @@ export function UsersView({
         ['9876543210', '9123456789', '9000000000', '8000000000'].includes(cleanPhoneDigits)
       ) {
         onShowToast(
-          'Kripya ek real 10-digit Indian mobile number enter karein (dummy number allowed nahi hai).',
+          'Please enter a valid 10-digit Indian mobile number (dummy numbers are not allowed).',
           'danger'
         );
         return;
@@ -501,7 +501,7 @@ export function UsersView({
       );
       if (existingPhoneUser) {
         onShowToast(
-          `Ye mobile number (${cleanPhoneDigits}) pehle se registered hai (${existingPhoneUser.fullName}). Same number dobara add nahi ho sakta!`,
+          `This mobile number (${cleanPhoneDigits}) is already registered (${existingPhoneUser.fullName}). Duplicate mobile numbers are not permitted!`,
           'danger'
         );
         return;
@@ -1145,7 +1145,7 @@ export function UsersView({
                         String(u.email || '').trim().toLowerCase() === newEmail.trim().toLowerCase()
                     ) && (
                       <div style={{ color: '#DC2626', fontSize: '11px', marginTop: '4px', fontWeight: 600 }}>
-                        ⚠️ Ye email address pehle se registered hai! Duplicate email submit nahi hoga.
+                        ⚠️ This email address is already registered! Duplicate email cannot be submitted.
                       </div>
                     )}
                 </div>
@@ -1167,7 +1167,7 @@ export function UsersView({
                         newMobile.replace(/\D/g, '').slice(-10)
                     ) && (
                       <div style={{ color: '#DC2626', fontSize: '11px', marginTop: '4px', fontWeight: 600 }}>
-                        ⚠️ Ye mobile number pehle se registered hai! Duplicate number submit nahi hoga.
+                        ⚠️ This mobile number is already registered! Duplicate number cannot be submitted.
                       </div>
                     )}
                 </div>

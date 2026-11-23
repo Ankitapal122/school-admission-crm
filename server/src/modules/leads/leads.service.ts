@@ -618,9 +618,9 @@ export class LeadsService implements OnModuleInit {
         ? ` (Counsellor: ${existingPhoneLead.assignedCounsellor.fullName})`
         : '';
       throw new ConflictException(
-        `Ye mobile number pehle se registered hai! (Lead ID: ${
+        `This mobile number is already registered! (Lead ID: ${
           existingPhoneLead.leadNumber || existingPhoneLead.id
-        }, Student: "${existingPhoneLead.studentName}"${counsellor}). Same mobile number se dobara lead submit nahi ho sakti.`
+        }, Student: "${existingPhoneLead.studentName}"${counsellor}). Duplicate leads with the same phone number are not permitted.`
       );
     }
 
@@ -645,7 +645,7 @@ export class LeadsService implements OnModuleInit {
           ? ` (Counsellor: ${existingEmailLead.assignedCounsellor.fullName})`
           : '';
         throw new ConflictException(
-          `Ye email address (${parentEmail}) pehle se registered hai! (Lead ID: ${
+          `This email address (${parentEmail}) is already registered! (Lead ID: ${
             existingEmailLead.leadNumber || existingEmailLead.id
           }, Student: "${existingEmailLead.studentName}"${counsellor}). Please use a unique email address.`
         );
@@ -912,7 +912,7 @@ export class LeadsService implements OnModuleInit {
         });
         if (otherEmailLead) {
           throw new ConflictException(
-            `Ye email address (${validatedEmail}) pehle se registered hai (Lead ID: ${
+            `This email address (${validatedEmail}) is already registered (Lead ID: ${
               otherEmailLead.leadNumber || otherEmailLead.id
             }, Student: "${otherEmailLead.studentName}"). Updating to a duplicate email is not permitted.`
           );
