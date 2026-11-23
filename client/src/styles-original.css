@@ -1655,7 +1655,7 @@ textarea.form-control {
 /* Breakpoint: Mobile & Tablets (<= 768px) */
 @media (max-width: 768px) {
   :root {
-    --topbar-height: 56px;
+    --topbar-height: 62px;
   }
 
   .desktop-only {
@@ -1712,9 +1712,9 @@ textarea.form-control {
 
   /* Responsive Topbar */
   .topbar {
-    padding: 6px 12px;
-    height: 56px;
-    min-height: 56px;
+    padding: 8px 12px;
+    height: 62px;
+    min-height: 62px;
     flex-wrap: nowrap !important;
     align-items: center;
     justify-content: space-between;
@@ -2155,16 +2155,16 @@ textarea.form-control {
 
 /* All Mobile & Phablet Screens (<= 768px) */
 @media (max-width: 768px) {
-  /* Force single-line clean topbar header matching Image 4: Logo -> Search -> Hamburger -> Notification */
+  /* Force single-line clean topbar header with increased height: Search -> Hamburger -> Notification */
   .topbar {
-    padding: 6px 10px !important;
-    height: 56px !important;
-    min-height: 56px !important;
+    padding: 8px 12px !important;
+    height: 62px !important;
+    min-height: 62px !important;
     display: flex !important;
     flex-wrap: nowrap !important;
     align-items: center !important;
     justify-content: space-between !important;
-    gap: 8px !important;
+    gap: 10px !important;
     background: #FFFFFF !important;
     border-bottom: 1px solid #E2E8F0 !important;
     position: sticky !important;
@@ -2183,45 +2183,7 @@ textarea.form-control {
     overflow: hidden !important;
   }
 
-  .mobile-brand-header {
-    display: flex !important;
-    align-items: center !important;
-    gap: 6px !important;
-    flex-shrink: 0 !important;
-    cursor: pointer !important;
-    user-select: none !important;
-    text-decoration: none !important;
-  }
-
-  .mobile-brand-logo {
-    width: 32px !important;
-    height: 32px !important;
-    object-fit: contain !important;
-    flex-shrink: 0 !important;
-  }
-
-  .mobile-brand-text {
-    display: flex !important;
-    flex-direction: column !important;
-    line-height: 1.15 !important;
-    flex-shrink: 0 !important;
-  }
-
-  .mobile-brand-title {
-    font-weight: 800 !important;
-    font-size: 13px !important;
-    color: #1E3A8A !important;
-    letter-spacing: -0.2px !important;
-  }
-
-  .brand-subtext {
-    font-size: 8px !important;
-    color: #16A34A !important;
-    font-weight: 700 !important;
-    white-space: nowrap !important;
-  }
-
-  /* Pill-shaped Search Form matching Image 4 */
+  /* Pill-shaped Search Form (Expanded height & width without logo) */
   .topbar-search-form {
     display: flex !important;
     align-items: center !important;
@@ -2231,10 +2193,11 @@ textarea.form-control {
     background: #FFFFFF !important;
     border: 1px solid #CBD5E1 !important;
     border-radius: 999px !important;
-    padding: 5px 10px !important;
-    gap: 6px !important;
+    padding: 7px 14px !important;
+    height: 42px !important;
+    gap: 8px !important;
     box-sizing: border-box !important;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
   }
 
   .topbar-search-icon {
@@ -2250,14 +2213,14 @@ textarea.form-control {
     border: none !important;
     background: transparent !important;
     outline: none !important;
-    font-size: 11.5px !important;
+    font-size: 13px !important;
     color: #1E293B !important;
     text-overflow: ellipsis !important;
     padding: 0 !important;
   }
 
   .topbar-search-input::placeholder {
-    font-size: 11px !important;
+    font-size: 12.5px !important;
     color: #64748B !important;
   }
 
@@ -2504,8 +2467,10 @@ textarea.form-control {
 /* Narrow Smartphones (<= 420px) */
 @media (max-width: 420px) {
   .topbar {
-    padding: 6px 8px !important;
-    gap: 6px !important;
+    padding: 7px 10px !important;
+    height: 60px !important;
+    min-height: 60px !important;
+    gap: 8px !important;
   }
 
   .topbar-left {
@@ -2513,57 +2478,38 @@ textarea.form-control {
   }
 
   .topbar-right {
-    gap: 4px !important;
-  }
-
-  .mobile-brand-header {
-    gap: 4px !important;
-  }
-
-  .mobile-brand-logo {
-    width: 28px !important;
-    height: 28px !important;
-  }
-
-  .mobile-brand-title {
-    font-size: 12px !important;
-  }
-
-  /* Hide green subtext on very narrow phones to preserve search bar width */
-  .brand-subtext {
-    display: none !important;
+    gap: 6px !important;
   }
 
   .topbar-search-form {
-    padding: 4px 8px !important;
-    gap: 4px !important;
+    padding: 6px 12px !important;
+    height: 40px !important;
+    gap: 6px !important;
   }
 
   .topbar-search-input {
-    font-size: 11px !important;
+    font-size: 12px !important;
   }
 }
 
 /* Extra-Small Phones (<= 360px) */
 @media (max-width: 360px) {
   .topbar {
-    padding: 4px 6px !important;
-    gap: 4px !important;
+    padding: 6px 8px !important;
+    height: 58px !important;
+    min-height: 58px !important;
+    gap: 6px !important;
   }
 
-  .mobile-brand-title {
-    font-size: 11px !important;
-  }
-
-  .mobile-brand-logo {
-    width: 26px !important;
-    height: 26px !important;
+  .topbar-search-form {
+    padding: 5px 10px !important;
+    height: 38px !important;
   }
 
   .mobile-menu-btn,
   .topbar-notif-btn {
-    width: 28px !important;
-    height: 28px !important;
+    width: 30px !important;
+    height: 30px !important;
   }
 
   .dash-kpi-grid-4,

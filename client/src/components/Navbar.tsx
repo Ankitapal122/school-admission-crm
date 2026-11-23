@@ -335,20 +335,7 @@ export default function Navbar({
             <span className="expand-brand-pill">BoardingEdu CRM</span>
           </button>
         )}
-        {/* Mobile Brand Logo only (BoardingEdu text removed as requested) */}
-        <div
-          className="mobile-brand-header mobile-only"
-          onClick={() => onSelectTab('dashboard')}
-          title="BoardingEdu CRM"
-        >
-          <img
-            src="/boardingedu-logo.png"
-            alt="BoardingEdu"
-            className="mobile-brand-logo"
-          />
-        </div>
-
-        {/* Global Search Bar matching reference screenshot */}
+        {/* Global Search Bar (on mobile takes full width without logo) */}
         <form
           className="topbar-search-form"
           onSubmit={(e) => {
