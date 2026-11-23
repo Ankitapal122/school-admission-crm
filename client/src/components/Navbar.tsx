@@ -339,25 +339,18 @@ export default function Navbar({
         <div
           className="mobile-brand-header mobile-only"
           onClick={() => onSelectTab('dashboard')}
-          style={{
-            alignItems: 'center',
-            gap: '6px',
-            cursor: 'pointer',
-            flexShrink: 0,
-            textDecoration: 'none',
-          }}
           title="BoardingEdu CRM"
         >
           <img
             src="/boardingedu-logo.png"
             alt="BoardingEdu"
-            style={{ width: '30px', height: '30px', objectFit: 'contain' }}
+            className="mobile-brand-logo"
           />
-          <div className="mobile-brand-text" style={{ lineHeight: 1.15 }}>
-            <div style={{ fontWeight: 800, fontSize: '13px', color: '#1E3A8A', letterSpacing: '-0.2px' }}>
+          <div className="mobile-brand-text">
+            <div className="mobile-brand-title">
               BoardingEdu
             </div>
-            <div className="brand-subtext" style={{ fontSize: '8px', color: '#16A34A', fontWeight: 700, whiteSpace: 'nowrap' }}>
+            <div className="brand-subtext">
               Connecting Parents &amp; Schools
             </div>
           </div>
@@ -379,34 +372,16 @@ export default function Navbar({
               onShowToast(`Searching CRM for "${globalSearchText.trim()}"...`, 'success');
             }
           }}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            background: '#F1F5F9',
-            border: '1px solid #E2E8F0',
-            borderRadius: '10px',
-            padding: '6px 14px',
-            minWidth: 'min(260px, 38vw)',
-            flex: '0 1 360px',
-          }}
         >
-          <span style={{ color: '#64748B', display: 'inline-flex', alignItems: 'center' }}>
-            <CrmIcon name="search" size={14} />
+          <span className="topbar-search-icon">
+            <CrmIcon name="search" size={15} />
           </span>
           <input
             type="text"
+            className="topbar-search-input"
             placeholder="Search managers, counsellors, leads..."
             value={globalSearchText}
             onChange={(e) => setGlobalSearchText(e.target.value)}
-            style={{
-              border: 'none',
-              background: 'transparent',
-              outline: 'none',
-              fontSize: '12.5px',
-              color: '#1E293B',
-              width: '100%',
-            }}
           />
         </form>
       </div>
@@ -537,41 +512,27 @@ export default function Navbar({
 
         {/* Mobile Hamburger Menu Button - positioned right before notification bell to match Image 4 */}
         <button
-          className="mobile-menu-btn"
+          className="mobile-menu-btn mobile-only"
           onClick={onToggleMobileMenu}
           aria-label="Open navigation menu"
           title="Menu"
         >
-          <CrmIcon name="menu" size={18} />
+          <CrmIcon name="menu" size={20} />
         </button>
 
-        <div ref={notifRef} style={{ position: 'relative' }}>
+        <div ref={notifRef} className="topbar-notif-container">
           <button
-            className="topbar-btn"
+            className="topbar-btn topbar-notif-btn"
             onClick={() => {
               setNotifOpen((o) => !o);
               loadTopbarCounts();
             }}
             aria-label="Notifications"
             title="Real-time CRM Notifications"
-            style={{ position: 'relative' }}
           >
-            <CrmIcon name="bell" size={17} color="#334155" />
+            <CrmIcon name="bell" size={20} color="#1E3A8A" />
             {unreadCount > 0 && (
-              <span
-                style={{
-                  position: 'absolute',
-                  top: '-5px',
-                  right: '-5px',
-                  background: '#EF4444',
-                  color: '#FFFFFF',
-                  fontSize: '9.5px',
-                  fontWeight: 800,
-                  padding: '1px 5px',
-                  borderRadius: '999px',
-                  lineHeight: 1.2,
-                }}
-              >
+              <span className="topbar-badge">
                 {unreadCount}
               </span>
             )}

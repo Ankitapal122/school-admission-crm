@@ -478,6 +478,75 @@ body {
   border-radius: 50%;
 }
 
+/* Topbar Search Form (Desktop default) */
+.topbar-search-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #F1F5F9;
+  border: 1px solid #CBD5E1;
+  border-radius: 999px;
+  padding: 6px 14px;
+  min-width: 260px;
+  max-width: 380px;
+  flex: 0 1 360px;
+  transition: all 0.2s ease;
+}
+
+.topbar-search-form:focus-within {
+  background: #FFFFFF;
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.topbar-search-icon {
+  color: #1E3A8A;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.topbar-search-input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 12.5px;
+  color: #1E293B;
+  width: 100%;
+  min-width: 0;
+}
+
+.topbar-search-input::placeholder {
+  color: #64748B;
+  font-size: 12px;
+}
+
+/* Mobile Brand Header base */
+.mobile-brand-header {
+  display: none;
+}
+
+/* Topbar Notification Container & Badge */
+.topbar-notif-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.topbar-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #EF4444;
+  color: #FFFFFF;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 1px 4.5px;
+  border-radius: 999px;
+  line-height: 1.2;
+}
+
 /* Content Container */
 .content-body {
   padding: 24px;
@@ -2091,12 +2160,18 @@ textarea.form-control {
     padding: 6px 10px !important;
     height: 56px !important;
     min-height: 56px !important;
+    display: flex !important;
     flex-wrap: nowrap !important;
     align-items: center !important;
     justify-content: space-between !important;
     gap: 8px !important;
     background: #FFFFFF !important;
     border-bottom: 1px solid #E2E8F0 !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 100 !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
   }
 
   .topbar-left {
@@ -2105,33 +2180,7 @@ textarea.form-control {
     gap: 8px !important;
     flex: 1 1 auto !important;
     min-width: 0 !important;
-  }
-
-  .topbar-right {
-    display: flex !important;
-    align-items: center !important;
-    gap: 6px !important;
-    flex-shrink: 0 !important;
-  }
-
-  /* Force any inline 2/3-column grid inside modals to stack cleanly on mobile */
-  .modal-body div[style*="grid-template-columns"] {
-    grid-template-columns: 1fr !important;
-  }
-
-  .topbar-search-form {
-    min-width: 0 !important;
-    flex: 1 1 auto !important;
-    background: #F1F5F9 !important;
-    border: 1px solid #CBD5E1 !important;
-    border-radius: 999px !important;
-    padding: 6px 12px !important;
-    max-width: 100% !important;
-  }
-
-  .topbar-search-form input {
-    font-size: 12px !important;
-    min-width: 0 !important;
+    overflow: hidden !important;
   }
 
   .mobile-brand-header {
@@ -2139,6 +2188,145 @@ textarea.form-control {
     align-items: center !important;
     gap: 6px !important;
     flex-shrink: 0 !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    text-decoration: none !important;
+  }
+
+  .mobile-brand-logo {
+    width: 28px !important;
+    height: 28px !important;
+    object-fit: contain !important;
+    flex-shrink: 0 !important;
+  }
+
+  .mobile-brand-text {
+    display: flex !important;
+    flex-direction: column !important;
+    line-height: 1.15 !important;
+    flex-shrink: 0 !important;
+  }
+
+  .mobile-brand-title {
+    font-weight: 800 !important;
+    font-size: 13px !important;
+    color: #1E3A8A !important;
+    letter-spacing: -0.2px !important;
+  }
+
+  .brand-subtext {
+    font-size: 8px !important;
+    color: #16A34A !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+  }
+
+  /* Pill-shaped Search Form matching Image 4 */
+  .topbar-search-form {
+    display: flex !important;
+    align-items: center !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    background: #FFFFFF !important;
+    border: 1px solid #CBD5E1 !important;
+    border-radius: 999px !important;
+    padding: 5px 10px !important;
+    gap: 6px !important;
+    box-sizing: border-box !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+  }
+
+  .topbar-search-icon {
+    display: inline-flex !important;
+    align-items: center !important;
+    color: #1E3A8A !important;
+    flex-shrink: 0 !important;
+  }
+
+  .topbar-search-input {
+    width: 100% !important;
+    min-width: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    outline: none !important;
+    font-size: 11.5px !important;
+    color: #1E293B !important;
+    text-overflow: ellipsis !important;
+    padding: 0 !important;
+  }
+
+  .topbar-search-input::placeholder {
+    font-size: 11px !important;
+    color: #64748B !important;
+  }
+
+  .topbar-right {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-shrink: 0 !important;
+    margin-left: auto !important;
+  }
+
+  /* Hamburger & Bell buttons matching Image 4 (no square borders, clean navy icons) */
+  .mobile-menu-btn {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    width: 32px !important;
+    height: 32px !important;
+    padding: 0 !important;
+    color: #1E3A8A !important;
+    cursor: pointer !important;
+    flex-shrink: 0 !important;
+    border-radius: 6px !important;
+  }
+
+  .mobile-menu-btn:hover {
+    background: #F1F5F9 !important;
+  }
+
+  .topbar-notif-btn {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    width: 32px !important;
+    height: 32px !important;
+    padding: 0 !important;
+    color: #1E3A8A !important;
+    cursor: pointer !important;
+    flex-shrink: 0 !important;
+    position: relative !important;
+    border-radius: 6px !important;
+  }
+
+  .topbar-notif-btn:hover {
+    background: #F1F5F9 !important;
+  }
+
+  .topbar-badge {
+    position: absolute !important;
+    top: -3px !important;
+    right: -3px !important;
+    background: #EF4444 !important;
+    color: #FFFFFF !important;
+    font-size: 9px !important;
+    font-weight: 800 !important;
+    padding: 1px 4.5px !important;
+    border-radius: 999px !important;
+    line-height: 1.2 !important;
+  }
+
+  /* Force any inline 2/3-column grid inside modals to stack cleanly on mobile */
+  .modal-body div[style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
   }
 
   /* Responsive School Suggestion Cards for Mobile */
@@ -2303,12 +2491,6 @@ textarea.form-control {
     height: 145px !important;
   }
 
-  .topbar-right {
-    width: 100%;
-    justify-content: space-between;
-    flex-wrap: wrap;
-  }
-
   .modal-footer {
     flex-direction: column-reverse;
   }
@@ -2319,8 +2501,71 @@ textarea.form-control {
   }
 }
 
+/* Narrow Smartphones (<= 420px) */
+@media (max-width: 420px) {
+  .topbar {
+    padding: 6px 8px !important;
+    gap: 6px !important;
+  }
+
+  .topbar-left {
+    gap: 6px !important;
+  }
+
+  .topbar-right {
+    gap: 4px !important;
+  }
+
+  .mobile-brand-header {
+    gap: 4px !important;
+  }
+
+  .mobile-brand-logo {
+    width: 25px !important;
+    height: 25px !important;
+  }
+
+  .mobile-brand-title {
+    font-size: 12px !important;
+  }
+
+  /* Hide green subtext on very narrow phones to preserve search bar width */
+  .brand-subtext {
+    display: none !important;
+  }
+
+  .topbar-search-form {
+    padding: 4px 8px !important;
+    gap: 4px !important;
+  }
+
+  .topbar-search-input {
+    font-size: 11px !important;
+  }
+}
+
 /* Extra-Small Phones (<= 360px) */
 @media (max-width: 360px) {
+  .topbar {
+    padding: 4px 6px !important;
+    gap: 4px !important;
+  }
+
+  .mobile-brand-title {
+    font-size: 11px !important;
+  }
+
+  .mobile-brand-logo {
+    width: 22px !important;
+    height: 22px !important;
+  }
+
+  .mobile-menu-btn,
+  .topbar-notif-btn {
+    width: 28px !important;
+    height: 28px !important;
+  }
+
   .dash-kpi-grid-4,
   .dash-kpi-grid-5 {
     grid-template-columns: 1fr !important;
