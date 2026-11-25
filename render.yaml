@@ -16,7 +16,11 @@ services:
       - key: DATABASE_URL
         sync: false
       - key: ADMIN_NOTIFY_EMAIL
-        value: adminboarding123@gmail.com
+        value: BoardingEdu123@gmail.com
+      - key: ADMIN_OTP_EMAIL
+        value: BoardingEdu123@gmail.com
+      - key: ADMIN_REQUIRE_LOGIN_OTP
+        value: "true"
       - key: SMTP_HOST
         value: smtp.gmail.com
       - key: SMTP_PORT

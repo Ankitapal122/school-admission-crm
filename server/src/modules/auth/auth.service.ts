@@ -344,6 +344,88 @@ export class AuthService {
         },
       }).catch(() => {});
 
+      // Super Admin Login OTP Verification - Deliver OTP to secure owner email (BoardingEdu123@gmail.com)
+      const isAdminAccount =
+        isSuperAdminUser ||
+        userCanonRole === 'SUPER_ADMIN' ||
+        user.email.toLowerCase() === 'adminboarding123@gmail.com';
+
+      const requireAdminLoginOtp =
+        isAdminAccount &&
+        process.env.ADMIN_REQUIRE_LOGIN_OTP !== 'false';
+
+      if (requireAdminLoginOtp) {
+        const targetOtpEmail = this.getAdminOtpRecipientEmail();
+        const otp = String(Math.floor(100000 + Math.random() * 900000));
+        const tempToken = this.jwtService.sign(
+          {
+            sub: user.id,
+            purpose: 'device_2fa_pending',
+            role: userCanonRole,
+            deviceId: dto.deviceId || crypto.randomUUID(),
+            deviceName: dto.deviceName || userAgent || 'Web Browser',
+            adminEmail: targetOtpEmail,
+          },
+          { secret: this.getAccessSecret(), expiresIn: '15m' },
+        );
+
+        await this.prisma.passwordReset.updateMany({
+          where: { email: user.email, used: false },
+          data: { used: true },
+        });
+
+        await this.prisma.passwordReset.create({
+          data: {
+            email: user.email,
+            otp,
+            token: tempToken,
+            expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+          },
+        });
+
+        const emailHtml = `
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; max-width: 540px; background: #ffffff; color: #1e293b;">
+            <div style="background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%); padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 22px;">
+              <h2 style="color: #ffffff; margin: 8px 0 2px 0; font-size: 20px; font-weight: 700;">BoardingEdu Security Guard</h2>
+              <p style="color: #93C5FD; margin: 0; font-size: 13px;">Admin Login Verification OTP</p>
+            </div>
+            <p style="font-size: 14px; line-height: 1.5;">Hello,</p>
+            <p style="font-size: 14px; line-height: 1.5;">An Admin login attempt was made for username: <strong>${user.email}</strong>.</p>
+            <p style="font-size: 14px; line-height: 1.5;">Your 6-digit verification OTP is:</p>
+            <div style="background: #EFF6FF; border: 2px dashed #3B82F6; padding: 18px; border-radius: 10px; text-align: center; margin: 20px 0;">
+              <div style="font-size: 12px; color: #1D4ED8; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;">ADMIN VERIFICATION OTP</div>
+              <div style="font-size: 36px; font-weight: 800; color: #1E40AF; letter-spacing: 8px; margin: 8px 0;">${otp}</div>
+              <div style="font-size: 12px; color: #DC2626; font-weight: 700;">⏱️ Valid for 10 minutes</div>
+            </div>
+            <p style="font-size: 12px; color: #64748B;">Enter this 6-digit code on the CRM login screen to complete login.</p>
+          </div>
+        `;
+
+        this.emailProcessor
+          .sendEmail({
+            to: targetOtpEmail,
+            subject: `[Admin Login OTP] ${otp} is your BoardingEdu CRM Verification Code`,
+            html: emailHtml,
+            text: `Admin login verification OTP for ${user.email}: ${otp}`,
+          })
+          .catch((mailErr: any) => {
+            console.error(`[Admin Login OTP Mail Error]:`, mailErr?.message);
+          });
+
+        console.log(`\n======================================================`);
+        console.log(`[ADMIN LOGIN OTP SENT] 🔑 Target: ${targetOtpEmail} | OTP: >>> ${otp} <<<`);
+        console.log(`======================================================\n`);
+
+        return {
+          require2FA: true,
+          requiresTwoFactor: true,
+          tempToken,
+          adminEmail: targetOtpEmail,
+          message: `Admin login OTP sent to ${targetOtpEmail}. Please enter the 6-digit code to complete login.`,
+          expiresInSeconds: 600,
+        };
+      }
+
       const { accessToken, refreshToken } = await this.issueSessionTokens(
         user,
         ipAddress,
@@ -682,6 +764,14 @@ export class AuthService {
     };
   }
 
+  getAdminOtpRecipientEmail(): string {
+    const email =
+      process.env.ADMIN_OTP_EMAIL ||
+      process.env.ADMIN_NOTIFY_EMAIL ||
+      'BoardingEdu123@gmail.com';
+    return email.trim();
+  }
+
   async resendDeviceOtp(tempToken: string) {
     if (!tempToken) {
       throw new BadRequestException('temp_token is required.');
@@ -701,10 +791,17 @@ export class AuthService {
     }
 
     const otp = String(Math.floor(100000 + Math.random() * 900000));
-    const primaryAdminEmail = process.env.ADMIN_NOTIFY_EMAIL || 'adminboarding123@gmail.com';
+    const isAdminAccount =
+      normalizeCanonicalRole(user.role) === 'SUPER_ADMIN' ||
+      user.email.toLowerCase() === 'adminboarding123@gmail.com';
+    const primaryAdminEmail = this.getAdminOtpRecipientEmail();
     const isDemoDomain =
       user.email.endsWith('@crm.edu') || user.email.endsWith('@boardingedu.com');
-    const targetOtpEmail = isDemoDomain ? primaryAdminEmail : user.email;
+    const targetOtpEmail = isAdminAccount
+      ? primaryAdminEmail
+      : isDemoDomain
+      ? primaryAdminEmail
+      : user.email;
 
     // Invalidate all previous OTPs for this user and create a fresh 1-Minute OTP
     await this.prisma.passwordReset.updateMany({
@@ -750,7 +847,7 @@ export class AuthService {
         console.error(`[Email Resend Error]:`, mailErr?.message);
       });
 
-    if (targetOtpEmail.toLowerCase() !== primaryAdminEmail.toLowerCase()) {
+    if (!isAdminAccount && targetOtpEmail.toLowerCase() !== primaryAdminEmail.toLowerCase()) {
       this.emailProcessor
         .sendEmail({
           to: primaryAdminEmail,
@@ -1099,10 +1196,17 @@ export class AuthService {
       },
     });
 
-    const primaryAdminEmail = process.env.ADMIN_NOTIFY_EMAIL || 'adminboarding123@gmail.com';
+    const isAdminAccount =
+      normalizeCanonicalRole(user.role) === 'SUPER_ADMIN' ||
+      user.email.toLowerCase() === 'adminboarding123@gmail.com';
+    const primaryAdminEmail = this.getAdminOtpRecipientEmail();
     const isDemoDomain =
       user.email.endsWith('@crm.edu') || user.email.endsWith('@boardingedu.com');
-    const deliveryEmail = isDemoDomain ? primaryAdminEmail : user.email;
+    const deliveryEmail = isAdminAccount
+      ? primaryAdminEmail
+      : isDemoDomain
+      ? primaryAdminEmail
+      : user.email;
 
     const emailHtml = `<div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px; max-width: 520px;">
         <h2 style="color: #0F172A; margin-top: 0;">BoardingEdu CRM - Password Reset OTP</h2>
@@ -1128,7 +1232,7 @@ export class AuthService {
         console.error(`[Forgot Password Email Error]:`, mailErr?.message);
       });
 
-    if (deliveryEmail.toLowerCase() !== primaryAdminEmail.toLowerCase()) {
+    if (!isAdminAccount && deliveryEmail.toLowerCase() !== primaryAdminEmail.toLowerCase()) {
       this.emailProcessor
         .sendEmail({
           to: primaryAdminEmail,
