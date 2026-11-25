@@ -4,6 +4,7 @@ import { PrismaClient } from '@prisma/client';
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   private keepAliveTimer: NodeJS.Timeout | null = null;
+  private isReconnecting = false;
 
   constructor() {
     super({
@@ -12,6 +13,48 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
         timeout: 45_000,
       },
     });
+  }
+
+  async safeReconnect(): Promise<void> {
+    if (this.isReconnecting) return;
+    this.isReconnecting = true;
+    try {
+      console.warn('[PrismaService] Resetting database connection pool...');
+      try {
+        await this.$disconnect();
+      } catch {}
+      await this.$connect();
+      console.log('[PrismaService] Connected to PostgreSQL cleanly.');
+    } catch (err: any) {
+      console.error('[PrismaService] Reconnect attempt failed:', err?.message || err);
+    } finally {
+      this.isReconnecting = false;
+    }
+  }
+
+  async executeWithRetry<T>(fn: () => Promise<T>, maxRetries = 2): Promise<T> {
+    let attempt = 0;
+    while (attempt < maxRetries) {
+      try {
+        return await fn();
+      } catch (err: any) {
+        attempt++;
+        const msg = String(err?.message || '');
+        const isConnErr =
+          msg.includes('Server has closed the connection') ||
+          msg.includes('Connection pool timeout') ||
+          msg.includes('Timed out fetching a new connection') ||
+          msg.includes("Can't reach database server") ||
+          msg.includes('connection is closed');
+        if (isConnErr && attempt < maxRetries) {
+          console.warn(`[PrismaService] Transient DB connection drop. Reconnecting & retrying (attempt ${attempt}/${maxRetries})...`);
+          await this.safeReconnect();
+          continue;
+        }
+        throw err;
+      }
+    }
+    return await fn();
   }
 
   onModuleInit() {
@@ -34,15 +77,15 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     };
     connectWithRetry().catch(() => {});
 
-    // Keep connection warm every 30 seconds so remote PostgreSQL does not close TCP socket
+    // Keep connection warm every 15 seconds so remote PostgreSQL does not close TCP socket
     this.keepAliveTimer = setInterval(async () => {
       try {
         await this.$queryRaw`SELECT 1`;
       } catch (e: any) {
-        // Proactively reconnect if socket was closed by remote server
-        this.$connect().catch(() => {});
+        console.warn('[PrismaService] Keepalive ping failed. Reconnecting database pool...');
+        await this.safeReconnect();
       }
-    }, 30000);
+    }, 15000);
   }
 
   async onModuleDestroy() {

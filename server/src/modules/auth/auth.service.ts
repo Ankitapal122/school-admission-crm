@@ -235,30 +235,33 @@ export class AuthService {
   }
 
   private async findUserByEmailOrPhoneOrId(rawIdentifier: string) {
-    const identifier = String(rawIdentifier || '').trim();
-    if (!identifier) return null;
-    const digitsOnly = identifier.replace(/\D/g, '');
-    const last10 = digitsOnly.length >= 10 ? digitsOnly.slice(-10) : '';
+    return this.prisma.executeWithRetry(async () => {
+      const identifier = String(rawIdentifier || '').trim();
+      if (!identifier) return null;
+      const digitsOnly = identifier.replace(/\D/g, '');
+      const last10 = digitsOnly.length >= 10 ? digitsOnly.slice(-10) : '';
 
-    const orClauses: any[] = [
-      { email: { equals: identifier, mode: 'insensitive' } },
-      { employeeId: { equals: identifier, mode: 'insensitive' } },
-      { phone: { equals: identifier } },
-    ];
-    if (last10.length === 10) {
-      orClauses.push({ phone: { endsWith: last10 } });
-    }
+      const orClauses: any[] = [
+        { email: { equals: identifier, mode: 'insensitive' } },
+        { employeeId: { equals: identifier, mode: 'insensitive' } },
+        { phone: { equals: identifier } },
+      ];
+      if (last10.length === 10) {
+        orClauses.push({ phone: { endsWith: last10 } });
+      }
 
-    return this.prisma.user.findFirst({
-      where: {
-        OR: orClauses,
-        deletedAt: null,
-      },
+      return this.prisma.user.findFirst({
+        where: {
+          OR: orClauses,
+          deletedAt: null,
+        },
+      });
     });
   }
 
   async login(dto: LoginDto, ipAddress?: string, userAgent?: string) {
-    const identifier = (dto.email || dto.identifier || '').trim();
+    return this.prisma.executeWithRetry(async () => {
+      const identifier = (dto.email || dto.identifier || '').trim();
     if (!identifier || !dto.password) {
       throw new BadRequestException('Email/Mobile Number and password are required.');
     }
@@ -461,6 +464,7 @@ export class AuthService {
     throw new UnauthorizedException(
       `Invalid password. (${attemptsLeft} attempt${attemptsLeft === 1 ? '' : 's'} remaining before 10-minute lockout.)`,
     );
+    });
   }
 
   async verify2FALogin(
