@@ -9,6 +9,7 @@ import {
   Bell,
   BellOff,
   BookOpen,
+  Briefcase,
   Building2,
   Calendar,
   CalendarClock,
@@ -22,6 +23,7 @@ import {
   ClipboardList,
   Clock,
   CreditCard,
+  Crown,
   Download,
   Edit3,
   Eye,
@@ -176,11 +178,15 @@ export type CrmIconName =
   | 'wifi'
   | 'play'
   | 'pause'
+  | 'crown'
+  | 'briefcase'
   | 'chevron-down'
   | 'chevron-right';
 
 const ICON_MAP: Record<string, React.ComponentType<any>> = {
   home: Home,
+  crown: Crown,
+  briefcase: Briefcase,
   user: User,
   'user-check': UserCheck,
   'user-cog': UserCog,

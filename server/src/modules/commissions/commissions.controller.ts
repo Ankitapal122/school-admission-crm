@@ -22,6 +22,18 @@ import { Roles } from '../../common/decorators/roles.decorator';
 export class CommissionsController {
   constructor(private readonly commissionsService: CommissionsService) {}
 
+  @Post()
+  @Roles('super_admin')
+  addManualCommissionRoot(@Body() body: any, @Req() req: any) {
+    return this.commissionsService.addManualCommission(body, req.user);
+  }
+
+  @Post('manual')
+  @Roles('super_admin')
+  addManualCommission(@Body() body: any, @Req() req: any) {
+    return this.commissionsService.addManualCommission(body, req.user);
+  }
+
   @Get()
   getLedgerRoot(@Req() req: any, @Query() query: any) {
     return this.commissionsService.getLedger(req.user, query);

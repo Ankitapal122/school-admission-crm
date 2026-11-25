@@ -4,6 +4,8 @@ import {
   BadRequestException,
   NotFoundException,
   ForbiddenException,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -67,7 +69,7 @@ export class AuthService {
       requireNumber: val.requireNumber ?? true,
       requireSpecial: val.requireSpecial ?? true,
       maxFailedAttempts: Number(val.maxFailedAttempts ?? 5),
-      lockDurationMinutes: Number(val.lockDurationMinutes ?? 15),
+      lockDurationMinutes: Number(val.lockDurationMinutes ?? 10),
     };
   }
 
@@ -285,19 +287,39 @@ export class AuthService {
       user.lockedUntil = null;
     }
 
+    // If account is currently locked, enforce the 10-minute timer for ALL roles
+    if (user.status === 'locked' && user.lockedUntil && user.lockedUntil > now) {
+      const remainingSecs = Math.max(
+        1,
+        Math.round((user.lockedUntil.getTime() - now.getTime()) / 1000),
+      );
+      const remainingMins = Math.floor(remainingSecs / 60);
+      const remainingSecsMod = remainingSecs % 60;
+      const timeStr = `${remainingMins}m ${remainingSecsMod}s`;
+      throw new HttpException(
+        {
+          statusCode: 423,
+          message: `Account is temporarily locked due to 5 failed password attempts. Please retry in ${timeStr}.`,
+          error: 'Account Locked',
+          lockoutSeconds: remainingSecs,
+          retryAfterSeconds: remainingSecs,
+          failedAttempts: user.failedLoginAttempts || 5,
+        },
+        423,
+      );
+    }
+
     const isSuperAdminUser =
       normalizeCanonicalRole(user.role) === 'SUPER_ADMIN' ||
       user.email === 'adminboarding123@gmail.com';
 
-    // Super Admin auto-heal: Super Admin accounts can never be suspended, inactive, or locked
-    if (isSuperAdminUser && (!user.isActive || user.status === 'suspended' || user.status === 'locked' || user.lockedUntil)) {
+    // Super Admin auto-heal: Super Admin accounts can never be permanently inactive or suspended
+    if (isSuperAdminUser && (!user.isActive || user.status === 'suspended')) {
       user.isActive = true;
       user.status = 'active';
-      user.lockedUntil = null;
-      user.failedLoginAttempts = 0;
       await this.prisma.user.update({
         where: { id: user.id },
-        data: { isActive: true, status: 'active', lockedUntil: null, failedLoginAttempts: 0 },
+        data: { isActive: true, status: 'active' },
       }).catch(() => {});
     }
 
@@ -307,133 +329,26 @@ export class AuthService {
 
     const userCanonRole = normalizeCanonicalRole(user.role);
     const passwordValid = await bcrypt.compare(dto.password, user.passwordHash);
-    const roleMismatch =
-      Boolean(dto.role) && normalizeCanonicalRole(dto.role) !== userCanonRole;
-    const isCurrentlyLocked =
-      !isSuperAdminUser &&
-      (user.status === 'locked' ||
-        (user.lockedUntil && user.lockedUntil > now) ||
-        (user.failedLoginAttempts || 0) >= 5);
 
-    const sendLockoutUnlockOtp = async (attemptsCount: number, lockMins: number) => {
-      const otp = String(Math.floor(100000 + Math.random() * 900000));
-      const primaryAdminEmail =
-        process.env.ADMIN_NOTIFY_EMAIL || 'adminboarding123@gmail.com';
-      const isDemoDomain =
-        user.email.endsWith('@crm.edu') || user.email.endsWith('@boardingedu.com');
-      const targetOtpEmail = isDemoDomain ? primaryAdminEmail : user.email;
-
-      const tempToken = this.jwtService.sign(
-        {
-          sub: user.id,
-          purpose: 'device_2fa_pending',
-          role: userCanonRole,
-          deviceId: dto.deviceId || crypto.randomUUID(),
-          deviceName: dto.deviceName || userAgent || 'Web Browser',
-          adminEmail: targetOtpEmail,
-        },
-        { secret: this.getAccessSecret(), expiresIn: '15m' },
-      );
-
-      await this.prisma.passwordReset.updateMany({
-        where: { email: user.email, used: false },
-        data: { used: true },
-      });
-
-      await this.prisma.passwordReset.create({
-        data: {
-          email: user.email,
-          otp,
-          token: tempToken,
-          expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-        },
-      });
-
-      const emailHtml = `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; max-width: 540px; background: #ffffff; color: #1e293b;">
-          <div style="background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%); padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 22px;">
-            <h2 style="color: #ffffff; margin: 8px 0 2px 0; font-size: 20px; font-weight: 700;">BoardingEdu Account Unlock &amp; Login OTP</h2>
-            <p style="color: #93C5FD; margin: 0; font-size: 13px;">Triggered after ${attemptsCount} failed login attempts</p>
-          </div>
-          <p style="font-size: 14px; line-height: 1.5; margin-top: 0;">Hello <strong>${user.fullName}</strong>,</p>
-          <p style="font-size: 14px; line-height: 1.5;">Your account reached ${attemptsCount} failed login attempts (locked for ${lockMins} minutes). Enter this 6-digit verification OTP on the CRM screen to unlock your account and open your Dashboard immediately:</p>
-          <div style="background: #EFF6FF; border: 2px dashed #3B82F6; padding: 18px; border-radius: 10px; text-align: center; margin: 20px 0;">
-            <div style="font-size: 12px; color: #1D4ED8; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;">6-DIGIT UNLOCK &amp; LOGIN OTP</div>
-            <div style="font-size: 36px; font-weight: 800; color: #1E40AF; letter-spacing: 8px; margin: 8px 0;">${otp}</div>
-          </div>
-        </div>
-      `;
-
-      this.emailProcessor
-        .sendEmail({
-          to: targetOtpEmail,
-          subject: `[BoardingEdu OTP] ${otp} is your Account Unlock & Login Code`,
-          html: emailHtml,
-          text: `BoardingEdu CRM Unlock & Login OTP for ${user.fullName} (${user.email}): ${otp}.`,
-        })
-        .catch(() => {});
-
-      if (targetOtpEmail.toLowerCase() !== primaryAdminEmail.toLowerCase()) {
-        this.emailProcessor
-          .sendEmail({
-            to: primaryAdminEmail,
-            subject: `[BoardingEdu OTP] ${otp} is the Account Unlock OTP for ${user.email}`,
-            html: emailHtml,
-            text: `BoardingEdu CRM Unlock & Login OTP for ${user.fullName} (${user.email}): ${otp}.`,
-          })
-          .catch(() => {});
-      }
-
-      const remainingLockSecs =
-        user.lockedUntil && user.lockedUntil > now
-          ? Math.max(60, Math.round((user.lockedUntil.getTime() - now.getTime()) / 1000))
-          : lockMins * 60;
-
-      return {
-        require2FA: true,
-        requiresTwoFactor: true,
-        requires_2fa: true,
-        isNewDevice: true,
-        isLockedOtpRequired: true,
-        lockoutSeconds: remainingLockSecs,
-        tempToken,
-        temp_token: tempToken,
-        adminEmail: targetOtpEmail,
-        fullAdminEmail: targetOtpEmail,
-        userEmail: user.email,
-        expiresInSeconds: 300,
-        deviceId: dto.deviceId || crypto.randomUUID(),
-        deviceName: dto.deviceName || userAgent || 'Web Browser',
-        message: `5 wrong attempts reached! Account locked with ${lockMins}-min timer. A 6-digit verification OTP has been sent to ${targetOtpEmail} — enter the OTP to unlock and open your Dashboard.`,
-      };
-    };
-
-    // If account is already locked from 5 wrong attempts, send OTP so user can verify OTP and open dashboard
-    if (isCurrentlyLocked) {
-      const policy = await this.getPasswordPolicy();
-      return sendLockoutUnlockOtp(
-        Math.max(5, user.failedLoginAttempts || 5),
-        policy.lockDurationMinutes || 15,
-      );
-    }
-
-    if (!passwordValid || roleMismatch) {
-      const policy = await this.getPasswordPolicy();
-      const maxAttempts = Math.max(5, policy.maxFailedAttempts || 5);
-      const lockMins = policy.lockDurationMinutes || 15;
-      const nextAttempts = (user.failedLoginAttempts || 0) + 1;
-      const shouldLock = !isSuperAdminUser && nextAttempts >= maxAttempts;
-      const lockedUntil = shouldLock
-        ? new Date(Date.now() + lockMins * 60 * 1000)
-        : null;
-
+    // 1. IF RIGHT PASSWORD: NEVER BLOCK! User can login 100+ times without blocking
+    if (passwordValid) {
+      const nowLogin = new Date();
       await this.prisma.user.update({
         where: { id: user.id },
         data: {
-          failedLoginAttempts: isSuperAdminUser ? 0 : nextAttempts,
-          ...(shouldLock ? { status: 'locked', lockedUntil } : {}),
+          status: 'active',
+          failedLoginAttempts: 0,
+          lockedUntil: null,
+          lastLoginAt: nowLogin,
+          lastActiveAt: nowLogin,
         },
-      });
+      }).catch(() => {});
+
+      const { accessToken, refreshToken } = await this.issueSessionTokens(
+        user,
+        ipAddress,
+        userAgent,
+      );
 
       await this.prisma.auditLog.create({
         data: {
@@ -444,52 +359,41 @@ export class AuthService {
           module: 'auth',
           entity: 'User',
           entityId: user.id,
-          isSpecialFlag: shouldLock,
-          details: {
-            failedAttempt: nextAttempts,
-            locked: shouldLock,
-            reason: !passwordValid ? 'wrong_password' : 'role_mismatch',
-          },
           ipAddress,
           userAgent,
+          details: {
+            loginMethod: 'password',
+            deviceAuthorized: true,
+          },
         },
       });
 
-      if (shouldLock) {
-        user.status = 'locked';
-        user.lockedUntil = lockedUntil;
-        user.failedLoginAttempts = nextAttempts;
-        return sendLockoutUnlockOtp(nextAttempts, lockMins);
-      }
-
-      const attemptsLeft = Math.max(0, maxAttempts - nextAttempts);
-      if (roleMismatch && passwordValid) {
-        const selectedCanon = normalizeCanonicalRole(dto.role);
-        throw new UnauthorizedException(
-          `Role mismatch! This account belongs to ${userCanonRole}, not ${selectedCanon}. (${attemptsLeft} attempt${attemptsLeft === 1 ? '' : 's'} remaining before OTP verification)`,
-        );
-      }
-      throw new UnauthorizedException(
-        `Invalid email or password. (${attemptsLeft} attempt${attemptsLeft === 1 ? '' : 's'} remaining before OTP verification)`,
-      );
+      return {
+        token: accessToken,
+        accessToken,
+        refreshToken,
+        refresh_token: refreshToken,
+        user: this.sanitizeUser(user),
+      };
     }
 
-    const nowLogin = new Date();
+    // 2. IF WRONG PASSWORD:
+    // Only wrong password increments failed attempts.
+    // 5 wrong attempts triggers a 10-minute timer lockout across all roles (Admin, Manager, Counsellor)
+    const lockMins = 10;
+    const nextAttempts = (user.failedLoginAttempts || 0) + 1;
+    const shouldLock = nextAttempts >= 5;
+    const lockedUntil = shouldLock
+      ? new Date(Date.now() + lockMins * 60 * 1000)
+      : null;
+
     await this.prisma.user.update({
       where: { id: user.id },
       data: {
-        failedLoginAttempts: 0,
-        lockedUntil: null,
-        lastLoginAt: nowLogin,
-        lastActiveAt: nowLogin,
+        failedLoginAttempts: nextAttempts,
+        ...(shouldLock ? { status: 'locked', lockedUntil } : {}),
       },
     });
-
-    const { accessToken, refreshToken } = await this.issueSessionTokens(
-      user,
-      ipAddress,
-      userAgent,
-    );
 
     await this.prisma.auditLog.create({
       data: {
@@ -500,22 +404,39 @@ export class AuthService {
         module: 'auth',
         entity: 'User',
         entityId: user.id,
+        isSpecialFlag: shouldLock,
+        details: {
+          failedAttempt: nextAttempts,
+          locked: shouldLock,
+          reason: 'wrong_password',
+        },
         ipAddress,
         userAgent,
-        details: {
-          loginMethod: 'password',
-          deviceAuthorized: true,
-        },
       },
     });
 
-    return {
-      token: accessToken,
-      accessToken,
-      refreshToken,
-      refresh_token: refreshToken,
-      user: this.sanitizeUser(user),
-    };
+    if (shouldLock) {
+      user.status = 'locked';
+      user.lockedUntil = lockedUntil;
+      user.failedLoginAttempts = nextAttempts;
+
+      throw new HttpException(
+        {
+          statusCode: 423,
+          message: `5 wrong password attempts reached! Account temporarily locked with a 10-minute timer. Please retry in 10 minutes.`,
+          error: 'Account Locked',
+          lockoutSeconds: lockMins * 60,
+          retryAfterSeconds: lockMins * 60,
+          failedAttempts: nextAttempts,
+        },
+        423,
+      );
+    }
+
+    const attemptsLeft = Math.max(0, 5 - nextAttempts);
+    throw new UnauthorizedException(
+      `Invalid password. (${attemptsLeft} attempt${attemptsLeft === 1 ? '' : 's'} remaining before 10-minute lockout.)`,
+    );
   }
 
   async verify2FALogin(

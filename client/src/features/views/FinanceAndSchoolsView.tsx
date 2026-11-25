@@ -26,14 +26,19 @@ const DEFAULT_LEDGER_ITEMS: LedgerItem[] = [];
 
 export function CommissionsView({
   commissions = [],
+  users = [],
+  schools = [],
   onRefresh,
   onShowToast,
 }: {
   commissions: any[];
+  users?: any[];
+  schools?: any[];
   onRefresh: () => void;
   onShowToast: (m: string, t?: 'success' | 'danger' | 'warning') => void;
 }) {
   const { user } = useAuthStore();
+  const isAdmin = hasRole(user?.role || user?.rawRole, 'super_admin');
   const [ledgerItems, setLedgerItems] = useState<LedgerItem[]>(DEFAULT_LEDGER_ITEMS);
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
@@ -48,6 +53,93 @@ export function CommissionsView({
 
   // View Details Modal State
   const [detailsModalItem, setDetailsModalItem] = useState<LedgerItem | null>(null);
+
+  // Manual Commission Credit Modal State (Admin-only)
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addBeneficiaryType, setAddBeneficiaryType] = useState<'counsellor' | 'manager'>('counsellor');
+  const [addBeneficiaryId, setAddBeneficiaryId] = useState('');
+  const [addManualName, setAddManualName] = useState('');
+  const [addAmount, setAddAmount] = useState('5000');
+  const [addStudentName, setAddStudentName] = useState('');
+  const [addSchoolName, setAddSchoolName] = useState('');
+  const [addStatus, setAddStatus] = useState<'received' | 'pending' | 'paid_out'>('received');
+  const [addNotes, setAddNotes] = useState('');
+  const [addBusy, setAddBusy] = useState(false);
+
+  const counsellorsList = (users || []).filter((u: any) =>
+    ['counsellor', 'sr_counsellor', 'jr_counsellor'].includes(String(u?.role || '').toLowerCase())
+  );
+  const managersList = (users || []).filter((u: any) =>
+    ['manager', 'branch_manager', 'regional_manager'].includes(String(u?.role || '').toLowerCase())
+  );
+
+  const handleOpenAddModal = (initialRole: 'counsellor' | 'manager' = 'counsellor') => {
+    setAddBeneficiaryType(initialRole);
+    setAddAmount(initialRole === 'counsellor' ? '5000' : '2000');
+    const targetList = initialRole === 'counsellor' ? counsellorsList : managersList;
+    if (targetList.length > 0) {
+      setAddBeneficiaryId(targetList[0].id);
+      setAddManualName(targetList[0].name || '');
+    } else {
+      setAddBeneficiaryId('');
+      setAddManualName('');
+    }
+    setAddStudentName('');
+    setAddSchoolName(schools?.[0]?.name || '');
+    setAddStatus('received');
+    setAddNotes('');
+    setShowAddModal(true);
+  };
+
+  const handleRoleTypeChange = (newRole: 'counsellor' | 'manager') => {
+    setAddBeneficiaryType(newRole);
+    setAddAmount(newRole === 'counsellor' ? '5000' : '2000');
+    const targetList = newRole === 'counsellor' ? counsellorsList : managersList;
+    if (targetList.length > 0) {
+      setAddBeneficiaryId(targetList[0].id);
+      setAddManualName(targetList[0].name || '');
+    } else {
+      setAddBeneficiaryId('');
+      setAddManualName('');
+    }
+  };
+
+  const handleAddCommissionSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const numericAmount = parseFloat(addAmount);
+    if (!numericAmount || numericAmount <= 0) {
+      onShowToast('Please enter a valid positive commission amount.', 'warning');
+      return;
+    }
+
+    const selectedUser = (users || []).find((u: any) => u.id === addBeneficiaryId);
+    const finalName =
+      selectedUser?.name ||
+      addManualName.trim() ||
+      (addBeneficiaryType === 'counsellor' ? 'Counsellor Staff' : 'Manager Staff');
+
+    setAddBusy(true);
+    try {
+      await apiCall('/commissions/manual', 'POST', {
+        role: addBeneficiaryType,
+        beneficiaryUserId: addBeneficiaryId || undefined,
+        beneficiaryName: finalName,
+        amount: numericAmount,
+        studentName: addStudentName.trim() || undefined,
+        schoolName: addSchoolName.trim() || undefined,
+        status: addStatus,
+        notes: addNotes.trim() || undefined,
+      });
+
+      onShowToast(`₹${numericAmount.toLocaleString('en-IN')} commission credited for ${finalName}!`, 'success');
+      setShowAddModal(false);
+      onRefresh();
+    } catch (err: any) {
+      onShowToast(err?.message || 'Failed to add commission.', 'danger');
+    } finally {
+      setAddBusy(false);
+    }
+  };
 
   useEffect(() => {
     if (Array.isArray(commissions) && commissions.length > 0) {
@@ -268,19 +360,43 @@ export function CommissionsView({
             </div>
           </div>
         </div>
-        <span
-          style={{
-            backgroundColor: '#F59E0B',
-            color: '#78350F',
-            fontSize: '11.5px',
-            fontWeight: 800,
-            padding: '4px 12px',
-            borderRadius: '20px',
-            letterSpacing: '0.5px',
-          }}
-        >
-          SUPER ADMIN
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={() => handleOpenAddModal('counsellor')}
+              style={{
+                backgroundColor: '#10B981',
+                color: '#FFFFFF',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '7px 14px',
+                fontSize: '12px',
+                fontWeight: 800,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: '0 2px 8px rgba(16, 185, 129, 0.4)',
+              }}
+            >
+              <CrmIcon name="plus" size={14} /> Add Staff Commission
+            </button>
+          )}
+          <span
+            style={{
+              backgroundColor: '#F59E0B',
+              color: '#78350F',
+              fontSize: '11.5px',
+              fontWeight: 800,
+              padding: '4px 12px',
+              borderRadius: '20px',
+              letterSpacing: '0.5px',
+            }}
+          >
+            SUPER ADMIN
+          </span>
+        </div>
       </div>
 
       <div
@@ -487,6 +603,29 @@ export function CommissionsView({
           >
             <CrmIcon name="download" size={14} /> Export
           </button>
+
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={() => handleOpenAddModal('counsellor')}
+              style={{
+                backgroundColor: '#10B981',
+                color: '#FFFFFF',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '7px 14px',
+                fontSize: '12px',
+                fontWeight: 800,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: '0 2px 6px rgba(16, 185, 129, 0.3)',
+              }}
+            >
+              <CrmIcon name="plus" size={14} /> Add Commission
+            </button>
+          )}
         </div>
 
         {/* Data Table matching Screenshot */}
@@ -942,6 +1081,393 @@ export function CommissionsView({
                 Close
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          SCREEN: SUPER ADMIN MANUAL COMMISSION MODAL (COUNSELLOR / MANAGER)
+          ========================================================================= */}
+      {showAddModal && (
+        <div
+          className="modal-overlay"
+          onClick={() => setShowAddModal(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(3px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '14px',
+            overflowY: 'auto',
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              backgroundColor: '#FFFFFF',
+              borderRadius: '16px',
+              border: '1px solid #CBD5E1',
+              maxWidth: '540px',
+              width: '100%',
+              maxHeight: '92vh',
+              overflowY: 'auto',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+            }}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                padding: '16px 20px',
+                borderBottom: '1px solid #E2E8F0',
+                backgroundColor: '#F8FAFC',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div
+                  style={{
+                    width: '34px',
+                    height: '34px',
+                    borderRadius: '8px',
+                    backgroundColor: '#10B981',
+                    color: '#FFFFFF',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <CrmIcon name="rupee" size={17} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
+                    Credit Staff Commission
+                  </h3>
+                  <div style={{ fontSize: '11px', color: '#64748B', marginTop: '2px' }}>
+                    Super Admin direct commission payout &amp; ledger entry
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAddModal(false)}
+                style={{
+                  border: 'none',
+                  background: 'none',
+                  color: '#64748B',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  borderRadius: '6px',
+                  display: 'inline-flex',
+                }}
+              >
+                <CrmIcon name="x" size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddCommissionSubmit} style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {/* Beneficiary Type Switcher (Pills) */}
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '8px' }}>
+                  Commission Beneficiary Role <span style={{ color: '#DC2626' }}>*</span>
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <button
+                    type="button"
+                    onClick={() => handleRoleTypeChange('counsellor')}
+                    style={{
+                      padding: '10px 14px',
+                      borderRadius: '10px',
+                      border: addBeneficiaryType === 'counsellor' ? '2px solid #2563EB' : '1px solid #CBD5E1',
+                      backgroundColor: addBeneficiaryType === 'counsellor' ? '#EFF6FF' : '#FFFFFF',
+                      color: addBeneficiaryType === 'counsellor' ? '#1D4ED8' : '#475569',
+                      fontWeight: 800,
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '4px',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <CrmIcon name="headphones" size={15} /> Counsellor
+                    </span>
+                    <span style={{ fontSize: '11px', fontWeight: 600, color: addBeneficiaryType === 'counsellor' ? '#2563EB' : '#94A3B8' }}>
+                      Standard: ₹5,000 / adm
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleRoleTypeChange('manager')}
+                    style={{
+                      padding: '10px 14px',
+                      borderRadius: '10px',
+                      border: addBeneficiaryType === 'manager' ? '2px solid #7C3AED' : '1px solid #CBD5E1',
+                      backgroundColor: addBeneficiaryType === 'manager' ? '#F5F3FF' : '#FFFFFF',
+                      color: addBeneficiaryType === 'manager' ? '#6D28D9' : '#475569',
+                      fontWeight: 800,
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '4px',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <CrmIcon name="briefcase" size={15} /> Manager
+                    </span>
+                    <span style={{ fontSize: '11px', fontWeight: 600, color: addBeneficiaryType === 'manager' ? '#7C3AED' : '#94A3B8' }}>
+                      Standard: ₹2,000 / adm
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Staff Member Select */}
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                  Select {addBeneficiaryType === 'counsellor' ? 'Counsellor' : 'Manager'} Staff <span style={{ color: '#DC2626' }}>*</span>
+                </label>
+                {(addBeneficiaryType === 'counsellor' ? counsellorsList : managersList).length > 0 ? (
+                  <select
+                    className="form-control"
+                    value={addBeneficiaryId}
+                    onChange={(e) => {
+                      setAddBeneficiaryId(e.target.value);
+                      const u = (users || []).find((x: any) => x.id === e.target.value);
+                      if (u) setAddManualName(u.name || '');
+                    }}
+                    style={{ width: '100%', fontSize: '13px', padding: '9px 12px', borderRadius: '8px' }}
+                  >
+                    {(addBeneficiaryType === 'counsellor' ? counsellorsList : managersList).map((u: any) => (
+                      <option key={u.id} value={u.id}>
+                        {u.name} ({u.role || 'Staff'}) {u.email ? `— ${u.email}` : ''}
+                      </option>
+                    ))}
+                    <option value="">-- Other / Manual Name --</option>
+                  </select>
+                ) : (
+                  <div style={{ fontSize: '12px', color: '#64748B', marginBottom: '6px' }}>
+                    No registered {addBeneficiaryType} found in user directory. Enter staff name below:
+                  </div>
+                )}
+
+                {(!addBeneficiaryId || (addBeneficiaryType === 'counsellor' ? counsellorsList : managersList).length === 0) && (
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder={`Enter ${addBeneficiaryType} name...`}
+                    value={addManualName}
+                    onChange={(e) => setAddManualName(e.target.value)}
+                    style={{ width: '100%', fontSize: '13px', padding: '9px 12px', borderRadius: '8px', marginTop: '6px' }}
+                  />
+                )}
+              </div>
+
+              {/* Amount with Quick Chips */}
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                  Commission Amount (₹) <span style={{ color: '#DC2626' }}>*</span>
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <span
+                    style={{
+                      position: 'absolute',
+                      left: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      fontWeight: 800,
+                      color: '#64748B',
+                      fontSize: '15px',
+                    }}
+                  >
+                    ₹
+                  </span>
+                  <input
+                    type="number"
+                    min="1"
+                    step="50"
+                    required
+                    className="form-control"
+                    value={addAmount}
+                    onChange={(e) => setAddAmount(e.target.value)}
+                    style={{
+                      width: '100%',
+                      fontSize: '15px',
+                      fontWeight: 800,
+                      padding: '9px 12px 9px 30px',
+                      borderRadius: '8px',
+                      color: '#0F172A',
+                    }}
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
+                  {['2000', '5000', '7000', '10000'].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setAddAmount(preset)}
+                      style={{
+                        padding: '4px 10px',
+                        borderRadius: '6px',
+                        border: addAmount === preset ? '1px solid #2563EB' : '1px solid #E2E8F0',
+                        backgroundColor: addAmount === preset ? '#EFF6FF' : '#F8FAFC',
+                        color: addAmount === preset ? '#1D4ED8' : '#475569',
+                        fontSize: '11.5px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      ₹{Number(preset).toLocaleString('en-IN')} {preset === '5000' ? '(Counsellor Std)' : preset === '2000' ? '(Manager Std)' : ''}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Grid: Student Name & School Name */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                    Student / Candidate Name (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="e.g. Rahul Verma"
+                    value={addStudentName}
+                    onChange={(e) => setAddStudentName(e.target.value)}
+                    style={{ width: '100%', fontSize: '12.5px', padding: '8px 12px', borderRadius: '8px' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                    School / Institution (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    list="schools-list-datalist"
+                    className="form-control"
+                    placeholder="e.g. GD Goenka School"
+                    value={addSchoolName}
+                    onChange={(e) => setAddSchoolName(e.target.value)}
+                    style={{ width: '100%', fontSize: '12.5px', padding: '8px 12px', borderRadius: '8px' }}
+                  />
+                  <datalist id="schools-list-datalist">
+                    {(schools || []).map((s: any) => (
+                      <option key={s.id || s.name} value={s.name} />
+                    ))}
+                  </datalist>
+                </div>
+              </div>
+
+              {/* Status & Notes */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                    Initial Status <span style={{ color: '#DC2626' }}>*</span>
+                  </label>
+                  <select
+                    className="form-control"
+                    value={addStatus}
+                    onChange={(e) => setAddStatus(e.target.value as any)}
+                    style={{ width: '100%', fontSize: '12.5px', padding: '8px 12px', borderRadius: '8px' }}
+                  >
+                    <option value="received">Received (Ready for Payout)</option>
+                    <option value="paid_out">Paid Out (Already Disbursed)</option>
+                    <option value="pending">Pending (Awaiting School Receipt)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                    Notes / Remarks
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="e.g. Direct Super Admin incentive bonus"
+                    value={addNotes}
+                    onChange={(e) => setAddNotes(e.target.value)}
+                    style={{ width: '100%', fontSize: '12.5px', padding: '8px 12px', borderRadius: '8px' }}
+                  />
+                </div>
+              </div>
+
+              {/* Info summary card */}
+              <div
+                style={{
+                  backgroundColor: '#F0FDF4',
+                  border: '1px solid #BBF7D0',
+                  borderRadius: '10px',
+                  padding: '12px 14px',
+                  fontSize: '12px',
+                  color: '#166534',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}
+              >
+                <CrmIcon name="check-circle" size={16} />
+                <div>
+                  Crediting <strong>₹{Number(addAmount || 0).toLocaleString('en-IN')}</strong> to{' '}
+                  <strong>{addBeneficiaryType.toUpperCase()}</strong> ({addManualName || 'Staff'}) as{' '}
+                  <span style={{ textTransform: 'uppercase', fontWeight: 700 }}>{addStatus}</span>.
+                </div>
+              </div>
+
+              {/* Footer Buttons */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '6px' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  style={{
+                    backgroundColor: '#FFFFFF',
+                    color: '#475569',
+                    border: '1px solid #CBD5E1',
+                    borderRadius: '8px',
+                    padding: '8px 16px',
+                    fontSize: '12.5px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={addBusy}
+                  style={{
+                    backgroundColor: '#10B981',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '8px 20px',
+                    fontSize: '12.5px',
+                    fontWeight: 800,
+                    cursor: addBusy ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: '0 2px 8px rgba(16, 185, 129, 0.4)',
+                  }}
+                >
+                  <CrmIcon name="check" size={15} />
+                  {addBusy ? 'Crediting...' : 'Credit Commission'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

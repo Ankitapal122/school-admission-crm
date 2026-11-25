@@ -19,7 +19,6 @@ import { RefreshTokenDto } from './dto/refresh.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
-import { CrmRateLimit, DynamicRateLimitGuard } from '../../common/guards/dynamic-rate-limit.guard';
 import { apiEnvelope } from '../../common/utils/crm.utils';
 
 @ApiTags('Authentication')
@@ -36,8 +35,6 @@ export class AuthController {
     });
   }
 
-  @UseGuards(DynamicRateLimitGuard)
-  @CrmRateLimit({ settingKey: 'login_per_min', defaultLimit: 25, windowMs: 60_000 })
   @Post('login')
   async login(@Body() dto: LoginDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const result = await this.authService.login(

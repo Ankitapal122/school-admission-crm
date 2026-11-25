@@ -488,14 +488,17 @@ export function FeeInstallmentTracker({
                               fontWeight: 800,
                               padding: '2px 8px',
                               borderRadius: '6px',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
                             }}
                           >
-                            ✓ 100% Fee Paid
+                            <CrmIcon name="check-circle" size={12} /> 100% Fee Paid
                           </span>
                         )}
                       </div>
-                      <div style={{ fontSize: '13px', color: '#475569', marginTop: '4px' }}>
-                        🏫 <strong>{adm.schoolName || adm.school?.name || 'School'}</strong> &bull; Parent:{' '}
+                      <div style={{ fontSize: '13px', color: '#475569', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <CrmIcon name="school" size={13} /> <strong>{adm.schoolName || adm.school?.name || 'School'}</strong> &bull; Parent:{' '}
                         {adm.parentName || adm.lead?.parentName || 'Parent'} ({adm.lead?.parentPhone || 'N/A'})
                       </div>
                       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '6px', fontSize: '11.5px' }}>
@@ -541,12 +544,13 @@ export function FeeInstallmentTracker({
                           <button
                             type="button"
                             className="btn btn-sm btn-primary"
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                             onClick={() => {
                               setSettingUpAdm(adm);
                               setSetupFee(String(fee));
                             }}
                           >
-                            ⚡ 3-Tier Plan
+                            <CrmIcon name="zap" size={13} /> 3-Tier Plan
                           </button>
                         )}
                         <button
@@ -789,8 +793,9 @@ export function FeeInstallmentTracker({
                         gap: '8px',
                       }}
                     >
-                      <span>
-                        ⚠️ No installments recorded yet. Generate a 3-Tier schedule or click <strong>Add / Pay Installment</strong> to record a real payment directly.
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        <CrmIcon name="alert" size={14} color="#D97706" />
+                        No installments recorded yet. Generate a 3-Tier schedule or click <strong>Add / Pay Installment</strong> to record a real payment directly.
                       </span>
                       <button
                         type="button"

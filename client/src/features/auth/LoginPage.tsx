@@ -130,6 +130,13 @@ export default function LoginPage() {
       return;
     }
 
+    if (lockoutSeconds > 0) {
+      const m = Math.floor(lockoutSeconds / 60);
+      const s = String(lockoutSeconds % 60).padStart(2, '0');
+      showToast(`Account is temporarily locked due to 5 failed attempts. Please wait ${m}m ${s}s before retrying.`, 'warning');
+      return;
+    }
+
     setIsLoading(true);
     try {
       const currentDevId = deviceId || localStorage.getItem('crm_device_id') || '';
@@ -150,7 +157,7 @@ export default function LoginPage() {
         setTfaDigits(['', '', '', '', '', '']);
         setOtpExpirySeconds(Number(res.expiresInSeconds || 300));
         if (res.lockoutSeconds) {
-          setLockoutSeconds(Number(res.lockoutSeconds));
+          setLockoutSeconds(Math.min(600, Number(res.lockoutSeconds)));
         }
         setResendCooldown(0);
         showToast(
@@ -172,6 +179,7 @@ export default function LoginPage() {
             : 'COUNSELLOR';
 
         const token = res.token || res.accessToken;
+        setLockoutSeconds(0);
         login(
           {
             id: res.user.id || res.user._id,
@@ -188,8 +196,9 @@ export default function LoginPage() {
       }
     } catch (err: any) {
       if (err?.status === 423 || err?.status === 429 || String(err?.message || '').toLowerCase().includes('locked')) {
-        const sec = Number(err?.data?.retryAfterSeconds || 900);
-        setLockoutSeconds(sec > 0 ? sec : 900);
+        const rawSec = Number(err?.data?.retryAfterSeconds || err?.retryAfterSeconds || err?.data?.lockoutSeconds || err?.lockoutSeconds || 600);
+        const sec = Math.min(600, rawSec > 0 ? rawSec : 600);
+        setLockoutSeconds(sec);
       }
       showToast(err.message || 'Invalid credentials.', 'danger');
     } finally {
@@ -1230,20 +1239,25 @@ export default function LoginPage() {
               <div
                 style={{
                   background: '#FEF2F2',
-                  border: '1px solid #FECACA',
+                  border: '1.5px solid #EF4444',
                   color: '#991B1B',
-                  padding: '10px 12px',
+                  padding: '12px 14px',
                   borderRadius: '8px',
-                  fontSize: '12px',
+                  fontSize: '13px',
                   fontWeight: 600,
-                  marginBottom: '14px',
+                  marginBottom: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
                 }}
               >
-                <CrmIcon name="lock" size={16} /> Account temporarily locked due to failed attempts. Retry in{' '}
-                <strong>
-                  {Math.floor(lockoutSeconds / 60)}m {String(lockoutSeconds % 60).padStart(2, '0')}s
-                </strong>
-                .
+                <CrmIcon name="lock" size={20} />
+                <div>
+                  <div style={{ fontWeight: 700, color: '#B91C1C' }}>Account Temporarily Locked (10-Min Timer)</div>
+                  <div style={{ fontSize: '12.5px', marginTop: '2px', color: '#7F1D1D' }}>
+                    5 wrong password attempts reached. Unlock timer: <strong>{Math.floor(lockoutSeconds / 60)}m {String(lockoutSeconds % 60).padStart(2, '0')}s</strong>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -1285,7 +1299,10 @@ export default function LoginPage() {
                     placeholder="adminboarding123@gmail.com"
                     required
                     value={identifier}
-                    onChange={(e) => setIdentifier(e.target.value)}
+                    onChange={(e) => {
+                      setIdentifier(e.target.value);
+                      if (lockoutSeconds > 0) setLockoutSeconds(0);
+                    }}
                     autoComplete="off"
                   />
                 </div>
@@ -1407,8 +1424,22 @@ export default function LoginPage() {
               </div>
 
               {/* Login Button */}
-              <button type="submit" id="btnLogin" className="auth-btn-primary" disabled={isLoading}>
-                {isLoading ? 'Signing in...' : 'Login'}
+              <button
+                type="submit"
+                id="btnLogin"
+                className="auth-btn-primary"
+                disabled={isLoading || lockoutSeconds > 0}
+                style={
+                  lockoutSeconds > 0
+                    ? { background: '#94A3B8', cursor: 'not-allowed', opacity: 0.85 }
+                    : {}
+                }
+              >
+                {isLoading
+                  ? 'Signing in...'
+                  : lockoutSeconds > 0
+                  ? `Locked (${Math.floor(lockoutSeconds / 60)}m ${String(lockoutSeconds % 60).padStart(2, '0')}s)`
+                  : 'Login'}
               </button>
             </form>
 
@@ -1530,8 +1561,8 @@ export default function LoginPage() {
         <div className="modal-overlay" style={{ zIndex: 3000 }} onClick={() => setShowPrivacyModal(false)}>
           <div className="modal-content" style={{ maxWidth: '620px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
-                📜 BoardingEdu Privacy Policy &amp; DPDP Compliance
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CrmIcon name="shield-check" size={18} color="#2563EB" /> BoardingEdu Privacy Policy &amp; DPDP Compliance
               </h3>
               <button type="button" className="btn btn-sm btn-outline" onClick={() => setShowPrivacyModal(false)}>
                 <CrmIcon name="x" size={16} />

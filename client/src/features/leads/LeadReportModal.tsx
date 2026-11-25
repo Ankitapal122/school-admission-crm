@@ -460,7 +460,7 @@ export default function LeadReportModal({
           note: `WhatsApp shortlist sent to parent (${cleanPhone}) in ${selectedLanguage.toUpperCase()}`,
         });
       });
-      onShowToast('✅ WhatsApp message logged in lead timeline!', 'success');
+      onShowToast('WhatsApp message logged in lead timeline!', 'success');
       setShowWhatsAppModal(false);
       await loadLeadDetailsAndHistory();
       if (onRefresh) onRefresh();
@@ -765,7 +765,7 @@ export default function LeadReportModal({
                     gap: '6px',
                   }}
                 >
-                  <span>👤</span>
+                  <CrmIcon name="user" size={16} color="#2563EB" />
                   <span>
                     {lead.studentName || 'Student Name'} | Class {lead.admissionClass || lead.applyingForGrade || '6'} | {lead.board || lead.preferredBoard || 'CBSE'}
                   </span>
@@ -817,7 +817,7 @@ export default function LeadReportModal({
                           fontWeight: 700,
                         }}
                       >
-                        {scoreVal} 🟢
+                        {scoreVal}
                       </span>
                     </div>
                   </div>
@@ -899,7 +899,7 @@ export default function LeadReportModal({
                       gap: '5px',
                     }}
                   >
-                    📞 Call
+                    <CrmIcon name="phone" size={13} /> Call
                   </button>
 
                   <button
@@ -919,7 +919,7 @@ export default function LeadReportModal({
                       gap: '5px',
                     }}
                   >
-                    📱 WhatsApp
+                    <CrmIcon name="whatsapp" size={13} /> WhatsApp
                   </button>
 
                   <button
@@ -939,7 +939,7 @@ export default function LeadReportModal({
                       gap: '5px',
                     }}
                   >
-                    ✏️ Edit
+                    <CrmIcon name="edit" size={13} /> Edit
                   </button>
                 </div>
               </div>
@@ -968,7 +968,7 @@ export default function LeadReportModal({
                   }}
                 >
                   <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    🏫 Recommended Schools Matching Parent Budget ({lead.annualBudget || lead.budget_range || '₹4L – ₹5L'}):
+                    <CrmIcon name="school" size={14} /> Recommended Schools Matching Parent Budget ({lead.annualBudget || lead.budget_range || '₹4L – ₹5L'}):
                   </span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                     <button
@@ -998,7 +998,7 @@ export default function LeadReportModal({
                         boxShadow: '0 1px 2px rgba(22, 163, 74, 0.2)',
                       }}
                     >
-                      📱 Send All on WhatsApp
+                      <CrmIcon name="whatsapp" size={13} /> Send All on WhatsApp
                     </button>
                     <button
                       type="button"
@@ -1012,9 +1012,20 @@ export default function LeadReportModal({
                         fontSize: '11px',
                         fontWeight: 700,
                         cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
                       }}
                     >
-                      {showManualSchoolSelect ? '✕ Close Manual' : '➕ Manual School Selection'}
+                      {showManualSchoolSelect ? (
+                        <>
+                          <CrmIcon name="x" size={12} /> Close Manual
+                        </>
+                      ) : (
+                        <>
+                          <CrmIcon name="plus" size={12} /> Manual School Selection
+                        </>
+                      )}
                     </button>
                     <span style={{ fontSize: '11px', color: '#10B981', fontWeight: 700 }}>
                       Auto-Scored (Board: {lead.board || 'CBSE'}, Class: {lead.admissionClass || '6'})
@@ -1042,7 +1053,8 @@ export default function LeadReportModal({
                       }}
                     >
                       <div style={{ fontSize: '12px', fontWeight: 800, color: '#166534', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span>📋 Shortlisted for Parent WhatsApp ({shortlistedSchools.length}):</span>
+                        <CrmIcon name="clipboard" size={14} color="#166534" />
+                        <span>Shortlisted for Parent WhatsApp ({shortlistedSchools.length}):</span>
                       </div>
                       <button
                         type="button"
@@ -1062,7 +1074,7 @@ export default function LeadReportModal({
                           boxShadow: '0 1px 2px rgba(22, 163, 74, 0.2)',
                         }}
                       >
-                        📱 Send via WhatsApp
+                        <CrmIcon name="whatsapp" size={13} /> Send via WhatsApp
                       </button>
                     </div>
 
@@ -1109,11 +1121,11 @@ export default function LeadReportModal({
                                   cursor: 'pointer',
                                   display: 'flex',
                                   alignItems: 'center',
-                                  gap: '3px',
+                                  gap: '4px',
                                 }}
                                 title="Send complete school prospectus & dossier on WhatsApp"
                               >
-                                📖 School Dossier
+                                <CrmIcon name="book-open" size={12} /> School Dossier
                               </button>
                               <button
                                 type="button"
@@ -1127,9 +1139,12 @@ export default function LeadReportModal({
                                   fontSize: '10.5px',
                                   fontWeight: 700,
                                   cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '3px',
                                 }}
                               >
-                                ✕ Remove
+                                <CrmIcon name="x" size={11} /> Remove
                               </button>
                             </div>
                           </div>
@@ -1250,7 +1265,7 @@ export default function LeadReportModal({
                                   }}
                                   title="View & send school dossier on WhatsApp"
                                 >
-                                  📖 Dossier
+                                  <CrmIcon name="book" size={12} /> Dossier
                                 </button>
                                 <button
                                   type="button"
@@ -1268,7 +1283,7 @@ export default function LeadReportModal({
                                     whiteSpace: 'nowrap',
                                   }}
                                 >
-                                  {isShortlisted ? '✓ Shortlisted' : addingSchoolId === s.id ? 'Adding...' : '+ Add to Shortlist'}
+                                  {isShortlisted ? 'Shortlisted' : addingSchoolId === s.id ? 'Adding...' : '+ Add to Shortlist'}
                                 </button>
                               </div>
                             </div>
@@ -1332,7 +1347,7 @@ export default function LeadReportModal({
                             }}
                             title="View & send school dossier on WhatsApp"
                           >
-                            📖 Dossier
+                            <CrmIcon name="book" size={12} /> Dossier
                           </button>
                           <button
                             type="button"
@@ -1350,7 +1365,7 @@ export default function LeadReportModal({
                               whiteSpace: 'nowrap',
                             }}
                           >
-                            {isAlreadyShortlisted ? '✓ Shortlisted' : addingSchoolId === schoolId ? 'Adding...' : '+ Add to Shortlist'}
+                            {isAlreadyShortlisted ? 'Shortlisted' : addingSchoolId === schoolId ? 'Adding...' : '+ Add to Shortlist'}
                           </button>
                         </div>
                       </div>
@@ -1380,7 +1395,7 @@ export default function LeadReportModal({
                     gap: '6px',
                   }}
                 >
-                  <span>➕</span> Add Remark
+                  <CrmIcon name="plus-circle" size={14} color="#2563EB" /> Add Remark
                 </div>
                 <form onSubmit={handleSaveRemark}>
                   <textarea
@@ -1418,7 +1433,7 @@ export default function LeadReportModal({
                       gap: '5px',
                     }}
                   >
-                    💾 {savingRemark ? 'Saving...' : 'Save Remark'}
+                    <CrmIcon name="save" size={13} /> {savingRemark ? 'Saving...' : 'Save Remark'}
                   </button>
                 </form>
               </div>
@@ -1444,7 +1459,7 @@ export default function LeadReportModal({
                     gap: '6px',
                   }}
                 >
-                  <span>📜</span> History Timeline
+                  <CrmIcon name="clock" size={14} color="#64748B" /> History Timeline
                 </div>
 
                 <div
@@ -1517,7 +1532,7 @@ export default function LeadReportModal({
                     gap: '6px',
                   }}
                 >
-                  <span>🎯</span> Lead Score
+                  <CrmIcon name="target" size={14} color="#D97706" /> Lead Score
                 </div>
 
                 <div style={{ textAlign: 'center', padding: '12px 0 16px' }}>
@@ -1600,7 +1615,7 @@ export default function LeadReportModal({
                   }}
                 >
                   <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span>📌</span> Follow-up
+                    <CrmIcon name="calendar-clock" size={14} color="#2563EB" /> Follow-up
                   </span>
                   <button
                     type="button"
@@ -1683,7 +1698,7 @@ export default function LeadReportModal({
                 }}
               >
                 <div style={{ fontWeight: 800, marginBottom: '4px' }}>
-                  🛡️ Verification Status: {lead.verificationStatus || 'PENDING'}
+                  <CrmIcon name="shield-check" size={14} color="#2563EB" /> Verification Status: {lead.verificationStatus || 'PENDING'}
                 </div>
                 <div>
                   {lead.verificationStatus === 'APPROVED'
@@ -1710,7 +1725,7 @@ export default function LeadReportModal({
               onClick={(e) => e.stopPropagation()}
             >
               <div style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', marginBottom: '12px' }}>
-                📞 Log Parent Call ({lead.studentName})
+                <CrmIcon name="phone-call" size={16} color="#DC2626" /> Log Parent Call ({lead.studentName})
               </div>
               <form onSubmit={handleLogCallAction} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <div>
@@ -1851,7 +1866,7 @@ export default function LeadReportModal({
                         fontWeight: 700,
                       }}
                     >
-                      ✓
+                      <CrmIcon name="check" size={14} color="#16A34A" />
                     </span>
                     <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
                       WhatsApp Preview &amp; Translation
@@ -1912,7 +1927,9 @@ export default function LeadReportModal({
                       gap: '6px',
                     }}
                   >
-                    <span>📱 Realistic WhatsApp Screen</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <CrmIcon name="smartphone" size={14} color="#16A34A" /> Realistic WhatsApp Screen
+                    </span>
                     <span style={{ fontSize: '10px', color: '#16A34A' }}>● Live Preview</span>
                   </div>
 
@@ -2014,7 +2031,7 @@ export default function LeadReportModal({
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontSize: '15px' }}>
                           <span title="Video Call">📹</span>
-                          <span title="Voice Call">📞</span>
+                          <span title="Voice Call"><CrmIcon name="phone" size={13} color="#2563EB" /></span>
                           <span title="Options">⋮</span>
                         </div>
                       </div>
@@ -2077,7 +2094,7 @@ export default function LeadReportModal({
                                 padding: 0,
                               }}
                             >
-                              {isEditingWaMessage ? '👁️ Preview' : '✏️ Edit English'}
+                              <CrmIcon name={isEditingWaMessage ? 'eye' : 'edit'} size={13} /> {isEditingWaMessage ? 'Preview' : 'Edit English'}
                             </button>
                           </div>
 
@@ -2154,7 +2171,7 @@ export default function LeadReportModal({
                           Type a message...
                         </div>
                         <span style={{ fontSize: '13px', color: '#64748B', cursor: 'pointer' }}>📎</span>
-                        <span style={{ fontSize: '13px', color: '#64748B', cursor: 'pointer' }}>📷</span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', cursor: 'pointer' }}><CrmIcon name="camera" size={15} color="#64748B" /></span>
                         <div
                           style={{
                             width: '28px',
@@ -2239,7 +2256,9 @@ export default function LeadReportModal({
                           marginBottom: '6px',
                         }}
                       >
-                        <span>🏫 REAL SCHOOLS INCLUDED ({getActiveSchoolsForWhatsApp().length}):</span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                          <CrmIcon name="school" size={13} color="#15803D" /> REAL SCHOOLS INCLUDED ({getActiveSchoolsForWhatsApp().length}):
+                        </span>
                         <span style={{ fontSize: '10px', color: '#15803D', fontWeight: 700 }}>
                           Parent Budget: {lead.annualBudget || lead.budget_range || '₹4L – ₹5L'}
                         </span>
@@ -2288,7 +2307,7 @@ export default function LeadReportModal({
                     >
                       <div style={{ flex: 1 }}>
                         <label style={{ fontSize: '10.5px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '4px' }}>
-                          🌐 SELECT LANGUAGE:
+                          <CrmIcon name="globe" size={13} color="#64748B" /> SELECT LANGUAGE:
                         </label>
                         <select
                           className="form-control form-control-sm"
@@ -2358,7 +2377,7 @@ export default function LeadReportModal({
                             gap: '4px',
                           }}
                         >
-                          ✓ Translation Ready
+                          <CrmIcon name="check-circle" size={13} color="#16A34A" /> Translation Ready
                         </span>
                         <span style={{ fontSize: '11px', color: '#64748B' }}>
                           ({selectedLanguage.toUpperCase()})
@@ -2378,7 +2397,7 @@ export default function LeadReportModal({
                             cursor: 'pointer',
                           }}
                         >
-                          {isEditingTranslated ? '👁️ View Formatted' : '✏️ Edit Translation'}
+                          <CrmIcon name={isEditingTranslated ? 'eye' : 'edit'} size={13} /> {isEditingTranslated ? 'View Formatted' : 'Edit Translation'}
                         </button>
                         <button
                           type="button"
@@ -2394,7 +2413,7 @@ export default function LeadReportModal({
                             cursor: 'pointer',
                           }}
                         >
-                          📋 Copy
+                          <CrmIcon name="copy" size={13} /> Copy
                         </button>
                       </div>
                     </div>
@@ -2464,7 +2483,7 @@ export default function LeadReportModal({
                             boxShadow: activeSendVersion === 'translated' ? '0 1px 3px rgba(22,163,74,0.2)' : 'none',
                           }}
                         >
-                          🌐 Translated ({selectedLanguage.toUpperCase()})
+                          <CrmIcon name="globe" size={13} /> Translated ({selectedLanguage.toUpperCase()})
                         </button>
                         <button
                           type="button"
@@ -2482,7 +2501,7 @@ export default function LeadReportModal({
                             boxShadow: activeSendVersion === 'english' ? '0 1px 3px rgba(37,99,235,0.2)' : 'none',
                           }}
                         >
-                          🇬🇧 English Only
+                          English Only
                         </button>
                         <button
                           type="button"
@@ -2500,7 +2519,7 @@ export default function LeadReportModal({
                             boxShadow: activeSendVersion === 'both' ? '0 1px 3px rgba(124,58,237,0.2)' : 'none',
                           }}
                         >
-                          📑 Both (Eng + Trans)
+                          <CrmIcon name="file-text" size={13} /> Both (Eng + Trans)
                         </button>
                       </div>
                     </div>
@@ -2542,7 +2561,7 @@ export default function LeadReportModal({
                           gap: '6px',
                         }}
                       >
-                        {copiedSuccess ? '✅ Copied!' : '📋 Copy Text'}
+                        {copiedSuccess ? <><CrmIcon name="check-circle" size={13} /> Copied!</> : <><CrmIcon name="copy" size={13} /> Copy Text</>}
                       </button>
 
                       <button
@@ -2566,7 +2585,7 @@ export default function LeadReportModal({
                         onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#1EBE5D')}
                         onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#25D366')}
                       >
-                        🚀 Send on WhatsApp
+                        <CrmIcon name="whatsapp" size={14} /> Send on WhatsApp
                       </button>
 
                       <button
@@ -2588,7 +2607,7 @@ export default function LeadReportModal({
                           boxShadow: '0 2px 4px rgba(22, 163, 74, 0.25)',
                         }}
                       >
-                        {isSendingWa ? 'Saving...' : '✅ Confirm Sent'}
+                        <CrmIcon name="check-circle" size={13} /> {isSendingWa ? 'Saving...' : 'Confirm Sent'}
                       </button>
                     </div>
                   </div>
@@ -2678,7 +2697,7 @@ export default function LeadReportModal({
                           border: '1px solid #86EFAC',
                         }}
                       >
-                        ✓ Ready for WhatsApp
+                        <CrmIcon name="check-circle" size={13} color="#16A34A" /> Ready for WhatsApp
                       </span>
                     </div>
                     <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
@@ -2721,27 +2740,32 @@ export default function LeadReportModal({
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#F0FDF4', padding: '4px 10px', borderRadius: '6px', border: '1px solid #BBF7D0', fontSize: '11.5px', color: '#166534', fontWeight: 700 }}>
-                  <span>🌳 Campus:</span>
+                  <CrmIcon name="map-pin" size={13} />
+                  <span>Campus:</span>
                   <span>{selectedDossierSchool.details?.campus_size || selectedDossierSchool.campus_size || (selectedDossierSchool.name?.toLowerCase().includes('kasiga') ? '35 Acres' : '25+ Acres Green Campus')}</span>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#FEF3C7', padding: '4px 10px', borderRadius: '6px', border: '1px solid #FDE68A', fontSize: '11.5px', color: '#92400E', fontWeight: 700 }}>
-                  <span>🏆 Ranking:</span>
+                  <CrmIcon name="award" size={13} />
+                  <span>Ranking:</span>
                   <span>State #{selectedDossierSchool.rank || (selectedDossierSchool.name?.toLowerCase().includes('kasiga') ? 6 : 8)} &bull; {selectedDossierSchool.name?.toLowerCase().includes('kasiga') ? 'Top 15 All-India' : 'Top 25 National'}</span>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#EFF6FF', padding: '4px 10px', borderRadius: '6px', border: '1px solid #BFDBFE', fontSize: '11.5px', color: '#1D4ED8', fontWeight: 700 }}>
-                  <span>💰 Annual Fee:</span>
+                  <CrmIcon name="rupee" size={13} />
+                  <span>Annual Fee:</span>
                   <span>{formatSchoolFee(selectedDossierSchool)}</span>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#FDF4FF', padding: '4px 10px', borderRadius: '6px', border: '1px solid #F5D0FE', fontSize: '11.5px', color: '#86198F', fontWeight: 700 }}>
-                  <span>🥗 Food &amp; Mess:</span>
+                  <CrmIcon name="building" size={13} />
+                  <span>Food &amp; Mess:</span>
                   <span>Pure Veg &amp; Non-Veg (Separate Mess)</span>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#F1F5F9', padding: '4px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', fontSize: '11.5px', color: '#334155', fontWeight: 700 }}>
-                  <span>🏊 Sports &amp; Hostels:</span>
+                  <CrmIcon name="activity" size={13} />
+                  <span>Sports &amp; Hostels:</span>
                   <span>Olympic Pool, AC Hostels, 5:1 Ratio, 24/7 Doctor</span>
                 </div>
               </div>
@@ -2771,7 +2795,9 @@ export default function LeadReportModal({
                       gap: '6px',
                     }}
                   >
-                    <span>📱 Live WhatsApp Preview</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <CrmIcon name="smartphone" size={13} color="#16A34A" /> Live WhatsApp Preview
+                    </span>
                     <span style={{ fontSize: '10px', color: '#16A34A' }}>● Exact Parent View</span>
                   </div>
 
@@ -2897,7 +2923,7 @@ export default function LeadReportModal({
                     {/* Language Switcher Tabs */}
                     <div style={{ marginBottom: '14px' }}>
                       <label style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '6px' }}>
-                        🌐 Message Language / Format:
+                        <CrmIcon name="globe" size={13} color="#2563EB" /> Message Language / Format:
                       </label>
                       <div style={{ display: 'flex', gap: '8px' }}>
                         <div
@@ -2915,7 +2941,7 @@ export default function LeadReportModal({
                             gap: '6px',
                           }}
                         >
-                          🇬🇧 Official English Dossier
+                          Official English Dossier
                         </div>
                       </div>
                     </div>
@@ -2924,7 +2950,7 @@ export default function LeadReportModal({
                     <div style={{ marginBottom: '14px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                         <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#334155' }}>
-                          📝 Message Content:
+                          <CrmIcon name="file-text" size={13} color="#2563EB" /> Message Content:
                         </span>
                         <button
                           type="button"
@@ -2938,7 +2964,7 @@ export default function LeadReportModal({
                             cursor: 'pointer',
                           }}
                         >
-                          {isEditingDossier ? '👁️ View Formatted Preview' : '✏️ Customise / Edit Text'}
+                          <CrmIcon name={isEditingDossier ? 'eye' : 'edit'} size={13} /> {isEditingDossier ? 'View Formatted Preview' : 'Customise / Edit Text'}
                         </button>
                       </div>
 
@@ -2981,7 +3007,8 @@ export default function LeadReportModal({
                       }}
                     >
                       <div style={{ fontSize: '12px', fontWeight: 800, color: '#166534', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span>⚡ Free WhatsApp Dispatch Methods:</span>
+                        <CrmIcon name="zap" size={13} color="#16A34A" />
+                        <span>Free WhatsApp Dispatch Methods:</span>
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11px', color: '#14532D' }}>
                         <div>
@@ -3033,7 +3060,7 @@ export default function LeadReportModal({
                           gap: '5px',
                         }}
                       >
-                        {dossierCopied ? '✅ Copied!' : '📋 Copy Text'}
+                        {dossierCopied ? <><CrmIcon name="check-circle" size={13} /> Copied!</> : <><CrmIcon name="copy" size={13} /> Copy Text</>}
                       </button>
 
                       <button
@@ -3058,7 +3085,7 @@ export default function LeadReportModal({
                         onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#1EBE5D')}
                         onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#25D366')}
                       >
-                        {isSendingDossier ? 'Opening...' : '🚀 Send Dossier on WhatsApp'}
+                        <CrmIcon name="whatsapp" size={14} /> {isSendingDossier ? 'Opening...' : 'Send Dossier on WhatsApp'}
                       </button>
                     </div>
                   </div>

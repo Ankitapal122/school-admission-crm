@@ -473,18 +473,44 @@ export default function Navbar({
           </button>
         )}
 
-        {/* Admin Dashboard Switcher Preview Feature */}
+        {/* Admin Dashboard Switcher Preview Feature - Fully Responsive on Mobile & Desktop */}
         {hasRole(user?.role, 'SUPER_ADMIN') && (
-          <div className="dashboard-switcher desktop-only">
-            <label>Dashboard Preview:</label>
+          <div
+            className="dashboard-switcher"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            <label className="desktop-only" style={{ fontSize: '12px', fontWeight: 700, color: '#475569' }}>
+              View:
+            </label>
+            <CrmIcon
+              name={!previewRole ? 'crown' : previewRole === 'SENIOR_MANAGER' ? 'briefcase' : 'headphones'}
+              size={15}
+              color={previewRole ? '#92400E' : '#2563EB'}
+            />
             <select
               className="dashboard-select"
               value={previewRole || ''}
               onChange={(e) => handlePreviewChange(e.target.value)}
+              style={{
+                fontSize: '11.5px',
+                fontWeight: 700,
+                padding: '6px 8px',
+                borderRadius: '8px',
+                border: previewRole ? '1.5px solid #F59E0B' : '1.5px solid #CBD5E1',
+                backgroundColor: previewRole ? '#FEF3C7' : '#FFFFFF',
+                color: previewRole ? '#92400E' : '#0F172A',
+                cursor: 'pointer',
+                maxWidth: '135px',
+              }}
+              title="Switch between Admin, Manager, and Counsellor Dashboard"
             >
-              <option value="">Admin (Full Control)</option>
-              <option value="SENIOR_MANAGER">Manager View Preview</option>
-              <option value="COUNSELLOR">Counsellor View Preview</option>
+              <option value="">Admin View</option>
+              <option value="SENIOR_MANAGER">Manager View</option>
+              <option value="COUNSELLOR">Counsellor View</option>
             </select>
           </div>
         )}

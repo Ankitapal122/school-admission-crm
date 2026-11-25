@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import CrmIcon from './CrmIcon';
 import { apiCall } from '../lib/api';
 import { useAuthStore } from '../stores/authStore';
 
@@ -326,10 +327,9 @@ export default function WhatsAppBotModal({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '18px',
               }}
             >
-              📱
+              <CrmIcon name="smartphone" size={20} color="#15803D" />
             </div>
             <div>
               <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0F172A' }}>
@@ -352,13 +352,12 @@ export default function WhatsAppBotModal({
               backgroundColor: '#FFFFFF',
               color: '#64748B',
               cursor: 'pointer',
-              fontSize: '14px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            ✕
+            <CrmIcon name="x" size={16} />
           </button>
         </div>
 
@@ -386,11 +385,10 @@ export default function WhatsAppBotModal({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '22px',
                   flexShrink: 0,
                 }}
               >
-                ✓
+                <CrmIcon name="check" size={22} color="#FFFFFF" strokeWidth={2.8} />
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: '14.5px', fontWeight: 800, color: '#166534' }}>
@@ -401,12 +399,20 @@ export default function WhatsAppBotModal({
                 </div>
                 <div style={{ fontSize: '11px', color: '#64748B', marginTop: '3px' }}>
                   User: <strong>{user?.fullName || 'Team Member'}</strong> ({roleTitle}) •{' '}
-                  <span style={{ background: '#DCFCE7', color: '#166534', padding: '1px 6px', borderRadius: '4px', fontWeight: 600 }}>
-                    {botStatus.method === 'OTP_VERIFIED'
-                      ? '🔢 Verified via OTP'
-                      : botStatus.method === 'PAIRING_CODE'
-                      ? '🔢 Linked via Pairing Code'
-                      : '📷 QR Code Scanned'}
+                  <span style={{ background: '#DCFCE7', color: '#166534', padding: '1px 6px', borderRadius: '4px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    {botStatus.method === 'OTP_VERIFIED' ? (
+                      <>
+                        <CrmIcon name="check-circle" size={12} /> Verified via OTP
+                      </>
+                    ) : botStatus.method === 'PAIRING_CODE' ? (
+                      <>
+                        <CrmIcon name="key" size={12} /> Linked via Pairing Code
+                      </>
+                    ) : (
+                      <>
+                        <CrmIcon name="camera" size={12} /> QR Code Scanned
+                      </>
+                    )}
                   </span>
                 </div>
               </div>
@@ -429,7 +435,7 @@ export default function WhatsAppBotModal({
                   whiteSpace: 'nowrap',
                 }}
               >
-                🔄 Change / Add Number
+                <CrmIcon name="refresh" size={13} /> Change / Add Number
               </button>
             </div>
 
@@ -457,16 +463,16 @@ export default function WhatsAppBotModal({
                 }}
               >
                 <div>
-                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#166534', letterSpacing: '0.5px' }}>
-                    📤 SENDER (MESSAGES WILL BE SENT FROM):
+                  <div style={{ fontSize: '11px', fontWeight: 700, color: '#166534', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <CrmIcon name="send" size={12} /> SENDER (MESSAGES WILL BE SENT FROM):
                   </div>
                   <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#15803D' }}>
                     {user?.fullName || 'Manager'} ({roleTitle}) • <strong>+91 {botStatus?.phone || manualPhone || '7249417658'}</strong>
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '10.5px', background: '#DCFCE7', color: '#166534', padding: '3px 8px', borderRadius: '4px', fontWeight: 800 }}>
-                    ✓ CONNECTED
+                  <span style={{ fontSize: '10.5px', background: '#DCFCE7', color: '#166534', padding: '3px 8px', borderRadius: '4px', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <CrmIcon name="check-circle" size={11} color="#166534" /> CONNECTED
                   </span>
                   <button
                     type="button"
@@ -489,7 +495,7 @@ export default function WhatsAppBotModal({
 
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
                 <div style={{ fontSize: '13.5px', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span>🎯</span> Send Recommended Boarding Schools to Parent
+                  <CrmIcon name="target" size={15} color="#2563EB" /> Send Recommended Boarding Schools to Parent
                 </div>
                 <span style={{ fontSize: '11px', background: '#DBEAFE', color: '#1E40AF', padding: '2px 8px', borderRadius: '12px', fontWeight: 700 }}>
                   Auto-Recommend
@@ -585,9 +591,12 @@ export default function WhatsAppBotModal({
                           padding: '2px 8px',
                           borderRadius: '6px',
                           fontWeight: 600,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
                         }}
                       >
-                        🏫 {s.name} ({s.minFeeAnnual ? `₹${(s.minFeeAnnual / 100000).toFixed(1)}L` : 'CBSE'})
+                        <CrmIcon name="school" size={11} /> {s.name} ({s.minFeeAnnual ? `₹${(s.minFeeAnnual / 100000).toFixed(1)}L` : 'CBSE'})
                       </span>
                     ))
                   ) : (
@@ -632,7 +641,13 @@ export default function WhatsAppBotModal({
                     gap: '6px',
                   }}
                 >
-                  <span>{sendingBudgetSchools ? 'Sending...' : '🚀 Send Budget Brochure to Parent'}</span>
+                  {sendingBudgetSchools ? (
+                    'Sending...'
+                  ) : (
+                    <>
+                      <CrmIcon name="send" size={13} /> Send Budget Brochure to Parent
+                    </>
+                  )}
                 </button>
 
                 <button
@@ -652,9 +667,12 @@ export default function WhatsAppBotModal({
                     fontWeight: 700,
                     cursor: 'pointer',
                     whiteSpace: 'nowrap',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
                   }}
                 >
-                  📱 Open WhatsApp
+                  <CrmIcon name="whatsapp" size={14} /> Open WhatsApp
                 </button>
               </div>
             </div>
@@ -697,7 +715,13 @@ export default function WhatsAppBotModal({
                   gap: '6px',
                 }}
               >
-                {disconnecting ? 'Switching...' : '🔄 Change / Switch Number'}
+                {disconnecting ? (
+                  'Switching...'
+                ) : (
+                  <>
+                    <CrmIcon name="refresh" size={13} /> Change / Switch Number
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -731,7 +755,8 @@ export default function WhatsAppBotModal({
                   gap: '8px',
                 }}
               >
-                <span>📷 Scan QR Code (Desktop)</span>
+                <CrmIcon name="camera" size={15} />
+                <span>Scan QR Code (Desktop)</span>
               </button>
               <button
                 type="button"
@@ -752,7 +777,8 @@ export default function WhatsAppBotModal({
                   gap: '8px',
                 }}
               >
-                <span>📲 Link with Phone Number</span>
+                <CrmIcon name="smartphone" size={15} />
+                <span>Link with Phone Number</span>
               </button>
             </div>
 
@@ -814,7 +840,7 @@ export default function WhatsAppBotModal({
                   >
                     <div style={{ fontWeight: 800, color: '#0F172A' }}>How to scan the QR code:</div>
                     <div>1. Open <strong>WhatsApp</strong> on your phone.</div>
-                    <div>2. Tap <strong>Menu (⋮)</strong> on Android or <strong>Settings (⚙️)</strong> on iPhone.</div>
+                    <div>2. Tap <strong>Menu (⋮)</strong> on Android or <strong>Settings</strong> on iPhone.</div>
                     <div>3. Tap <strong>Linked devices</strong>, then <strong>Link a device</strong>.</div>
                     <div>4. Point your phone camera at this screen to scan the QR code.</div>
                   </div>
@@ -876,7 +902,7 @@ export default function WhatsAppBotModal({
                           >
                             <option value="91">🇮🇳 India (+91)</option>
                             <option value="971">🇦🇪 United Arab Emirates (+971)</option>
-                            <option value="44">🇬🇧 United Kingdom (+44)</option>
+                            <option value="44">United Kingdom (+44)</option>
                             <option value="1">🇺🇸 United States (+1)</option>
                             <option value="65">🇸🇬 Singapore (+65)</option>
                             <option value="977">🇳🇵 Nepal (+977)</option>
@@ -1072,7 +1098,15 @@ export default function WhatsAppBotModal({
                               cursor: 'pointer',
                             }}
                           >
-                            {copiedCode ? '✓ Code Copied' : '📋 Copy Code'}
+                            {copiedCode ? (
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                <CrmIcon name="check" size={12} /> Code Copied
+                              </span>
+                            ) : (
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                <CrmIcon name="clipboard" size={12} /> Copy Code
+                              </span>
+                            )}
                           </button>
                           <button
                             type="button"
@@ -1098,7 +1132,7 @@ export default function WhatsAppBotModal({
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '18px' }}>
                         {[
                           <>Open <strong>WhatsApp</strong> on your phone</>,
-                          <>On Android tap <strong>Menu (⋮)</strong> &middot; On iPhone tap <strong>Settings (⚙️)</strong></>,
+                          <>On Android tap <strong>Menu (⋮)</strong> &middot; On iPhone tap <strong>Settings</strong></>,
                           <>Tap <strong>Linked devices</strong>, then <strong>Link device</strong></>,
                           <>Tap <strong>Link with phone number instead</strong> and enter this code on your phone</>,
                         ].map((step, idx) => (
@@ -1182,8 +1216,9 @@ export default function WhatsAppBotModal({
         >
           <div style={{ fontSize: '11.5px', color: '#64748B' }}>
             Status:{' '}
-            <strong style={{ color: botStatus?.isConnected ? '#16A34A' : '#D97706' }}>
-              {botStatus?.isConnected ? '🟢 CONNECTED & VERIFIED' : '🟠 READY TO CONNECT'}
+            <strong style={{ color: botStatus?.isConnected ? '#16A34A' : '#D97706', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <CrmIcon name={botStatus?.isConnected ? 'check-circle' : 'clock'} size={12} color={botStatus?.isConnected ? '#16A34A' : '#D97706'} />
+              {botStatus?.isConnected ? 'CONNECTED & VERIFIED' : 'READY TO CONNECT'}
             </strong>
           </div>
           <button

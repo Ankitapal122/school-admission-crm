@@ -2489,7 +2489,7 @@ export function CreateLeadModal({
                 <CrmIcon name="alert" size={20} />
                 <div>
                   <div style={{ fontWeight: 800, fontSize: '13px' }}>
-                    ⛔ This Phone Number is Already Registered!
+                    This Phone Number is Already Registered!
                   </div>
                   <div style={{ marginTop: '2px', lineHeight: '1.4' }}>
                     This mobile number is already registered in the database: Lead ID <strong>{phoneAlreadyRegistered.leadNumber}</strong>
@@ -2519,7 +2519,7 @@ export function CreateLeadModal({
                 <CrmIcon name="alert" size={20} />
                 <div>
                   <div style={{ fontWeight: 800, fontSize: '13px' }}>
-                    ⛔ This Email Address is Already Registered!
+                    This Email Address is Already Registered!
                   </div>
                   <div style={{ marginTop: '2px', lineHeight: '1.4' }}>
                     This email address is already registered in the database: Lead ID <strong>{emailAlreadyRegistered.leadNumber}</strong>
@@ -2644,12 +2644,12 @@ export function CreateLeadModal({
                   Mobile Primary (+91) *
                   {phoneAlreadyRegistered && (
                     <span style={{ color: '#DC2626', marginLeft: '6px', fontWeight: 700, fontSize: '11px' }}>
-                      (⚠️ Already Registered)
+                      (Already Registered)
                     </span>
                   )}
                   {phoneFormatError && !phoneAlreadyRegistered && (
                     <span style={{ color: '#DC2626', marginLeft: '6px', fontWeight: 700, fontSize: '11px' }}>
-                      (⚠️ Invalid / Fake Number)
+                      (Invalid / Fake Number)
                     </span>
                   )}
                 </label>
@@ -2692,13 +2692,13 @@ export function CreateLeadModal({
                   }}
                 />
                 {phoneAlreadyRegistered && (
-                  <div style={{ color: '#DC2626', fontSize: '11px', marginTop: '4px', fontWeight: 600 }}>
-                    ⚠️ This mobile number is already registered: Lead ID {phoneAlreadyRegistered.leadNumber} ({phoneAlreadyRegistered.studentName})
+                  <div style={{ color: '#DC2626', fontSize: '11px', marginTop: '4px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <CrmIcon name="alert" size={12} color="#DC2626" /> This mobile number is already registered: Lead ID {phoneAlreadyRegistered.leadNumber} ({phoneAlreadyRegistered.studentName})
                   </div>
                 )}
                 {phoneFormatError && !phoneAlreadyRegistered && (
-                  <div style={{ color: '#DC2626', fontSize: '11px', marginTop: '4px', fontWeight: 600 }}>
-                    ⚠️ {phoneFormatError}
+                  <div style={{ color: '#DC2626', fontSize: '11px', marginTop: '4px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <CrmIcon name="alert" size={12} color="#DC2626" /> {phoneFormatError}
                   </div>
                 )}
               </div>
@@ -2715,12 +2715,12 @@ export function CreateLeadModal({
                   Email *
                   {emailAlreadyRegistered && (
                     <span style={{ color: '#DC2626', marginLeft: '6px', fontWeight: 700, fontSize: '11px' }}>
-                      (⚠️ Already Registered)
+                      (Already Registered)
                     </span>
                   )}
                   {emailFormatError && !emailAlreadyRegistered && (
                     <span style={{ color: '#DC2626', marginLeft: '6px', fontWeight: 700, fontSize: '11px' }}>
-                      (⚠️ Invalid / Fake Email)
+                      (Invalid / Fake Email)
                     </span>
                   )}
                 </label>
@@ -2765,13 +2765,13 @@ export function CreateLeadModal({
                   }}
                 />
                 {emailAlreadyRegistered && (
-                  <div style={{ color: '#DC2626', fontSize: '11px', marginTop: '4px', fontWeight: 600 }}>
-                    ⚠️ This email address is already registered: Lead ID {emailAlreadyRegistered.leadNumber} ({emailAlreadyRegistered.studentName})
+                  <div style={{ color: '#DC2626', fontSize: '11px', marginTop: '4px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <CrmIcon name="alert" size={12} color="#DC2626" /> This email address is already registered: Lead ID {emailAlreadyRegistered.leadNumber} ({emailAlreadyRegistered.studentName})
                   </div>
                 )}
                 {emailFormatError && !emailAlreadyRegistered && (
-                  <div style={{ color: '#DC2626', fontSize: '11px', marginTop: '4px', fontWeight: 600 }}>
-                    ⚠️ {emailFormatError}
+                  <div style={{ color: '#DC2626', fontSize: '11px', marginTop: '4px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <CrmIcon name="alert" size={12} color="#DC2626" /> {emailFormatError}
                   </div>
                 )}
               </div>
@@ -2972,11 +2972,11 @@ export function CreateLeadModal({
               }}
             >
               {phoneAlreadyRegistered
-                ? '⛔ Phone Number Already Registered (Cannot Submit)'
+                ? 'Phone Number Already Registered (Cannot Submit)'
                 : emailAlreadyRegistered
-                ? '⛔ Email Already Registered (Cannot Submit)'
+                ? 'Email Already Registered (Cannot Submit)'
                 : phoneFormatError || emailFormatError
-                ? '⛔ Enter Valid Phone & Email (Cannot Submit)'
+                ? 'Enter Valid Phone & Email (Cannot Submit)'
                 : submitting
                 ? 'Creating Lead...'
                 : 'Create Lead'}

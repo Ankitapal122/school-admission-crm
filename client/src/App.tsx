@@ -354,6 +354,8 @@ export default function App() {
             {currentTab === 'commissions' && (
               <CommissionsView
                 commissions={commissions}
+                users={users}
+                schools={schools}
                 onRefresh={refreshAll}
                 onShowToast={showToast}
               />

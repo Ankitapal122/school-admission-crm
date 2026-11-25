@@ -9,7 +9,7 @@ const ALL_20_REPORTS = [
   { slug: 'leads', label: '1. Leads Master Report' },
   { slug: 'pipeline', label: '2. Stage Pipeline Conversion' },
   { slug: 'admissions', label: '3. Confirmed Admissions Report (Sheet 3)' },
-  { slug: 'full-admission-process', label: '★ End-to-End Admission Full Process Lifecycle' },
+  { slug: 'full-admission-process', label: 'End-to-End Admission Full Process Lifecycle' },
   { slug: 'school-wise', label: '4. School-wise Applications & Revenue' },
   { slug: 'commission', label: '5. Commission Ledger Report' },
   { slug: 'revenue', label: '6. Organization Revenue & Projections' },
@@ -1144,8 +1144,8 @@ export function UsersView({
                       (u: any) =>
                         String(u.email || '').trim().toLowerCase() === newEmail.trim().toLowerCase()
                     ) && (
-                      <div style={{ color: '#DC2626', fontSize: '11px', marginTop: '4px', fontWeight: 600 }}>
-                        ⚠️ This email address is already registered! Duplicate email cannot be submitted.
+                      <div style={{ color: '#DC2626', fontSize: '11px', marginTop: '4px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <CrmIcon name="alert" size={12} color="#DC2626" /> This email address is already registered! Duplicate email cannot be submitted.
                       </div>
                     )}
                 </div>
@@ -1166,8 +1166,8 @@ export function UsersView({
                         String(u.phone || u.mobile || '').replace(/\D/g, '').slice(-10) ===
                         newMobile.replace(/\D/g, '').slice(-10)
                     ) && (
-                      <div style={{ color: '#DC2626', fontSize: '11px', marginTop: '4px', fontWeight: 600 }}>
-                        ⚠️ This mobile number is already registered! Duplicate number cannot be submitted.
+                      <div style={{ color: '#DC2626', fontSize: '11px', marginTop: '4px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <CrmIcon name="alert" size={12} color="#DC2626" /> This mobile number is already registered! Duplicate number cannot be submitted.
                       </div>
                     )}
                 </div>

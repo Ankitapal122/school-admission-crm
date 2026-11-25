@@ -1092,8 +1092,8 @@ export function WhatsAppView({
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '6px' }}>
-              <strong style={{ fontSize: '14px', color: '#0F172A' }}>
-                ✨ Selected Template: {selectedTemplate.name || selectedTemplate.title}
+              <strong style={{ fontSize: '14px', color: '#0F172A', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <CrmIcon name="sparkles" size={15} color="#2563EB" /> Selected Template: {selectedTemplate.name || selectedTemplate.title}
               </strong>
               <div style={{ display: 'flex', gap: '6px' }}>
                 <button

@@ -24,7 +24,7 @@ export default function RoleDashboard({
   teams = [],
   kpiStats = {},
 }: RoleDashboardProps) {
-  const { user, previewRole } = useAuthStore();
+  const { user, previewRole, setPreviewRole } = useAuthStore();
   const effectiveRole = previewRole || user?.role || 'SUPER_ADMIN';
   const normKey = normalizeRoleKey(effectiveRole);
   const role: 'admin' | 'manager' | 'counsellor' =
@@ -4480,7 +4480,7 @@ export default function RoleDashboard({
           >
             <div style={{ textAlign: 'center', padding: '16px 20px 8px' }}>
               <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#1E3A8A', margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                <span style={{ color: '#E11D48', fontSize: '20px' }}>📞</span> Log Call Outcome
+                <CrmIcon name="phone-call" size={20} color="#E11D48" /> Log Call Outcome
               </h3>
             </div>
 
@@ -4618,8 +4618,8 @@ export default function RoleDashboard({
                     gap: '10px',
                   }}
                 >
-                  <div style={{ fontSize: '12px', fontWeight: 800, color: '#1E293B' }}>
-                    📋 Parent Requirements &amp; Feedback (Instant Manager Alert)
+                  <div style={{ fontSize: '12px', fontWeight: 800, color: '#1E293B', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <CrmIcon name="clipboard" size={14} color="#2563EB" /> Parent Requirements &amp; Feedback (Instant Manager Alert)
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
@@ -4670,18 +4670,18 @@ export default function RoleDashboard({
                         <button
                           type="button"
                           className={`btn btn-sm ${callIntent === 'GENUINE' ? 'btn-success' : 'btn-outline'}`}
-                          style={{ flex: 1, padding: '4px 6px', fontSize: '11px' }}
+                          style={{ flex: 1, padding: '4px 6px', fontSize: '11px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                           onClick={() => setCallIntent('GENUINE')}
                         >
-                          ★ Genuine
+                          <CrmIcon name="star" size={12} /> Genuine
                         </button>
                         <button
                           type="button"
                           className={`btn btn-sm ${callIntent === 'JUNK' ? 'btn-danger' : 'btn-outline'}`}
-                          style={{ flex: 1, padding: '4px 6px', fontSize: '11px' }}
+                          style={{ flex: 1, padding: '4px 6px', fontSize: '11px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
                           onClick={() => setCallIntent('JUNK')}
                         >
-                          ✕ Junk
+                          <CrmIcon name="x" size={12} /> Junk
                         </button>
                       </div>
                     </div>
@@ -4723,7 +4723,9 @@ export default function RoleDashboard({
                     onChange={(e) => setCallDpdpConsent(e.target.checked)}
                     style={{ accentColor: '#16A34A', width: '16px', height: '16px' }}
                   />
-                  <span>🟩 Parent consent for call recording (DPDP)</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <CrmIcon name="shield-check" size={13} color="#16A34A" /> Parent consent for call recording (DPDP)
+                  </span>
                 </div>
               </div>
 
@@ -4759,7 +4761,7 @@ export default function RoleDashboard({
                     fontWeight: 700,
                   }}
                 >
-                  💾 Save Outcome
+                  <CrmIcon name="save" size={14} /> Save Outcome
                 </button>
               </div>
             </form>

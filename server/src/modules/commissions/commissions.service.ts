@@ -1010,4 +1010,178 @@ export class CommissionsService {
       commission: formatted,
     });
   }
+
+  async addManualCommission(dto: any, user: any) {
+    const targetUserId = dto.beneficiaryId || dto.beneficiaryUserId;
+    let staff: any = null;
+    if (targetUserId) {
+      staff = await this.prisma.user.findUnique({
+        where: { id: targetUserId },
+        include: { team: true },
+      });
+    }
+    if (!staff && (dto.beneficiaryName || dto.staffName)) {
+      const searchName = String(dto.beneficiaryName || dto.staffName).trim();
+      staff = await this.prisma.user.findFirst({
+        where: {
+          OR: [
+            { fullName: { contains: searchName, mode: 'insensitive' } },
+            { email: { contains: searchName, mode: 'insensitive' } },
+          ],
+        },
+        include: { team: true },
+      });
+    }
+    if (!staff) {
+      const isMgr = String(dto.role || dto.beneficiaryType || '').toLowerCase().includes('manager');
+      const usersList = await this.prisma.user.findMany({ include: { team: true } });
+      staff = usersList.find((u) =>
+        isMgr
+          ? String(u.role).toLowerCase().includes('manager')
+          : String(u.role).toLowerCase().includes('counsellor')
+      ) || usersList[0];
+    }
+    if (!staff) {
+      throw new BadRequestException('No staff user available in the system.');
+    }
+
+    const amount = Number(dto.amount || 0);
+    if (amount <= 0) {
+      throw new BadRequestException('Commission amount must be greater than zero.');
+    }
+
+    const beneficiaryType = String(dto.role || dto.beneficiaryType || 'counsellor').toLowerCase();
+    const isManager = beneficiaryType === 'manager' || String(staff.role).toLowerCase().includes('manager');
+    const finalStaffName = dto.beneficiaryName || staff.fullName;
+
+    // Find or create an admission link
+    let admission: any = null;
+    if (dto.admissionId) {
+      admission = await this.prisma.admission.findUnique({ where: { id: dto.admissionId } });
+    }
+    if (!admission) {
+      admission = await this.prisma.admission.findFirst({
+        orderBy: { createdAt: 'desc' },
+      });
+    }
+    if (!admission) {
+      const lead = await this.prisma.lead.findFirst();
+      const school = await this.prisma.school.findFirst();
+      if (!lead || !school) {
+        throw new BadRequestException('Database requires at least one Lead and School to record commission.');
+      }
+      admission = await this.prisma.admission.create({
+        data: {
+          admissionNumber: `ADM-${Date.now().toString().slice(-6)}`,
+          receiptNumber: `REC-${Date.now().toString().slice(-6)}`,
+          leadId: lead.id,
+          schoolId: school.id,
+          counsellorId: staff.id,
+          managerId: staff.managerId || null,
+          studentName: dto.studentName || lead.studentName || 'Student',
+          parentName: dto.parentName || lead.parentName || 'Parent',
+          schoolName: dto.schoolName || school.name || 'Uttarakhand Boarding School',
+          admissionClass: 'Class 9',
+          academicYear: '2026-2027',
+          feeAgreed: amount,
+          status: 'confirmed',
+          stage: 'confirmed',
+        },
+      });
+    }
+
+    const code = await this.nextCommissionCode();
+    const rawStatus = String(dto.status || 'pending').toLowerCase();
+    let status: CommissionStatus = CommissionStatus.pending;
+    let paidAt: Date | null = null;
+    let paidOn: Date | null = null;
+    let approvedAt: Date | null = null;
+    let approvedById: string | null = null;
+
+    if (rawStatus === 'paid' || rawStatus === 'paid_out') {
+      status = CommissionStatus.paid_out;
+      paidAt = new Date();
+      paidOn = new Date();
+      approvedAt = new Date();
+      approvedById = user?.id || null;
+    } else if (rawStatus === 'approved' || rawStatus === 'received') {
+      status = CommissionStatus.received;
+      approvedAt = new Date();
+      approvedById = user?.id || null;
+    }
+
+    const jrAmount = isManager ? 0 : amount;
+    const jrName = isManager ? null : finalStaffName;
+    const srAmount = isManager ? amount : 0;
+    const srName = isManager ? finalStaffName : null;
+
+    const created = await this.prisma.commission.create({
+      data: {
+        commissionCode: code,
+        admissionId: admission.id,
+        leadId: admission.leadId,
+        schoolId: admission.schoolId,
+        schoolName: dto.schoolName || admission.schoolName || 'Partner School',
+        studentName: dto.studentName || admission.studentName || 'Student',
+        parentName: dto.parentName || admission.parentName || 'Parent',
+        beneficiaryId: staff.id,
+        beneficiaryName: finalStaffName,
+        beneficiaryType: isManager ? 'MANAGER_MANUAL' : 'COUNSELLOR_MANUAL',
+        beneficiaryRole: staff.role,
+        teamId: staff.teamId || admission.teamId || null,
+        originalAmount: amount,
+        amount: amount,
+        jrAmount,
+        jrName,
+        srAmount,
+        srName,
+        netProfit: 0,
+        status,
+        ruleVersion: 1,
+        paidAt,
+        paidOn,
+        approvedAt,
+        approvedById,
+        paymentReference: dto.paymentReference || null,
+        paymentMode: dto.paymentMode || 'NEFT/IMPS',
+      },
+      include: {
+        beneficiary: true,
+        school: true,
+        lead: true,
+        admission: true,
+      },
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        userId: user?.id || null,
+        userName: user?.fullName || 'Super Admin',
+        userRole: user?.role || 'super_admin',
+        action: 'CREATE',
+        module: 'commission',
+        entity: 'Commission',
+        entityId: created.id,
+        details: {
+          manual: true,
+          beneficiary: staff.fullName,
+          beneficiaryType: isManager ? 'Manager' : 'Counsellor',
+          amount,
+          status,
+          code,
+          notes: dto.notes || '',
+        },
+        isSpecialFlag: true,
+      },
+    });
+
+    const formatted = this.formatCommission(created);
+    return apiEnvelope(
+      formatted,
+      `Commission of ₹${amount.toLocaleString('en-IN')} added for ${staff.fullName} (${isManager ? 'Manager' : 'Counsellor'})`,
+      {
+        commission: formatted,
+      },
+    );
+  }
 }

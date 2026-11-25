@@ -24,7 +24,8 @@ export default function Sidebar({
   onCloseMobile,
   leadsCount = 0,
 }: SidebarProps) {
-  const { user, previewRole, logout } = useAuthStore();
+  const { user, previewRole, setPreviewRole, logout } = useAuthStore();
+  const isAdmin = user?.role === 'SUPER_ADMIN' || user?.rawRole === 'SUPER_ADMIN' || user?.rawRole === 'super_admin' || user?.rawRole === 'admin';
   const effectiveRole = previewRole || user?.role || 'SUPER_ADMIN';
 
   const norm = normalizeRoleKey(effectiveRole);
@@ -128,7 +129,7 @@ export default function Sidebar({
             }}
             title="Install BoardingEdu CRM on Phone or Desktop"
           >
-            <span style={{ fontSize: '15px' }}>📲</span>
+            <CrmIcon name="smartphone" size={16} />
             <span>Install App on Phone</span>
           </button>
 
@@ -320,7 +321,7 @@ export default function Sidebar({
                 window.dispatchEvent(new CustomEvent('pwa-show-install-prompt'));
               }}
             >
-              <span className="nav-icon">📲</span>
+              <span className="nav-icon"><CrmIcon name="smartphone" size={17} /></span>
               <span>Install Mobile App</span>
             </a>
           </>
@@ -444,7 +445,7 @@ export default function Sidebar({
                 window.dispatchEvent(new CustomEvent('pwa-show-install-prompt'));
               }}
             >
-              <span className="nav-icon">📲</span>
+              <span className="nav-icon"><CrmIcon name="smartphone" size={17} /></span>
               <span>Install Mobile App</span>
             </a>
           </>
@@ -611,7 +612,7 @@ export default function Sidebar({
                 window.dispatchEvent(new CustomEvent('pwa-show-install-prompt'));
               }}
             >
-              <span className="nav-icon">📲</span>
+              <span className="nav-icon"><CrmIcon name="smartphone" size={17} /></span>
               <span>Install Mobile App</span>
             </a>
             <a

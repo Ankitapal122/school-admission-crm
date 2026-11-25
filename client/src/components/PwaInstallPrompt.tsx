@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import CrmIcon from './CrmIcon';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -201,7 +202,9 @@ export default function PwaInstallPrompt() {
             fontWeight: 600,
           }}
         >
-          <span>🚀 New CRM version available!</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <CrmIcon name="rocket" size={15} /> New CRM version available!
+          </span>
           <button
             onClick={handleReloadUpdate}
             style={{
@@ -284,8 +287,8 @@ export default function PwaInstallPrompt() {
               <h3 style={{ fontSize: '19px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
                 Install BoardingEdu CRM
               </h3>
-              <div style={{ fontSize: '12px', color: '#16A34A', fontWeight: 700, marginTop: '4px' }}>
-                ✓ Official Mobile &amp; Desktop App
+              <div style={{ fontSize: '12px', color: '#16A34A', fontWeight: 700, marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                <CrmIcon name="check-circle" size={12} color="#16A34A" /> Official Mobile &amp; Desktop App
               </div>
               <p style={{ fontSize: '12.5px', color: '#475569', marginTop: '8px', marginBottom: 0, lineHeight: 1.5 }}>
                 {installState === 'installed'
@@ -344,7 +347,7 @@ export default function PwaInstallPrompt() {
                 gap: '8px',
               }}
             >
-              <span>{installState === 'installed' ? '✅' : '📲'}</span>
+              <CrmIcon name={installState === 'installed' ? 'check-circle' : 'smartphone'} size={18} />
               <span>
                 {installState === 'installed'
                   ? 'App Installed — Opening Login...'

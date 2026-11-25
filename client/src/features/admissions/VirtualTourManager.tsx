@@ -144,20 +144,20 @@ export function VirtualTourManager({
     const diff = new Date(isoDate).getTime() - Date.now();
     const diffMins = Math.round(diff / 60000);
     if (diffMins < 0) {
-      return { text: 'Past Tour', color: '#64748B', bg: '#F1F5F9' };
+      return { text: 'Past Tour', icon: 'clock', color: '#64748B', bg: '#F1F5F9' };
     }
     if (diffMins <= 15) {
-      return { text: `🚨 In ${diffMins} mins!`, color: '#DC2626', bg: '#FEE2E2' };
+      return { text: `In ${diffMins} mins!`, icon: 'alert', color: '#DC2626', bg: '#FEE2E2' };
     }
     if (diffMins <= 60) {
-      return { text: `⏰ In ${diffMins} mins`, color: '#D97706', bg: '#FEF3C7' };
+      return { text: `In ${diffMins} mins`, icon: 'clock', color: '#D97706', bg: '#FEF3C7' };
     }
     if (diffMins <= 1440) {
       const hrs = Math.round(diffMins / 60);
-      return { text: `📅 In ${hrs} hours`, color: '#2563EB', bg: '#EFF6FF' };
+      return { text: `In ${hrs} hours`, icon: 'calendar', color: '#2563EB', bg: '#EFF6FF' };
     }
     const days = Math.round(diffMins / 1440);
-    return { text: `📅 In ${days} days`, color: '#475569', bg: '#F8FAFC' };
+    return { text: `In ${days} days`, icon: 'calendar', color: '#475569', bg: '#F8FAFC' };
   };
 
   const filteredTours = tours.filter((t) => {
@@ -189,13 +189,15 @@ export function VirtualTourManager({
             className={`btn btn-sm ${filterType === 'ONLINE_ZOOM' ? 'btn-primary' : 'btn-outline'}`}
             onClick={() => setFilterType('ONLINE_ZOOM')}
           >
-            🎥 Online Zoom ({tours.filter((t) => t.tourType === 'ONLINE_ZOOM').length})
+            <CrmIcon name="video" size={14} style={{ marginRight: '6px' }} />
+            Online Zoom ({tours.filter((t) => t.tourType === 'ONLINE_ZOOM').length})
           </button>
           <button
             className={`btn btn-sm ${filterType === 'VISIT_PHYSICAL' ? 'btn-primary' : 'btn-outline'}`}
             onClick={() => setFilterType('VISIT_PHYSICAL')}
           >
-            🏫 Campus Visits ({tours.filter((t) => t.tourType === 'VISIT_PHYSICAL').length})
+            <CrmIcon name="building" size={14} style={{ marginRight: '6px' }} />
+            Campus Visits ({tours.filter((t) => t.tourType === 'VISIT_PHYSICAL').length})
           </button>
         </div>
 
@@ -224,7 +226,7 @@ export function VirtualTourManager({
           color: '#1E3A8A',
         }}
       >
-        <div style={{ fontSize: '20px' }}>🤖</div>
+        <CrmIcon name="sparkles" size={20} color="#2563EB" />
         <div>
           <strong>Automated Bot Reminders Active:</strong> Parents receive an automatic WhatsApp reminder with their direct Zoom link <strong>10 minutes prior</strong> to the tour. Managers &amp; Counsellors receive an urgent alert <strong>5 minutes prior</strong>.
         </div>
@@ -242,7 +244,9 @@ export function VirtualTourManager({
             color: '#64748B',
           }}
         >
-          <div style={{ fontSize: '32px', marginBottom: '8px' }}>🎥</div>
+          <div style={{ marginBottom: '8px', display: 'flex', justifyContent: 'center' }}>
+            <CrmIcon name="video" size={36} color="#94A3B8" />
+          </div>
           <div style={{ fontWeight: 700, fontSize: '15px', color: '#1E293B', marginBottom: '4px' }}>
             No Virtual Tours Scheduled
           </div>
@@ -306,7 +310,15 @@ export function VirtualTourManager({
                       gap: '4px',
                     }}
                   >
-                    {isZoom ? '🎥 Online Live Zoom Tour' : '🏫 Physical Campus Visit'}
+                    {isZoom ? (
+                      <>
+                        <CrmIcon name="video" size={13} /> Online Live Zoom Tour
+                      </>
+                    ) : (
+                      <>
+                        <CrmIcon name="building" size={13} /> Physical Campus Visit
+                      </>
+                    )}
                   </span>
                   <span
                     style={{
@@ -316,8 +328,12 @@ export function VirtualTourManager({
                       fontSize: '11px',
                       padding: '3px 8px',
                       borderRadius: '6px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
                     }}
                   >
+                    <CrmIcon name={timeBadge.icon} size={12} color={timeBadge.color} />
                     {timeBadge.text}
                   </span>
                 </div>
@@ -343,9 +359,12 @@ export function VirtualTourManager({
                       color: '#1D4ED8',
                       fontWeight: 600,
                       marginTop: '4px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
                     }}
                   >
-                    🏫 {tour.schoolName || tour.school?.name || 'Boarding School'}
+                    <CrmIcon name="school" size={13} /> {tour.schoolName || tour.school?.name || 'Boarding School'}
                   </div>
                 </div>
 
@@ -422,9 +441,15 @@ export function VirtualTourManager({
                         marginBottom: '2px',
                       }}
                     >
-                      {tour.proceedAdmission
-                        ? '✅ Admission Decision: PROCEED TO ADMISSION'
-                        : '❌ Admission Decision: NOT PROCEEDING'}
+                      {tour.proceedAdmission ? (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <CrmIcon name="check-circle" size={13} color="#166534" /> Admission Decision: PROCEED TO ADMISSION
+                        </span>
+                      ) : (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <CrmIcon name="x-circle" size={13} color="#991B1B" /> Admission Decision: NOT PROCEEDING
+                        </span>
+                      )}
                     </div>
                     {tour.postTourFeedback && (
                       <div style={{ color: '#475569', fontStyle: 'italic' }}>
@@ -547,18 +572,18 @@ export function VirtualTourManager({
                     <button
                       type="button"
                       className={`btn btn-sm ${newTourType === 'ONLINE_ZOOM' ? 'btn-primary' : 'btn-outline'}`}
-                      style={{ flex: 1 }}
+                      style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                       onClick={() => setNewTourType('ONLINE_ZOOM')}
                     >
-                      🎥 Online Live Zoom Tour
+                      <CrmIcon name="video" size={14} /> Online Live Zoom Tour
                     </button>
                     <button
                       type="button"
                       className={`btn btn-sm ${newTourType === 'VISIT_PHYSICAL' ? 'btn-primary' : 'btn-outline'}`}
-                      style={{ flex: 1 }}
+                      style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                       onClick={() => setNewTourType('VISIT_PHYSICAL')}
                     >
-                      🏫 Physical Campus Visit
+                      <CrmIcon name="building" size={14} /> Physical Campus Visit
                     </button>
                   </div>
                 </div>
@@ -694,8 +719,8 @@ export function VirtualTourManager({
                       padding: '14px',
                     }}
                   >
-                    <div style={{ fontWeight: 700, color: '#166534', fontSize: '13px', marginBottom: '8px' }}>
-                      ⚡ 3-Tier Milestone Fee Installment Plan will be Auto-Created:
+                    <div style={{ fontWeight: 700, color: '#166534', fontSize: '13px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <CrmIcon name="zap" size={14} color="#166534" /> 3-Tier Milestone Fee Installment Plan will be Auto-Created:
                     </div>
                     <ul style={{ margin: '0 0 12px 18px', padding: 0, fontSize: '12px', color: '#166534' }}>
                       <li><strong>Milestone 1: 30%</strong> Token / Admission Confirmation (Immediate)</li>

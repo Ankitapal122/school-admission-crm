@@ -341,7 +341,13 @@ export default function AuditLogViewer({
                   fontWeight: 600,
                 }}
               >
-                {commPair.val === 'true' ? 'Commission Generated ✓' : 'No Commission'}
+                {commPair.val === 'true' ? (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <CrmIcon name="check-circle" size={11} color="#047857" /> Commission Generated
+                  </span>
+                ) : (
+                  'No Commission'
+                )}
               </span>
             )}
           </div>
