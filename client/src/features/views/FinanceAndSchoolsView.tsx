@@ -1297,7 +1297,7 @@ export function CommissionsView({
                   <input
                     type="number"
                     min="1"
-                    step="50"
+                    step="any"
                     required
                     className="form-control"
                     value={addAmount}
