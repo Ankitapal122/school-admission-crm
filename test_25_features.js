@@ -121,6 +121,9 @@ async function runTests() {
   );
 
   // FEATURE 7 & 15: Phone Number Normalization & Sequential Lead ID Format
+  const dynSuffix = Date.now().toString().slice(-6);
+  const testPhoneRaw = '09823' + dynSuffix;
+  const expectedNormalized = '+919823' + dynSuffix;
   const leadCreate = await request(
     {
       hostname: 'localhost',
@@ -130,19 +133,22 @@ async function runTests() {
       headers: authHeaders,
     },
     {
-      studentName: 'Test Student ' + Date.now().toString().slice(-4),
+      studentName: 'Test Student ' + dynSuffix,
       admissionClass: 'Class 7',
       fatherName: 'Rajesh Test',
-      fatherPhone: '09876543210', // Leading zero -> must normalize to +919876543210
+      fatherPhone: testPhoneRaw, // Leading zero -> must normalize to +919823...
       motherName: 'Sunita Test',
-      motherPhone: '98765 43219', // Space -> must normalize to +919876543219
+      motherPhone: '9824' + dynSuffix,
       parentName: 'Rajesh & Sunita Test',
       annualBudget: '₹6L - ₹8L',
       remarks: 'Automated test lead',
     }
   );
-  const newLead = leadCreate.data?.lead;
-  const isNormalized = newLead?.parentPhone === '+919876543210';
+  if (!leadCreate.data?.lead) {
+    console.log('DEBUG leadCreate:', leadCreate.status, JSON.stringify(leadCreate.data));
+  }
+  const newLead = leadCreate.data?.lead || leadCreate.data?.data?.lead || leadCreate.data;
+  const isNormalized = newLead?.parentPhone === expectedNormalized;
   const isValidLeadId = /^LD\d{6,}$/.test(newLead?.leadNumber || '');
   report(7, 'Phone Number Normalization (+91XXXXXXXXXX)', isNormalized, `(Stored as: ${newLead?.parentPhone})`);
   report(15, 'Sequential Lead ID Format (LD000001..)', isValidLeadId, `(Generated: ${newLead?.leadNumber})`);
@@ -157,7 +163,7 @@ async function runTests() {
       headers: authHeaders,
     },
     {
-      mobile: '9876543210',
+      mobile: '9823' + dynSuffix,
       studentName: newLead?.studentName,
       admissionClass: 'Class 7',
     }
@@ -320,6 +326,7 @@ async function runTests() {
 
   // FEATURE 4: Force-Expired Leads Cannot Be Reopened
   // Create another lead and mark forceExpired = true
+  const expDyn = (Date.now() + 100).toString().slice(-6);
   const expiredLead = await request(
     {
       hostname: 'localhost',
@@ -329,22 +336,23 @@ async function runTests() {
       headers: authHeaders,
     },
     {
-      studentName: 'Expired Student ' + Date.now().toString().slice(-4),
+      studentName: 'Expired Student ' + expDyn,
       admissionClass: 'Class 8',
       fatherName: 'Father Expired',
-      fatherPhone: '9876543299',
+      fatherPhone: '9825' + expDyn,
       motherName: 'Mother Expired',
-      motherPhone: '9876543298',
+      motherPhone: '9826' + expDyn,
       parentName: 'Expired Parents',
       remarks: 'Will be force expired',
     }
   );
+  const expLeadId = expiredLead.data?.lead?.id || expiredLead.data?.data?.lead?.id || expiredLead.data?.id;
   // Force expire via expiry decision
   await request(
     {
       hostname: 'localhost',
       port: 5000,
-      path: `/api/leads/${expiredLead.data?.lead?.id}/expiry-decision`,
+      path: `/api/leads/${expLeadId}/expiry-decision`,
       method: 'POST',
       headers: authHeaders,
     },
@@ -354,7 +362,7 @@ async function runTests() {
     {
       hostname: 'localhost',
       port: 5000,
-      path: `/api/leads/${expiredLead.data?.lead?.id}/reopen`,
+      path: `/api/leads/${expLeadId}/reopen`,
       method: 'POST',
       headers: authHeaders,
     }
@@ -367,6 +375,7 @@ async function runTests() {
   );
 
   // FEATURE 6: Duplicate Merge Using ACID Transaction
+  const mergeDynA = (Date.now() + 200).toString().slice(-6);
   const leadA = await request(
     {
       hostname: 'localhost',
@@ -376,15 +385,16 @@ async function runTests() {
       headers: authHeaders,
     },
     {
-      studentName: 'Merge Primary ' + Date.now().toString().slice(-4),
+      studentName: 'Merge Primary ' + mergeDynA,
       admissionClass: 'Class 9',
       fatherName: 'Father A',
-      fatherPhone: '9876511111',
+      fatherPhone: '9827' + mergeDynA,
       motherName: 'Mother A',
-      motherPhone: '9876511112',
+      motherPhone: '9828' + mergeDynA,
       parentName: 'Primary Parents',
     }
   );
+  const mergeDynB = (Date.now() + 300).toString().slice(-6);
   const leadB = await request(
     {
       hostname: 'localhost',
@@ -394,15 +404,17 @@ async function runTests() {
       headers: authHeaders,
     },
     {
-      studentName: 'Merge Secondary ' + Date.now().toString().slice(-4),
+      studentName: 'Merge Secondary ' + mergeDynB,
       admissionClass: 'Class 9',
       fatherName: 'Father B',
-      fatherPhone: '9876522222',
+      fatherPhone: '9829' + mergeDynB,
       motherName: 'Mother B',
-      motherPhone: '9876522223',
+      motherPhone: '9830' + mergeDynB,
       parentName: 'Secondary Parents',
     }
   );
+  const leadAId = leadA.data?.lead?.id || leadA.data?.data?.lead?.id || leadA.data?.id;
+  const leadBId = leadB.data?.lead?.id || leadB.data?.data?.lead?.id || leadB.data?.id;
   const mergeRes = await request(
     {
       hostname: 'localhost',
@@ -412,8 +424,8 @@ async function runTests() {
       headers: authHeaders,
     },
     {
-      primaryLeadId: leadA.data?.lead?.id,
-      secondaryLeadId: leadB.data?.lead?.id,
+      primaryLeadId: leadAId,
+      secondaryLeadId: leadBId,
       reason: 'Confirmed same applicant entered twice',
     }
   );
@@ -424,7 +436,7 @@ async function runTests() {
     {
       hostname: 'localhost',
       port: 5000,
-      path: `/api/leads/${leadB.data?.lead?.id}`,
+      path: `/api/leads/${leadBId}`,
       method: 'DELETE',
       headers: authHeaders,
     }
@@ -501,8 +513,9 @@ async function runTests() {
     },
     { email: 'adminboarding123@gmail.com', password: 'Admin@123', role: 'admin' }
   );
-  if (postRotLogin.data?.accessToken) {
-    token = postRotLogin.data.accessToken;
+  const freshToken = postRotLogin.data?.accessToken || postRotLogin.data?.token || postRotLogin.data?.data?.accessToken || postRotLogin.data?.data?.token;
+  if (freshToken) {
+    token = freshToken;
     authHeaders.Authorization = `Bearer ${token}`;
   }
 
@@ -591,7 +604,7 @@ async function runTests() {
       method: 'POST',
       headers: authHeaders,
     },
-    { recipientName: 'Parent', recipientMobile: '+919876543210', message: longMsg }
+    { recipientName: 'Parent', recipientMobile: '+919823145671', message: longMsg }
   );
   const waValid = await request(
     {
@@ -601,7 +614,7 @@ async function runTests() {
       method: 'POST',
       headers: authHeaders,
     },
-    { recipientName: 'Parent', recipientMobile: '+919876543210', message: validMsg }
+    { recipientName: 'Parent', recipientMobile: '+919823145671', message: validMsg }
   );
   report(
     20,
