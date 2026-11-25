@@ -46,6 +46,15 @@ export default function WhatsAppBotModal({
   const [otpSent, setOtpSent] = useState(false);
   const [pairingCode, setPairingCode] = useState<string | null>(null);
   const [copiedCode, setCopiedCode] = useState(false);
+  const [cooldownSecs, setCooldownSecs] = useState<number>(0);
+
+  useEffect(() => {
+    if (cooldownSecs <= 0) return;
+    const timer = setInterval(() => {
+      setCooldownSecs((prev) => (prev > 1 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldownSecs]);
 
   // Budget-Based School Message State (For sending school details to parents by budget)
   const [budgetPhone, setBudgetPhone] = useState('');
@@ -223,7 +232,17 @@ export default function WhatsAppBotModal({
         );
       }
     } catch (err: any) {
-      if (onShowToast) onShowToast(err?.message || 'Failed to generate pairing code. Please try again.', 'danger');
+      const msg = String(err?.message || '');
+      setCooldownSecs(25);
+      if (onShowToast) {
+        if (msg.includes('429') || msg.includes('Too many requests') || msg.includes('rate limit') || msg.includes('rate-overlimit')) {
+          onShowToast('WhatsApp has temporarily paused pairing requests for this number due to repeated attempts. Please wait 2 minutes, or scan the QR Code on another device.', 'danger');
+        } else if (msg.includes('502') || msg.includes('503') || msg.includes('504')) {
+          onShowToast('Server is connecting to WhatsApp. Please wait 15 seconds and try again.', 'warning');
+        } else {
+          onShowToast(msg || 'Failed to generate pairing code. Please wait a moment and try again.', 'danger');
+        }
+      }
     } finally {
       setIsSendingOtp(false);
     }
@@ -960,22 +979,32 @@ export default function WhatsAppBotModal({
 
                       <button
                         type="submit"
-                        disabled={isSendingOtp || manualPhone.length !== 10}
+                        disabled={isSendingOtp || manualPhone.length !== 10 || cooldownSecs > 0}
                         style={{
                           marginTop: '24px',
-                          minWidth: '140px',
-                          backgroundColor: isSendingOtp || manualPhone.length !== 10 ? '#94A3B8' : '#008069',
+                          minWidth: '160px',
+                          backgroundColor:
+                            isSendingOtp || manualPhone.length !== 10 || cooldownSecs > 0
+                              ? '#94A3B8'
+                              : '#008069',
                           color: '#FFFFFF',
                           border: 'none',
                           borderRadius: '999px',
                           padding: '11px 32px',
                           fontSize: '14px',
                           fontWeight: 700,
-                          cursor: isSendingOtp || manualPhone.length !== 10 ? 'not-allowed' : 'pointer',
+                          cursor:
+                            isSendingOtp || manualPhone.length !== 10 || cooldownSecs > 0
+                              ? 'not-allowed'
+                              : 'pointer',
                           boxShadow: '0 2px 6px rgba(0, 128, 105, 0.25)',
                         }}
                       >
-                        {isSendingOtp ? 'Generating Code...' : 'Next'}
+                        {isSendingOtp
+                          ? 'Generating Code...'
+                          : cooldownSecs > 0
+                          ? `Please wait (${cooldownSecs}s)...`
+                          : 'Next'}
                       </button>
 
                       <button

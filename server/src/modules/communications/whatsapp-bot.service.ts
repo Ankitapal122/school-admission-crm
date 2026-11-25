@@ -35,6 +35,8 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
   private lastRecommendedSchoolsByJid = new Map<string, string[]>();
   private lidToPhoneMap = new Map<string, string>();
   private reminderInterval: NodeJS.Timeout | null = null;
+  private lastPairingCodeByPhone = new Map<string, { code: string; timestamp: number }>();
+  private isPairingInProgress = false;
 
   constructor(private readonly prisma: PrismaService) {
     this.authDir = path.join(process.cwd(), 'data', 'baileys_auth');
@@ -1176,62 +1178,96 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
       return cleaned;
     };
 
-    const ensureFreshUnregisteredSocket = async () => {
-      if (this.isConnected) {
-        await this.disconnect();
-        await new Promise((r) => setTimeout(r, 1000));
-      }
+    // 1. Check if a pairing code was generated for this number in the last 60 seconds.
+    // Serving cached code prevents WhatsApp 429 rate limit when user clicks multiple times.
+    const cached = this.lastPairingCodeByPhone.get(international);
+    if (cached && Date.now() - cached.timestamp < 60000) {
+      this.logger.log(`Serving recently cached pairing code for +${international}: ${cached.code}`);
+      return cached.code;
+    }
 
-      this.qrAttempts = 0;
-      if (!this.sock) {
-        this.clearAuthData();
-        await this.initSocket();
-      }
-
-      // Wait up to 10 seconds for WhatsApp Noise handshake (first QR event) before requesting pairing code
-      for (let i = 0; i < 20; i++) {
-        if (this.sock && this.socketReadyForPairing) break;
+    if (this.isPairingInProgress) {
+      // If a pairing request is already running, wait up to 6s for it to finish
+      for (let w = 0; w < 12; w++) {
         await new Promise((r) => setTimeout(r, 500));
-      }
-    };
-
-    await ensureFreshUnregisteredSocket();
-
-    if (this.sock && !this.isConnected) {
-      try {
-        const rawCode = await (this.sock as any).requestPairingCode(international);
-        const formatted = formatCode(rawCode);
-        this.logger.log(`✅ Baileys pairing code generated for +${international}: ${formatted}`);
-        return formatted;
-      } catch (err: any) {
-        this.logger.warn(`First Baileys requestPairingCode attempt failed (${err.message}). Re-initializing socket...`);
-        try {
-          this.destroySocket();
-          this.clearAuthData();
-          this.qrAttempts = 0;
-          await this.initSocket();
-          for (let i = 0; i < 20; i++) {
-            if (this.sock && this.socketReadyForPairing) break;
-            await new Promise((r) => setTimeout(r, 500));
-          }
-          if (this.sock) {
-            const rawCode = await (this.sock as any).requestPairingCode(international);
-            const formatted = formatCode(rawCode);
-            this.logger.log(`✅ Baileys pairing code generated on retry for +${international}: ${formatted}`);
-            return formatted;
-          }
-        } catch (retryErr: any) {
-          this.logger.error(`Baileys requestPairingCode retry failed: ${retryErr.message}`);
-          throw new BadRequestException(
-            'Unable to generate WhatsApp pairing code right now. Please wait 5 seconds and try again, or use QR code login.',
-          );
+        const newlyCached = this.lastPairingCodeByPhone.get(international);
+        if (newlyCached && Date.now() - newlyCached.timestamp < 60000) {
+          return newlyCached.code;
         }
+        if (!this.isPairingInProgress) break;
       }
     }
 
-    throw new BadRequestException(
-      'WhatsApp service is initializing. Please wait a few seconds and try again.',
-    );
+    this.isPairingInProgress = true;
+
+    try {
+      const ensureFreshUnregisteredSocket = async () => {
+        if (this.isConnected) {
+          await this.disconnect();
+          await new Promise((r) => setTimeout(r, 1000));
+        }
+
+        this.qrAttempts = 0;
+        if (!this.sock) {
+          this.clearAuthData();
+          await this.initSocket();
+        }
+
+        // Wait up to 10 seconds for WhatsApp Noise handshake (first QR event) before requesting pairing code
+        for (let i = 0; i < 20; i++) {
+          if (this.sock && this.socketReadyForPairing) break;
+          await new Promise((r) => setTimeout(r, 500));
+        }
+      };
+
+      await ensureFreshUnregisteredSocket();
+
+      if (this.sock && !this.isConnected) {
+        try {
+          const rawCode = await (this.sock as any).requestPairingCode(international);
+          const formatted = formatCode(rawCode);
+          this.lastPairingCodeByPhone.set(international, { code: formatted, timestamp: Date.now() });
+          this.logger.log(`✅ Baileys pairing code generated for +${international}: ${formatted}`);
+          return formatted;
+        } catch (err: any) {
+          const errMsg = String(err?.message || '').toLowerCase();
+          if (errMsg.includes('rate-overlimit') || errMsg.includes('rate limit') || errMsg.includes('429') || errMsg.includes('too many')) {
+            throw new BadRequestException(
+              'WhatsApp has temporarily paused pairing requests for this phone number due to repeated attempts. Please wait 2 minutes, or scan the QR Code on another device.'
+            );
+          }
+
+          this.logger.warn(`First Baileys requestPairingCode attempt failed (${err.message}). Retrying...`);
+          try {
+            await new Promise((r) => setTimeout(r, 1500));
+            if (this.sock) {
+              const rawCode = await (this.sock as any).requestPairingCode(international);
+              const formatted = formatCode(rawCode);
+              this.lastPairingCodeByPhone.set(international, { code: formatted, timestamp: Date.now() });
+              this.logger.log(`✅ Baileys pairing code generated on retry for +${international}: ${formatted}`);
+              return formatted;
+            }
+          } catch (retryErr: any) {
+            const retryMsg = String(retryErr?.message || '').toLowerCase();
+            this.logger.error(`Baileys requestPairingCode retry failed: ${retryErr.message}`);
+            if (retryMsg.includes('rate-overlimit') || retryMsg.includes('rate limit') || retryMsg.includes('429') || retryMsg.includes('too many')) {
+              throw new BadRequestException(
+                'WhatsApp rate limit reached for this number. Please wait 2 minutes before retrying, or scan the QR code.'
+              );
+            }
+            throw new BadRequestException(
+              'Unable to generate WhatsApp pairing code right now. Please wait 10 seconds and try again, or use QR code login.'
+            );
+          }
+        }
+      }
+
+      throw new BadRequestException(
+        'WhatsApp service is initializing. Please wait a few seconds and try again.'
+      );
+    } finally {
+      this.isPairingInProgress = false;
+    }
   }
 
   async sendOtpToWhatsapp(userId: string, phoneNumber: string) {
