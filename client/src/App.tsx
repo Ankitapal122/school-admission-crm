@@ -76,8 +76,10 @@ export default function App() {
     // Role-based session duration auto-logout check
     const checkSessionExpiry = () => {
       const expiresAtStr = localStorage.getItem('crm_session_expires_at');
-      if (expiresAtStr) {
-        const expiresAt = Number(expiresAtStr);
+      const num = expiresAtStr ? Number(expiresAtStr) : NaN;
+      const expiresAt = !Number.isNaN(num) && num > 0 ? num : (expiresAtStr ? Date.parse(expiresAtStr) : NaN);
+
+      if (!Number.isNaN(expiresAt) && expiresAt > 0) {
         if (Date.now() >= expiresAt) {
           const roleKey = normalizeRoleKey(user.role);
           const roleLabel =
@@ -89,6 +91,14 @@ export default function App() {
             'warning'
           );
         }
+      } else {
+        // Auto-initialize expiration if absent so refreshing never logs out
+        const roleKey = normalizeRoleKey(user.role);
+        const durationDays = roleKey === 'super_admin' ? 30 : 7;
+        const defaultExpiry = Date.now() + durationDays * 24 * 60 * 60 * 1000;
+        try {
+          localStorage.setItem('crm_session_expires_at', String(defaultExpiry));
+        } catch {}
       }
     };
     checkSessionExpiry();

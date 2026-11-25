@@ -178,21 +178,24 @@ export default function LoginPage() {
             ? 'SENIOR_MANAGER'
             : 'COUNSELLOR';
 
-        const token = res.token || res.accessToken;
+        const token = res.token || res.accessToken || res.data?.token || res.data?.accessToken;
+        const refreshToken = res.refreshToken || res.refresh_token || res.data?.refreshToken || res.data?.refresh_token;
+        const rawUser = res.user || res.data?.user;
+        const sessionExpiresAt = res.sessionExpiresAt || res.data?.sessionExpiresAt;
         setLockoutSeconds(0);
         login(
           {
-            id: res.user.id || res.user._id,
-            email: res.user.email,
-            fullName: res.user.name || res.user.fullName,
+            id: rawUser?.id || rawUser?._id,
+            email: rawUser?.email,
+            fullName: rawUser?.name || rawUser?.fullName,
             role: roleEnum,
-            rawRole: res.user.backendRole || res.user.role,
-            employeeId: res.user.employeeId,
+            rawRole: rawUser?.backendRole || rawUser?.role,
+            employeeId: rawUser?.employeeId,
           },
           token,
-          res.refreshToken,
+          refreshToken,
           rememberMe,
-          res.sessionExpiresAt
+          sessionExpiresAt
         );
       }
     } catch (err: any) {
@@ -313,26 +316,30 @@ export default function LoginPage() {
         deviceId: currentDevId,
         deviceName: navigator.userAgent,
       });
-      if (res.user) {
-        const backendRole = String(res.user.backendRole || res.user.role || '').toUpperCase();
+      const rawUser = res.user || res.data?.user;
+      if (rawUser) {
+        const backendRole = String(rawUser.backendRole || rawUser.role || '').toUpperCase();
         const roleEnum: User['role'] =
           backendRole === 'SUPER_ADMIN' || backendRole === 'ADMIN'
             ? 'SUPER_ADMIN'
             : backendRole === 'SENIOR_MANAGER' || backendRole === 'MANAGER'
             ? 'SENIOR_MANAGER'
             : 'COUNSELLOR';
-        const token = res.token || res.accessToken;
-        localStorage.setItem('crm_token', token);
+        const token = res.token || res.accessToken || res.data?.token || res.data?.accessToken;
+        const refreshToken = res.refreshToken || res.refresh_token || res.data?.refreshToken || res.data?.refresh_token;
+        const sessionExpiresAt = res.sessionExpiresAt || res.data?.sessionExpiresAt;
         login(
           {
-            id: res.user.id || res.user._id,
-            email: res.user.email,
-            fullName: res.user.name || res.user.fullName,
+            id: rawUser.id || rawUser._id,
+            email: rawUser.email,
+            fullName: rawUser.name || rawUser.fullName,
             role: roleEnum,
-            employeeId: res.user.employeeId,
+            employeeId: rawUser.employeeId,
           },
           token,
-          res.refreshToken
+          refreshToken,
+          true,
+          sessionExpiresAt
         );
         showToast('OTP verified! Account unlocked & Dashboard opened.', 'success');
       } else {
@@ -374,9 +381,12 @@ export default function LoginPage() {
         code,
         isRecoveryCode: true,
       });
-      if (res.user) {
-        const token = res.token || res.accessToken;
-        const backendRole = String(res.user.backendRole || res.user.role || '').toUpperCase();
+      const rawUser = res.user || res.data?.user;
+      if (rawUser) {
+        const token = res.token || res.accessToken || res.data?.token || res.data?.accessToken;
+        const refreshToken = res.refreshToken || res.refresh_token || res.data?.refreshToken || res.data?.refresh_token;
+        const sessionExpiresAt = res.sessionExpiresAt || res.data?.sessionExpiresAt;
+        const backendRole = String(rawUser.backendRole || rawUser.role || '').toUpperCase();
         const roleEnum: User['role'] =
           backendRole === 'SUPER_ADMIN' || backendRole === 'ADMIN'
             ? 'SUPER_ADMIN'
@@ -385,17 +395,17 @@ export default function LoginPage() {
             : 'COUNSELLOR';
         login(
           {
-            id: res.user.id || res.user._id,
-            email: res.user.email,
-            fullName: res.user.name || res.user.fullName,
+            id: rawUser.id || rawUser._id,
+            email: rawUser.email,
+            fullName: rawUser.name || rawUser.fullName,
             role: roleEnum,
-            rawRole: res.user.backendRole || res.user.role,
-            employeeId: res.user.employeeId,
+            rawRole: rawUser.backendRole || rawUser.role,
+            employeeId: rawUser.employeeId,
           },
           token,
-          res.refreshToken,
+          refreshToken,
           rememberMe,
-          res.sessionExpiresAt
+          sessionExpiresAt
         );
       }
     } catch (err: any) {

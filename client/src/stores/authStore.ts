@@ -47,6 +47,15 @@ export function normalizeUserRecord(rawUser: any): User {
   };
 }
 
+export function parseExpiresAt(val: string | null | undefined): number | null {
+  if (!val) return null;
+  const num = Number(val);
+  if (!Number.isNaN(num) && num > 0) return num;
+  const parsed = Date.parse(val);
+  if (!Number.isNaN(parsed) && parsed > 0) return parsed;
+  return null;
+}
+
 function loadInitialAuth(): {
   user: User | null;
   accessToken: string | null;
@@ -58,12 +67,15 @@ function loadInitialAuth(): {
     return { user: null, accessToken: null, refreshToken: null, isAuthenticated: false, rememberMe: false };
   }
   try {
-    // Check if session duration has expired:
-    // Admin: 30 days (1 Month)
-    // Manager: 7 days (1 Week)
-    // Counsellor: 7 days (1 Week)
+    const token = localStorage.getItem('crm_token');
+    const refreshToken = localStorage.getItem('crm_refresh_token');
+    const rawUser = localStorage.getItem('crm_user');
+    const rememberMe = localStorage.getItem('crm_remember_me') !== 'false'; // Default to persistent
     const sessionExpiresAtStr = localStorage.getItem('crm_session_expires_at');
-    if (sessionExpiresAtStr && Date.now() >= Number(sessionExpiresAtStr)) {
+    const expiresAt = parseExpiresAt(sessionExpiresAtStr);
+
+    // If session has strictly reached or passed expiration time, clear and prompt login
+    if (expiresAt && Date.now() >= expiresAt) {
       localStorage.removeItem('crm_token');
       localStorage.removeItem('crm_refresh_token');
       localStorage.removeItem('crm_user');
@@ -73,15 +85,21 @@ function loadInitialAuth(): {
       return { user: null, accessToken: null, refreshToken: null, isAuthenticated: false, rememberMe: false };
     }
 
-    const token = localStorage.getItem('crm_token');
-    const refreshToken = localStorage.getItem('crm_refresh_token');
-    const rawUser = localStorage.getItem('crm_user');
-    const rememberMe = localStorage.getItem('crm_remember_me') === 'true';
     if (token && rawUser) {
       const parsed = JSON.parse(rawUser);
       if (parsed && (parsed.id || parsed.email)) {
+        const user = normalizeUserRecord(parsed);
+        // Ensure valid expiration timestamp is always present
+        if (!expiresAt) {
+          const roleKey = normalizeRoleKey(user.role);
+          const durationDays = roleKey === 'super_admin' ? 30 : 7;
+          const fallbackExpiry = Date.now() + durationDays * 24 * 60 * 60 * 1000;
+          try {
+            localStorage.setItem('crm_session_expires_at', String(fallbackExpiry));
+          } catch {}
+        }
         return {
-          user: normalizeUserRecord(parsed),
+          user,
           accessToken: token,
           refreshToken: refreshToken || null,
           isAuthenticated: true,
@@ -139,7 +157,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   touchActivity: () => set({ lastActivityAt: Date.now() }),
 
-  login: (rawUser, accessToken, refreshToken, rememberMe = false, serverExpiresAt?: string | number) => {
+  login: (rawUser, accessToken, refreshToken, rememberMe = true, serverExpiresAt?: string | number) => {
     const user = normalizeUserRecord(rawUser);
     const roleKey = normalizeRoleKey(user.role);
     // Role-based session duration:
@@ -147,8 +165,9 @@ export const useAuthStore = create<AuthState>((set) => ({
     // Manager: 7 days (1 Week)
     // Counsellor: 7 days (1 Week)
     const durationDays = roleKey === 'super_admin' ? 30 : 7;
-    const expiresAt = serverExpiresAt
-      ? new Date(serverExpiresAt).getTime()
+    const parsedServerExp = serverExpiresAt ? parseExpiresAt(String(serverExpiresAt)) : null;
+    const expiresAt = parsedServerExp && parsedServerExp > Date.now()
+      ? parsedServerExp
       : Date.now() + durationDays * 24 * 60 * 60 * 1000;
 
     try {

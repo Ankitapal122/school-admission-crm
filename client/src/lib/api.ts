@@ -190,7 +190,20 @@ export async function apiCall<T = any>(
     if (newToken) {
       res = await performFetch(newToken);
     } else {
-      useAuthStore.getState().logout(true);
+      const isBackground =
+        endpoint.includes('/presence') ||
+        endpoint.includes('/heartbeat') ||
+        endpoint.includes('/notifications') ||
+        endpoint.includes('/privacy/status');
+      if (!isBackground) {
+        const sessionExpiresAtStr = localStorage.getItem('crm_session_expires_at');
+        const num = sessionExpiresAtStr ? Number(sessionExpiresAtStr) : NaN;
+        const expiresAt = !Number.isNaN(num) && num > 0 ? num : (sessionExpiresAtStr ? Date.parse(sessionExpiresAtStr) : NaN);
+        // Only trigger destructive logout if the session expiration has actually elapsed
+        if (!Number.isNaN(expiresAt) && Date.now() >= expiresAt) {
+          useAuthStore.getState().logout(true);
+        }
+      }
       throw new ApiError('Session expired. Please login again.', 401, { code: 'SESSION_EXPIRED' });
     }
   }

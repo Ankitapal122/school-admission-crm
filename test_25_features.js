@@ -461,7 +461,8 @@ async function runTests() {
   );
 
   // FEATURE 12: Refresh Token Rotation
-  // Login to get refresh token
+  // Use isolated test account so main admin session is never revoked
+  const reuseEmail = `reuse_test_${Date.now().toString().slice(-4)}@boardingedu.com`;
   const rotLogin = await request(
     {
       hostname: 'localhost',
@@ -470,7 +471,7 @@ async function runTests() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     },
-    { email: 'adminboarding123@gmail.com', password: 'Admin@123', role: 'admin' }
+    { email: reuseEmail, password: 'Admin@123', role: 'admin' }
   );
   const origRefreshToken = rotLogin.data?.refreshToken;
   // Rotate once
@@ -501,23 +502,6 @@ async function runTests() {
     rot1.status === 200 && rotReuse.status === 401,
     `(Rotation succeeded: ${rot1.status === 200}, Reuse revoked all sessions with 401: ${rotReuse.status === 401})`
   );
-
-  // Re-login after intentional Feature 12 token-reuse session revocation test
-  const postRotLogin = await request(
-    {
-      hostname: 'localhost',
-      port: 5000,
-      path: '/api/auth/login',
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    },
-    { email: 'adminboarding123@gmail.com', password: 'Admin@123', role: 'admin' }
-  );
-  const freshToken = postRotLogin.data?.accessToken || postRotLogin.data?.token || postRotLogin.data?.data?.accessToken || postRotLogin.data?.data?.token;
-  if (freshToken) {
-    token = freshToken;
-    authHeaders.Authorization = `Bearer ${token}`;
-  }
 
   // FEATURE 13: Role Change - Force Logout
   // Fetch users, pick a counsellor and update role
