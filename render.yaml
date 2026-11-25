@@ -16,9 +16,9 @@ services:
       - key: DATABASE_URL
         sync: false
       - key: ADMIN_NOTIFY_EMAIL
-        value: BoardingEdu123@gmail.com
+        value: boardingedu7@gmail.com
       - key: ADMIN_OTP_EMAIL
-        value: BoardingEdu123@gmail.com
+        value: boardingedu7@gmail.com
       - key: ADMIN_REQUIRE_LOGIN_OTP
         value: "true"
       - key: SMTP_HOST
@@ -26,9 +26,9 @@ services:
       - key: SMTP_PORT
         value: 587
       - key: SMTP_USER
-        value: adminboarding123@gmail.com
+        value: boardingedu7@gmail.com
       - key: SMTP_PASS
-        value: zdvnmezemiytftec
+        sync: false
       - key: SMTP_FROM
-        value: BoardingEdu CRM <adminboarding123@gmail.com>
+        value: BoardingEdu CRM <boardingedu7@gmail.com>
 

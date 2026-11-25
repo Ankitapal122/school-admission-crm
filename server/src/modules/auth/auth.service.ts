@@ -768,7 +768,7 @@ export class AuthService {
     const email =
       process.env.ADMIN_OTP_EMAIL ||
       process.env.ADMIN_NOTIFY_EMAIL ||
-      'BoardingEdu123@gmail.com';
+      'boardingedu7@gmail.com';
     return email.trim();
   }
 
