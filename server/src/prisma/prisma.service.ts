@@ -34,14 +34,15 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     };
     connectWithRetry().catch(() => {});
 
-    // Keep connection warm every 3 minutes so remote PostgreSQL does not close TCP socket
+    // Keep connection warm every 30 seconds so remote PostgreSQL does not close TCP socket
     this.keepAliveTimer = setInterval(async () => {
       try {
         await this.$queryRaw`SELECT 1`;
-      } catch (e) {
-        // ignore background keepalive errors
+      } catch (e: any) {
+        // Proactively reconnect if socket was closed by remote server
+        this.$connect().catch(() => {});
       }
-    }, 180000);
+    }, 30000);
   }
 
   async onModuleDestroy() {

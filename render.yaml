@@ -20,7 +20,7 @@ services:
       - key: ADMIN_OTP_EMAIL
         value: boardingedu7@gmail.com
       - key: ADMIN_REQUIRE_LOGIN_OTP
-        value: "true"
+        value: "false"
       - key: SMTP_HOST
         value: smtp.gmail.com
       - key: SMTP_PORT

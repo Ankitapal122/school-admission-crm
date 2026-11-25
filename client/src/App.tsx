@@ -30,7 +30,7 @@ import PrivacyComplianceView, { FirstLoginPrivacyModal } from './features/views/
 import PwaInstallPrompt from './components/PwaInstallPrompt';
 
 export default function App() {
-  const { isAuthenticated, user, previewRole } = useAuthStore();
+  const { isAuthenticated, user, previewRole, logout } = useAuthStore();
   const queryClient = useQueryClient();
 
   const [currentTab, setCurrentTabState] = useState<string>(() => {
@@ -65,13 +65,34 @@ export default function App() {
     setTimeout(() => setToastMsg(null), 4000);
   };
 
-  // Persistent session (no auto-logout on idle or refresh) + live presence heartbeat every 30s
+  // Persistent session + role-based auto-logout (Admin: 1 month, Manager: 1 week, Counsellor: 1 week) + live presence heartbeat every 30s
   // Also enforce mandatory Privacy Policy acceptance on first login
   useEffect(() => {
     if (!isAuthenticated || !user?.id) {
       setNeedsPrivacyAccept(false);
       return;
     }
+
+    // Role-based session duration auto-logout check
+    const checkSessionExpiry = () => {
+      const expiresAtStr = localStorage.getItem('crm_session_expires_at');
+      if (expiresAtStr) {
+        const expiresAt = Number(expiresAtStr);
+        if (Date.now() >= expiresAt) {
+          const roleKey = normalizeRoleKey(user.role);
+          const roleLabel =
+            roleKey === 'super_admin' ? 'Admin' : roleKey === 'manager' ? 'Manager' : 'Counsellor';
+          const periodLabel = roleKey === 'super_admin' ? '1 month' : '1 week';
+          logout(true);
+          showToast(
+            `${roleLabel} session has expired after ${periodLabel}. Please enter your email and password to log in again.`,
+            'warning'
+          );
+        }
+      }
+    };
+    checkSessionExpiry();
+    const sessionInterval = setInterval(checkSessionExpiry, 30000);
 
     // Immediate heartbeat on login/mount + every 30s so user stays "Online" only while active in CRM
     const sendHeartbeat = () => {
@@ -95,7 +116,10 @@ export default function App() {
         .catch(() => {});
     }
 
-    return () => clearInterval(hbInterval);
+    return () => {
+      clearInterval(sessionInterval);
+      clearInterval(hbInterval);
+    };
   }, [isAuthenticated, user?.id]);
 
   const effectiveRole = previewRole || user?.role || 'SUPER_ADMIN';

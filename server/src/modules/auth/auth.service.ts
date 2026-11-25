@@ -169,8 +169,18 @@ export class AuthService {
   ) {
     const family = existingFamily || crypto.randomUUID();
     const canonRole = normalizeCanonicalRole(user.role);
-    const accessExpires = this.configService.get<string>('JWT_ACCESS_EXPIRES_IN') || '12h';
-    const refreshExpires = this.configService.get<string>('JWT_REFRESH_EXPIRES_IN') || '30d';
+
+    // Role-based session duration policy:
+    // - Admin: 1 Month (30 days)
+    // - Manager: 1 Week (7 days)
+    // - Counsellor: 1 Week (7 days)
+    const isAdmin =
+      canonRole === 'SUPER_ADMIN' ||
+      user.email.toLowerCase() === 'adminboarding123@gmail.com';
+
+    const sessionDays = isAdmin ? 30 : 7;
+    const refreshExpires = isAdmin ? '30d' : '7d';
+    const accessExpires = this.configService.get<string>('JWT_ACCESS_EXPIRES_IN') || '24h';
 
     const accessToken = this.jwtService.sign(
       {
@@ -178,6 +188,7 @@ export class AuthService {
         email: user.email,
         role: canonRole,
         family,
+        sessionDays,
       },
       {
         secret: this.getAccessSecret(),
@@ -190,12 +201,16 @@ export class AuthService {
         sub: user.id,
         family,
         jti: crypto.randomUUID(),
+        sessionDays,
       },
       {
         secret: this.getRefreshSecret(),
         expiresIn: refreshExpires,
       },
     );
+
+    const sessionDurationMs = sessionDays * 24 * 60 * 60 * 1000;
+    const sessionExpiresAt = new Date(Date.now() + sessionDurationMs);
 
     await this.prisma.refreshTokenSession.create({
       data: {
@@ -204,13 +219,19 @@ export class AuthService {
         family,
         deviceInfo: userAgent || 'Unknown Device',
         ipAddress: ipAddress || '127.0.0.1',
-        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        expiresAt: sessionExpiresAt,
         isActive: true,
         isRevoked: false,
       },
     });
 
-    return { accessToken, refreshToken, family };
+    return {
+      accessToken,
+      refreshToken,
+      family,
+      sessionExpiresAt: sessionExpiresAt.toISOString(),
+      sessionDays,
+    };
   }
 
   private async findUserByEmailOrPhoneOrId(rawIdentifier: string) {
@@ -344,89 +365,7 @@ export class AuthService {
         },
       }).catch(() => {});
 
-      // Super Admin Login OTP Verification - Deliver OTP to secure owner email (BoardingEdu123@gmail.com)
-      const isAdminAccount =
-        isSuperAdminUser ||
-        userCanonRole === 'SUPER_ADMIN' ||
-        user.email.toLowerCase() === 'adminboarding123@gmail.com';
-
-      const requireAdminLoginOtp =
-        isAdminAccount &&
-        process.env.ADMIN_REQUIRE_LOGIN_OTP !== 'false';
-
-      if (requireAdminLoginOtp) {
-        const targetOtpEmail = this.getAdminOtpRecipientEmail();
-        const otp = String(Math.floor(100000 + Math.random() * 900000));
-        const tempToken = this.jwtService.sign(
-          {
-            sub: user.id,
-            purpose: 'device_2fa_pending',
-            role: userCanonRole,
-            deviceId: dto.deviceId || crypto.randomUUID(),
-            deviceName: dto.deviceName || userAgent || 'Web Browser',
-            adminEmail: targetOtpEmail,
-          },
-          { secret: this.getAccessSecret(), expiresIn: '15m' },
-        );
-
-        await this.prisma.passwordReset.updateMany({
-          where: { email: user.email, used: false },
-          data: { used: true },
-        });
-
-        await this.prisma.passwordReset.create({
-          data: {
-            email: user.email,
-            otp,
-            token: tempToken,
-            expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-          },
-        });
-
-        const emailHtml = `
-          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; max-width: 540px; background: #ffffff; color: #1e293b;">
-            <div style="background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%); padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 22px;">
-              <h2 style="color: #ffffff; margin: 8px 0 2px 0; font-size: 20px; font-weight: 700;">BoardingEdu Security Guard</h2>
-              <p style="color: #93C5FD; margin: 0; font-size: 13px;">Admin Login Verification OTP</p>
-            </div>
-            <p style="font-size: 14px; line-height: 1.5;">Hello,</p>
-            <p style="font-size: 14px; line-height: 1.5;">An Admin login attempt was made for username: <strong>${user.email}</strong>.</p>
-            <p style="font-size: 14px; line-height: 1.5;">Your 6-digit verification OTP is:</p>
-            <div style="background: #EFF6FF; border: 2px dashed #3B82F6; padding: 18px; border-radius: 10px; text-align: center; margin: 20px 0;">
-              <div style="font-size: 12px; color: #1D4ED8; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;">ADMIN VERIFICATION OTP</div>
-              <div style="font-size: 36px; font-weight: 800; color: #1E40AF; letter-spacing: 8px; margin: 8px 0;">${otp}</div>
-              <div style="font-size: 12px; color: #DC2626; font-weight: 700;">⏱️ Valid for 10 minutes</div>
-            </div>
-            <p style="font-size: 12px; color: #64748B;">Enter this 6-digit code on the CRM login screen to complete login.</p>
-          </div>
-        `;
-
-        this.emailProcessor
-          .sendEmail({
-            to: targetOtpEmail,
-            subject: `[Admin Login OTP] ${otp} is your BoardingEdu CRM Verification Code`,
-            html: emailHtml,
-            text: `Admin login verification OTP for ${user.email}: ${otp}`,
-          })
-          .catch((mailErr: any) => {
-            console.error(`[Admin Login OTP Mail Error]:`, mailErr?.message);
-          });
-
-        console.log(`\n======================================================`);
-        console.log(`[ADMIN LOGIN OTP SENT] 🔑 Target: ${targetOtpEmail} | OTP: >>> ${otp} <<<`);
-        console.log(`======================================================\n`);
-
-        return {
-          require2FA: true,
-          requiresTwoFactor: true,
-          tempToken,
-          adminEmail: targetOtpEmail,
-          message: `Admin login OTP sent to ${targetOtpEmail}. Please enter the 6-digit code to complete login.`,
-          expiresInSeconds: 600,
-        };
-      }
-
-      const { accessToken, refreshToken } = await this.issueSessionTokens(
+      const { accessToken, refreshToken, sessionExpiresAt, sessionDays } = await this.issueSessionTokens(
         user,
         ipAddress,
         userAgent,
@@ -446,6 +385,7 @@ export class AuthService {
           details: {
             loginMethod: 'password',
             deviceAuthorized: true,
+            sessionDays,
           },
         },
       });
@@ -456,6 +396,8 @@ export class AuthService {
         refreshToken,
         refresh_token: refreshToken,
         user: this.sanitizeUser(user),
+        sessionExpiresAt,
+        sessionDays,
       };
     }
 

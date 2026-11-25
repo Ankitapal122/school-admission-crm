@@ -26,7 +26,7 @@ interface AuthState {
   setPreviewRole: (role: CanonicalRole | null) => void;
   setTokens: (accessToken: string, refreshToken?: string | null) => void;
   touchActivity: () => void;
-  login: (user: any, accessToken?: string, refreshToken?: string, rememberMe?: boolean) => void;
+  login: (user: any, accessToken?: string, refreshToken?: string, rememberMe?: boolean, serverExpiresAt?: string | number) => void;
   logout: (broadcast?: boolean) => void;
 }
 
@@ -58,6 +58,21 @@ function loadInitialAuth(): {
     return { user: null, accessToken: null, refreshToken: null, isAuthenticated: false, rememberMe: false };
   }
   try {
+    // Check if session duration has expired:
+    // Admin: 30 days (1 Month)
+    // Manager: 7 days (1 Week)
+    // Counsellor: 7 days (1 Week)
+    const sessionExpiresAtStr = localStorage.getItem('crm_session_expires_at');
+    if (sessionExpiresAtStr && Date.now() >= Number(sessionExpiresAtStr)) {
+      localStorage.removeItem('crm_token');
+      localStorage.removeItem('crm_refresh_token');
+      localStorage.removeItem('crm_user');
+      localStorage.removeItem('crm_remember_me');
+      localStorage.removeItem('crm_session_expires_at');
+      localStorage.removeItem('crm_login_at');
+      return { user: null, accessToken: null, refreshToken: null, isAuthenticated: false, rememberMe: false };
+    }
+
     const token = localStorage.getItem('crm_token');
     const refreshToken = localStorage.getItem('crm_refresh_token');
     const rawUser = localStorage.getItem('crm_user');
@@ -124,13 +139,25 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   touchActivity: () => set({ lastActivityAt: Date.now() }),
 
-  login: (rawUser, accessToken, refreshToken, rememberMe = false) => {
+  login: (rawUser, accessToken, refreshToken, rememberMe = false, serverExpiresAt?: string | number) => {
     const user = normalizeUserRecord(rawUser);
+    const roleKey = normalizeRoleKey(user.role);
+    // Role-based session duration:
+    // Admin: 30 days (1 Month)
+    // Manager: 7 days (1 Week)
+    // Counsellor: 7 days (1 Week)
+    const durationDays = roleKey === 'super_admin' ? 30 : 7;
+    const expiresAt = serverExpiresAt
+      ? new Date(serverExpiresAt).getTime()
+      : Date.now() + durationDays * 24 * 60 * 60 * 1000;
+
     try {
       if (accessToken) localStorage.setItem('crm_token', accessToken);
       if (refreshToken) localStorage.setItem('crm_refresh_token', refreshToken);
       localStorage.setItem('crm_user', JSON.stringify(user));
       localStorage.setItem('crm_remember_me', rememberMe ? 'true' : 'false');
+      localStorage.setItem('crm_session_expires_at', String(expiresAt));
+      localStorage.setItem('crm_login_at', String(Date.now()));
     } catch {
       // Ignore storage quota errors
     }
@@ -161,6 +188,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       localStorage.removeItem('crm_refresh_token');
       localStorage.removeItem('crm_user');
       localStorage.removeItem('crm_remember_me');
+      localStorage.removeItem('crm_session_expires_at');
+      localStorage.removeItem('crm_login_at');
       if (broadcast) {
         localStorage.setItem('crm_logout_event', String(Date.now()));
       }

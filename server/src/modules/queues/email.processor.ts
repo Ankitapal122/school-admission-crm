@@ -11,7 +11,7 @@ export class EmailProcessor {
       process.env.SMTP_USER ||
       process.env.EMAIL_USER ||
       process.env.BREVO_SMTP_USER ||
-      'adminboarding123@gmail.com';
+      'boardingedu7@gmail.com';
     const pass = (
       process.env.SMTP_PASS ||
       process.env.EMAIL_PASS ||
@@ -69,7 +69,7 @@ export class EmailProcessor {
     const brevoKey = process.env.BREVO_API_KEY || defaultBrevoKey;
     const resendKey = process.env.RESEND_API_KEY || '';
     const senderEmail =
-      process.env.MAIL_FROM_EMAIL || process.env.SMTP_USER || 'adminboarding123@gmail.com';
+      process.env.MAIL_FROM_EMAIL || process.env.SMTP_USER || 'boardingedu7@gmail.com';
     if (brevoKey.startsWith('xkeysib')) {
       const r = await fetch('https://api.brevo.com/v3/smtp/email', {
         method: 'POST',

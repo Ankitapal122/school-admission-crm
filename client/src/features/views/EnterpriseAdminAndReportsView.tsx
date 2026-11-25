@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import CrmIcon from '../../components/CrmIcon';
 import { apiCall, downloadApiFile } from '../../lib/api';
 import { useAuthStore } from '../../stores/authStore';
@@ -444,13 +445,64 @@ export function UsersView({
     null
   );
   const [openActionsUserId, setOpenActionsUserId] = useState<string | null>(null);
+  const [actionsAnchorRect, setActionsAnchorRect] = useState<DOMRect | null>(null);
+  const leaveTimeoutRef = useRef<any>(null);
 
   useEffect(() => {
     if (!openActionsUserId) return;
-    const close = () => setOpenActionsUserId(null);
+    const close = () => {
+      setOpenActionsUserId(null);
+      setActionsAnchorRect(null);
+    };
     window.addEventListener('click', close);
-    return () => window.removeEventListener('click', close);
+    window.addEventListener('scroll', close, { passive: true });
+    return () => {
+      window.removeEventListener('click', close);
+      window.removeEventListener('scroll', close);
+    };
   }, [openActionsUserId]);
+
+  const handleActionBtnEnter = (userId: string, el: HTMLElement) => {
+    if (leaveTimeoutRef.current) {
+      clearTimeout(leaveTimeoutRef.current);
+      leaveTimeoutRef.current = null;
+    }
+    const rect = el.getBoundingClientRect();
+    setActionsAnchorRect(rect);
+    setOpenActionsUserId(userId);
+  };
+
+  const handleActionBtnLeave = () => {
+    leaveTimeoutRef.current = setTimeout(() => {
+      setOpenActionsUserId(null);
+      setActionsAnchorRect(null);
+    }, 250);
+  };
+
+  const handleDropdownEnter = () => {
+    if (leaveTimeoutRef.current) {
+      clearTimeout(leaveTimeoutRef.current);
+      leaveTimeoutRef.current = null;
+    }
+  };
+
+  const handleDropdownLeave = () => {
+    leaveTimeoutRef.current = setTimeout(() => {
+      setOpenActionsUserId(null);
+      setActionsAnchorRect(null);
+    }, 200);
+  };
+
+  const handleActionBtnToggle = (userId: string, el: HTMLElement) => {
+    if (openActionsUserId === userId) {
+      setOpenActionsUserId(null);
+      setActionsAnchorRect(null);
+    } else {
+      const rect = el.getBoundingClientRect();
+      setActionsAnchorRect(rect);
+      setOpenActionsUserId(userId);
+    }
+  };
 
   // Roles & Permissions Matrix
   const [rolesMatrix, setRolesMatrix] = useState<any[]>([]);
@@ -664,7 +716,7 @@ export function UsersView({
       </div>
 
       {subTab === 'employees' ? (
-        <div className="table-container">
+        <div className="table-container" style={{ overflow: 'visible', minHeight: '260px' }}>
           <table className="data-table">
             <thead>
               <tr>
@@ -858,201 +910,243 @@ export function UsersView({
                           >
                             <CrmIcon name="unlock" size={14} /> Unlock
                           </button>
-                          <div style={{ position: 'relative' }} onClick={(e) => e.stopPropagation()}>
+                          <div
+                            style={{ position: 'relative', display: 'inline-block' }}
+                            onClick={(e) => e.stopPropagation()}
+                            onMouseEnter={(e) => handleActionBtnEnter(u.id, e.currentTarget)}
+                            onMouseLeave={handleActionBtnLeave}
+                          >
                             <button
                               type="button"
                               className="btn btn-sm btn-primary"
                               style={{ whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                              onClick={() =>
-                                setOpenActionsUserId((prev) => (prev === u.id ? null : u.id))
-                              }
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleActionBtnToggle(u.id, e.currentTarget);
+                              }}
                             >
                               Actions <span style={{ fontSize: '10px', lineHeight: 1 }}>▾</span>
                             </button>
-                            {openActionsUserId === u.id && (
-                              <div
-                                style={{
-                                  position: 'absolute',
-                                  right: 0,
-                                  top: 'calc(100% + 4px)',
-                                  minWidth: '175px',
-                                  backgroundColor: '#FFFFFF',
-                                  border: '1px solid #E2E8F0',
-                                  borderRadius: '10px',
-                                  boxShadow: '0 10px 25px rgba(15, 23, 42, 0.14)',
-                                  padding: '5px',
-                                  zIndex: 60,
-                                  display: 'flex',
-                                  flexDirection: 'column',
-                                  gap: '2px',
-                                }}
-                              >
-                                {!isSuperAdminTarget && (
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setOpenActionsUserId(null);
-                                      handleUserAction(
-                                        u.id,
-                                        'toggle-status',
-                                        'PATCH',
-                                        `Status toggled for ${u.fullName}.`
-                                      );
-                                    }}
-                                    style={{
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: '8px',
-                                      width: '100%',
-                                      padding: '7px 10px',
-                                      border: 'none',
-                                      background: 'transparent',
-                                      borderRadius: '6px',
-                                      fontSize: '12.5px',
-                                      fontWeight: 600,
-                                      color: '#1E293B',
-                                      cursor: 'pointer',
-                                      textAlign: 'left',
-                                    }}
-                                  >
-                                    <CrmIcon name="play" size={14} /> Toggle Active
-                                  </button>
-                                )}
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setOpenActionsUserId(null);
-                                    handleUserAction(
-                                      u.id,
-                                      'force-logout',
-                                      'POST',
-                                      `Forced logout on all devices for ${u.fullName}.`
-                                    );
-                                  }}
-                                  style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '8px',
-                                    width: '100%',
-                                    padding: '7px 10px',
-                                    border: 'none',
-                                    background: 'transparent',
-                                    borderRadius: '6px',
-                                    fontSize: '12.5px',
-                                    fontWeight: 600,
-                                    color: '#1E293B',
-                                    cursor: 'pointer',
-                                    textAlign: 'left',
-                                  }}
-                                >
-                                  <CrmIcon name="logout" size={14} /> Force Logout
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setOpenActionsUserId(null);
-                                    setResetTarget(u);
-                                  }}
-                                  style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '8px',
-                                    width: '100%',
-                                    padding: '7px 10px',
-                                    border: 'none',
-                                    background: 'transparent',
-                                    borderRadius: '6px',
-                                    fontSize: '12.5px',
-                                    fontWeight: 600,
-                                    color: '#1E293B',
-                                    cursor: 'pointer',
-                                    textAlign: 'left',
-                                  }}
-                                >
-                                  <CrmIcon name="key" size={14} /> Reset Password
-                                </button>
-                                {!isSuperAdminTarget && (
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setOpenActionsUserId(null);
-                                      setRoleTarget(u);
-                                      setTargetRoleVal(u.role || 'COUNSELLOR');
-                                    }}
-                                    style={{
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: '8px',
-                                      width: '100%',
-                                      padding: '7px 10px',
-                                      border: 'none',
-                                      background: 'transparent',
-                                      borderRadius: '6px',
-                                      fontSize: '12.5px',
-                                      fontWeight: 600,
-                                      color: '#1E293B',
-                                      cursor: 'pointer',
-                                      textAlign: 'left',
-                                    }}
-                                  >
-                                    <CrmIcon name="user-cog" size={14} /> Edit Role
-                                  </button>
-                                )}
-                                {isSuperAdminTarget ? (
-                                  <div
-                                    style={{
-                                      margin: '4px 0 2px',
-                                      padding: '6px 10px',
-                                      backgroundColor: '#EFF6FF',
-                                      border: '1px solid #BFDBFE',
-                                      borderRadius: '6px',
-                                      fontSize: '11px',
-                                      fontWeight: 700,
-                                      color: '#1D4ED8',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: '5px',
-                                    }}
-                                  >
-                                    <CrmIcon name="shield-check" size={13} color="#2563EB" /> Protected (Cannot Suspend)
-                                  </div>
-                                ) : (
-                                  <>
-                                    <div style={{ height: '1px', background: '#F1F5F9', margin: '2px 0' }} />
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        setOpenActionsUserId(null);
-                                        handleUserAction(
-                                          u.id,
-                                          'toggle-status',
-                                          'PATCH',
-                                          `${u.fullName} ${u.status === 'suspended' ? 'activated' : 'deactivated'}.`
-                                        );
-                                      }}
+                            {openActionsUserId === u.id &&
+                              actionsAnchorRect &&
+                              typeof document !== 'undefined' &&
+                              createPortal(
+                                (() => {
+                                  const spaceBelow = window.innerHeight - actionsAnchorRect.bottom;
+                                  const openUpward = spaceBelow < 250 && actionsAnchorRect.top > 250;
+                                  return (
+                                    <div
                                       style={{
+                                        position: 'fixed',
+                                        right: Math.max(8, window.innerWidth - actionsAnchorRect.right),
+                                        top: openUpward ? undefined : `${actionsAnchorRect.bottom + 4}px`,
+                                        bottom: openUpward
+                                          ? `${window.innerHeight - actionsAnchorRect.top + 4}px`
+                                          : undefined,
+                                        minWidth: '185px',
+                                        backgroundColor: '#FFFFFF',
+                                        border: '1px solid #CBD5E1',
+                                        borderRadius: '10px',
+                                        boxShadow: '0 12px 30px rgba(15, 23, 42, 0.18)',
+                                        padding: '6px',
+                                        zIndex: 99999,
                                         display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '8px',
-                                        width: '100%',
-                                        padding: '7px 10px',
-                                        border: 'none',
-                                        background: 'transparent',
-                                        borderRadius: '6px',
-                                        fontSize: '12.5px',
-                                        fontWeight: 700,
-                                        color: u.status === 'suspended' ? '#16A34A' : '#DC2626',
-                                        cursor: 'pointer',
-                                        textAlign: 'left',
+                                        flexDirection: 'column',
+                                        gap: '2px',
                                       }}
+                                      onClick={(e) => e.stopPropagation()}
+                                      onMouseEnter={handleDropdownEnter}
+                                      onMouseLeave={handleDropdownLeave}
                                     >
-                                      <CrmIcon name={u.status === 'suspended' ? 'check-circle' : 'trash'} size={14} />
-                                      {u.status === 'suspended' ? 'Activate' : 'Deactivate'}
-                                    </button>
-                                  </>
-                                )}
-                              </div>
-                            )}
+                                      {!isSuperAdminTarget && (
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setOpenActionsUserId(null);
+                                            setActionsAnchorRect(null);
+                                            handleUserAction(
+                                              u.id,
+                                              'toggle-status',
+                                              'PATCH',
+                                              `Status toggled for ${u.fullName}.`
+                                            );
+                                          }}
+                                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F1F5F9')}
+                                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                                          style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                            width: '100%',
+                                            padding: '7px 10px',
+                                            border: 'none',
+                                            background: 'transparent',
+                                            borderRadius: '6px',
+                                            fontSize: '12.5px',
+                                            fontWeight: 600,
+                                            color: '#1E293B',
+                                            cursor: 'pointer',
+                                            textAlign: 'left',
+                                            transition: 'background 0.15s ease',
+                                          }}
+                                        >
+                                          <CrmIcon name="play" size={14} /> Toggle Active
+                                        </button>
+                                      )}
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setOpenActionsUserId(null);
+                                          setActionsAnchorRect(null);
+                                          handleUserAction(
+                                            u.id,
+                                            'force-logout',
+                                            'POST',
+                                            `Forced logout on all devices for ${u.fullName}.`
+                                          );
+                                        }}
+                                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F1F5F9')}
+                                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                                        style={{
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          gap: '8px',
+                                          width: '100%',
+                                          padding: '7px 10px',
+                                          border: 'none',
+                                          background: 'transparent',
+                                          borderRadius: '6px',
+                                          fontSize: '12.5px',
+                                          fontWeight: 600,
+                                          color: '#1E293B',
+                                          cursor: 'pointer',
+                                          textAlign: 'left',
+                                          transition: 'background 0.15s ease',
+                                        }}
+                                      >
+                                        <CrmIcon name="logout" size={14} /> Force Logout
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setOpenActionsUserId(null);
+                                          setActionsAnchorRect(null);
+                                          setResetTarget(u);
+                                        }}
+                                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F1F5F9')}
+                                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                                        style={{
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          gap: '8px',
+                                          width: '100%',
+                                          padding: '7px 10px',
+                                          border: 'none',
+                                          background: 'transparent',
+                                          borderRadius: '6px',
+                                          fontSize: '12.5px',
+                                          fontWeight: 600,
+                                          color: '#1E293B',
+                                          cursor: 'pointer',
+                                          textAlign: 'left',
+                                          transition: 'background 0.15s ease',
+                                        }}
+                                      >
+                                        <CrmIcon name="key" size={14} /> Reset Password
+                                      </button>
+                                      {!isSuperAdminTarget && (
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setOpenActionsUserId(null);
+                                            setActionsAnchorRect(null);
+                                            setRoleTarget(u);
+                                            setTargetRoleVal(u.role || 'COUNSELLOR');
+                                          }}
+                                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F1F5F9')}
+                                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                                          style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                            width: '100%',
+                                            padding: '7px 10px',
+                                            border: 'none',
+                                            background: 'transparent',
+                                            borderRadius: '6px',
+                                            fontSize: '12.5px',
+                                            fontWeight: 600,
+                                            color: '#1E293B',
+                                            cursor: 'pointer',
+                                            textAlign: 'left',
+                                            transition: 'background 0.15s ease',
+                                          }}
+                                        >
+                                          <CrmIcon name="user-cog" size={14} /> Edit Role
+                                        </button>
+                                      )}
+                                      {isSuperAdminTarget ? (
+                                        <div
+                                          style={{
+                                            margin: '4px 0 2px',
+                                            padding: '6px 10px',
+                                            backgroundColor: '#EFF6FF',
+                                            border: '1px solid #BFDBFE',
+                                            borderRadius: '6px',
+                                            fontSize: '11px',
+                                            fontWeight: 700,
+                                            color: '#1D4ED8',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '5px',
+                                          }}
+                                        >
+                                          <CrmIcon name="shield-check" size={13} color="#2563EB" /> Protected (Cannot Suspend)
+                                        </div>
+                                      ) : (
+                                        <>
+                                          <div style={{ height: '1px', background: '#F1F5F9', margin: '2px 0' }} />
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              setOpenActionsUserId(null);
+                                              setActionsAnchorRect(null);
+                                              handleUserAction(
+                                                u.id,
+                                                'toggle-status',
+                                                'PATCH',
+                                                `${u.fullName} ${u.status === 'suspended' ? 'activated' : 'deactivated'}.`
+                                              );
+                                            }}
+                                            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#FEF2F2')}
+                                            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                                            style={{
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              gap: '8px',
+                                              width: '100%',
+                                              padding: '7px 10px',
+                                              border: 'none',
+                                              background: 'transparent',
+                                              borderRadius: '6px',
+                                              fontSize: '12.5px',
+                                              fontWeight: 700,
+                                              color: u.status === 'suspended' ? '#16A34A' : '#DC2626',
+                                              cursor: 'pointer',
+                                              textAlign: 'left',
+                                              transition: 'background 0.15s ease',
+                                            }}
+                                          >
+                                            <CrmIcon name={u.status === 'suspended' ? 'check-circle' : 'trash'} size={14} />
+                                            {u.status === 'suspended' ? 'Activate' : 'Deactivate'}
+                                          </button>
+                                        </>
+                                      )}
+                                    </div>
+                                  );
+                                })(),
+                                document.body
+                              )}
                           </div>
                         </>
                       )}

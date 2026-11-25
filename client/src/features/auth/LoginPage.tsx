@@ -191,7 +191,8 @@ export default function LoginPage() {
           },
           token,
           res.refreshToken,
-          rememberMe
+          rememberMe,
+          res.sessionExpiresAt
         );
       }
     } catch (err: any) {
@@ -393,7 +394,8 @@ export default function LoginPage() {
           },
           token,
           res.refreshToken,
-          rememberMe
+          rememberMe,
+          res.sessionExpiresAt
         );
       }
     } catch (err: any) {
