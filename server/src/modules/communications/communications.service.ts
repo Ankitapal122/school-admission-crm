@@ -51,26 +51,8 @@ export class CommunicationsService {
   }
 
   private async enforceLayer3Gate(userId: string, targetLeadId: string, force?: boolean) {
-    if (force) return;
-    const blocking = await this.prisma.pendingLoggingQueue.findFirst({
-      where: {
-        userId,
-        status: { in: ['pending', 'escalated'] },
-        leadId: { not: targetLeadId },
-      },
-      orderBy: { createdAt: 'asc' },
-      include: { lead: { select: { leadNumber: true, studentName: true } } },
-    });
-    if (blocking) {
-      throw new ConflictException({
-        success: false,
-        message: `Please confirm the outcome of your previous ${blocking.actionType} for ${blocking.lead?.studentName || blocking.leadId} (${blocking.lead?.leadNumber || ''}) before contacting another lead.`,
-        error: {
-          code: 'PENDING_LOGGING_BLOCK',
-          pendingItem: blocking,
-        },
-      });
-    }
+    // Disabled per user request: Staff and counsellors are never blocked from contacting leads
+    return;
   }
 
   private async getWhatsappLimits() {
@@ -647,53 +629,8 @@ export class CommunicationsService {
   }
 
   async listPendingQueue(actor: any) {
-    const canon = normalizeCanonicalRole(actor.role);
-    const where: any = { status: { in: ['pending', 'escalated'] } };
-    if (canon === 'COUNSELLOR') {
-      where.userId = actor.id;
-    } else if (canon === 'SENIOR_MANAGER') {
-      const teamUsers = await this.prisma.user.findMany({
-        where: { OR: [{ id: actor.id }, { managerId: actor.id }] },
-        select: { id: true },
-      });
-      where.userId = { in: teamUsers.map((u) => u.id) };
-    }
-
-    const items = await this.prisma.pendingLoggingQueue.findMany({
-      where,
-      include: {
-        lead: {
-          select: {
-            id: true,
-            leadNumber: true,
-            studentName: true,
-            parentName: true,
-            parentPhone: true,
-          },
-        },
-        user: { select: { id: true, fullName: true, email: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    const now = Date.now();
-    return items.map((item) => {
-      const hours = (now - new Date(item.createdAt).getTime()) / (1000 * 60 * 60);
-      const bucket =
-        hours >= 24 ? 'over_24h' : hours >= 4 ? 'over_4h' : hours >= 1 ? '1h_to_4h' : 'under_1h';
-      return {
-        id: item.id,
-        lead_id: item.lead?.leadNumber || item.leadId,
-        leadUuid: item.leadId,
-        studentName: item.lead?.studentName,
-        parentName: item.lead?.parentName,
-        userName: item.user?.fullName,
-        action_type: item.actionType,
-        status: item.status,
-        age_bucket: bucket,
-        created_at: item.createdAt,
-      };
-    });
+    // Disabled per user request: Return empty so no banners or locks appear on any dashboard
+    return [];
   }
 
   async resolvePendingQueueItem(id: string, body: any, actor: any) {

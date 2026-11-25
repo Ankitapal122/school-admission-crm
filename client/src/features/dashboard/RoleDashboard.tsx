@@ -384,63 +384,6 @@ export default function RoleDashboard({
         </div>
       )}
 
-      {/* Layer-3 Pending Logging Queue Alert Strip */}
-      {pendingQueue.length > 0 && (
-        <div
-          className="card"
-          style={{
-            marginBottom: '20px',
-            borderColor: '#F59E0B',
-            background: '#FFFBEB',
-            padding: '14px 18px',
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: '12px',
-            }}
-          >
-            <div>
-              <div
-                style={{
-                  fontWeight: 800,
-                  color: '#92400E',
-                  fontSize: '14px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                }}
-              >
-                <CrmIcon name="clock" size={16} /> Layer-3 Activity Confirmation Required ({pendingQueue.length} Pending)
-              </div>
-              <div style={{ fontSize: '12.5px', color: '#B45309', marginTop: '2px' }}>
-                Lead: <strong>{pendingQueue[0]?.lead?.studentName || 'Student'}</strong> (
-                {pendingQueue[0]?.lead?.leadNumber || 'CRM Lead'}) via{' '}
-                <strong>{String(pendingQueue[0]?.channel || 'whatsapp').toUpperCase()}</strong> &mdash;
-                Confirm outcome to prevent outgoing contact lock on other leads.
-              </div>
-            </div>
-            <button
-              className="btn btn-navy btn-sm"
-              onClick={() => {
-                setResolvingItem(pendingQueue[0]);
-                setResolveStatus(
-                  String(pendingQueue[0]?.channel || '').toLowerCase() === 'call'
-                    ? 'connected'
-                    : 'sent'
-                );
-              }}
-            >
-              <CrmIcon name="check" size={16} /> Confirm &amp; Resolve Now
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* ========================================================================= */}
       {/* 1. COUNSELLOR DASHBOARD (EXACT REFERENCE DESIGN & LIVE WORKING SYSTEM) */}
       {/* ========================================================================= */}

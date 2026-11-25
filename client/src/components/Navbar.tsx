@@ -455,24 +455,6 @@ export default function Navbar({
           </button>
         )}
 
-        {pendingLogCount > 0 && (
-          <button
-            className="btn btn-sm btn-warning desktop-only"
-            onClick={() => {
-              onSelectTab('dashboard');
-              if (onShowToast) {
-                onShowToast(
-                  `${pendingLogCount} call/WhatsApp outcome(s) pending resolution.`,
-                  'warning'
-                );
-              }
-            }}
-            title="Layer-3 Activity Logging Lock Queue"
-          >
-            <CrmIcon name="clock" size={14} /> {pendingLogCount} Unlogged
-          </button>
-        )}
-
         {/* Admin Dashboard Switcher Preview Feature - Fully Responsive on Mobile & Desktop */}
         {hasRole(user?.role, 'SUPER_ADMIN') && (
           <div
