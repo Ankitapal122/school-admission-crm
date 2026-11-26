@@ -63,6 +63,9 @@ export function VirtualTourManager({
   const [proceedDecision, setProceedDecision] = useState<'YES' | 'NO'>('YES');
   const [postFeedback, setPostFeedback] = useState('');
   const [agreedFeeVal, setAgreedFeeVal] = useState('450000');
+  const [paymentStatus, setPaymentStatus] = useState<'FULL_PAID' | 'TOKEN_PAID' | 'INSTALLMENTS'>('FULL_PAID');
+  const [paymentMode, setPaymentMode] = useState<string>('UPI');
+  const [transactionRef, setTransactionRef] = useState<string>('');
   const [savingFeedback, setSavingFeedback] = useState(false);
 
   const fetchTours = async () => {
@@ -122,15 +125,23 @@ export function VirtualTourManager({
         proceedAdmission: proceedDecision === 'YES',
         feedback: postFeedback.trim(),
         totalFee: Number(agreedFeeVal || 450000),
+        paymentStatus: proceedDecision === 'YES' ? paymentStatus : undefined,
+        paymentMode: proceedDecision === 'YES' ? paymentMode : undefined,
+        transactionRef: proceedDecision === 'YES' && transactionRef ? transactionRef.trim() : undefined,
       });
       onShowToast(
         proceedDecision === 'YES'
-          ? 'Tour completed! Admission confirmed & 3-Tier Milestone Fee Installment plan generated.'
+          ? paymentStatus === 'FULL_PAID'
+            ? 'Tour completed! Full fee payment recorded & admission confirmed! 🎉'
+            : paymentStatus === 'TOKEN_PAID'
+            ? 'Tour completed! Token fee recorded & remaining installments scheduled.'
+            : 'Tour completed! Admission confirmed & 3-Tier Milestone Fee Installment plan generated.'
           : 'Tour marked as completed (Not proceeding with admission).',
         'success'
       );
       setCompletingTour(null);
       setPostFeedback('');
+      setTransactionRef('');
       fetchTours();
       onRefresh();
     } catch (err: any) {
@@ -717,28 +728,146 @@ export function VirtualTourManager({
                       border: '1px solid #BBF7D0',
                       borderRadius: '10px',
                       padding: '14px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px',
                     }}
                   >
-                    <div style={{ fontWeight: 700, color: '#166534', fontSize: '13px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <CrmIcon name="zap" size={14} color="#166534" /> 3-Tier Milestone Fee Installment Plan will be Auto-Created:
-                    </div>
-                    <ul style={{ margin: '0 0 12px 18px', padding: 0, fontSize: '12px', color: '#166534' }}>
-                      <li><strong>Milestone 1: 30%</strong> Token / Admission Confirmation (Immediate)</li>
-                      <li><strong>Milestone 2: 50%</strong> 2nd Term Fee (After 2 Months)</li>
-                      <li><strong>Milestone 3: 20%</strong> Final Clearance (Month 4)</li>
-                    </ul>
-
                     <div className="form-group" style={{ margin: 0 }}>
-                      <label className="form-label" style={{ color: '#166534' }}>Agreed Annual Fee (₹) *</label>
+                      <label className="form-label" style={{ color: '#166534', fontWeight: 800 }}>
+                        Agreed Annual Fee (₹) *
+                      </label>
                       <input
                         type="number"
                         className="form-control"
                         required
                         value={agreedFeeVal}
                         onChange={(e) => setAgreedFeeVal(e.target.value)}
-                        placeholder="450000"
+                        placeholder="2000000"
+                        style={{ fontSize: '15px', fontWeight: 700 }}
                       />
                     </div>
+
+                    {/* Fee Payment Options */}
+                    <div>
+                      <label className="form-label" style={{ color: '#166534', fontWeight: 800, marginBottom: '6px' }}>
+                        Fee Payment Status / Mode *
+                      </label>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px' }}>
+                        <button
+                          type="button"
+                          onClick={() => setPaymentStatus('FULL_PAID')}
+                          style={{
+                            padding: '10px 8px',
+                            borderRadius: '8px',
+                            border: `2px solid ${paymentStatus === 'FULL_PAID' ? '#16A34A' : '#CBD5E1'}`,
+                            background: paymentStatus === 'FULL_PAID' ? '#DCFCE7' : '#FFFFFF',
+                            color: paymentStatus === 'FULL_PAID' ? '#166534' : '#475569',
+                            fontWeight: 800,
+                            fontSize: '12px',
+                            cursor: 'pointer',
+                            textAlign: 'center',
+                          }}
+                        >
+                          <div>💰 Full Fees Paid</div>
+                          <div style={{ fontSize: '10.5px', fontWeight: 500, marginTop: '2px' }}>(100% Complete)</div>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPaymentStatus('TOKEN_PAID')}
+                          style={{
+                            padding: '10px 8px',
+                            borderRadius: '8px',
+                            border: `2px solid ${paymentStatus === 'TOKEN_PAID' ? '#2563EB' : '#CBD5E1'}`,
+                            background: paymentStatus === 'TOKEN_PAID' ? '#DBEAFE' : '#FFFFFF',
+                            color: paymentStatus === 'TOKEN_PAID' ? '#1E40AF' : '#475569',
+                            fontWeight: 800,
+                            fontSize: '12px',
+                            cursor: 'pointer',
+                            textAlign: 'center',
+                          }}
+                        >
+                          <div>⚡ Token Paid</div>
+                          <div style={{ fontSize: '10.5px', fontWeight: 500, marginTop: '2px' }}>(30% Now, 70% Later)</div>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPaymentStatus('INSTALLMENTS')}
+                          style={{
+                            padding: '10px 8px',
+                            borderRadius: '8px',
+                            border: `2px solid ${paymentStatus === 'INSTALLMENTS' ? '#0F172A' : '#CBD5E1'}`,
+                            background: paymentStatus === 'INSTALLMENTS' ? '#F1F5F9' : '#FFFFFF',
+                            color: paymentStatus === 'INSTALLMENTS' ? '#0F172A' : '#475569',
+                            fontWeight: 800,
+                            fontSize: '12px',
+                            cursor: 'pointer',
+                            textAlign: 'center',
+                          }}
+                        >
+                          <div>📅 Installments</div>
+                          <div style={{ fontSize: '10.5px', fontWeight: 500, marginTop: '2px' }}>(3-Tier Milestones)</div>
+                        </button>
+                      </div>
+                    </div>
+
+                    {paymentStatus === 'FULL_PAID' && (
+                      <div style={{ background: '#DCFCE7', borderRadius: '8px', padding: '10px 12px', fontSize: '12px', color: '#166534' }}>
+                        ✅ <strong>100% Full Payment Paid:</strong> ₹{Number(agreedFeeVal || 0).toLocaleString('en-IN')} will be recorded as received. Admission confirmed and receipt will be generated immediately!
+                      </div>
+                    )}
+
+                    {paymentStatus === 'TOKEN_PAID' && (
+                      <div style={{ background: '#EFF6FF', borderRadius: '8px', padding: '10px 12px', fontSize: '12px', color: '#1E40AF' }}>
+                        🔹 <strong>30% Token Paid:</strong> ₹{Math.round(Number(agreedFeeVal || 0) * 0.3).toLocaleString('en-IN')} recorded as received today. Remaining 2 term installments will be scheduled.
+                      </div>
+                    )}
+
+                    {paymentStatus === 'INSTALLMENTS' && (
+                      <div style={{ fontSize: '11.5px', color: '#166534' }}>
+                        <div style={{ fontWeight: 700, marginBottom: '4px' }}>3-Tier Milestone Fee Schedule:</div>
+                        <ul style={{ margin: 0, paddingLeft: '16px' }}>
+                          <li>Milestone 1: 30% Token / Confirmation (Immediate)</li>
+                          <li>Milestone 2: 50% Term 2 (After 2 Months)</li>
+                          <li>Milestone 3: 20% Final Clearance (Month 4)</li>
+                        </ul>
+                      </div>
+                    )}
+
+                    {(paymentStatus === 'FULL_PAID' || paymentStatus === 'TOKEN_PAID') && (
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '8px', marginTop: '2px' }}>
+                        <div>
+                          <label className="form-label" style={{ fontSize: '11.5px', color: '#166534', fontWeight: 700 }}>
+                            Payment Method:
+                          </label>
+                          <select
+                            className="form-control"
+                            value={paymentMode}
+                            onChange={(e) => setPaymentMode(e.target.value)}
+                            style={{ fontSize: '12.5px', fontWeight: 600 }}
+                          >
+                            <option value="UPI">UPI / GPay / PhonePe</option>
+                            <option value="NET_BANKING">Bank Transfer (NEFT/RTGS)</option>
+                            <option value="CASH">Cash Deposit</option>
+                            <option value="CHEQUE">Cheque / DD</option>
+                            <option value="CARD">Debit / Credit Card</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="form-label" style={{ fontSize: '11.5px', color: '#166534', fontWeight: 700 }}>
+                            UTR / Transaction Ref:
+                          </label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            placeholder="e.g. UPI/810422/TXN01"
+                            value={transactionRef}
+                            onChange={(e) => setTransactionRef(e.target.value)}
+                            style={{ fontSize: '12px' }}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 

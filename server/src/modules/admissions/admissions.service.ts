@@ -1220,9 +1220,104 @@ export class AdmissionsService {
         }
       }
 
-      // Auto-generate 3-tier milestone installment plan (30%, 50%, 20%)
+      const paymentStatus = String(body.paymentStatus || body.payment_status || 'INSTALLMENTS').toUpperCase();
+      const paymentMode = body.paymentMode || body.payment_mode || 'UPI';
+      const transactionRef = body.transactionRef || body.transaction_ref || `TXN-${Date.now().toString().slice(-6)}`;
+
+      // Auto-generate 3-tier milestone installment plan (30%, 50%, 20%) or record full/token payment
       if (admissionRecord) {
-        await this.setupDefaultInstallments(admissionRecord.id, totalFee);
+        if (paymentStatus === 'FULL_PAID') {
+          await this.prisma.admissionInstallment.deleteMany({
+            where: { admissionId: admissionRecord.id },
+          });
+          await this.prisma.admissionInstallment.create({
+            data: {
+              admissionId: admissionRecord.id,
+              installmentNumber: 1,
+              title: 'Full Annual Fee Payment (100% Paid)',
+              percentage: 100,
+              amount: totalFee,
+              dueDate: new Date(),
+              paidAt: new Date(),
+              status: 'PAID',
+              paymentMode,
+              utrNumber: transactionRef,
+              notes: 'Full fee paid upfront during post-tour completion',
+            },
+          });
+          await this.prisma.admission.update({
+            where: { id: admissionRecord.id },
+            data: {
+              stage: 'admission_done',
+              status: 'confirmed',
+              feeAgreed: totalFee,
+              subStage: 'C_formalities_done',
+              admissionDate: new Date(),
+            },
+          });
+          await this.prisma.lead.update({
+            where: { id: tour.leadId },
+            data: { status: 'admission_done' },
+          }).catch(() => null);
+          await this.commissionsService.generateAdmissionCommissions(admissionRecord.id, actor).catch(() => null);
+        } else if (paymentStatus === 'TOKEN_PAID') {
+          await this.prisma.admissionInstallment.deleteMany({
+            where: { admissionId: admissionRecord.id },
+          });
+          const now = new Date();
+          const dateM2 = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000);
+          const dateM3 = new Date(now.getTime() + 120 * 24 * 60 * 60 * 1000);
+          const inst1Amount = Math.round(totalFee * 0.3);
+          const inst2Amount = Math.round(totalFee * 0.5);
+          const inst3Amount = totalFee - inst1Amount - inst2Amount;
+          await this.prisma.admissionInstallment.createMany({
+            data: [
+              {
+                admissionId: admissionRecord.id,
+                installmentNumber: 1,
+                title: 'Milestone 1: 30% Token & Admission Fee',
+                percentage: 30,
+                amount: inst1Amount,
+                dueDate: now,
+                paidAt: now,
+                status: 'PAID',
+                paymentMode,
+                utrNumber: transactionRef,
+                notes: 'Token fee paid during post-tour completion',
+              },
+              {
+                admissionId: admissionRecord.id,
+                installmentNumber: 2,
+                title: 'Milestone 2: 50% Term 2 Fee',
+                percentage: 50,
+                amount: inst2Amount,
+                dueDate: dateM2,
+                status: 'PENDING',
+              },
+              {
+                admissionId: admissionRecord.id,
+                installmentNumber: 3,
+                title: 'Milestone 3: 20% Final Clearance',
+                percentage: 20,
+                amount: inst3Amount,
+                dueDate: dateM3,
+                status: 'PENDING',
+              },
+            ],
+          });
+          await this.prisma.admission.update({
+            where: { id: admissionRecord.id },
+            data: {
+              stage: 'selected',
+              feeAgreed: totalFee,
+              subStage: 'B_documents_pending',
+              selectedDate: new Date(),
+            },
+          });
+          await this.commissionsService.generateAdmissionCommissions(admissionRecord.id, actor).catch(() => null);
+        } else {
+          await this.setupDefaultInstallments(admissionRecord.id, totalFee);
+        }
       }
     }
 

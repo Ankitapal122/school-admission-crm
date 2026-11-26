@@ -60,8 +60,7 @@ export class DynamicRateLimitGuard implements CanActivate {
     const req = context.switchToHttp().getRequest();
     
     // Always exempt authenticated CRM staff members (Admins, Managers, Counsellors, Callers) from rate limit locks
-    const userRole = String(req.user?.role || '').toUpperCase();
-    if (userRole && ['SUPER_ADMIN', 'SENIOR_MANAGER', 'MANAGER', 'COUNSELLOR', 'CALLER', 'TEAM_LEAD', 'ADMIN'].includes(userRole)) {
+    if (req.user) {
       return true;
     }
 
