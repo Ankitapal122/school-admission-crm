@@ -208,6 +208,12 @@ export default function App() {
     queryClient.invalidateQueries({ queryKey: ['users'] });
   };
 
+  const refreshLeadsOnly = () => {
+    queryClient.invalidateQueries({ queryKey: ['leads'] });
+    queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+    queryClient.invalidateQueries({ queryKey: ['followups'] });
+  };
+
   // If not logged in, show the exact BoardingEdu Login Page (manual credentials required) along with PWA Installer
   if (!isAuthenticated) {
     return (
@@ -460,7 +466,7 @@ export default function App() {
           onClose={() => setIsLeadModalOpen(false)}
           schools={schools}
           onSuccess={(created) => {
-            refreshAll();
+            refreshLeadsOnly();
             if (created) {
               setCreatedReportLead(created);
             }

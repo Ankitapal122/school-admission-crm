@@ -28,6 +28,8 @@ import * as XLSX from 'xlsx';
 
 @Injectable()
 export class LeadsService implements OnModuleInit {
+  private cachedScoringWeights: { map: Record<string, number>; expiresAt: number } | null = null;
+
   constructor(
     private prisma: PrismaService,
     private notifications: NotificationsService,
@@ -100,7 +102,10 @@ export class LeadsService implements OnModuleInit {
   }
 
   private async getScoringWeights(): Promise<Record<string, number>> {
-    const rows = await this.prisma.leadScoringConfig.findMany();
+    if (this.cachedScoringWeights && Date.now() < this.cachedScoringWeights.expiresAt) {
+      return this.cachedScoringWeights.map;
+    }
+    const rows = await this.prisma.leadScoringConfig.findMany().catch(() => []);
     const map: Record<string, number> = {
       budget_match: 25,
       engagement: 25,
@@ -111,6 +116,7 @@ export class LeadsService implements OnModuleInit {
     for (const r of rows) {
       map[r.criteriaKey] = r.weight;
     }
+    this.cachedScoringWeights = { map, expiresAt: Date.now() + 300_000 };
     return map;
   }
 
@@ -591,27 +597,47 @@ export class LeadsService implements OnModuleInit {
     const allowAfterExpiry = Boolean(
       body.allowCreateNewAfterExpiry || body.allow_create_new_after_expiry || body.forceCreateNew,
     );
-    const existingPhoneLead = await this.prisma.lead.findFirst({
-      where: {
-        deletedAt: null,
-        status: { notIn: allowAfterExpiry ? ['merged', 'MERGED', 'expired'] : ['merged', 'MERGED'] },
-        OR: [
-          { parentPhone: { in: phoneCandidates } },
-          { alternateMobile: { in: phoneCandidates } },
-          { whatsappNumber: { in: phoneCandidates } },
-          { guardianMobile: { in: phoneCandidates } },
-        ],
-      },
-      select: {
-        id: true,
-        leadNumber: true,
-        studentName: true,
-        parentPhone: true,
-        status: true,
-        createdAt: true,
-        assignedCounsellor: { select: { fullName: true } },
-      },
-    });
+
+    // Parallelize phone & email uniqueness check for high-speed lead creation
+    const [existingPhoneLead, existingEmailLead] = await Promise.all([
+      this.prisma.lead.findFirst({
+        where: {
+          deletedAt: null,
+          status: { notIn: allowAfterExpiry ? ['merged', 'MERGED', 'expired'] : ['merged', 'MERGED'] },
+          OR: [
+            { parentPhone: { in: phoneCandidates } },
+            { alternateMobile: { in: phoneCandidates } },
+            { whatsappNumber: { in: phoneCandidates } },
+            { guardianMobile: { in: phoneCandidates } },
+          ],
+        },
+        select: {
+          id: true,
+          leadNumber: true,
+          studentName: true,
+          parentPhone: true,
+          status: true,
+          createdAt: true,
+          assignedCounsellor: { select: { fullName: true } },
+        },
+      }),
+      parentEmail
+        ? this.prisma.lead.findFirst({
+            where: {
+              deletedAt: null,
+              status: { notIn: allowAfterExpiry ? ['merged', 'MERGED', 'expired'] : ['merged', 'MERGED'] },
+              parentEmail: { equals: parentEmail, mode: 'insensitive' },
+            },
+            select: {
+              id: true,
+              leadNumber: true,
+              studentName: true,
+              parentEmail: true,
+              assignedCounsellor: { select: { fullName: true } },
+            },
+          })
+        : Promise.resolve(null),
+    ]);
 
     if (existingPhoneLead) {
       const counsellor = existingPhoneLead.assignedCounsellor?.fullName
@@ -624,52 +650,41 @@ export class LeadsService implements OnModuleInit {
       );
     }
 
-    if (parentEmail) {
-      const existingEmailLead = await this.prisma.lead.findFirst({
-        where: {
-          deletedAt: null,
-          status: { notIn: allowAfterExpiry ? ['merged', 'MERGED', 'expired'] : ['merged', 'MERGED'] },
-          parentEmail: { equals: parentEmail, mode: 'insensitive' },
-        },
-        select: {
-          id: true,
-          leadNumber: true,
-          studentName: true,
-          parentEmail: true,
-          assignedCounsellor: { select: { fullName: true } },
-        },
-      });
-
-      if (existingEmailLead) {
-        const counsellor = existingEmailLead.assignedCounsellor?.fullName
-          ? ` (Counsellor: ${existingEmailLead.assignedCounsellor.fullName})`
-          : '';
-        throw new ConflictException(
-          `This email address (${parentEmail}) is already registered! (Lead ID: ${
-            existingEmailLead.leadNumber || existingEmailLead.id
-          }, Student: "${existingEmailLead.studentName}"${counsellor}). Please use a unique email address.`
-        );
-      }
+    if (existingEmailLead) {
+      const counsellor = existingEmailLead.assignedCounsellor?.fullName
+        ? ` (Counsellor: ${existingEmailLead.assignedCounsellor.fullName})`
+        : '';
+      throw new ConflictException(
+        `This email address (${parentEmail}) is already registered! (Lead ID: ${
+          existingEmailLead.leadNumber || existingEmailLead.id
+        }, Student: "${existingEmailLead.studentName}"${counsellor}). Please use a unique email address.`
+      );
     }
-
-    const dup = await this.checkDuplicate({
-      mobile: parentPhone,
-      studentName,
-      classGrade,
-    });
-
-    const leadNumber = await this.nextSeqCode('seq_lead_id', 'LD', 6);
-    const followUpDate = body.follow_up_date || body.nextFollowUpDate
-      ? new Date(body.follow_up_date || body.nextFollowUpDate)
-      : new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
 
     const canonRole = normalizeCanonicalRole(user.role);
     let assignedCounsellorId = body.assigned_to || body.assignedCounsellorId || null;
     if (!assignedCounsellorId && canonRole === 'COUNSELLOR') {
       assignedCounsellorId = user.id;
-    } else if (!assignedCounsellorId) {
-      assignedCounsellorId = await this.pickAssignee(body.assignment_method);
     }
+
+    // Parallelize sequence generator, duplicate check, and counsellor auto-assign
+    const [leadNumber, pickedAssigneeId, dup] = await Promise.all([
+      this.nextSeqCode('seq_lead_id', 'LD', 6),
+      !assignedCounsellorId ? this.pickAssignee(body.assignment_method) : Promise.resolve(null),
+      this.checkDuplicate({
+        mobile: parentPhone,
+        studentName,
+        classGrade,
+      }),
+    ]);
+
+    if (!assignedCounsellorId && pickedAssigneeId) {
+      assignedCounsellorId = pickedAssigneeId;
+    }
+
+    const followUpDate = body.follow_up_date || body.nextFollowUpDate
+      ? new Date(body.follow_up_date || body.nextFollowUpDate)
+      : new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
 
     const assignedManagerId =
       body.assignedManagerId ||
@@ -743,54 +758,59 @@ export class LeadsService implements OnModuleInit {
     });
 
     const initialRemark = body.initial_remark || body.remarks || body.notes;
-    if (initialRemark) {
-      await this.prisma.leadRemark.create({
-        data: {
-          leadId: created.id,
-          userId: user.id,
-          userName: user.fullName || 'System',
-          userRole: canonRole,
-          content: String(initialRemark),
-        },
-      });
-    }
 
-    await this.prisma.auditLog.create({
-      data: {
-        userId: user.id,
-        userName: user.fullName,
-        userRole: canonRole,
-        action: 'CREATE',
-        module: 'leads',
-        entity: 'Lead',
-        entityId: created.id,
-        newValue: { leadNumber, studentName, parentPhone, isDuplicate: dup.isDuplicate },
-      },
-    });
+    // Asynchronous background execution: Remarks, Audit Log, and Notifications do NOT block the UI response
+    (async () => {
+      try {
+        if (initialRemark) {
+          await this.prisma.leadRemark.create({
+            data: {
+              leadId: created.id,
+              userId: user.id,
+              userName: user.fullName || 'System',
+              userRole: canonRole,
+              content: String(initialRemark),
+            },
+          }).catch(() => {});
+        }
 
-    if (assignedCounsellorId && assignedCounsellorId !== user.id) {
-      await this.notifications.notifyUser({
-        userId: assignedCounsellorId,
-        type: 'lead_assigned',
-        title: `New Lead Assigned: ${leadNumber}`,
-        message: `${studentName} (${applyingForGrade}) has been assigned to you.`,
-        relatedEntityId: created.id,
-        relatedEntityType: 'lead',
-        link: `/leads/${created.id}`,
-      });
-    }
-
-    // Always notify Senior Managers & Super Admin when a new lead is entered
-    await this.notifications
-      .notifyRoles(['SENIOR_MANAGER', 'SUPER_ADMIN'], {
-        type: 'lead_assigned',
-        title: `New Lead Entered: ${leadNumber} (${studentName})`,
-        message: `${user.fullName || 'Counsellor'} entered a new inquiry for ${studentName} (${applyingForGrade}). Ready for Genuine/Verification check.`,
-        relatedEntityId: created.id,
-        relatedEntityType: 'lead',
-        link: `/leads/${created.id}`,
-      })
-      .catch(() => {});
+        await Promise.allSettled([
+          this.prisma.auditLog.create({
+            data: {
+              userId: user.id,
+              userName: user.fullName,
+              userRole: canonRole,
+              action: 'CREATE',
+              module: 'leads',
+              entity: 'Lead',
+              entityId: created.id,
+              newValue: { leadNumber, studentName, parentPhone, isDuplicate: dup.isDuplicate },
+            },
+          }),
+          assignedCounsellorId && assignedCounsellorId !== user.id
+            ? this.notifications.notifyUser({
+                userId: assignedCounsellorId,
+                type: 'lead_assigned',
+                title: `New Lead Assigned: ${leadNumber}`,
+                message: `${studentName} (${applyingForGrade}) has been assigned to you.`,
+                relatedEntityId: created.id,
+                relatedEntityType: 'lead',
+                link: `/leads/${created.id}`,
+              })
+            : Promise.resolve(),
+          this.notifications.notifyRoles(['SENIOR_MANAGER', 'SUPER_ADMIN'], {
+            type: 'lead_assigned',
+            title: `New Lead Entered: ${leadNumber} (${studentName})`,
+            message: `${user.fullName || 'Counsellor'} entered a new inquiry for ${studentName} (${applyingForGrade}). Ready for Genuine/Verification check.`,
+            relatedEntityId: created.id,
+            relatedEntityType: 'lead',
+            link: `/leads/${created.id}`,
+          }),
+        ]);
+      } catch (bgErr: any) {
+        // Safe detached background handler
+      }
+    })();
 
     return {
       lead: created,

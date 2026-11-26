@@ -37,6 +37,8 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
   private reminderInterval: NodeJS.Timeout | null = null;
   private lastPairingCodeByPhone = new Map<string, { code: string; timestamp: number }>();
   private isPairingInProgress = false;
+  private isPairingMode = false;
+  private pairingTimer: NodeJS.Timeout | null = null;
 
   constructor(private readonly prisma: PrismaService) {
     this.authDir = path.join(process.cwd(), 'data', 'baileys_auth');
@@ -71,6 +73,11 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
 
   private destroySocket() {
     this.socketReadyForPairing = false;
+    this.isPairingMode = false;
+    if (this.pairingTimer) {
+      clearTimeout(this.pairingTimer);
+      this.pairingTimer = null;
+    }
     if (this.sock) {
       try {
         this.sock.ev.removeAllListeners('connection.update');
@@ -114,12 +121,16 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
 
         if (qr) {
           this.socketReadyForPairing = true;
-          this.qrAttempts += 1;
-          if (this.qrAttempts > this.MAX_QR_ATTEMPTS) {
-            this.logger.log('WhatsApp QR idle limit reached — pausing socket to conserve server memory.');
-            this.qrCodeDataUrl = null;
-            this.destroySocket();
-            return;
+          // While in pairing mode (waiting for user to enter code in WhatsApp phone app),
+          // do NOT kill the socket on QR idle count!
+          if (!this.isPairingMode) {
+            this.qrAttempts += 1;
+            if (this.qrAttempts > this.MAX_QR_ATTEMPTS) {
+              this.logger.log('WhatsApp QR idle limit reached — pausing socket to conserve server memory.');
+              this.qrCodeDataUrl = null;
+              this.destroySocket();
+              return;
+            }
           }
           try {
             this.qrCodeDataUrl = await QRCode.toDataURL(qr, {
@@ -130,7 +141,7 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
                 light: '#FFFFFF',
               },
             });
-            this.logger.log(`WhatsApp QR Code generated for CRM linking (attempt ${this.qrAttempts}/${this.MAX_QR_ATTEMPTS})`);
+            this.logger.log(`WhatsApp QR Code generated for CRM linking (attempt ${this.qrAttempts}/${this.MAX_QR_ATTEMPTS}, pairingMode=${this.isPairingMode})`);
           } catch (err: any) {
             this.logger.error(`Failed to generate QR data URL: ${err.message}`);
           }
@@ -142,10 +153,10 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
           const hasCreds = fs.existsSync(path.join(this.authDir, 'creds.json'));
           const shouldReconnect =
             statusCode !== DisconnectReason.loggedOut &&
-            (hasCreds || this.qrAttempts < this.MAX_QR_ATTEMPTS);
+            (hasCreds || this.isPairingMode || this.qrAttempts < this.MAX_QR_ATTEMPTS);
 
           this.logger.warn(
-            `WhatsApp connection closed. Status: ${statusCode}, Should Reconnect: ${shouldReconnect}`,
+            `WhatsApp connection closed. Status: ${statusCode}, Should Reconnect: ${shouldReconnect}, PairingMode: ${this.isPairingMode}`,
           );
 
           if (statusCode === DisconnectReason.loggedOut) {
@@ -155,13 +166,18 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
             this.qrCodeDataUrl = null;
             this.activeNumber = null;
           } else if (shouldReconnect) {
-            this.scheduleReconnect(5000);
+            this.scheduleReconnect(3000);
           } else {
             this.destroySocket();
             this.qrCodeDataUrl = null;
           }
         } else if (connection === 'open') {
           this.isConnected = true;
+          this.isPairingMode = false;
+          if (this.pairingTimer) {
+            clearTimeout(this.pairingTimer);
+            this.pairingTimer = null;
+          }
           this.qrAttempts = 0;
           this.qrCodeDataUrl = null;
           const rawId = this.sock?.user?.id || '';
@@ -1179,10 +1195,21 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
     };
 
     // 1. Check if a pairing code was generated for this number in the last 60 seconds.
-    // Serving cached code prevents WhatsApp 429 rate limit when user clicks multiple times.
+    // Serving cached code prevents WhatsApp 429 rate limit when user clicks multiple times,
+    // but only if the underlying Baileys socket is still alive and listening.
     const cached = this.lastPairingCodeByPhone.get(international);
-    if (cached && Date.now() - cached.timestamp < 60000) {
-      this.logger.log(`Serving recently cached pairing code for +${international}: ${cached.code}`);
+    if (cached && Date.now() - cached.timestamp < 60000 && this.sock && !this.isConnected) {
+      this.isPairingMode = true;
+      if (this.pairingTimer) clearTimeout(this.pairingTimer);
+      this.pairingTimer = setTimeout(() => {
+        this.logger.log('WhatsApp phone pairing window (6 minutes) expired.');
+        this.isPairingMode = false;
+        this.pairingTimer = null;
+        if (!this.isConnected) {
+          this.destroySocket();
+        }
+      }, 360_000);
+      this.logger.log(`Serving active cached pairing code for +${international}: ${cached.code}`);
       return cached.code;
     }
 
@@ -1191,7 +1218,7 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
       for (let w = 0; w < 12; w++) {
         await new Promise((r) => setTimeout(r, 500));
         const newlyCached = this.lastPairingCodeByPhone.get(international);
-        if (newlyCached && Date.now() - newlyCached.timestamp < 60000) {
+        if (newlyCached && Date.now() - newlyCached.timestamp < 60000 && this.sock) {
           return newlyCached.code;
         }
         if (!this.isPairingInProgress) break;
@@ -1207,14 +1234,31 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
           await new Promise((r) => setTimeout(r, 1000));
         }
 
+        // Clean stale unregistered credentials to prevent mismatched pairing keys
+        const credsFile = path.join(this.authDir, 'creds.json');
+        if (!this.isConnected && fs.existsSync(credsFile)) {
+          try {
+            const raw = JSON.parse(fs.readFileSync(credsFile, 'utf8'));
+            if (!raw?.registered) {
+              this.logger.log('Clearing incomplete/unregistered auth credentials for clean pairing handshake.');
+              this.clearAuthData();
+              this.destroySocket();
+            }
+          } catch {
+            this.clearAuthData();
+            this.destroySocket();
+          }
+        }
+
         this.qrAttempts = 0;
+        this.isPairingMode = true;
+
         if (!this.sock) {
-          this.clearAuthData();
           await this.initSocket();
         }
 
-        // Wait up to 10 seconds for WhatsApp Noise handshake (first QR event) before requesting pairing code
-        for (let i = 0; i < 20; i++) {
+        // Wait up to 12 seconds for WhatsApp Noise handshake (first QR event) before requesting pairing code
+        for (let i = 0; i < 24; i++) {
           if (this.sock && this.socketReadyForPairing) break;
           await new Promise((r) => setTimeout(r, 500));
         }
@@ -1222,12 +1266,26 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
 
       await ensureFreshUnregisteredSocket();
 
+      const armPairingWindow = () => {
+        this.isPairingMode = true;
+        if (this.pairingTimer) clearTimeout(this.pairingTimer);
+        this.pairingTimer = setTimeout(() => {
+          this.logger.log('WhatsApp phone pairing window (6 minutes) expired.');
+          this.isPairingMode = false;
+          this.pairingTimer = null;
+          if (!this.isConnected) {
+            this.destroySocket();
+          }
+        }, 360_000);
+      };
+
       if (this.sock && !this.isConnected) {
         try {
           const rawCode = await (this.sock as any).requestPairingCode(international);
           const formatted = formatCode(rawCode);
           this.lastPairingCodeByPhone.set(international, { code: formatted, timestamp: Date.now() });
-          this.logger.log(`✅ Baileys pairing code generated for +${international}: ${formatted}`);
+          armPairingWindow();
+          this.logger.log(`✅ Baileys pairing code generated for +${international}: ${formatted} (socket kept alive for 6 minutes)`);
           return formatted;
         } catch (err: any) {
           const errMsg = String(err?.message || '').toLowerCase();
@@ -1244,7 +1302,8 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
               const rawCode = await (this.sock as any).requestPairingCode(international);
               const formatted = formatCode(rawCode);
               this.lastPairingCodeByPhone.set(international, { code: formatted, timestamp: Date.now() });
-              this.logger.log(`✅ Baileys pairing code generated on retry for +${international}: ${formatted}`);
+              armPairingWindow();
+              this.logger.log(`✅ Baileys pairing code generated on retry for +${international}: ${formatted} (socket kept alive for 6 minutes)`);
               return formatted;
             }
           } catch (retryErr: any) {
