@@ -4844,56 +4844,16 @@ export default function RoleDashboard({
                   )}
                 </div>
 
-                {/* Duration & Recording Link (Side-by-side) */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div className="form-group" style={{ margin: 0 }}>
-                    <label className="form-label" style={{ fontSize: '12px', fontWeight: 700 }}>Duration (MM:SS)</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={callDuration}
-                      onChange={(e) => setCallDuration(e.target.value)}
-                      placeholder="04:20"
-                    />
-                  </div>
-                  <div className="form-group" style={{ margin: 0 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <label className="form-label" style={{ fontSize: '12px', fontWeight: 700, margin: 0 }}>
-                        Recording Link
-                      </label>
-                      <span
-                        title="Cloud telephony audio URL (Exotel/Twilio/AWS S3) or file name for quality audit, staff coaching & dispute verification."
-                        style={{ fontSize: '10px', color: '#64748B', cursor: 'help' }}
-                      >
-                        ℹ️ Audio URL / Ref
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', gap: '4px' }}>
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={callRecordingLink}
-                        onChange={(e) => setCallRecordingLink(e.target.value)}
-                        placeholder="rec_ld123_01.mp3"
-                        style={{ fontSize: '12px' }}
-                      />
-                      {callRecordingLink && (callRecordingLink.startsWith('http://') || callRecordingLink.startsWith('https://')) && (
-                        <a
-                          href={callRecordingLink}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="btn btn-secondary btn-sm"
-                          style={{ padding: '4px 8px', fontSize: '11px', textDecoration: 'none', display: 'flex', alignItems: 'center' }}
-                          title="Open recording audio in new tab"
-                        >
-                          ▶️ Listen
-                        </a>
-                      )}
-                    </div>
-                    <div style={{ fontSize: '10px', color: '#64748B', marginTop: '3px', lineHeight: 1.2 }}>
-                      Telephony URL / file name for QA review &amp; parent verification.
-                    </div>
-                  </div>
+                {/* Duration */}
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label className="form-label" style={{ fontSize: '12px', fontWeight: 700 }}>Duration (MM:SS)</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={callDuration}
+                    onChange={(e) => setCallDuration(e.target.value)}
+                    placeholder="04:20"
+                  />
                 </div>
 
                 {/* Feedback Section (Requirements, Location, Budget, Genuine) */}
