@@ -195,7 +195,7 @@
   .badge-new { background: #3b82f6; }
   .badge-success { background: var(--success); }
   .badge-warning { background: var(--warning); }
-  .badge-danger { background: var(--danger); }
+  .badge-danger { background: var(--danger); font-weight: 800 !important; }
   .badge-purple { background: var(--purple); }
   .badge-muted { background: #94a3b8; }
 
@@ -476,7 +476,7 @@
   .badge-new { background: #3b82f6; }
   .badge-success { background: var(--success); }
   .badge-warning { background: var(--warning); }
-  .badge-danger { background: var(--danger); }
+  .badge-danger { background: var(--danger); font-weight: 800 !important; }
   .badge-purple { background: var(--purple); }
   .badge-muted { background: #94a3b8; }
 

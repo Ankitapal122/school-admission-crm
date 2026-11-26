@@ -15,10 +15,12 @@ export {
 
 export function TeamsView({
   teams = [],
+  isLoading = false,
   onRefresh,
   onShowToast,
 }: {
   teams: any[];
+  isLoading?: boolean;
   onRefresh: () => void;
   onShowToast: (m: string, t?: 'success' | 'danger' | 'warning') => void;
 }) {
@@ -53,7 +55,7 @@ export function TeamsView({
     <div className="card">
       <div className="card-header">
         <div>
-          <h3 className="card-title"><CrmIcon name="users" size={16} /> Team Structure &amp; Hierarchies ({teams.length})</h3>
+          <h3 className="card-title"><CrmIcon name="users" size={16} /> Team Structure &amp; Hierarchies ({isLoading ? '...' : teams.length})</h3>
           <span className="card-subtitle">Manage Counsellor &amp; Manager regional pods</span>
         </div>
         <button className="btn btn-sm btn-primary" onClick={() => setShowCreate(true)}>
@@ -71,7 +73,16 @@ export function TeamsView({
             </tr>
           </thead>
           <tbody>
-            {teams.length === 0 ? (
+            {isLoading ? (
+              <tr>
+                <td colSpan={4} style={{ textAlign: 'center', color: '#64748B', padding: '30px' }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '10px', fontSize: '13.5px', fontWeight: 600 }}>
+                    <span style={{ width: '18px', height: '18px', border: '2px solid #CBD5E1', borderTopColor: '#2563EB', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.8s linear infinite' }} />
+                    Loading teams...
+                  </div>
+                </td>
+              </tr>
+            ) : teams.length === 0 ? (
               <tr>
                 <td colSpan={4} style={{ textAlign: 'center', color: '#64748B', padding: '20px' }}>
                   No teams configured yet.
@@ -454,14 +465,33 @@ export function AIView({
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
   };
 
+  const getSchoolId = (m: any, idx: number) => {
+    const s = m?.school || m || {};
+    return String(s.id || s._id || s.school_id || s.schoolId || s.schoolCode || s.name || `school_${idx}`);
+  };
+
   const toggleCompare = (schoolId: string) => {
     setCompareIds((prev) =>
-      prev.includes(schoolId) ? prev.filter((id) => id !== schoolId) : prev.length < 4 ? [...prev, schoolId] : prev
+      prev.includes(schoolId) ? prev.filter((id) => id !== schoolId) : [...prev, schoolId]
     );
   };
 
+  const toggleSelectAll = () => {
+    const allIds = matches.map((m: any, idx: number) => getSchoolId(m, idx));
+    if (allIds.length === 0) return;
+    if (compareIds.length === allIds.length) {
+      setCompareIds([]);
+    } else {
+      setCompareIds(allIds);
+    }
+  };
+
   const comparedSchools = matches
-    .map((m) => ({ ...(m.school || m), matchScore: m.matchScore ?? m.score ?? 0 }))
+    .map((m, idx) => {
+      const s = m.school || m;
+      const sId = getSchoolId(m, idx);
+      return { ...s, id: sId, matchScore: m.matchScore ?? m.score ?? 0 };
+    })
     .filter((s) => compareIds.includes(s.id));
 
   return (
@@ -473,14 +503,28 @@ export function AIView({
             Powered by live PostgreSQL master dataset &amp; matching_criteria_weights (=100) — Shortlist, Compare &amp; Share on WhatsApp
           </span>
         </div>
-        {compareIds.length >= 2 && (
-          <button
-            type="button"
-            className="btn btn-sm btn-primary"
-            onClick={() => setShowCompareModal(true)}
-          >
-            Compare Selected ({compareIds.length})
-          </button>
+        {compareIds.length > 0 && (
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#1E3A8A' }}>
+              {compareIds.length} Selected
+            </span>
+            {compareIds.length >= 2 && (
+              <button
+                type="button"
+                className="btn btn-sm btn-primary"
+                onClick={() => setShowCompareModal(true)}
+              >
+                Compare Selected ({compareIds.length})
+              </button>
+            )}
+            <button
+              type="button"
+              className="btn btn-sm btn-outline"
+              onClick={() => setCompareIds([])}
+            >
+              Deselect All
+            </button>
+          </div>
         )}
       </div>
 
@@ -573,7 +617,27 @@ export function AIView({
         <table className="data-table">
           <thead>
             <tr>
-              <th style={{ width: '36px' }}>Cmp</th>
+              <th style={{ width: '68px', textAlign: 'center' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                  <input
+                    type="checkbox"
+                    checked={matches.length > 0 && compareIds.length === matches.length}
+                    ref={(el) => {
+                      if (el) {
+                        el.indeterminate = compareIds.length > 0 && compareIds.length < matches.length;
+                      }
+                    }}
+                    onChange={toggleSelectAll}
+                    title={
+                      matches.length > 0 && compareIds.length === matches.length
+                        ? 'Deselect All Schools'
+                        : 'Select All Schools'
+                    }
+                    style={{ cursor: 'pointer', width: '15px', height: '15px' }}
+                  />
+                  <span style={{ fontSize: '11px', fontWeight: 700 }}>CMP</span>
+                </div>
+              </th>
               <th>School</th>
               <th>Board &amp; City</th>
               <th>Annual Fee</th>
@@ -590,15 +654,18 @@ export function AIView({
               </tr>
             ) : (
               matches.map((m: any, idx: number) => {
-                const s = { ...(m.school || m), matchScore: m.matchScore ?? m.score ?? 0 };
+                const sId = getSchoolId(m, idx);
+                const s = { ...(m.school || m), id: sId, matchScore: m.matchScore ?? m.score ?? 0 };
+                const isSelected = compareIds.includes(sId);
                 return (
-                  <tr key={s.id || idx}>
-                    <td>
+                  <tr key={sId} style={isSelected ? { backgroundColor: '#F0F9FF' } : undefined}>
+                    <td style={{ textAlign: 'center' }}>
                       <input
                         type="checkbox"
-                        checked={compareIds.includes(s.id)}
-                        onChange={() => toggleCompare(s.id)}
-                        title="Select up to 4 schools to compare"
+                        checked={isSelected}
+                        onChange={() => toggleCompare(sId)}
+                        title={isSelected ? 'Deselect this school' : 'Select this school'}
+                        style={{ cursor: 'pointer', width: '15px', height: '15px' }}
                       />
                     </td>
                     <td>

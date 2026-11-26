@@ -19,10 +19,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     if (this.isReconnecting) return;
     this.isReconnecting = true;
     try {
-      console.warn('[PrismaService] Resetting database connection pool...');
-      try {
-        await this.$disconnect();
-      } catch {}
+      console.warn('[PrismaService] Refreshing database connection pool...');
       await this.$connect();
       console.log('[PrismaService] Connected to PostgreSQL cleanly.');
     } catch (err: any) {

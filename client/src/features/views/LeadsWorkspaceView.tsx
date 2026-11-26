@@ -418,7 +418,10 @@ export function LeadsView({
                               ? 'badge-warning'
                               : 'badge-navy'
                           }`}
-                          style={{ textTransform: 'capitalize' }}
+                          style={{
+                            textTransform: 'capitalize',
+                            ...(l.forceExpired ? { fontWeight: 800, letterSpacing: '0.3px' } : {}),
+                          }}
                         >
                           {l.forceExpired ? 'Force-Expired (360d)' : String(l.status || 'new').replace(/_/g, ' ')}
                         </span>

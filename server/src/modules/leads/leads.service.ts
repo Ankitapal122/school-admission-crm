@@ -2130,6 +2130,8 @@ export class LeadsService implements OnModuleInit {
       );
 
       return {
+        id: s.id,
+        _id: s.id,
         school_id: s.id,
         schoolId: s.id,
         schoolCode: s.schoolCode,

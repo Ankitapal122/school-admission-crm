@@ -7,6 +7,20 @@ import { normalizeCanonicalRole, toBlueprintRole } from '../../../common/utils/c
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
+  private static userCache = new Map<string, { user: any; expiresAt: number }>();
+
+  static clearCache(userId?: string) {
+    if (userId) {
+      for (const key of JwtStrategy.userCache.keys()) {
+        if (key.startsWith(`${userId}:`)) {
+          JwtStrategy.userCache.delete(key);
+        }
+      }
+    } else {
+      JwtStrategy.userCache.clear();
+    }
+  }
+
   constructor(
     private configService: ConfigService,
     private prisma: PrismaService,
@@ -24,6 +38,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: { sub: string; email: string; role: string; family?: string }) {
+    const cacheKey = `${payload.sub}:${payload.family || ''}`;
+    const now = Date.now();
+    const cached = JwtStrategy.userCache.get(cacheKey);
+    if (cached && now < cached.expiresAt) {
+      return cached.user;
+    }
+
     return this.prisma.executeWithRetry(async () => {
       const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
@@ -71,12 +92,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     const canonRole = normalizeCanonicalRole(user.role);
-    return {
+    const resolvedUser = {
       ...user,
       canonicalRole: canonRole,
       blueprintRole: toBlueprintRole(user.role),
       sessionFamily: payload.family || null,
     };
+
+    JwtStrategy.userCache.set(cacheKey, { user: resolvedUser, expiresAt: now + 45_000 });
+    return resolvedUser;
     });
   }
 }

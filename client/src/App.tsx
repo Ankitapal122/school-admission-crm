@@ -179,7 +179,7 @@ export default function App() {
     enabled: isAuthenticated,
   });
 
-  const { data: teamsRes } = useQuery({
+  const { data: teamsRes, isLoading: teamsLoading } = useQuery({
     queryKey: ['teams'],
     queryFn: () => apiCall('/teams'),
     enabled: isAuthenticated,
@@ -191,7 +191,7 @@ export default function App() {
     enabled: isAuthenticated,
   });
 
-  const { data: usersRes } = useQuery({
+  const { data: usersRes, isLoading: usersLoading } = useQuery({
     queryKey: ['users'],
     queryFn: () => apiCall('/users'),
     enabled: isAuthenticated,
@@ -228,9 +228,21 @@ export default function App() {
   const schools = schoolsRes?.schools || [];
   const commissions = commissionsRes?.commissions || [];
   const followUps = followUpsRes?.followUps || [];
-  const teams = teamsRes?.teams || [];
+  const teams = Array.isArray(teamsRes?.teams)
+    ? teamsRes.teams
+    : Array.isArray(teamsRes?.data)
+    ? teamsRes.data
+    : Array.isArray(teamsRes)
+    ? teamsRes
+    : [];
   const admissions = admissionsRes?.admissions || [];
-  const users = usersRes?.users || [];
+  const users = Array.isArray(usersRes?.users)
+    ? usersRes.users
+    : Array.isArray(usersRes?.data)
+    ? usersRes.data
+    : Array.isArray(usersRes)
+    ? usersRes
+    : [];
   const kpiStats = statsRes?.stats || {};
 
   return (
@@ -337,6 +349,7 @@ export default function App() {
             {currentTab === 'teams' && (
               <TeamsView
                 teams={teams}
+                isLoading={teamsLoading}
                 onRefresh={refreshAll}
                 onShowToast={showToast}
               />
@@ -355,15 +368,20 @@ export default function App() {
                     ? 'counsellors'
                     : 'all'
                 }
+                isLoading={usersLoading}
                 users={
                   currentTab === 'managers'
-                    ? users.filter((u: any) =>
-                        String(u.role || u.canonicalRole || '').toLowerCase().includes('manager')
-                      )
+                    ? users.filter((u: any) => {
+                        const r = String(u.role || u.canonicalRole || u.backendRole || '').toLowerCase();
+                        const emp = String(u.employeeId || u.employeeCode || '').toUpperCase();
+                        return (r.includes('manager') || emp.includes('MGR')) && !emp.includes('COU');
+                      })
                     : currentTab === 'counsellors'
-                    ? users.filter((u: any) =>
-                        String(u.role || u.canonicalRole || '').toLowerCase().includes('counsellor')
-                      )
+                    ? users.filter((u: any) => {
+                        const r = String(u.role || u.canonicalRole || u.backendRole || '').toLowerCase();
+                        const emp = String(u.employeeId || u.employeeCode || '').toUpperCase();
+                        return r.includes('counsellor') || emp.includes('COU');
+                      })
                     : users
                 }
                 teams={teams}

@@ -408,12 +408,14 @@ export function UsersView({
   users = [],
   teams = [],
   viewMode = 'all',
+  isLoading = false,
   onRefresh,
   onShowToast,
 }: {
   users: any[];
   teams: any[];
   viewMode?: 'all' | 'managers' | 'counsellors';
+  isLoading?: boolean;
   onRefresh: () => void;
   onShowToast: (m: string, t?: 'success' | 'danger' | 'warning') => void;
 }) {
@@ -696,10 +698,10 @@ export function UsersView({
           >
             <CrmIcon name="users" size={16} />{' '}
             {viewMode === 'managers'
-              ? `Managers (${users.length})`
+              ? `Managers (${isLoading ? '...' : users.length})`
               : viewMode === 'counsellors'
-              ? `Counsellors (${users.length})`
-              : `Employees (${users.length})`}
+              ? `Counsellors (${isLoading ? '...' : users.length})`
+              : `Employees (${isLoading ? '...' : users.length})`}
           </button>
           <button
             className={`btn btn-sm ${subTab === 'roles' ? 'btn-navy' : 'btn-outline'}`}
@@ -729,7 +731,27 @@ export function UsersView({
               </tr>
             </thead>
             <tbody>
-              {users.map((u: any) => {
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6} style={{ textAlign: 'center', padding: '40px 20px', color: '#64748B' }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '10px', fontSize: '13.5px', fontWeight: 600 }}>
+                      <span style={{ width: '18px', height: '18px', border: '2px solid #CBD5E1', borderTopColor: '#2563EB', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.8s linear infinite' }} />
+                      Loading staff directory...
+                    </div>
+                  </td>
+                </tr>
+              ) : users.length === 0 ? (
+                <tr>
+                  <td colSpan={6} style={{ textAlign: 'center', padding: '40px 20px', color: '#64748B', fontSize: '13.5px' }}>
+                    {viewMode === 'managers'
+                      ? 'No managers found.'
+                      : viewMode === 'counsellors'
+                      ? 'No counsellors found.'
+                      : 'No employee accounts found.'}
+                  </td>
+                </tr>
+              ) : (
+                users.map((u: any) => {
                 const isUserOnline =
                   u.isOnline === true ||
                   u.presenceStatus === 'online' ||
@@ -1154,7 +1176,8 @@ export function UsersView({
                   </td>
                 </tr>
                 );
-              })}
+              })
+              )}
             </tbody>
           </table>
         </div>
