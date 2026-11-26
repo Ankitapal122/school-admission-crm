@@ -2372,7 +2372,7 @@ export function CreateLeadModal({
         score: 85,
       };
       onShowToast(
-        `Lead "${f.studentName}" submitted & verified! Opening Student Report for Call/WhatsApp.`,
+        `Lead "${f.studentName}" submitted & verified! Record is now live in table.`,
         'success'
       );
       resetForm();

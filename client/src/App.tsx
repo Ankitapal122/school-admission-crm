@@ -152,6 +152,7 @@ export default function App() {
     queryKey: ['leads'],
     queryFn: () => apiCall('/leads'),
     enabled: isAuthenticated,
+    refetchInterval: 8000,
   });
 
   const {
@@ -212,6 +213,36 @@ export default function App() {
     queryClient.invalidateQueries({ queryKey: ['leads'] });
     queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
     queryClient.invalidateQueries({ queryKey: ['followups'] });
+  };
+
+  const handleLeadCreatedInstantly = (createdLead: any) => {
+    if (!createdLead) return;
+    // 1. Instantly prepend to React Query cache (0ms latency UI update!)
+    queryClient.setQueryData(['leads'], (old: any) => {
+      const existingList = Array.isArray(old?.leads)
+        ? old.leads
+        : Array.isArray(old?.data?.leads)
+        ? old.data.leads
+        : Array.isArray(old)
+        ? old
+        : [];
+      const withoutDup = existingList.filter(
+        (l: any) => (l.id && l.id !== createdLead.id) && (!l.leadNumber || l.leadNumber !== createdLead.leadNumber)
+      );
+      return {
+        ...(typeof old === 'object' && old !== null ? old : {}),
+        leads: [createdLead, ...withoutDup],
+      };
+    });
+    // 2. Refresh query in background to ensure all relations sync
+    queryClient.invalidateQueries({ queryKey: ['leads'] });
+    queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+    // 3. Instantly navigate to Leads workspace so user sees record immediately!
+    setCurrentTab('leads');
+    showToast(
+      `Lead "${createdLead.studentName || 'Student'}" (${createdLead.leadNumber || 'New'}) added to top of table!`,
+      'success'
+    );
   };
 
   // If not logged in, show the exact BoardingEdu Login Page (manual credentials required) along with PWA Installer
@@ -484,10 +515,7 @@ export default function App() {
           onClose={() => setIsLeadModalOpen(false)}
           schools={schools}
           onSuccess={(created) => {
-            refreshLeadsOnly();
-            if (created) {
-              setCreatedReportLead(created);
-            }
+            handleLeadCreatedInstantly(created);
           }}
           onShowToast={showToast}
         />

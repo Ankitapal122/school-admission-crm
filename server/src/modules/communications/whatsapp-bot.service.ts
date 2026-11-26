@@ -109,18 +109,27 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
         auth: state,
         logger: pino({ level: 'silent' }),
         printQRInTerminal: false,
-        browser: Browsers.ubuntu('Chrome'),
+        browser: Browsers.macOS('Chrome'),
         connectTimeoutMs: 60000,
         keepAliveIntervalMs: 25000,
       });
 
-      this.sock.ev.on('creds.update', saveCreds);
+      this.sock.ev.on('creds.update', async () => {
+        try {
+          await saveCreds();
+        } catch (err: any) {
+          this.logger.error(`Error saving Baileys creds: ${err.message}`);
+        }
+      });
 
       this.sock.ev.on('connection.update', async (update) => {
         const { connection, lastDisconnect, qr } = update;
 
-        if (qr) {
+        if (connection === 'connecting' || qr) {
           this.socketReadyForPairing = true;
+        }
+
+        if (qr) {
           // While in pairing mode (waiting for user to enter code in WhatsApp phone app),
           // do NOT kill the socket on QR idle count!
           if (!this.isPairingMode) {
@@ -150,13 +159,14 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
         if (connection === 'close') {
           this.isConnected = false;
           const statusCode = (lastDisconnect?.error as any)?.output?.statusCode;
+          const isRestart = statusCode === DisconnectReason.restartRequired || statusCode === 515;
           const hasCreds = fs.existsSync(path.join(this.authDir, 'creds.json'));
           const shouldReconnect =
             statusCode !== DisconnectReason.loggedOut &&
-            (hasCreds || this.isPairingMode || this.qrAttempts < this.MAX_QR_ATTEMPTS);
+            (hasCreds || this.isPairingMode || isRestart || this.qrAttempts < this.MAX_QR_ATTEMPTS);
 
           this.logger.warn(
-            `WhatsApp connection closed. Status: ${statusCode}, Should Reconnect: ${shouldReconnect}, PairingMode: ${this.isPairingMode}`,
+            `WhatsApp connection closed. Status: ${statusCode}, Should Reconnect: ${shouldReconnect}, isRestart: ${isRestart}, PairingMode: ${this.isPairingMode}`,
           );
 
           if (statusCode === DisconnectReason.loggedOut) {
@@ -165,8 +175,11 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
             this.clearAuthData();
             this.qrCodeDataUrl = null;
             this.activeNumber = null;
+          } else if (isRestart) {
+            this.logger.log('WhatsApp requested immediate restart (515) — reconnecting in 150ms to complete device linking...');
+            this.scheduleReconnect(150);
           } else if (shouldReconnect) {
-            this.scheduleReconnect(3000);
+            this.scheduleReconnect(1500);
           } else {
             this.destroySocket();
             this.qrCodeDataUrl = null;
@@ -1257,10 +1270,10 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
           await this.initSocket();
         }
 
-        // Wait up to 12 seconds for WhatsApp Noise handshake (first QR event) before requesting pairing code
-        for (let i = 0; i < 24; i++) {
-          if (this.sock && this.socketReadyForPairing) break;
-          await new Promise((r) => setTimeout(r, 500));
+        // Wait up to 8 seconds for WhatsApp Noise handshake before requesting pairing code
+        for (let i = 0; i < 16; i++) {
+          if (this.sock && (this.socketReadyForPairing || (this.sock as any)?.ws?.isOpen)) break;
+          await new Promise((r) => setTimeout(r, 400));
         }
       };
 

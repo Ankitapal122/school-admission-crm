@@ -309,6 +309,7 @@ export default function WhatsAppBotModal({
       onClick={onClose}
     >
       <div
+        className="modal-content crm-modal-whatsapp"
         style={{
           backgroundColor: '#FFFFFF',
           borderRadius: '20px',
