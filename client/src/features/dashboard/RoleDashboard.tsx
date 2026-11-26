@@ -66,6 +66,7 @@ export default function RoleDashboard({
   // Call & WA logging modals
   const [selectedLeadForCall, setSelectedLeadForCall] = useState<any | null>(null);
   const [callWhom, setCallWhom] = useState<'father' | 'mother'>('father');
+  const [callParentName, setCallParentName] = useState('');
   const [callOutcome, setCallOutcome] = useState('Connected - Interested');
   const [callIntent, setCallIntent] = useState<'GENUINE' | 'JUNK'>('GENUINE');
   const [callNotes, setCallNotes] = useState('');
@@ -218,6 +219,7 @@ export default function RoleDashboard({
   const handleOpenCallLogger = async (lead: any) => {
     setSelectedLeadForCall(lead);
     setCallWhom('father');
+    setCallParentName(lead.parentName || lead.fatherName || lead.motherName || '');
     setCallOutcome(callOutcomes[0] || 'Connected - Interested');
     setCallIntent(lead.isGenuine !== false ? 'GENUINE' : 'JUNK');
     setCallNotes('');
@@ -260,6 +262,7 @@ export default function RoleDashboard({
     e.preventDefault();
     if (!selectedLeadForCall) return;
     try {
+      const finalParentName = callParentName.trim() || selectedLeadForCall.parentName || selectedLeadForCall.fatherName || selectedLeadForCall.motherName || 'Parent';
       const targetPhone =
         callWhom === 'father'
           ? selectedLeadForCall.fatherPhone || selectedLeadForCall.mobile || ''
@@ -277,11 +280,13 @@ export default function RoleDashboard({
         lead_id: selectedLeadForCall.id,
         leadId: selectedLeadForCall.id,
         parentWhom: callWhom,
+        parentName: finalParentName,
+        parent_name: finalParentName,
         phone: targetPhone,
         outcome: callOutcome,
         direction: callDirection,
         duration_seconds: durSec,
-        recording_link: callRecordingLink,
+        recording_link: undefined,
         dpdp_consent: callDpdpConsent,
         recordingConsent: callDpdpConsent,
         recording_consent: callDpdpConsent,
@@ -289,10 +294,10 @@ export default function RoleDashboard({
         parent_requirements: callRequirements,
         preferred_location: callPreferredLocation,
         budget_max: callBudget ? Number(callBudget) : undefined,
-        notes: `${callIntent === 'GENUINE' ? '[GENUINE] ' : '[JUNK] '}${callNotes}`,
+        notes: `[Spoke with ${callWhom.toUpperCase()}: ${finalParentName}] ${callIntent === 'GENUINE' ? '[GENUINE] ' : '[JUNK] '}${callNotes}`,
       });
       showToast(
-        `Call outcome & feedback saved! Manager notified for ${selectedLeadForCall.studentName}.`,
+        `Call feedback recorded successfully for Parent "${finalParentName}" (${selectedLeadForCall.studentName})!`,
         'success'
       );
       setSelectedLeadForCall(null);
@@ -4700,45 +4705,86 @@ export default function RoleDashboard({
                   </div>
                 )}
 
-                {/* Lead Info Strip */}
+                {/* Lead & Parent Info Strip */}
                 <div
                   style={{
                     background: '#F0F9FF',
-                    borderRadius: '8px',
-                    padding: '10px 14px',
-                    fontSize: '13px',
-                    color: '#0369A1',
-                    fontWeight: 600,
+                    border: '1.5px solid #BAE6FD',
+                    borderRadius: '10px',
+                    padding: '12px 14px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px',
                   }}
                 >
-                  Lead: <strong>{selectedLeadForCall.studentName}</strong> | Mobile:{' '}
-                  <strong>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ fontSize: '13.5px', color: '#0369A1', fontWeight: 800 }}>
+                      Student: <strong>{selectedLeadForCall.studentName}</strong> (Class {selectedLeadForCall.admissionClass || '10'})
+                    </div>
+                    <span style={{ fontSize: '10.5px', background: '#E0F2FE', color: '#0284C7', padding: '2px 8px', borderRadius: '12px', fontWeight: 700 }}>
+                      Lead #{selectedLeadForCall.leadNumber || selectedLeadForCall.id?.slice(0, 8)}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#0284C7', marginTop: '2px' }}>
+                    Calling: <strong>{callWhom === 'father' ? 'Father' : 'Mother'} ({callParentName || selectedLeadForCall.parentName || 'Parent'})</strong> &bull;{' '}
                     {callWhom === 'father'
                       ? selectedLeadForCall.fatherPhone || selectedLeadForCall.mobile || '+919876543210'
                       : selectedLeadForCall.motherPhone || selectedLeadForCall.fatherPhone || '+919876543210'}
-                  </strong>
+                  </div>
                 </div>
 
-                {/* Whom to call radio strip */}
-                <div style={{ display: 'flex', gap: '14px', fontSize: '12px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                {/* Spoke With Person & Parent Name Input */}
+                <div
+                  style={{
+                    background: '#F8FAFC',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '10px',
+                    padding: '10px 12px',
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1.3fr',
+                    gap: '10px',
+                    alignItems: 'center',
+                  }}
+                >
+                  <div>
+                    <label className="form-label" style={{ fontSize: '11px', fontWeight: 800, color: '#1E293B', marginBottom: '4px' }}>
+                      Spoke With (Relation) *
+                    </label>
+                    <div style={{ display: 'flex', gap: '12px', fontSize: '12px' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontWeight: 600 }}>
+                        <input
+                          type="radio"
+                          name="callWhom"
+                          checked={callWhom === 'father'}
+                          onChange={() => setCallWhom('father')}
+                        />
+                        <span>Father</span>
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontWeight: 600 }}>
+                        <input
+                          type="radio"
+                          name="callWhom"
+                          checked={callWhom === 'mother'}
+                          onChange={() => setCallWhom('mother')}
+                        />
+                        <span>Mother</span>
+                      </label>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="form-label" style={{ fontSize: '11px', fontWeight: 800, color: '#1E293B', marginBottom: '4px' }}>
+                      Parent's Full Name *
+                    </label>
                     <input
-                      type="radio"
-                      name="callWhom"
-                      checked={callWhom === 'father'}
-                      onChange={() => setCallWhom('father')}
+                      type="text"
+                      className="form-control"
+                      placeholder="e.g. Ramesh Sharma"
+                      value={callParentName}
+                      onChange={(e) => setCallParentName(e.target.value)}
+                      style={{ fontSize: '12px', fontWeight: 600 }}
+                      required
                     />
-                    <span>Father: {selectedLeadForCall.fatherPhone || selectedLeadForCall.mobile || 'N/A'}</span>
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
-                    <input
-                      type="radio"
-                      name="callWhom"
-                      checked={callWhom === 'mother'}
-                      onChange={() => setCallWhom('mother')}
-                    />
-                    <span>Mother: {selectedLeadForCall.motherPhone || 'N/A'}</span>
-                  </label>
+                  </div>
                 </div>
 
                 {/* Direction */}
@@ -4938,17 +4984,28 @@ export default function RoleDashboard({
                   </div>
                 </div>
 
-                {/* Notes */}
+                {/* Record Parent Feedback & Conversation */}
                 <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label" style={{ fontSize: '12px', fontWeight: 700 }}>Notes *</label>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                    <label className="form-label" style={{ fontSize: '12px', fontWeight: 800, color: '#1E3A8A', margin: 0 }}>
+                      📝 Record Parent Feedback &amp; Conversation *
+                    </label>
+                    <span style={{ fontSize: '11px', color: '#15803D', fontWeight: 700, background: '#DCFCE7', padding: '2px 8px', borderRadius: '12px' }}>
+                      👤 Will record under: {callParentName.trim() || 'Parent'}
+                    </span>
+                  </div>
                   <textarea
                     className="form-control"
-                    rows={2}
+                    rows={3}
                     required
-                    placeholder="Parent discussion notes, requested brochures, next callback time..."
+                    placeholder="Parent ne baat karke kya bola yahan record karein (e.g. Father Ramesh Sharma se baat hui. Unhone bola Class 10 CBSE boarding school chahiye, budget ₹5-6 lakh hai, campus visit next Saturday karenge)..."
                     value={callNotes}
                     onChange={(e) => setCallNotes(e.target.value)}
+                    style={{ fontSize: '12.5px', lineHeight: 1.4 }}
                   />
+                  <div style={{ fontSize: '11px', color: '#64748B', marginTop: '3px' }}>
+                    ✅ Yeh feedback <strong>{callParentName.trim() || selectedLeadForCall.parentName || 'Parent'}</strong> ke naam ke sath Lead Timeline aur History mein permanent record ho jayega.
+                  </div>
                 </div>
 
                 {/* DPDP Consent Yellow Strip */}

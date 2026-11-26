@@ -548,6 +548,8 @@ export class CommunicationsService {
         : body.budgetMax !== undefined && body.budgetMax !== null
           ? Number(body.budgetMax)
           : null;
+    const parentWhom = body.parentWhom || body.parent_whom || 'Father';
+    const parentName = body.parentName || body.parent_name || lead.parentName || lead.fatherName || lead.motherName || 'Parent';
 
     await this.prisma.lead.update({
       where: { id: lead.id },
@@ -555,6 +557,7 @@ export class CommunicationsService {
         callAttempts: { increment: 1 },
         lastCallOutcome: outcome,
         isGenuine,
+        ...(body.parentName ? { parentName: String(body.parentName) } : {}),
         ...(parentRequirements ? { parentRequirements } : {}),
         ...(preferredLocation ? { preferredLocation } : {}),
         ...(budgetMax ? { budgetMax, annualBudget: `₹${(budgetMax / 100000).toFixed(1)} Lakhs` } : {}),
@@ -573,7 +576,7 @@ export class CommunicationsService {
           userId: actor.id,
           userName: actor.fullName,
           userRole: normalizeCanonicalRole(actor.role),
-          content: `📞 Call Feedback Logged (${outcome.toUpperCase()}): [${genuineLabel}] Notes: ${body.notes || 'None'} | Budget: ₹${budgetMax || lead.budgetMax || 'N/A'} | Req: ${parentRequirements || lead.parentRequirements || 'General'} | Location: ${preferredLocation || lead.preferredLocation || 'Any'}${isGenuine ? ' ➔ Transferred to Manager for WhatsApp / Tour / Fee follow-up' : ''}`,
+          content: `📞 Call Feedback with Parent [${parentWhom.toUpperCase()}: ${parentName}] (${outcome.toUpperCase()} - ${genuineLabel}): "${body.notes || 'No remarks'}" | Budget: ₹${budgetMax || lead.budgetMax || 'N/A'} | Req: ${parentRequirements || lead.parentRequirements || 'General'} | Location: ${preferredLocation || lead.preferredLocation || 'Any'}${isGenuine ? ' ➔ Transferred to Manager for WhatsApp / Tour / Fee follow-up' : ''}`,
         },
       });
     } catch {}
