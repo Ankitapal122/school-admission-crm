@@ -447,6 +447,9 @@ export function AIView({
     const parentName = selectedLead?.fatherName || selectedLead?.parentName || 'Parent';
     const studentName = selectedLead?.studentName || 'your child';
     const msg = `Namaste ${parentName}! Based on your preferences for ${studentName}, we recommend *${school.name}* (${school.board || board}, ${school.city || city}, Annual Fee: ₹${Number(school.minFeeAnnual || school.annualFeeMin || 0).toLocaleString('en-IN')} - ₹${Number(school.maxFeeAnnual || school.annualFeeMax || 0).toLocaleString('en-IN')}). Reply to schedule a campus tour or brochure!`;
+    const targetPhone = String(selectedLead?.whatsappNumber || selectedLead?.parentPhone || '').replace(/\D/g, '').slice(-10);
+    const fallbackUrl = targetPhone ? `https://wa.me/91${targetPhone}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+
     if (selectedLead?.id) {
       try {
         const res = await apiCall('/whatsapp/generate-link', 'POST', {
@@ -454,15 +457,72 @@ export function AIView({
           leadId: selectedLead.id,
           message: msg,
         });
-        const waUrl = res?.waUrl || res?.url || res?.data?.waUrl;
-        if (waUrl) window.open(waUrl, '_blank', 'noopener,noreferrer');
-        onShowToast('WhatsApp recommendation opened & logged in 3-layer tracker!', 'success');
+        const waUrl = res?.whatsappUrl || res?.whatsapp_url || res?.waUrl || res?.url || res?.data?.whatsappUrl || res?.data?.whatsapp_url || res?.data?.waUrl || res?.data?.url || fallbackUrl;
+        const opened = window.open(waUrl, '_blank', 'noopener,noreferrer');
+        if (!opened || opened.closed || typeof opened.closed === 'undefined') {
+          window.location.href = waUrl;
+        }
+        onShowToast(`WhatsApp recommendation for ${school.name} opened!`, 'success');
         return;
       } catch (err: any) {
         onShowToast(err?.message || 'Opening direct WhatsApp share.', 'warning');
       }
     }
-    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
+    const opened = window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
+    if (!opened || opened.closed || typeof opened.closed === 'undefined') {
+      window.location.href = fallbackUrl;
+    }
+  };
+
+  const handleShareSelectedWhatsApp = async () => {
+    if (compareIds.length === 0) {
+      onShowToast('Please select at least 1 school to share on WhatsApp.', 'warning');
+      return;
+    }
+    const selectedLead = myLeads.find((l: any) => l.id === selectedLeadId);
+    const parentName = selectedLead?.fatherName || selectedLead?.parentName || 'Parent';
+    const studentName = selectedLead?.studentName || 'your child';
+
+    const selectedSchools = matches
+      .map((m: any, idx: number) => {
+        const sId = getSchoolId(m, idx);
+        return { ...(m.school || m), id: sId, matchScore: m.matchScore ?? m.score ?? 0 };
+      })
+      .filter((s: any) => compareIds.includes(s.id));
+
+    let msg = `Namaste ${parentName}! Based on your admission requirements for *${studentName}*, here is our curated recommendation of ${selectedSchools.length} top boarding schools:\n\n`;
+    selectedSchools.forEach((s: any, idx: number) => {
+      const minFee = Number(s.minFeeAnnual || s.annualFeeMin || 0).toLocaleString('en-IN');
+      const maxFee = Number(s.maxFeeAnnual || s.annualFeeMax || 0).toLocaleString('en-IN');
+      msg += `${idx + 1}. *${s.name}*\n   📍 ${s.city || city}, ${s.state || 'Uttarakhand'} | ${s.board || board}\n   💰 Annual Fee: ₹${minFee} - ₹${maxFee}\n   🎯 Match Score: ${Math.round(Number(s.matchScore || 90))}%\n\n`;
+    });
+    msg += `Please reply with the school name or number to receive the full brochure, fee breakdown, or schedule a campus visit.\n\nWarm regards,\n*BoardingEdu Admissions Team*`;
+
+    const targetPhone = String(selectedLead?.whatsappNumber || selectedLead?.parentPhone || '').replace(/\D/g, '').slice(-10);
+    const fallbackUrl = targetPhone ? `https://wa.me/91${targetPhone}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+
+    if (selectedLead?.id) {
+      try {
+        const res = await apiCall('/whatsapp/generate-link', 'POST', {
+          lead_id: selectedLead.id,
+          leadId: selectedLead.id,
+          message: msg,
+        });
+        const waUrl = res?.whatsappUrl || res?.whatsapp_url || res?.waUrl || res?.url || res?.data?.whatsappUrl || res?.data?.whatsapp_url || res?.data?.waUrl || res?.data?.url || fallbackUrl;
+        const opened = window.open(waUrl, '_blank', 'noopener,noreferrer');
+        if (!opened || opened.closed || typeof opened.closed === 'undefined') {
+          window.location.href = waUrl;
+        }
+        onShowToast(`${selectedSchools.length} School recommendations opened on WhatsApp!`, 'success');
+        return;
+      } catch (err: any) {
+        onShowToast(err?.message || 'Opening direct WhatsApp share.', 'warning');
+      }
+    }
+    const opened = window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
+    if (!opened || opened.closed || typeof opened.closed === 'undefined') {
+      window.location.href = fallbackUrl;
+    }
   };
 
   const getSchoolId = (m: any, idx: number) => {
@@ -508,6 +568,26 @@ export function AIView({
             <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#1E3A8A' }}>
               {compareIds.length} Selected
             </span>
+            <button
+              type="button"
+              className="btn btn-sm"
+              style={{
+                backgroundColor: '#16A34A',
+                color: '#FFFFFF',
+                border: '1px solid #15803D',
+                fontWeight: 700,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '6px 12px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+              }}
+              onClick={handleShareSelectedWhatsApp}
+              title={`Send all ${compareIds.length} selected schools to parent via WhatsApp`}
+            >
+              <CrmIcon name="send" size={14} color="#FFFFFF" /> Send {compareIds.length} on WhatsApp
+            </button>
             {compareIds.length >= 2 && (
               <button
                 type="button"

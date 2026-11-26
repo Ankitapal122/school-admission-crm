@@ -293,7 +293,7 @@ export default function RoleDashboard({
         leadId: showBrochureModal.id,
         message: brochureText.trim(),
       });
-      const waUrl = res?.waUrl || res?.url || res?.data?.waUrl;
+      const waUrl = res?.whatsappUrl || res?.whatsapp_url || res?.waUrl || res?.url || res?.data?.whatsappUrl || res?.data?.whatsapp_url || res?.data?.waUrl || res?.data?.url;
       if (waUrl) window.open(waUrl, '_blank', 'noopener,noreferrer');
       showToast('WhatsApp link generated & queued in Layer-3 confirmation tracker!', 'success');
       setShowBrochureModal(null);

@@ -357,7 +357,7 @@ export class AuthService {
     // 1. IF RIGHT PASSWORD: NEVER BLOCK! User can login 100+ times without blocking
     if (passwordValid) {
       const nowLogin = new Date();
-      await this.prisma.user.update({
+      this.prisma.user.update({
         where: { id: user.id },
         data: {
           status: 'active',
@@ -374,7 +374,7 @@ export class AuthService {
         userAgent,
       );
 
-      await this.prisma.auditLog.create({
+      this.prisma.auditLog.create({
         data: {
           userId: user.id,
           userName: user.fullName,
@@ -391,7 +391,7 @@ export class AuthService {
             sessionDays,
           },
         },
-      });
+      }).catch(() => {});
 
       return {
         token: accessToken,

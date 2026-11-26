@@ -467,7 +467,7 @@ export function LeadsView({
                                   lead_id: l.id,
                                   message: tpl,
                                 });
-                                const url = res?.waUrl || res?.url || res?.data?.waUrl;
+                                const url = res?.whatsappUrl || res?.whatsapp_url || res?.waUrl || res?.url || res?.data?.whatsappUrl || res?.data?.whatsapp_url || res?.data?.waUrl || res?.data?.url;
                                 if (url) window.open(url, '_blank', 'noopener,noreferrer');
                                 onShowToast('WhatsApp template with student details & document link opened!', 'success');
                               } catch (err: any) {
@@ -1247,7 +1247,7 @@ function LeadDetailModal({
         lead_id: lead.id,
         message: waMessage.trim(),
       });
-      const url = res?.waUrl || res?.url || res?.data?.waUrl;
+      const url = res?.whatsappUrl || res?.whatsapp_url || res?.waUrl || res?.url || res?.data?.whatsappUrl || res?.data?.whatsapp_url || res?.data?.waUrl || res?.data?.url;
       if (url) window.open(url, '_blank', 'noopener,noreferrer');
       window.dispatchEvent(new CustomEvent('crm-logging-queue-updated'));
       onShowToast('WhatsApp link opened & added to Pending Logging Queue.', 'success');

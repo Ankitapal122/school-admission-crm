@@ -261,6 +261,8 @@ export class CommunicationsService {
     return {
       whatsapp_url: whatsappUrl,
       whatsappUrl,
+      waUrl: whatsappUrl,
+      url: whatsappUrl,
       message_body: messageBody,
       message_body_length: messageBody.length,
       url_length: whatsappUrl.length,

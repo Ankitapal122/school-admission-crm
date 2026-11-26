@@ -71,12 +71,14 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
     this.destroySocket();
   }
 
-  private destroySocket() {
+  private destroySocket(resetPairingMode = true) {
     this.socketReadyForPairing = false;
-    this.isPairingMode = false;
-    if (this.pairingTimer) {
-      clearTimeout(this.pairingTimer);
-      this.pairingTimer = null;
+    if (resetPairingMode) {
+      this.isPairingMode = false;
+      if (this.pairingTimer) {
+        clearTimeout(this.pairingTimer);
+        this.pairingTimer = null;
+      }
     }
     if (this.sock) {
       try {
@@ -96,8 +98,8 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
     this.isInitializing = true;
 
     try {
-      // Cleanly tear down any previous socket before creating a new one (prevents memory leaks)
-      this.destroySocket();
+      // Cleanly tear down any previous socket before creating a new one (prevents memory leaks, preserve pairing mode if active)
+      this.destroySocket(false);
 
       if (!fs.existsSync(this.authDir)) {
         fs.mkdirSync(this.authDir, { recursive: true });
@@ -109,7 +111,7 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
         auth: state,
         logger: pino({ level: 'silent' }),
         printQRInTerminal: false,
-        browser: Browsers.macOS('Chrome'),
+        browser: ['Ubuntu', 'Chrome', '20.0.04'],
         connectTimeoutMs: 60000,
         keepAliveIntervalMs: 25000,
       });
@@ -137,7 +139,7 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
             if (this.qrAttempts > this.MAX_QR_ATTEMPTS) {
               this.logger.log('WhatsApp QR idle limit reached — pausing socket to conserve server memory.');
               this.qrCodeDataUrl = null;
-              this.destroySocket();
+              this.destroySocket(true);
               return;
             }
           }
@@ -158,30 +160,37 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
 
         if (connection === 'close') {
           this.isConnected = false;
-          const statusCode = (lastDisconnect?.error as any)?.output?.statusCode;
-          const isRestart = statusCode === DisconnectReason.restartRequired || statusCode === 515;
+          const statusCode =
+            (lastDisconnect?.error as any)?.output?.statusCode ||
+            (lastDisconnect?.error as any)?.statusCode ||
+            (lastDisconnect?.error as any)?.code;
+          const isRestart =
+            statusCode === DisconnectReason.restartRequired ||
+            statusCode === 515 ||
+            statusCode === 428;
           const hasCreds = fs.existsSync(path.join(this.authDir, 'creds.json'));
+          const isLoggedOut = statusCode === DisconnectReason.loggedOut || statusCode === 401;
           const shouldReconnect =
-            statusCode !== DisconnectReason.loggedOut &&
+            !isLoggedOut &&
             (hasCreds || this.isPairingMode || isRestart || this.qrAttempts < this.MAX_QR_ATTEMPTS);
 
           this.logger.warn(
             `WhatsApp connection closed. Status: ${statusCode}, Should Reconnect: ${shouldReconnect}, isRestart: ${isRestart}, PairingMode: ${this.isPairingMode}`,
           );
 
-          if (statusCode === DisconnectReason.loggedOut) {
+          if (isLoggedOut) {
             this.logger.warn('WhatsApp session logged out. Clearing credentials and entering idle mode.');
-            this.destroySocket();
+            this.destroySocket(true);
             this.clearAuthData();
             this.qrCodeDataUrl = null;
             this.activeNumber = null;
-          } else if (isRestart) {
-            this.logger.log('WhatsApp requested immediate restart (515) — reconnecting in 150ms to complete device linking...');
+          } else if (isRestart || this.isPairingMode) {
+            this.logger.log('WhatsApp connection cycling for device linking / restart — reconnecting immediately...');
             this.scheduleReconnect(150);
           } else if (shouldReconnect) {
             this.scheduleReconnect(1500);
           } else {
-            this.destroySocket();
+            this.destroySocket(true);
             this.qrCodeDataUrl = null;
           }
         } else if (connection === 'open') {
@@ -1255,11 +1264,11 @@ export class WhatsappBotService implements OnModuleInit, OnModuleDestroy {
             if (!raw?.registered) {
               this.logger.log('Clearing incomplete/unregistered auth credentials for clean pairing handshake.');
               this.clearAuthData();
-              this.destroySocket();
+              this.destroySocket(false);
             }
           } catch {
             this.clearAuthData();
-            this.destroySocket();
+            this.destroySocket(false);
           }
         }
 
