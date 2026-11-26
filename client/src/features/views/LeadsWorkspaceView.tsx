@@ -1973,7 +1973,9 @@ function LeadDetailModal({
                     <option value="Connected - Needs Callback">Connected - Needs Callback</option>
                     <option value="Ringing / No Answer">Ringing / No Answer</option>
                     <option value="Switched Off / Not Reachable">Switched Off / Not Reachable</option>
+                    <option value="Call Busy">Call Busy</option>
                     <option value="Not Interested">Not Interested</option>
+                    <option value="Wrong Number">Wrong Number</option>
                   </select>
                 </div>
                 <div className="form-group">

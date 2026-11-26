@@ -41,15 +41,26 @@ export default function RoleDashboard({
   const [adminData, setAdminData] = useState<any>(null);
   const [allEmployees, setAllEmployees] = useState<any[]>([]);
   const [pendingQueue, setPendingQueue] = useState<any[]>([]);
-  const [callOutcomes, setCallOutcomes] = useState<string[]>([
-    'Connected - Interested',
-    'Connected - Needs Callback',
-    'Ringing / No Answer',
-    'Switched Off / Not Reachable',
-    'Call Busy',
-    'Not Interested',
-    'Wrong Number',
-  ]);
+  const [callOutcomes, setCallOutcomes] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('crm_call_outcomes');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return [
+      'Connected - Interested',
+      'Connected - Needs Callback',
+      'Ringing / No Answer',
+      'Switched Off / Not Reachable',
+      'Call Busy',
+      'Not Interested',
+      'Wrong Number',
+    ];
+  });
+  const [showCustomOutcomeInput, setShowCustomOutcomeInput] = useState(false);
+  const [customOutcomeText, setCustomOutcomeText] = useState('');
   const [loadingDash, setLoadingDash] = useState(false);
 
   // Call & WA logging modals
@@ -228,6 +239,21 @@ export default function RoleDashboard({
         showToast(err.message || 'Please resolve your pending logging queue item first!', 'warning');
       }
     }
+  };
+
+  const handleAddCustomOutcome = () => {
+    const trimmed = customOutcomeText.trim();
+    if (!trimmed) return;
+    if (!callOutcomes.includes(trimmed)) {
+      const updated = [...callOutcomes, trimmed];
+      setCallOutcomes(updated);
+      try {
+        localStorage.setItem('crm_call_outcomes', JSON.stringify(updated));
+      } catch {}
+    }
+    setCallOutcome(trimmed);
+    setCustomOutcomeText('');
+    setShowCustomOutcomeInput(false);
   };
 
   const handleSaveCallFeedback = async (e: React.FormEvent) => {
@@ -4730,20 +4756,92 @@ export default function RoleDashboard({
 
                 {/* Outcome */}
                 <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label" style={{ fontSize: '12px', fontWeight: 700 }}>Outcome *</label>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                    <label className="form-label" style={{ fontSize: '12px', fontWeight: 700, margin: 0 }}>Outcome *</label>
+                    <button
+                      type="button"
+                      onClick={() => setShowCustomOutcomeInput(!showCustomOutcomeInput)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#2563EB',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        padding: '1px 4px',
+                        textDecoration: 'underline',
+                      }}
+                    >
+                      {showCustomOutcomeInput ? '✕ Cancel' : '+ Add Custom Option'}
+                    </button>
+                  </div>
+
                   <select
                     className="form-control"
                     value={callOutcome}
-                    onChange={(e) => setCallOutcome(e.target.value)}
+                    onChange={(e) => {
+                      if (e.target.value === '__ADD_CUSTOM__') {
+                        setShowCustomOutcomeInput(true);
+                      } else {
+                        setCallOutcome(e.target.value);
+                      }
+                    }}
+                    style={{ fontWeight: 600, color: '#1E293B', backgroundColor: '#FFFFFF' }}
                   >
-                    <option value="Connected - Interested">Connected - Interested</option>
-                    <option value="Connected - Needs Callback">Connected - Needs Callback</option>
-                    <option value="Ringing / No Answer">Ringing / No Answer</option>
-                    <option value="Switched Off / Not Reachable">Switched Off / Not Reachable</option>
-                    <option value="Call Busy">Call Busy</option>
-                    <option value="Not Interested">Not Interested</option>
-                    <option value="Wrong Number">Wrong Number</option>
+                    {callOutcomes.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
+                    <option value="__ADD_CUSTOM__" style={{ color: '#2563EB', fontWeight: 700 }}>
+                      ➕ + Add Other / Custom Outcome (Manual)...
+                    </option>
                   </select>
+
+                  {/* Manual / Custom Outcome Input Box */}
+                  {showCustomOutcomeInput && (
+                    <div
+                      style={{
+                        marginTop: '8px',
+                        padding: '10px',
+                        background: '#EFF6FF',
+                        border: '1.5px dashed #3B82F6',
+                        borderRadius: '8px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '6px',
+                      }}
+                    >
+                      <div style={{ fontSize: '11px', fontWeight: 700, color: '#1E40AF' }}>
+                        ✍️ Manual Call Outcome (Custom Name):
+                      </div>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <input
+                          type="text"
+                          className="form-control"
+                          placeholder="e.g. Parent on Vacation / Admission in Local School"
+                          value={customOutcomeText}
+                          onChange={(e) => setCustomOutcomeText(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleAddCustomOutcome();
+                            }
+                          }}
+                          autoFocus
+                          style={{ fontSize: '12px' }}
+                        />
+                        <button
+                          type="button"
+                          className="btn btn-primary btn-sm"
+                          onClick={handleAddCustomOutcome}
+                          style={{ whiteSpace: 'nowrap', fontSize: '11.5px', fontWeight: 700 }}
+                        >
+                          Add Option
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Duration & Recording Link (Side-by-side) */}
@@ -4759,14 +4857,42 @@ export default function RoleDashboard({
                     />
                   </div>
                   <div className="form-group" style={{ margin: 0 }}>
-                    <label className="form-label" style={{ fontSize: '12px', fontWeight: 700 }}>Recording Link</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={callRecordingLink}
-                      onChange={(e) => setCallRecordingLink(e.target.value)}
-                      placeholder="rec_ld123_01.mp3"
-                    />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <label className="form-label" style={{ fontSize: '12px', fontWeight: 700, margin: 0 }}>
+                        Recording Link
+                      </label>
+                      <span
+                        title="Cloud telephony audio URL (Exotel/Twilio/AWS S3) or file name for quality audit, staff coaching & dispute verification."
+                        style={{ fontSize: '10px', color: '#64748B', cursor: 'help' }}
+                      >
+                        ℹ️ Audio URL / Ref
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={callRecordingLink}
+                        onChange={(e) => setCallRecordingLink(e.target.value)}
+                        placeholder="rec_ld123_01.mp3"
+                        style={{ fontSize: '12px' }}
+                      />
+                      {callRecordingLink && (callRecordingLink.startsWith('http://') || callRecordingLink.startsWith('https://')) && (
+                        <a
+                          href={callRecordingLink}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="btn btn-secondary btn-sm"
+                          style={{ padding: '4px 8px', fontSize: '11px', textDecoration: 'none', display: 'flex', alignItems: 'center' }}
+                          title="Open recording audio in new tab"
+                        >
+                          ▶️ Listen
+                        </a>
+                      )}
+                    </div>
+                    <div style={{ fontSize: '10px', color: '#64748B', marginTop: '3px', lineHeight: 1.2 }}>
+                      Telephony URL / file name for QA review &amp; parent verification.
+                    </div>
                   </div>
                 </div>
 

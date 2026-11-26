@@ -1741,6 +1741,7 @@ export default function LeadReportModal({
                     <option value="Switched Off / Not Reachable">Switched Off / Not Reachable</option>
                     <option value="Call Busy">Call Busy</option>
                     <option value="Not Interested">Not Interested</option>
+                    <option value="Wrong Number">Wrong Number</option>
                   </select>
                 </div>
                 <div>

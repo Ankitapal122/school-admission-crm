@@ -481,7 +481,7 @@ export class CommunicationsService {
 
     const validOutcomes = new Set(CALL_OUTCOMES.map((o) => o.key));
     const rawOutcome = String(body.outcome || 'interested').toLowerCase().trim();
-    const outcome = outcomeMap[rawOutcome] || (validOutcomes.has(rawOutcome) ? rawOutcome : 'interested');
+    const outcome = outcomeMap[rawOutcome] || (validOutcomes.has(rawOutcome) ? rawOutcome : String(body.outcome || 'interested').trim());
 
     const mobile =
       normalizeIndianPhone(body.mobile || lead.parentPhone, false) || lead.parentPhone;
