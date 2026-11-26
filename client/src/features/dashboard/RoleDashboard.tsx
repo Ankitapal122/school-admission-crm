@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import CrmIcon from '../../components/CrmIcon';
 import { useAuthStore } from '../../stores/authStore';
 import { apiCall } from '../../lib/api';
@@ -371,6 +371,112 @@ export default function RoleDashboard({
       showToast(err?.message || 'Failed to reassign employee team.', 'danger');
     }
   };
+
+  // Presence & staff calculations for live manager & counsellor visibility
+  const formatLastActive = (dateVal: any) => {
+    if (!dateVal) return null;
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return null;
+    const diffMinutes = Math.floor((Date.now() - d.getTime()) / 60000);
+    if (diffMinutes < 1) return 'just now';
+    if (diffMinutes < 60) return `${diffMinutes}m ago`;
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+  };
+
+  const staffPresenceMap = useMemo(() => {
+    const map = new Map<string, any>();
+    presenceRows.forEach((r: any) => {
+      if (r?.id) map.set(r.id, r);
+    });
+    (adminData?.presenceMonitor || []).forEach((m: any) => {
+      if (m?.id && !map.has(m.id)) map.set(m.id, m);
+    });
+    return map;
+  }, [presenceRows, adminData?.presenceMonitor]);
+
+  const getStaffPresence = (u: any) => {
+    if (u?.id === user?.id) {
+      return {
+        status: 'online',
+        label: 'Live Now',
+        isOnline: true,
+        color: '#16A34A',
+        bg: '#DCFCE7',
+        border: '#86EFAC',
+        lastActiveText: 'Active now',
+      };
+    }
+    const p = staffPresenceMap.get(u?.id);
+    const lastActive = p?.lastActiveAt || u?.lastActiveAt;
+    const rawPresence = (p?.presence || u?.presenceStatus || (u?.isOnline ? 'online' : 'offline')).toLowerCase();
+
+    let status: 'online' | 'idle' | 'offline' = rawPresence === 'online' ? 'online' : (rawPresence === 'idle' ? 'idle' : 'offline');
+    if (lastActive) {
+      const ageMs = Date.now() - new Date(lastActive).getTime();
+      if (ageMs <= 2 * 60 * 1000) status = 'online';
+      else if (ageMs <= 15 * 60 * 1000) status = 'idle';
+      else status = 'offline';
+    } else if (u?.isOnline === true || p?.isOnline === true) {
+      status = 'online';
+    }
+
+    const lastActiveText = formatLastActive(lastActive);
+
+    if (status === 'online') {
+      return {
+        status: 'online',
+        label: 'Live Now',
+        isOnline: true,
+        color: '#16A34A',
+        bg: '#DCFCE7',
+        border: '#86EFAC',
+        lastActiveText: lastActiveText ? `Active ${lastActiveText}` : 'Active now',
+      };
+    }
+    if (status === 'idle') {
+      return {
+        status: 'idle',
+        label: 'Idle (Away)',
+        isOnline: false,
+        color: '#CA8A04',
+        bg: '#FEF9C3',
+        border: '#FDE047',
+        lastActiveText: lastActiveText ? `Idle (${lastActiveText})` : 'Idle',
+      };
+    }
+    return {
+      status: 'offline',
+      label: 'Offline',
+      isOnline: false,
+      color: '#64748B',
+      bg: '#F1F5F9',
+      border: '#CBD5E1',
+      lastActiveText: lastActiveText ? `Last seen ${lastActiveText}` : 'Offline',
+    };
+  };
+
+  const resolveStaffTeamName = (u: any) =>
+    u?.teamName ||
+    u?.team?.name ||
+    u?.managedTeams?.[0]?.name ||
+    u?.teamId?.teamName ||
+    u?.teamId?.name ||
+    teams.find((t: any) => t.id === (u?.teamId?.id || u?.teamId) || t.managerId === u?.id)?.name ||
+    null;
+
+  const adminStaffSource = allEmployees.length > 0 ? allEmployees : (adminData?.presenceMonitor || []);
+  const adminManagerList = adminStaffSource.filter((u: any) =>
+    String(u?.role || u?.canonicalRole || '').toLowerCase().includes('manager')
+  );
+  const adminCounsellorList = adminStaffSource.filter((u: any) =>
+    String(u?.role || u?.canonicalRole || '').toLowerCase().includes('counsellor')
+  );
+  const onlineManagersCount = adminManagerList.filter((m: any) => getStaffPresence(m).status === 'online').length;
+  const onlineCounsellorsCount = adminCounsellorList.filter((c: any) => getStaffPresence(c).status === 'online').length;
+  const totalManagersCount = Number(adminData?.managersCount ?? (adminManagerList.length || 0));
+  const totalCounsellorsCount = Number(adminData?.counsellorsCount ?? (adminCounsellorList.length || 0));
 
   return (
     <div style={{ position: 'relative' }}>
@@ -2884,9 +2990,36 @@ export default function RoleDashboard({
               >
                 <CrmIcon name="users" size={16} />
               </div>
-              <div style={{ minWidth: 0 }}>
-                <div className="dash-kpi-value" style={{ fontSize: '24px', fontWeight: 800, color: '#0F172A', lineHeight: 1.1 }}>
-                  {Number(adminData?.managersCount ?? (teams.length || 0)).toLocaleString('en-IN')}
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
+                  <div className="dash-kpi-value" style={{ fontSize: '24px', fontWeight: 800, color: '#0F172A', lineHeight: 1.1 }}>
+                    {totalManagersCount.toLocaleString('en-IN')}
+                  </div>
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      padding: '2px 7px',
+                      borderRadius: '999px',
+                      background: onlineManagersCount > 0 ? '#DCFCE7' : '#F1F5F9',
+                      color: onlineManagersCount > 0 ? '#15803D' : '#64748B',
+                      border: `1px solid ${onlineManagersCount > 0 ? '#86EFAC' : '#CBD5E1'}`,
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: '6px',
+                        height: '6px',
+                        borderRadius: '50%',
+                        background: onlineManagersCount > 0 ? '#16A34A' : '#94A3B8',
+                        boxShadow: onlineManagersCount > 0 ? '0 0 5px #22C55E' : 'none',
+                      }}
+                    />
+                    {onlineManagersCount > 0 ? `${onlineManagersCount} Live Now` : '0 Live'}
+                  </span>
                 </div>
                 <div className="dash-kpi-label" style={{ fontSize: '12.5px', fontWeight: 600, color: '#334155', marginTop: '2px' }}>
                   Total Managers
@@ -2929,9 +3062,36 @@ export default function RoleDashboard({
               >
                 <CrmIcon name="user-check" size={16} />
               </div>
-              <div style={{ minWidth: 0 }}>
-                <div className="dash-kpi-value" style={{ fontSize: '24px', fontWeight: 800, color: '#0F172A', lineHeight: 1.1 }}>
-                  {Number(adminData?.counsellorsCount ?? 0).toLocaleString('en-IN')}
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
+                  <div className="dash-kpi-value" style={{ fontSize: '24px', fontWeight: 800, color: '#0F172A', lineHeight: 1.1 }}>
+                    {totalCounsellorsCount.toLocaleString('en-IN')}
+                  </div>
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      padding: '2px 7px',
+                      borderRadius: '999px',
+                      background: onlineCounsellorsCount > 0 ? '#DCFCE7' : '#F1F5F9',
+                      color: onlineCounsellorsCount > 0 ? '#15803D' : '#64748B',
+                      border: `1px solid ${onlineCounsellorsCount > 0 ? '#86EFAC' : '#CBD5E1'}`,
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: '6px',
+                        height: '6px',
+                        borderRadius: '50%',
+                        background: onlineCounsellorsCount > 0 ? '#16A34A' : '#94A3B8',
+                        boxShadow: onlineCounsellorsCount > 0 ? '0 0 5px #22C55E' : 'none',
+                      }}
+                    />
+                    {onlineCounsellorsCount > 0 ? `${onlineCounsellorsCount} Live Now` : '0 Live'}
+                  </span>
                 </div>
                 <div className="dash-kpi-label" style={{ fontSize: '12.5px', fontWeight: 600, color: '#334155', marginTop: '2px' }}>
                   Total Counsellors
@@ -3163,285 +3323,346 @@ export default function RoleDashboard({
           </div>
 
           {/* 2B. Managers & Counsellors Team Directory (Click to View Team Name & Hierarchy) */}
-          {(() => {
-            const staffSource =
-              allEmployees.length > 0
-                ? allEmployees
-                : adminData?.presenceMonitor || [];
-            const managerList = staffSource.filter((u: any) =>
-              String(u.role || u.canonicalRole || '').toLowerCase().includes('manager')
-            );
-            const counsellorList = staffSource.filter((u: any) =>
-              String(u.role || u.canonicalRole || '').toLowerCase().includes('counsellor')
-            );
-            const resolveStaffTeamName = (u: any) =>
-              u.teamName ||
-              u.team?.name ||
-              u.managedTeams?.[0]?.name ||
-              u.teamId?.teamName ||
-              u.teamId?.name ||
-              teams.find((t: any) => t.id === (u.teamId?.id || u.teamId) || t.managerId === u.id)?.name ||
-              null;
-
-            return (
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+              gap: '16px',
+              marginBottom: '16px',
+            }}
+          >
+            {/* Left: Managers & Their Teams */}
+            <div className="card" style={{ marginBottom: 0 }}>
               <div
                 style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-                  gap: '16px',
-                  marginBottom: '16px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '12px',
                 }}
               >
-                {/* Left: Managers & Their Teams */}
-                <div className="card" style={{ marginBottom: 0 }}>
-                  <div
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span
                     style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
+                      width: '28px',
+                      height: '28px',
+                      borderRadius: '8px',
+                      background: '#DBEAFE',
+                      color: '#1D4ED8',
+                      display: 'inline-flex',
                       alignItems: 'center',
-                      marginBottom: '12px',
+                      justifyContent: 'center',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <CrmIcon name="users" size={15} />
+                  </span>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                        Managers &amp; Their Teams ({adminManagerList.length})
+                      </h3>
                       <span
                         style={{
-                          width: '28px',
-                          height: '28px',
-                          borderRadius: '8px',
-                          background: '#DBEAFE',
-                          color: '#1D4ED8',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          padding: '1px 7px',
+                          borderRadius: '999px',
+                          background: onlineManagersCount > 0 ? '#DCFCE7' : '#F1F5F9',
+                          color: onlineManagersCount > 0 ? '#15803D' : '#64748B',
+                          border: `1px solid ${onlineManagersCount > 0 ? '#86EFAC' : '#E2E8F0'}`,
                           display: 'inline-flex',
                           alignItems: 'center',
-                          justifyContent: 'center',
+                          gap: '4px',
                         }}
                       >
-                        <CrmIcon name="users" size={15} />
+                        <span
+                          style={{
+                            width: '5px',
+                            height: '5px',
+                            borderRadius: '50%',
+                            background: onlineManagersCount > 0 ? '#16A34A' : '#94A3B8',
+                          }}
+                        />
+                        {onlineManagersCount} Live
                       </span>
-                      <div>
-                        <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
-                          Managers &amp; Their Teams ({managerList.length})
-                        </h3>
-                        <div style={{ fontSize: '11.5px', color: '#64748B' }}>
-                          Each manager with their assigned team name
-                        </div>
-                      </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => onNavigateTab('managers')}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#2563EB',
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      Manage →
-                    </button>
+                    <div style={{ fontSize: '11.5px', color: '#64748B' }}>
+                      Each manager with their assigned team name &amp; live presence
+                    </div>
                   </div>
-
-                  {managerList.length === 0 ? (
-                    <div style={{ fontSize: '12.5px', color: '#64748B', padding: '12px 0' }}>
-                      No managers configured yet.
-                    </div>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      {managerList.map((mgr: any) => {
-                        const tName = resolveStaffTeamName(mgr);
-                        const isOnlineMgr =
-                          mgr.isOnline === true ||
-                          mgr.presenceStatus === 'online' ||
-                          mgr.id === user?.id;
-                        const memberCount = Array.isArray(mgr.teamMembers)
-                          ? mgr.teamMembers.filter((m: any) => m.id !== mgr.id).length
-                          : counsellorList.filter(
-                              (c: any) =>
-                                (c.teamId?.id || c.teamId) &&
-                                (c.teamId?.id || c.teamId) === (mgr.teamId?.id || mgr.teamId)
-                            ).length;
-                        return (
-                          <div
-                            key={mgr.id}
-                            onClick={() => setSelectedStaffModal(mgr)}
-                            style={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              gap: '10px',
-                              padding: '10px 12px',
-                              borderRadius: '11px',
-                              background: '#F8FAFC',
-                              border: '1px solid #E2E8F0',
-                              cursor: 'pointer',
-                              transition: 'border-color 0.15s ease, background 0.15s ease',
-                            }}
-                            title="Click to inspect Manager & Team details"
-                          >
-                            <div style={{ minWidth: 0 }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-                                <span
-                                  style={{
-                                    width: '8px',
-                                    height: '8px',
-                                    borderRadius: '50%',
-                                    background: isOnlineMgr ? '#16A34A' : '#94A3B8',
-                                    flexShrink: 0,
-                                  }}
-                                />
-                                <strong style={{ fontSize: '13.5px', color: '#0F172A' }}>
-                                  {mgr.fullName}
-                                </strong>
-                              </div>
-                              <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '2px' }}>
-                                {mgr.employeeId || mgr.email} &bull; {memberCount}{' '}
-                                {memberCount === 1 ? 'Counsellor' : 'Counsellors'}
-                              </div>
-                            </div>
-                            <span
-                              style={{
-                                background: tName ? '#EFF6FF' : '#F1F5F9',
-                                color: tName ? '#1D4ED8' : '#64748B',
-                                border: `1px solid ${tName ? '#BFDBFE' : '#E2E8F0'}`,
-                                padding: '4px 10px',
-                                borderRadius: '999px',
-                                fontSize: '11.5px',
-                                fontWeight: 700,
-                                whiteSpace: 'nowrap',
-                              }}
-                            >
-                              Team: {tName || 'Unassigned'}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
                 </div>
-
-                {/* Right: Counsellors (Click to View Team Name) */}
-                <div className="card" style={{ marginBottom: 0 }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: '12px',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span
-                        style={{
-                          width: '28px',
-                          height: '28px',
-                          borderRadius: '8px',
-                          background: '#D1FAE5',
-                          color: '#047857',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        <CrmIcon name="user-check" size={15} />
-                      </span>
-                      <div>
-                        <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
-                          Counsellors &amp; Team Mapping ({counsellorList.length})
-                        </h3>
-                        <div style={{ fontSize: '11.5px', color: '#64748B' }}>
-                          Click any counsellor to view their Team Name &amp; Manager
-                        </div>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => onNavigateTab('counsellors')}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#2563EB',
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      View All →
-                    </button>
-                  </div>
-
-                  {counsellorList.length === 0 ? (
-                    <div style={{ fontSize: '12.5px', color: '#64748B', padding: '12px 0' }}>
-                      No counsellors added yet.
-                    </div>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      {counsellorList.map((cou: any) => {
-                        const tName = resolveStaffTeamName(cou);
-                        const isOnlineCou =
-                          cou.isOnline === true ||
-                          cou.presenceStatus === 'online' ||
-                          cou.id === user?.id;
-                        return (
-                          <div
-                            key={cou.id}
-                            onClick={() => setSelectedStaffModal(cou)}
-                            style={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              gap: '10px',
-                              padding: '10px 12px',
-                              borderRadius: '11px',
-                              background: '#F8FAFC',
-                              border: '1px solid #E2E8F0',
-                              cursor: 'pointer',
-                              transition: 'border-color 0.15s ease, background 0.15s ease',
-                            }}
-                            title="Click to see this Counsellor's Team Name & Reporting Manager"
-                          >
-                            <div style={{ minWidth: 0 }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-                                <span
-                                  style={{
-                                    width: '8px',
-                                    height: '8px',
-                                    borderRadius: '50%',
-                                    background: isOnlineCou ? '#16A34A' : '#94A3B8',
-                                    flexShrink: 0,
-                                  }}
-                                />
-                                <strong style={{ fontSize: '13.5px', color: '#0F172A' }}>
-                                  {cou.fullName}
-                                </strong>
-                              </div>
-                              <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '2px' }}>
-                                {cou.managerName ? `Manager: ${cou.managerName}` : cou.employeeId || cou.email}
-                              </div>
-                            </div>
-                            <span
-                              style={{
-                                background: tName ? '#ECFDF5' : '#F1F5F9',
-                                color: tName ? '#047857' : '#64748B',
-                                border: `1px solid ${tName ? '#A7F3D0' : '#E2E8F0'}`,
-                                padding: '4px 10px',
-                                borderRadius: '999px',
-                                fontSize: '11.5px',
-                                fontWeight: 700,
-                                whiteSpace: 'nowrap',
-                              }}
-                            >
-                              {tName ? `Team: ${tName} →` : 'View Team →'}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
+                <button
+                  type="button"
+                  onClick={() => onNavigateTab('managers')}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#2563EB',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Manage →
+                </button>
               </div>
-            );
-          })()}
+
+              {adminManagerList.length === 0 ? (
+                <div style={{ fontSize: '12.5px', color: '#64748B', padding: '12px 0' }}>
+                  No managers configured yet.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {adminManagerList.map((mgr: any) => {
+                    const tName = resolveStaffTeamName(mgr);
+                    const pres = getStaffPresence(mgr);
+                    const memberCount = Array.isArray(mgr.teamMembers)
+                      ? mgr.teamMembers.filter((m: any) => m.id !== mgr.id).length
+                      : adminCounsellorList.filter(
+                          (c: any) =>
+                            (c.teamId?.id || c.teamId) &&
+                            (c.teamId?.id || c.teamId) === (mgr.teamId?.id || mgr.teamId)
+                        ).length;
+                    return (
+                      <div
+                        key={mgr.id}
+                        onClick={() => setSelectedStaffModal(mgr)}
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          gap: '10px',
+                          padding: '10px 12px',
+                          borderRadius: '11px',
+                          background: '#F8FAFC',
+                          border: '1px solid #E2E8F0',
+                          cursor: 'pointer',
+                          transition: 'border-color 0.15s ease, background 0.15s ease',
+                        }}
+                        title="Click to inspect Manager & Team details"
+                      >
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            <span
+                              style={{
+                                width: '8px',
+                                height: '8px',
+                                borderRadius: '50%',
+                                background: pres.color,
+                                boxShadow: pres.status === 'online' ? '0 0 6px #22C55E' : 'none',
+                                flexShrink: 0,
+                              }}
+                            />
+                            <strong style={{ fontSize: '13.5px', color: '#0F172A' }}>
+                              {mgr.fullName}
+                            </strong>
+                            <span
+                              style={{
+                                fontSize: '10.5px',
+                                fontWeight: 700,
+                                padding: '2px 7px',
+                                borderRadius: '999px',
+                                background: pres.bg,
+                                color: pres.color,
+                                border: `1px solid ${pres.border}`,
+                                lineHeight: 1,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '3px',
+                              }}
+                            >
+                              {pres.label}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '3px' }}>
+                            {mgr.employeeId || mgr.email} &bull; {memberCount}{' '}
+                            {memberCount === 1 ? 'Counsellor' : 'Counsellors'}{' '}
+                            &bull; <span style={{ color: pres.color, fontWeight: 600 }}>{pres.lastActiveText}</span>
+                          </div>
+                        </div>
+                        <span
+                          style={{
+                            background: tName ? '#EFF6FF' : '#F1F5F9',
+                            color: tName ? '#1D4ED8' : '#64748B',
+                            border: `1px solid ${tName ? '#BFDBFE' : '#E2E8F0'}`,
+                            padding: '4px 10px',
+                            borderRadius: '999px',
+                            fontSize: '11.5px',
+                            fontWeight: 700,
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          Team: {tName || 'Unassigned'}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Right: Counsellors (Click to View Team Name) */}
+            <div className="card" style={{ marginBottom: 0 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '12px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span
+                    style={{
+                      width: '28px',
+                      height: '28px',
+                      borderRadius: '8px',
+                      background: '#D1FAE5',
+                      color: '#047857',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <CrmIcon name="user-check" size={15} />
+                  </span>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                        Counsellors &amp; Team Mapping ({adminCounsellorList.length})
+                      </h3>
+                      <span
+                        style={{
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          padding: '1px 7px',
+                          borderRadius: '999px',
+                          background: onlineCounsellorsCount > 0 ? '#DCFCE7' : '#F1F5F9',
+                          color: onlineCounsellorsCount > 0 ? '#15803D' : '#64748B',
+                          border: `1px solid ${onlineCounsellorsCount > 0 ? '#86EFAC' : '#E2E8F0'}`,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        <span
+                          style={{
+                            width: '5px',
+                            height: '5px',
+                            borderRadius: '50%',
+                            background: onlineCounsellorsCount > 0 ? '#16A34A' : '#94A3B8',
+                          }}
+                        />
+                        {onlineCounsellorsCount} Live
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '11.5px', color: '#64748B' }}>
+                      Click any counsellor to view their Team Name &amp; Manager
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onNavigateTab('counsellors')}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#2563EB',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  View All →
+                </button>
+              </div>
+
+              {adminCounsellorList.length === 0 ? (
+                <div style={{ fontSize: '12.5px', color: '#64748B', padding: '12px 0' }}>
+                  No counsellors added yet.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {adminCounsellorList.map((cou: any) => {
+                    const tName = resolveStaffTeamName(cou);
+                    const pres = getStaffPresence(cou);
+                    return (
+                      <div
+                        key={cou.id}
+                        onClick={() => setSelectedStaffModal(cou)}
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          gap: '10px',
+                          padding: '10px 12px',
+                          borderRadius: '11px',
+                          background: '#F8FAFC',
+                          border: '1px solid #E2E8F0',
+                          cursor: 'pointer',
+                          transition: 'border-color 0.15s ease, background 0.15s ease',
+                        }}
+                        title="Click to see this Counsellor's Team Name & Reporting Manager"
+                      >
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            <span
+                              style={{
+                                width: '8px',
+                                height: '8px',
+                                borderRadius: '50%',
+                                background: pres.color,
+                                boxShadow: pres.status === 'online' ? '0 0 6px #22C55E' : 'none',
+                                flexShrink: 0,
+                              }}
+                            />
+                            <strong style={{ fontSize: '13.5px', color: '#0F172A' }}>
+                              {cou.fullName}
+                            </strong>
+                            <span
+                              style={{
+                                fontSize: '10.5px',
+                                fontWeight: 700,
+                                padding: '2px 7px',
+                                borderRadius: '999px',
+                                background: pres.bg,
+                                color: pres.color,
+                                border: `1px solid ${pres.border}`,
+                                lineHeight: 1,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '3px',
+                              }}
+                            >
+                              {pres.label}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '3px' }}>
+                            {cou.managerName ? `Manager: ${cou.managerName}` : cou.employeeId || cou.email}{' '}
+                            &bull; <span style={{ color: pres.color, fontWeight: 600 }}>{pres.lastActiveText}</span>
+                          </div>
+                        </div>
+                        <span
+                          style={{
+                            background: tName ? '#ECFDF5' : '#F1F5F9',
+                            color: tName ? '#047857' : '#64748B',
+                            border: `1px solid ${tName ? '#A7F3D0' : '#E2E8F0'}`,
+                            padding: '4px 10px',
+                            borderRadius: '999px',
+                            fontSize: '11.5px',
+                            fontWeight: 700,
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {tName ? `Team: ${tName} →` : 'View Team →'}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* 3. Middle Row: Organization Performance Chart + Live Employee Activity */}
           <div className="dash-mid-grid-admin">

@@ -60,6 +60,15 @@ export class CrmCoreService implements OnModuleInit {
   private readonly importPreviews = new Map<string, ImportPreviewCacheItem>();
   private readonly errorCsvStore = new Map<string, { csv: string; expiresAt: number }>();
   private readonly archiveDir = path.join(process.cwd(), 'archives', 'audit');
+  private cachedTeamsData: any = null;
+  private cachedTeamsExpiresAt = 0;
+  private readonly cachedUsersData = new Map<string, { data: any; expiresAt: number }>();
+
+  public clearCaches() {
+    this.cachedTeamsData = null;
+    this.cachedTeamsExpiresAt = 0;
+    this.cachedUsersData.clear();
+  }
 
   constructor(
     private prisma: PrismaService,
@@ -255,6 +264,12 @@ export class CrmCoreService implements OnModuleInit {
   // USERS MANAGEMENT
   // ============================================================================
   async getUsers(query: any = {}, actor?: any) {
+    const cacheKey = JSON.stringify({ query, actorId: actor?.id, role: actor?.role });
+    const cached = this.cachedUsersData.get(cacheKey);
+    if (cached && Date.now() < cached.expiresAt) {
+      return cached.data;
+    }
+
     const actorRole = toBlueprintRole(actor?.role);
     const where: any = { deletedAt: null };
     if (actorRole === 'manager' && actor?.id) {
@@ -349,6 +364,7 @@ export class CrmCoreService implements OnModuleInit {
         isActive: u.isActive,
         failedLoginAttempts: u.failedLoginAttempts,
         lockedUntil: u.lockedUntil,
+        lastActiveAt: u.lastActiveAt,
         lastLoginAt: u.lastLoginAt,
         lastLogoutAt: u.lastLogoutAt,
         fnfDate: u.fnfDate,
@@ -373,7 +389,9 @@ export class CrmCoreService implements OnModuleInit {
       };
     });
 
-    return apiEnvelope(formatted, 'Users loaded', { users: formatted });
+    const result = apiEnvelope(formatted, 'Users loaded', { users: formatted });
+    this.cachedUsersData.set(cacheKey, { data: result, expiresAt: Date.now() + 60000 });
+    return result;
   }
 
   async getTeamUsers(managerId: string) {
@@ -1205,6 +1223,10 @@ export class CrmCoreService implements OnModuleInit {
   // TEAMS MANAGEMENT
   // ============================================================================
   async getTeams() {
+    if (this.cachedTeamsData && Date.now() < this.cachedTeamsExpiresAt) {
+      return this.cachedTeamsData;
+    }
+
     const teams = await this.prisma.team.findMany({
       orderBy: { createdAt: 'asc' },
       include: {
@@ -1265,7 +1287,10 @@ export class CrmCoreService implements OnModuleInit {
       };
     });
 
-    return apiEnvelope(formatted, 'Teams loaded', { teams: formatted });
+    const res = apiEnvelope(formatted, 'Teams loaded', { teams: formatted });
+    this.cachedTeamsData = res;
+    this.cachedTeamsExpiresAt = Date.now() + 60000;
+    return res;
   }
 
   async createTeam(body: any, actor?: any) {
@@ -1312,6 +1337,7 @@ export class CrmCoreService implements OnModuleInit {
       },
     });
 
+    this.clearCaches();
     return apiEnvelope(team, `Team "${team.name}" created successfully!`, { team });
   }
 

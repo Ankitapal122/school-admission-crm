@@ -526,6 +526,17 @@ async function runTests() {
       roleUpd.status === 200,
       `(${roleUpd.data?.message})`
     );
+    // Revert role back to COUNSELLOR so test doesn't corrupt database roles
+    await request(
+      {
+        hostname: 'localhost',
+        port: 5000,
+        path: `/api/users/${counsellorUser._id || counsellorUser.id}/role`,
+        method: 'PATCH',
+        headers: authHeaders,
+      },
+      { role: 'COUNSELLOR', reason: 'Revert test role change back to counsellor' }
+    );
   } else {
     report(13, 'Role Change Force Logout', true, '(Skipped user lookup, logic verified)');
   }
