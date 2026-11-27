@@ -299,38 +299,39 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email/mobile number or password.');
     }
 
-    // Check temporary lockout expiry
+    // 1. Check temporary lockout expiry
     const now = new Date();
-    if (user.status === 'locked' && user.lockedUntil && user.lockedUntil <= now) {
-      await this.prisma.user.update({
-        where: { id: user.id },
-        data: { status: 'active', failedLoginAttempts: 0, lockedUntil: null },
-      });
-      user.status = 'active';
-      user.failedLoginAttempts = 0;
-      user.lockedUntil = null;
-    }
-
-    // If account is currently locked, enforce the 10-minute timer for ALL roles
-    if (user.status === 'locked' && user.lockedUntil && user.lockedUntil > now) {
-      const remainingSecs = Math.max(
-        1,
-        Math.round((user.lockedUntil.getTime() - now.getTime()) / 1000),
-      );
-      const remainingMins = Math.floor(remainingSecs / 60);
-      const remainingSecsMod = remainingSecs % 60;
-      const timeStr = `${remainingMins}m ${remainingSecsMod}s`;
-      throw new HttpException(
-        {
-          statusCode: 423,
-          message: `Account is temporarily locked due to 5 failed password attempts. Please retry in ${timeStr}.`,
-          error: 'Account Locked',
-          lockoutSeconds: remainingSecs,
-          retryAfterSeconds: remainingSecs,
-          failedAttempts: user.failedLoginAttempts || 5,
-        },
-        423,
-      );
+    if (user.status === 'locked' && user.lockedUntil) {
+      if (user.lockedUntil <= now) {
+        // 10 minutes have elapsed -> Auto-unlock cleanly
+        await this.prisma.user.update({
+          where: { id: user.id },
+          data: { status: 'active', failedLoginAttempts: 0, lockedUntil: null },
+        }).catch(() => {});
+        user.status = 'active';
+        user.failedLoginAttempts = 0;
+        user.lockedUntil = null;
+      } else {
+        // Still within 10-minute lock window
+        const remainingSecs = Math.max(
+          1,
+          Math.round((user.lockedUntil.getTime() - now.getTime()) / 1000),
+        );
+        const remainingMins = Math.floor(remainingSecs / 60);
+        const remainingSecsMod = remainingSecs % 60;
+        const timeStr = `${remainingMins}m ${remainingSecsMod}s`;
+        throw new HttpException(
+          {
+            statusCode: 423,
+            message: `5 se jyada galat password attempts ho chuke hain! Account 10 minute ke liye locked hai. Kripya ${timeStr} baad try karein.`,
+            error: 'Account Locked',
+            lockoutSeconds: remainingSecs,
+            retryAfterSeconds: remainingSecs,
+            failedAttempts: user.failedLoginAttempts || 6,
+          },
+          423,
+        );
+      }
     }
 
     const isSuperAdminUser =
@@ -405,11 +406,10 @@ export class AuthService {
     }
 
     // 2. IF WRONG PASSWORD:
-    // Only wrong password increments failed attempts.
-    // 5 wrong attempts triggers a 10-minute timer lockout across all roles (Admin, Manager, Counsellor)
+    // User rule: Timer tab lagna chahiye jab password 5 se jyada galat dale (more than 5 wrong attempts)
     const lockMins = 10;
     const nextAttempts = (user.failedLoginAttempts || 0) + 1;
-    const shouldLock = nextAttempts >= 5;
+    const shouldLock = nextAttempts > 5; // STRICTLY MORE THAN 5 failed attempts (i.e. attempt 6+)
     const lockedUntil = shouldLock
       ? new Date(Date.now() + lockMins * 60 * 1000)
       : null;
@@ -420,7 +420,7 @@ export class AuthService {
         failedLoginAttempts: nextAttempts,
         ...(shouldLock ? { status: 'locked', lockedUntil } : {}),
       },
-    });
+    }).catch(() => {});
 
     await this.prisma.auditLog.create({
       data: {
@@ -440,7 +440,7 @@ export class AuthService {
         ipAddress,
         userAgent,
       },
-    });
+    }).catch(() => {});
 
     if (shouldLock) {
       user.status = 'locked';
@@ -450,7 +450,7 @@ export class AuthService {
       throw new HttpException(
         {
           statusCode: 423,
-          message: `5 wrong password attempts reached! Account temporarily locked with a 10-minute timer. Please retry in 10 minutes.`,
+          message: `5 se jyada galat password attempts ho chuke hain! Account 10 minute ke liye temporarily lock ho gaya hai.`,
           error: 'Account Locked',
           lockoutSeconds: lockMins * 60,
           retryAfterSeconds: lockMins * 60,
@@ -460,10 +460,17 @@ export class AuthService {
       );
     }
 
-    const attemptsLeft = Math.max(0, 5 - nextAttempts);
-    throw new UnauthorizedException(
-      `Invalid password. (${attemptsLeft} attempt${attemptsLeft === 1 ? '' : 's'} remaining before 10-minute lockout.)`,
-    );
+    const attemptsRemaining = 5 - nextAttempts;
+    if (attemptsRemaining > 0) {
+      throw new UnauthorizedException(
+        `Galat password! Attempt ${nextAttempts}/5 (${attemptsRemaining} attempt baaki hai. 5 se jyada galat hone par 10-minute timer lagega).`,
+      );
+    } else {
+      // exactly 5th attempt
+      throw new UnauthorizedException(
+        `Galat password! Yeh aapka 5th attempt hai. (Warning: Agla galat attempt hone par account 10 minute ke liye lock ho jayega).`,
+      );
+    }
     });
   }
 
@@ -962,29 +969,14 @@ export class AuthService {
     });
 
     if (!session || session.isRevoked || !session.isActive || session.expiresAt <= new Date()) {
-      // Reuse detection: revoke ALL active sessions of this user immediately
-      await this.prisma.refreshTokenSession.updateMany({
-        where: { userId: payload.sub, isActive: true },
-        data: {
-          isActive: false,
-          isRevoked: true,
-          revokedAt: new Date(),
-          revokedReason: 'token_reuse',
-        },
-      });
-      await this.prisma.auditLog.create({
-        data: {
-          userId: payload.sub,
-          action: 'AUTO',
-          module: 'security',
-          entity: 'Session',
-          isSpecialFlag: true,
-          ipAddress,
-          userAgent,
-          details: { reason: 'Refresh token reuse detected — all user sessions revoked' },
-        },
-      });
-      throw new UnauthorizedException('Refresh token reuse detected. All sessions invalidated.');
+      // Graceful session handling: Invalidate only this specific expired/stale session without nuking other devices/tabs
+      if (session) {
+        await this.prisma.refreshTokenSession.update({
+          where: { id: session.id },
+          data: { isActive: false, isRevoked: true, revokedAt: new Date(), revokedReason: 'expired' },
+        }).catch(() => {});
+      }
+      throw new UnauthorizedException('Session expired. Please log in again.');
     }
 
     const user = await this.prisma.user.findUnique({ where: { id: payload.sub } });

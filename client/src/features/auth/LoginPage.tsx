@@ -130,13 +130,6 @@ export default function LoginPage() {
       return;
     }
 
-    if (lockoutSeconds > 0) {
-      const m = Math.floor(lockoutSeconds / 60);
-      const s = String(lockoutSeconds % 60).padStart(2, '0');
-      showToast(`Account is temporarily locked due to 5 failed attempts. Please wait ${m}m ${s}s before retrying.`, 'warning');
-      return;
-    }
-
     setIsLoading(true);
     try {
       const currentDevId = deviceId || localStorage.getItem('crm_device_id') || '';
@@ -156,12 +149,10 @@ export default function LoginPage() {
         setAdminEmail(res.adminEmail || emailTrimmed || 'adminboarding123@gmail.com');
         setTfaDigits(['', '', '', '', '', '']);
         setOtpExpirySeconds(Number(res.expiresInSeconds || 300));
-        if (res.lockoutSeconds) {
-          setLockoutSeconds(Math.min(600, Number(res.lockoutSeconds)));
-        }
+        setLockoutSeconds(0);
         setResendCooldown(0);
         showToast(
-          res.message || '5 wrong attempts reached! Verification OTP sent to your email — enter OTP to unlock & open Dashboard.',
+          res.message || 'Verification OTP sent to your email — enter OTP to open Dashboard.',
           'warning'
         );
         setAuthView('two-factor');
@@ -199,12 +190,14 @@ export default function LoginPage() {
         );
       }
     } catch (err: any) {
-      if (err?.status === 423 || err?.status === 429 || String(err?.message || '').toLowerCase().includes('locked')) {
+      if (err?.status === 423 || err?.status === 429 || String(err?.message || '').toLowerCase().includes('lock')) {
         const rawSec = Number(err?.data?.retryAfterSeconds || err?.retryAfterSeconds || err?.data?.lockoutSeconds || err?.lockoutSeconds || 600);
         const sec = Math.min(600, rawSec > 0 ? rawSec : 600);
         setLockoutSeconds(sec);
+      } else {
+        setLockoutSeconds(0);
       }
-      showToast(err.message || 'Invalid credentials.', 'danger');
+      showToast(err.message || 'Invalid credentials. Please check your email and password.', 'danger');
     } finally {
       setIsLoading(false);
     }
@@ -1000,26 +993,6 @@ export default function LoginPage() {
               5 failed login attempts reached. Enter the 6-digit OTP sent to your email to unlock your account and open the Dashboard.
             </p>
 
-            {lockoutSeconds > 0 && (
-              <div
-                style={{
-                  background: '#FEF2F2',
-                  border: '1px solid #FECACA',
-                  color: '#991B1B',
-                  padding: '9px 12px',
-                  borderRadius: '8px',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  marginBottom: '12px',
-                }}
-              >
-                <CrmIcon name="lock" size={14} /> Account Lock Timer:{' '}
-                <strong>
-                  {Math.floor(lockoutSeconds / 60)}m {String(lockoutSeconds % 60).padStart(2, '0')}s
-                </strong>{' '}
-                (Verify OTP below to unlock immediately)
-              </div>
-            )}
 
             <div
               style={{
@@ -1267,7 +1240,7 @@ export default function LoginPage() {
                 <div>
                   <div style={{ fontWeight: 700, color: '#B91C1C' }}>Account Temporarily Locked (10-Min Timer)</div>
                   <div style={{ fontSize: '12.5px', marginTop: '2px', color: '#7F1D1D' }}>
-                    5 wrong password attempts reached. Unlock timer: <strong>{Math.floor(lockoutSeconds / 60)}m {String(lockoutSeconds % 60).padStart(2, '0')}s</strong>
+                    5 se jyada galat password attempts ho gaye hain. Unlock timer: <strong>{Math.floor(lockoutSeconds / 60)}m {String(lockoutSeconds % 60).padStart(2, '0')}s</strong>
                   </div>
                 </div>
               </div>
@@ -1311,10 +1284,7 @@ export default function LoginPage() {
                     placeholder="adminboarding123@gmail.com"
                     required
                     value={identifier}
-                    onChange={(e) => {
-                      setIdentifier(e.target.value);
-                      if (lockoutSeconds > 0) setLockoutSeconds(0);
-                    }}
+                    onChange={(e) => setIdentifier(e.target.value)}
                     autoComplete="off"
                   />
                 </div>
