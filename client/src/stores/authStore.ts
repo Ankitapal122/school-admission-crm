@@ -9,9 +9,13 @@ export interface User {
   blueprintRole?: BlueprintRole;
   rawRole?: string;
   employeeId: string;
+  phone?: string;
   teamId?: string | null;
+  teamName?: string;
   twoFaEnabled?: boolean;
   is2faEnabled?: boolean;
+  status?: string;
+  lastLoginAt?: string;
 }
 
 interface AuthState {
@@ -41,9 +45,13 @@ export function normalizeUserRecord(rawUser: any): User {
     blueprintRole,
     rawRole: rawUser?.role ? String(rawUser.role) : blueprintRole,
     employeeId: String(rawUser?.employeeId || rawUser?.employee_code || rawUser?.id || ''),
-    teamId: rawUser?.teamId || rawUser?.team_id || null,
-    twoFaEnabled: Boolean(rawUser?.twoFaEnabled ?? rawUser?.is2faEnabled),
-    is2faEnabled: Boolean(rawUser?.is2faEnabled ?? rawUser?.twoFaEnabled),
+    phone: String(rawUser?.phone || rawUser?.mobile || rawUser?.phoneNumber || ''),
+    teamId: rawUser?.teamId || rawUser?.team_id || (typeof rawUser?.team === 'object' ? rawUser?.team?.id : null),
+    teamName: typeof rawUser?.team === 'object' ? rawUser?.team?.name : (rawUser?.teamName || ''),
+    twoFaEnabled: Boolean(rawUser?.twoFaEnabled ?? rawUser?.is2faEnabled ?? rawUser?.isTwoFactorEnabled),
+    is2faEnabled: Boolean(rawUser?.is2faEnabled ?? rawUser?.twoFaEnabled ?? rawUser?.isTwoFactorEnabled),
+    status: String(rawUser?.status || (rawUser?.isActive ? 'active' : 'inactive')),
+    lastLoginAt: rawUser?.lastLoginAt || '',
   };
 }
 

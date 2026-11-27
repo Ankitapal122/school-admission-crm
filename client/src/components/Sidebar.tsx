@@ -337,8 +337,11 @@ export default function Sidebar({
               <span>Dashboard</span>
             </a>
             <a
-              className={`nav-item ${currentTab === 'counsellors' || currentTab === 'teams' ? 'active' : ''}`}
-              onClick={() => handleNavClick('counsellors')}
+              className={`nav-item ${currentTab === 'counsellors' || currentTab === 'managers' || currentTab === 'teams' ? 'active' : ''}`}
+              onClick={() => {
+                const isAdmin = String(user?.role || '').toUpperCase().includes('ADMIN');
+                handleNavClick(isAdmin ? 'managers' : 'counsellors');
+              }}
             >
               <span className="nav-icon"><CrmIcon name="users" size={17} /></span>
               <span>My Team</span>
@@ -455,6 +458,8 @@ export default function Sidebar({
           <>
             {/* Counsellor Top Profile Card matching reference image */}
             <div
+              onClick={() => handleNavClick('profile')}
+              title="Click to view & edit your profile"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -462,6 +467,16 @@ export default function Sidebar({
                 padding: '10px 12px 14px',
                 marginBottom: '6px',
                 borderBottom: '1px solid rgba(255,255,255,0.1)',
+                cursor: 'pointer',
+                borderRadius: '10px',
+                background: currentTab === 'profile' ? 'rgba(59, 130, 246, 0.25)' : 'transparent',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                if (currentTab !== 'profile') (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)';
+              }}
+              onMouseLeave={(e) => {
+                if (currentTab !== 'profile') (e.currentTarget as HTMLElement).style.background = 'transparent';
               }}
             >
               <div style={{ position: 'relative' }}>
@@ -497,14 +512,14 @@ export default function Sidebar({
                   }}
                 />
               </div>
-              <div>
+              <div style={{ flex: 1 }}>
                 <div style={{ fontSize: '13px', fontWeight: 700, color: '#FFFFFF' }}>
                   {user?.fullName && !user.fullName.includes('Admin')
                     ? user.fullName
                     : 'Counsellor'}
                 </div>
-                <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 600 }}>
-                  Counsellor <CrmIcon name="chevron-down" size={12} />
+                <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span>Counsellor</span> <CrmIcon name="chevron-down" size={12} />
                 </div>
               </div>
             </div>
@@ -583,8 +598,8 @@ export default function Sidebar({
               <span>Suggested Schools</span>
             </a>
             <a
-              className={`nav-item ${currentTab === 'sessions' ? 'active' : ''}`}
-              onClick={() => handleNavClick('sessions')}
+              className={`nav-item ${currentTab === 'profile' ? 'active' : ''}`}
+              onClick={() => handleNavClick('profile')}
             >
               <span className="nav-icon"><CrmIcon name="user" size={17} /></span>
               <span>Profile</span>
@@ -655,7 +670,18 @@ export default function Sidebar({
       </nav>
 
       <div className="sidebar-footer">
-        <div className="user-mini-profile">
+        <div
+          className="user-mini-profile"
+          onClick={() => handleNavClick('profile')}
+          title="Click to view & edit your profile"
+          style={{ cursor: 'pointer', borderRadius: '8px', padding: '4px 6px', transition: 'background 0.2s' }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLElement).style.background = 'rgba(255, 255, 255, 0.08)';
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLElement).style.background = 'transparent';
+          }}
+        >
           <div className="avatar">{roleName === 'admin' ? 'SA' : initials}</div>
           <div>
             <div className="user-meta-name">

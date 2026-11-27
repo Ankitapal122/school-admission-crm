@@ -12,14 +12,17 @@ export {
   AuthenticatorSetupView,
   SessionsView,
 } from './EnterpriseAdminAndReportsView';
+export { UserProfileView } from '../profile/UserProfileView';
 
 export function TeamsView({
   teams = [],
+  users = [],
   isLoading = false,
   onRefresh,
   onShowToast,
 }: {
   teams: any[];
+  users?: any[];
   isLoading?: boolean;
   onRefresh: () => void;
   onShowToast: (m: string, t?: 'success' | 'danger' | 'warning') => void;
@@ -27,6 +30,47 @@ export function TeamsView({
   const [showCreate, setShowCreate] = useState(false);
   const [teamName, setTeamName] = useState('');
   const [region, setRegion] = useState('Uttarakhand');
+
+  // Manage Team Members Modal State
+  const [managingTeam, setManagingTeam] = useState<any | null>(null);
+  const [transferTargetTeam, setTransferTargetTeam] = useState<Record<string, string>>({});
+  const [selectedExistingUserId, setSelectedExistingUserId] = useState<string>('');
+  const [isTransferring, setIsTransferring] = useState(false);
+
+  // Add New Counsellor Modal State
+  const [showCreateCounsellor, setShowCreateCounsellor] = useState(false);
+  const [newCounsellorName, setNewCounsellorName] = useState('');
+  const [newCounsellorEmail, setNewCounsellorEmail] = useState('');
+  const [newCounsellorMobile, setNewCounsellorMobile] = useState('');
+  const [newCounsellorPassword, setNewCounsellorPassword] = useState('Welcome@123');
+  const [newCounsellorTeamId, setNewCounsellorTeamId] = useState('');
+  const [isCreatingCounsellor, setIsCreatingCounsellor] = useState(false);
+
+  // Helper to get members belonging to a team
+  const getTeamMembers = (team: any) => {
+    if (!team) return [];
+    const teamId = team.id || team._id;
+    const teamCode = team.teamId || team.teamCode;
+
+    // Match by users prop
+    const fromUsers = users.filter((u: any) => {
+      const uTeamId = u.teamId || u.team?.id || u.team_id;
+      return (
+        (teamId && uTeamId === teamId) ||
+        (teamCode && uTeamId === teamCode) ||
+        (u.team?.name && u.team.name.toLowerCase() === team.name?.toLowerCase())
+      );
+    });
+
+    if (fromUsers.length > 0) return fromUsers;
+    return Array.isArray(team.counsellors) ? team.counsellors : [];
+  };
+
+  // Helper to get all counsellors across CRM
+  const allCounsellors = users.filter((u: any) => {
+    const r = String(u.role || u.rawRole || '').toLowerCase();
+    return !r.includes('admin');
+  });
 
   const handleCreateTeam = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,70 +95,566 @@ export function TeamsView({
     }
   };
 
+  // Transfer single member to another team
+  const handleTransferMember = async (userId: string, targetTeamId: string) => {
+    if (!userId) return;
+    setIsTransferring(true);
+    try {
+      const resolvedTeamId = targetTeamId === 'UNASSIGN' ? null : targetTeamId;
+      await apiCall(`/users/${userId}/role`, 'PATCH', {
+        teamId: resolvedTeamId,
+      });
+
+      const targetTeamName = teams.find((t: any) => (t.id || t._id) === resolvedTeamId)?.name || 'Unassigned';
+      onShowToast(
+        resolvedTeamId
+          ? `Counsellor transferred to ${targetTeamName} successfully!`
+          : 'Counsellor removed from team cleanly.',
+        'success'
+      );
+      onRefresh();
+    } catch (err: any) {
+      onShowToast(err?.message || 'Failed to transfer member.', 'danger');
+    } finally {
+      setIsTransferring(false);
+    }
+  };
+
+  // Assign existing counsellor to current team
+  const handleAssignExistingCounsellor = async () => {
+    if (!selectedExistingUserId || !managingTeam) {
+      onShowToast('Please select a counsellor to assign.', 'warning');
+      return;
+    }
+    setIsTransferring(true);
+    try {
+      await apiCall(`/users/${selectedExistingUserId}/role`, 'PATCH', {
+        teamId: managingTeam.id || managingTeam._id,
+      });
+      onShowToast(`Counsellor assigned to ${managingTeam.name} successfully!`, 'success');
+      setSelectedExistingUserId('');
+      onRefresh();
+    } catch (err: any) {
+      onShowToast(err?.message || 'Failed to assign counsellor.', 'danger');
+    } finally {
+      setIsTransferring(false);
+    }
+  };
+
+  // Register brand new counsellor
+  const handleCreateNewCounsellor = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCounsellorName.trim() || !newCounsellorEmail.trim() || !newCounsellorMobile.trim()) {
+      onShowToast('Please fill all required fields.', 'warning');
+      return;
+    }
+    setIsCreatingCounsellor(true);
+    try {
+      const cleanPhone = newCounsellorMobile.replace(/\D/g, '').slice(-10);
+      await apiCall('/users', 'POST', {
+        fullName: newCounsellorName.trim(),
+        email: newCounsellorEmail.trim(),
+        mobile: cleanPhone,
+        password: newCounsellorPassword.trim() || 'Welcome@123',
+        role: 'COUNSELLOR',
+        teamId: newCounsellorTeamId || null,
+      });
+
+      const assignedTeamName = teams.find((t: any) => (t.id || t._id) === newCounsellorTeamId)?.name;
+      onShowToast(
+        `New Counsellor ${newCounsellorName.trim()} registered${assignedTeamName ? ` and assigned to Team ${assignedTeamName}` : ''}!`,
+        'success'
+      );
+
+      // Reset form & close
+      setNewCounsellorName('');
+      setNewCounsellorEmail('');
+      setNewCounsellorMobile('');
+      setNewCounsellorPassword('Welcome@123');
+      setShowCreateCounsellor(false);
+      onRefresh();
+    } catch (err: any) {
+      onShowToast(err?.message || 'Failed to create new counsellor.', 'danger');
+    } finally {
+      setIsCreatingCounsellor(false);
+    }
+  };
+
+  // When managing a team, keep its data synced with the fresh teams list
+  const activeManagingTeam = managingTeam
+    ? teams.find((t: any) => (t.id || t._id) === (managingTeam.id || managingTeam._id)) || managingTeam
+    : null;
+  const currentTeamMembers = activeManagingTeam ? getTeamMembers(activeManagingTeam) : [];
+
   return (
     <div className="card">
       <div className="card-header">
         <div>
-          <h3 className="card-title"><CrmIcon name="users" size={16} /> Team Structure &amp; Hierarchies ({isLoading ? '...' : teams.length})</h3>
-          <span className="card-subtitle">Manage Counsellor &amp; Manager regional pods</span>
+          <h3 className="card-title">
+            <CrmIcon name="users" size={16} /> Team Structure &amp; Hierarchies ({isLoading ? '...' : teams.length})
+          </h3>
+          <span className="card-subtitle">Manage Counsellor &amp; Manager regional pods &amp; assign members</span>
         </div>
-        <button className="btn btn-sm btn-primary" onClick={() => setShowCreate(true)}>
-          <CrmIcon name="plus" size={16} /> Create Team
-        </button>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <button
+            className="btn btn-sm btn-outline"
+            onClick={() => {
+              setNewCounsellorTeamId(teams[0]?.id || '');
+              setShowCreateCounsellor(true);
+            }}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}
+          >
+            <CrmIcon name="user-plus" size={15} color="#2563EB" />
+            <span>+ Add New Counsellor</span>
+          </button>
+          <button className="btn btn-sm btn-primary" onClick={() => setShowCreate(true)}>
+            <CrmIcon name="plus" size={16} /> Create Team
+          </button>
+        </div>
       </div>
+
       <div className="table-container">
         <table className="data-table">
           <thead>
             <tr>
               <th>Team Name</th>
               <th>Region</th>
+              <th>Members / Counsellors</th>
               <th>Status</th>
-              <th>Action</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan={4} style={{ textAlign: 'center', color: '#64748B', padding: '30px' }}>
+                <td colSpan={5} style={{ textAlign: 'center', color: '#64748B', padding: '30px' }}>
                   <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '10px', fontSize: '13.5px', fontWeight: 600 }}>
                     <span style={{ width: '18px', height: '18px', border: '2px solid #CBD5E1', borderTopColor: '#2563EB', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.8s linear infinite' }} />
-                    Loading teams...
+                    Loading teams &amp; members...
                   </div>
                 </td>
               </tr>
             ) : teams.length === 0 ? (
               <tr>
-                <td colSpan={4} style={{ textAlign: 'center', color: '#64748B', padding: '20px' }}>
+                <td colSpan={5} style={{ textAlign: 'center', color: '#64748B', padding: '20px' }}>
                   No teams configured yet.
                 </td>
               </tr>
             ) : (
-              teams.map((t: any) => (
-                <tr key={t.id}>
-                  <td>
-                    <strong>{t.name}</strong>
-                  </td>
-                  <td>{t.region || 'Uttarakhand'}</td>
-                  <td>
-                    <span className={`badge ${t.isActive !== false ? 'badge-success' : 'badge-warning'}`}>
-                      {t.isActive !== false ? 'Active' : 'Inactive'}
-                    </span>
-                  </td>
-                  <td>
-                    <button
-                      className="btn btn-sm btn-outline"
-                      onClick={() => handleToggleTeam(t.id)}
-                    >
-                      <CrmIcon name="play" size={16} /> Toggle Status
-                    </button>
-                  </td>
-                </tr>
-              ))
+              teams.map((t: any) => {
+                const members = getTeamMembers(t);
+                return (
+                  <tr key={t.id || t._id}>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div
+                          style={{
+                            width: '28px',
+                            height: '28px',
+                            borderRadius: '6px',
+                            background: '#EFF6FF',
+                            color: '#2563EB',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontWeight: 700,
+                            fontSize: '12px',
+                          }}
+                        >
+                          {t.name ? t.name.slice(0, 2).toUpperCase() : 'TM'}
+                        </div>
+                        <div>
+                          <strong>{t.name}</strong>
+                          {t.teamId && (
+                            <div style={{ fontSize: '11px', color: '#94A3B8' }}>{t.teamId}</div>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td>{t.region || t.description || 'Uttarakhand'}</td>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span
+                          style={{
+                            background: members.length > 0 ? '#EFF6FF' : '#F1F5F9',
+                            color: members.length > 0 ? '#1D4ED8' : '#64748B',
+                            padding: '3px 9px',
+                            borderRadius: '999px',
+                            fontSize: '11.5px',
+                            fontWeight: 700,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                          }}
+                        >
+                          <CrmIcon name="users" size={13} />
+                          {members.length} {members.length === 1 ? 'Counsellor' : 'Counsellors'}
+                        </span>
+                        {members.length > 0 && (
+                          <span style={{ fontSize: '11px', color: '#64748B' }}>
+                            ({members.slice(0, 2).map((m: any) => m.fullName || m.name).join(', ')}
+                            {members.length > 2 ? ` +${members.length - 2} more` : ''})
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td>
+                      <span className={`badge ${t.isActive !== false ? 'badge-success' : 'badge-warning'}`}>
+                        {t.isActive !== false ? 'Active' : 'Inactive'}
+                      </span>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <button
+                          className="btn btn-sm btn-primary"
+                          onClick={() => setManagingTeam(t)}
+                          style={{ fontSize: '12px', padding: '4px 10px' }}
+                          title="View and transfer members of this team"
+                        >
+                          <CrmIcon name="users" size={14} /> Manage Members
+                        </button>
+                        <button
+                          className="btn btn-sm btn-outline"
+                          onClick={() => {
+                            setNewCounsellorTeamId(t.id || t._id);
+                            setShowCreateCounsellor(true);
+                          }}
+                          style={{ fontSize: '12px', padding: '4px 8px' }}
+                          title="Add a new counsellor directly to this team"
+                        >
+                          <CrmIcon name="user-plus" size={14} /> Add
+                        </button>
+                        <button
+                          className="btn btn-sm btn-outline"
+                          onClick={() => handleToggleTeam(t.id || t._id)}
+                          style={{ fontSize: '12px', padding: '4px 8px' }}
+                          title="Toggle Active / Inactive"
+                        >
+                          <CrmIcon name="play" size={13} /> Toggle
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
       </div>
 
+      {/* Modal 1: Manage Team Members (Transfer / Add Member) */}
+      {activeManagingTeam && (
+        <div className="modal-overlay" onClick={() => setManagingTeam(null)}>
+          <div
+            className="modal-content"
+            style={{ maxWidth: '640px', width: '95%' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header">
+              <div>
+                <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <CrmIcon name="users" size={18} color="#2563EB" />
+                  Manage Team Members — {activeManagingTeam.name}
+                </h3>
+                <span style={{ fontSize: '11.5px', color: '#64748B' }}>
+                  Transfer counsellors between teams or assign new members to this team
+                </span>
+              </div>
+              <button className="btn btn-sm btn-outline" onClick={() => setManagingTeam(null)}>
+                <CrmIcon name="x" size={16} />
+              </button>
+            </div>
+
+            <div className="modal-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+              {/* Section 1: Current Team Members */}
+              <div style={{ marginBottom: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                  <h4 style={{ margin: 0, fontSize: '13.5px', fontWeight: 700, color: '#1E293B' }}>
+                    Current Team Members ({currentTeamMembers.length})
+                  </h4>
+                  <button
+                    className="btn btn-sm btn-outline"
+                    onClick={() => {
+                      setNewCounsellorTeamId(activeManagingTeam.id || activeManagingTeam._id);
+                      setShowCreateCounsellor(true);
+                    }}
+                    style={{ fontSize: '11.5px', padding: '3px 8px' }}
+                  >
+                    <CrmIcon name="user-plus" size={13} /> + New Counsellor
+                  </button>
+                </div>
+
+                {currentTeamMembers.length === 0 ? (
+                  <div
+                    style={{
+                      padding: '24px',
+                      textAlign: 'center',
+                      background: '#F8FAFC',
+                      borderRadius: '10px',
+                      border: '1px dashed #CBD5E1',
+                      color: '#64748B',
+                      fontSize: '12.5px',
+                    }}
+                  >
+                    No counsellors are assigned to <strong>{activeManagingTeam.name}</strong> yet.
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {currentTeamMembers.map((member: any) => {
+                      const memberId = member.id || member._id;
+                      const selectedTeam = transferTargetTeam[memberId] || '';
+                      return (
+                        <div
+                          key={memberId}
+                          style={{
+                            padding: '12px 14px',
+                            background: '#F8FAFC',
+                            border: '1px solid #E2E8F0',
+                            borderRadius: '10px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            flexWrap: 'wrap',
+                            gap: '10px',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <div
+                              style={{
+                                width: '36px',
+                                height: '36px',
+                                borderRadius: '50%',
+                                background: 'linear-gradient(135deg, #3B82F6, #EC4899)',
+                                color: '#FFFFFF',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '12px',
+                                fontWeight: 800,
+                              }}
+                            >
+                              {(member.fullName || member.name || 'CO').slice(0, 2).toUpperCase()}
+                            </div>
+                            <div>
+                              <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A' }}>
+                                {member.fullName || member.name}
+                              </div>
+                              <div style={{ fontSize: '11px', color: '#64748B' }}>
+                                {member.email} {member.phone ? `• ${member.phone}` : ''} • {member.employeeId || 'Counsellor'}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Action: Transfer to Another Team */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <select
+                              className="form-control"
+                              style={{ fontSize: '12px', padding: '4px 8px', minHeight: '32px', width: 'auto' }}
+                              value={selectedTeam}
+                              onChange={(e) =>
+                                setTransferTargetTeam({ ...transferTargetTeam, [memberId]: e.target.value })
+                              }
+                            >
+                              <option value="">Move to Team...</option>
+                              {teams
+                                .filter((t: any) => (t.id || t._id) !== (activeManagingTeam.id || activeManagingTeam._id))
+                                .map((t: any) => (
+                                  <option key={t.id || t._id} value={t.id || t._id}>
+                                    Transfer to {t.name}
+                                  </option>
+                                ))}
+                              <option value="UNASSIGN">Remove from Team</option>
+                            </select>
+                            <button
+                              className="btn btn-sm btn-primary"
+                              disabled={!selectedTeam || isTransferring}
+                              onClick={() => handleTransferMember(memberId, selectedTeam)}
+                              style={{ fontSize: '11.5px', padding: '5px 10px' }}
+                            >
+                              Transfer
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Section 2: Assign Existing Counsellor */}
+              <div
+                style={{
+                  padding: '14px',
+                  background: '#EFF6FF',
+                  border: '1px solid #BFDBFE',
+                  borderRadius: '10px',
+                }}
+              >
+                <h4 style={{ margin: '0 0 6px 0', fontSize: '13px', fontWeight: 700, color: '#1E40AF' }}>
+                  Assign Existing Counsellor to {activeManagingTeam.name}
+                </h4>
+                <p style={{ margin: '0 0 10px 0', fontSize: '11.5px', color: '#3B82F6' }}>
+                  Select an unassigned counsellor or a counsellor from another team to move here:
+                </p>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <select
+                    className="form-control"
+                    style={{ flex: 1, minHeight: '36px', fontSize: '12.5px' }}
+                    value={selectedExistingUserId}
+                    onChange={(e) => setSelectedExistingUserId(e.target.value)}
+                  >
+                    <option value="">Choose a Counsellor...</option>
+                    {allCounsellors
+                      .filter((c: any) => {
+                        const cTeamId = c.teamId || c.team?.id;
+                        return cTeamId !== (activeManagingTeam.id || activeManagingTeam._id);
+                      })
+                      .map((c: any) => {
+                        const currentTeam = teams.find((t: any) => (t.id || t._id) === (c.teamId || c.team?.id));
+                        return (
+                          <option key={c.id || c._id} value={c.id || c._id}>
+                            {c.fullName || c.name} ({c.email}) {currentTeam ? `[Current: ${currentTeam.name}]` : '[Unassigned]'}
+                          </option>
+                        );
+                      })}
+                  </select>
+                  <button
+                    className="btn btn-primary btn-sm"
+                    disabled={!selectedExistingUserId || isTransferring}
+                    onClick={handleAssignExistingCounsellor}
+                  >
+                    <CrmIcon name="check" size={14} /> Assign to Team
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button type="button" className="btn btn-outline" onClick={() => setManagingTeam(null)}>
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal 2: Add New Counsellor Modal */}
+      {showCreateCounsellor && (
+        <div className="modal-overlay" onClick={() => setShowCreateCounsellor(false)}>
+          <div className="modal-content" style={{ maxWidth: '460px' }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 style={{ fontSize: '15px', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CrmIcon name="user-plus" size={17} color="#2563EB" />
+                Add New Counsellor
+              </h3>
+              <button className="btn btn-sm btn-outline" onClick={() => setShowCreateCounsellor(false)}>
+                <CrmIcon name="x" size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateNewCounsellor}>
+              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label" style={{ fontSize: '12px', fontWeight: 700 }}>
+                    Full Name *
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    required
+                    placeholder="e.g. Rahul Sharma"
+                    value={newCounsellorName}
+                    onChange={(e) => setNewCounsellorName(e.target.value)}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" style={{ fontSize: '12px', fontWeight: 700 }}>
+                    Email Address (Login ID) *
+                  </label>
+                  <input
+                    type="email"
+                    className="form-control"
+                    required
+                    placeholder="e.g. rahul@boardingedu.com"
+                    value={newCounsellorEmail}
+                    onChange={(e) => setNewCounsellorEmail(e.target.value)}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" style={{ fontSize: '12px', fontWeight: 700 }}>
+                    Mobile Number (10 Digits) *
+                  </label>
+                  <input
+                    type="tel"
+                    className="form-control"
+                    required
+                    placeholder="e.g. 9876543210"
+                    maxLength={10}
+                    value={newCounsellorMobile}
+                    onChange={(e) => setNewCounsellorMobile(e.target.value)}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" style={{ fontSize: '12px', fontWeight: 700 }}>
+                    Default Password *
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    required
+                    value={newCounsellorPassword}
+                    onChange={(e) => setNewCounsellorPassword(e.target.value)}
+                  />
+                  <span style={{ fontSize: '11px', color: '#64748B', marginTop: '3px', display: 'block' }}>
+                    Counsellor can change this password after their first login.
+                  </span>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" style={{ fontSize: '12px', fontWeight: 700 }}>
+                    Assign to Team
+                  </label>
+                  <select
+                    className="form-control"
+                    value={newCounsellorTeamId}
+                    onChange={(e) => setNewCounsellorTeamId(e.target.value)}
+                  >
+                    <option value="">None (Unassigned)</option>
+                    {teams.map((t: any) => (
+                      <option key={t.id || t._id} value={t.id || t._id}>
+                        Team {t.name} ({t.region || 'Uttarakhand'})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  onClick={() => setShowCreateCounsellor(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={isCreatingCounsellor}
+                >
+                  <CrmIcon name="check" size={15} />
+                  <span>{isCreatingCounsellor ? 'Registering...' : 'Register Counsellor'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal 3: Create Team Modal */}
       {showCreate && (
         <div className="modal-overlay" onClick={() => setShowCreate(false)}>
           <div className="modal-content" style={{ maxWidth: '420px' }} onClick={(e) => e.stopPropagation()}>

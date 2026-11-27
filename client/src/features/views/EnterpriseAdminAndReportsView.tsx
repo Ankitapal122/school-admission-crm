@@ -1,9 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import CrmIcon from '../../components/CrmIcon';
 import { apiCall, downloadApiFile } from '../../lib/api';
 import { useAuthStore } from '../../stores/authStore';
-import { hasRole } from '../../lib/roles';
+import { hasRole, normalizeRoleKey } from '../../lib/roles';
+import { UserProfileView } from '../profile/UserProfileView';
 import { BulkImportModal } from './FinanceAndSchoolsView';
 
 const ALL_20_REPORTS = [
@@ -406,6 +407,7 @@ export function ReportsView({
 
 export function UsersView({
   users = [],
+  allUsers = [],
   teams = [],
   viewMode = 'all',
   isLoading = false,
@@ -413,6 +415,7 @@ export function UsersView({
   onShowToast,
 }: {
   users: any[];
+  allUsers?: any[];
   teams: any[];
   viewMode?: 'all' | 'managers' | 'counsellors';
   isLoading?: boolean;
@@ -422,6 +425,93 @@ export function UsersView({
   const { user: currentUser } = useAuthStore();
   const [subTab, setSubTab] = useState<'employees' | 'roles'>('employees');
   const [selectedStaffDetail, setSelectedStaffDetail] = useState<any | null>(null);
+
+  // Drill-down for Manager -> Counsellors
+  const [drilldownManager, setDrilldownManager] = useState<any | null>(null);
+  const [selectedManagerFilter, setSelectedManagerFilter] = useState<string>('ALL');
+
+  const userPool = allUsers && allUsers.length > 0 ? allUsers : users;
+
+  const isMgr = (u: any) => {
+    const r = String(u.role || u.canonicalRole || u.backendRole || u.rawRole || '').toLowerCase();
+    return r.includes('manager') && !r.includes('counsellor');
+  };
+
+  const isCou = (u: any) => {
+    const r = String(u.role || u.canonicalRole || u.backendRole || u.rawRole || '').toLowerCase();
+    return (
+      (r.includes('counsellor') || r.includes('counselor') || r === 'jr_counsellor') &&
+      !r.includes('manager') &&
+      !r.includes('admin')
+    );
+  };
+
+  const allManagersList = useMemo(() => userPool.filter(isMgr), [userPool]);
+  const allCounsellorsList = useMemo(() => userPool.filter(isCou), [userPool]);
+
+  // Helper to get counsellors for a specific manager
+  const getCounsellorsUnderManager = (mgr: any) => {
+    if (!mgr) return [];
+    const mgrId = mgr.id || mgr._id;
+    const mgrTeamId = mgr.teamId?.id || mgr.teamId || mgr.team?.id;
+    const mgrFullName = (mgr.fullName || '').trim().toLowerCase();
+
+    // Find teams managed by this manager
+    const managedTeams = teams.filter((t: any) => {
+      const tMgrId = t.managerId?.id || t.managerId || t.manager?.id;
+      const tMgrName = (t.managerName || '').trim().toLowerCase();
+      return (
+        tMgrId === mgrId ||
+        (mgrTeamId && (t.id || t._id) === mgrTeamId) ||
+        (mgrFullName && tMgrName && tMgrName === mgrFullName)
+      );
+    });
+    const managedTeamIds = managedTeams.map((t: any) => t.id || t._id);
+    const managedTeamNames = managedTeams.map((t: any) => (t.name || '').trim().toLowerCase()).filter(Boolean);
+
+    return allCounsellorsList.filter((c: any) => {
+      const cTeamId = c.teamId?.id || c.teamId || c.team?.id;
+      const cMgrId = c.managerId?.id || c.managerId || c.manager?.id;
+      const cMgrName = (c.managerName || '').trim().toLowerCase();
+      const cTeamName = (c.teamName || c.team?.name || '').trim().toLowerCase();
+
+      return (
+        (cMgrId && cMgrId === mgrId) ||
+        (mgrTeamId && cTeamId && cTeamId === mgrTeamId) ||
+        (cTeamId && managedTeamIds.includes(cTeamId)) ||
+        (mgrFullName && cMgrName && cMgrName === mgrFullName) ||
+        (cTeamName && managedTeamNames.includes(cTeamName))
+      );
+    });
+  };
+
+  // Compute displayed users
+  const displayedUsers = useMemo(() => {
+    if (viewMode === 'managers') {
+      if (drilldownManager) {
+        return getCounsellorsUnderManager(drilldownManager);
+      }
+      return allManagersList;
+    }
+    if (viewMode === 'counsellors') {
+      const isRealManager =
+        !hasRole(currentUser?.role, 'SUPER_ADMIN') &&
+        String(currentUser?.role || '').toUpperCase().includes('MANAGER');
+      if (isRealManager) {
+        return getCounsellorsUnderManager(currentUser);
+      }
+      if (selectedManagerFilter === 'ALL') {
+        return allCounsellorsList;
+      }
+      if (selectedManagerFilter === 'UNASSIGNED') {
+        return allCounsellorsList.filter((c: any) => !(c.teamId?.id || c.teamId || c.team?.id));
+      }
+      const targetMgr = allManagersList.find((m: any) => m.id === selectedManagerFilter);
+      return targetMgr ? getCounsellorsUnderManager(targetMgr) : allCounsellorsList;
+    }
+    return userPool;
+  }, [viewMode, drilldownManager, selectedManagerFilter, allManagersList, allCounsellorsList, teams, userPool]);
+
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newFullName, setNewFullName] = useState('');
   const [newEmail, setNewEmail] = useState('');
@@ -674,34 +764,57 @@ export function UsersView({
   return (
     <div className="card">
       <div className="card-header" style={{ flexWrap: 'wrap', gap: '10px' }}>
-        <div>
-          <h3 className="card-title">
-            <CrmIcon name="user" size={16} />{' '}
-            {viewMode === 'managers'
-              ? 'Manager Management & Assigned Teams'
-              : viewMode === 'counsellors'
-              ? 'Counsellor Management & Team Mapping'
-              : 'Employee Directory & Role Matrix'}
-          </h3>
-          <span className="card-subtitle">
-            {viewMode === 'managers'
-              ? 'View every Manager along with their assigned Team Name, counsellors, and live status'
-              : viewMode === 'counsellors'
-              ? 'Click any Counsellor to inspect their Team Name, Reporting Manager, and teammates'
-              : 'Account lifecycle controls: team mapping, unlock, suspend, force-logout, role reassignment & RBAC matrix'}
-          </span>
-        </div>
+        {drilldownManager ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <button
+              type="button"
+              className="btn btn-sm btn-outline"
+              onClick={() => setDrilldownManager(null)}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700 }}
+            >
+              <CrmIcon name="arrow-left" size={14} /> Back to All Managers
+            </button>
+            <div>
+              <h3 className="card-title" style={{ margin: 0 }}>
+                <CrmIcon name="users" size={16} /> Team Counsellors — Managed by {drilldownManager.fullName}
+              </h3>
+              <span className="card-subtitle">
+                Showing all {displayedUsers.length} counsellors assigned to {drilldownManager.fullName}&apos;s team
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div>
+            <h3 className="card-title">
+              <CrmIcon name="user" size={16} />{' '}
+              {viewMode === 'managers'
+                ? 'Manager Management & Assigned Teams'
+                : viewMode === 'counsellors'
+                ? 'Counsellor Management & Team Mapping'
+                : 'Employee Directory & Role Matrix'}
+            </h3>
+            <span className="card-subtitle">
+              {viewMode === 'managers'
+                ? 'Click any Manager to view all Counsellors working under them and inspect team performance'
+                : viewMode === 'counsellors'
+                ? 'Filter by Manager or click any Counsellor to inspect their Team Name and Reporting Manager'
+                : 'Account lifecycle controls: team mapping, unlock, suspend, force-logout, role reassignment & RBAC matrix'}
+            </span>
+          </div>
+        )}
         <div style={{ display: 'flex', gap: '8px' }}>
           <button
             className={`btn btn-sm ${subTab === 'employees' ? 'btn-navy' : 'btn-outline'}`}
             onClick={() => setSubTab('employees')}
           >
             <CrmIcon name="users" size={16} />{' '}
-            {viewMode === 'managers'
-              ? `Managers (${isLoading ? '...' : users.length})`
+            {drilldownManager
+              ? `Counsellors (${isLoading ? '...' : displayedUsers.length})`
+              : viewMode === 'managers'
+              ? `Managers (${isLoading ? '...' : allManagersList.length})`
               : viewMode === 'counsellors'
-              ? `Counsellors (${isLoading ? '...' : users.length})`
-              : `Employees (${isLoading ? '...' : users.length})`}
+              ? `Counsellors (${isLoading ? '...' : allCounsellorsList.length})`
+              : `Employees (${isLoading ? '...' : userPool.length})`}
           </button>
           <button
             className={`btn btn-sm ${subTab === 'roles' ? 'btn-navy' : 'btn-outline'}`}
@@ -717,33 +830,102 @@ export function UsersView({
         </div>
       </div>
 
+      {viewMode === 'counsellors' && subTab === 'employees' && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '10px 14px',
+            background: '#F8FAFC',
+            borderBottom: '1px solid #E2E8F0',
+            flexWrap: 'wrap',
+          }}
+        >
+          <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <CrmIcon name="filter" size={13} /> Filter by Manager:
+          </span>
+          <button
+            type="button"
+            className={`btn btn-sm ${selectedManagerFilter === 'ALL' ? 'btn-primary' : 'btn-outline'}`}
+            style={{ fontSize: '11.5px', padding: '3px 10px', borderRadius: '999px' }}
+            onClick={() => setSelectedManagerFilter('ALL')}
+          >
+            All Counsellors ({allCounsellorsList.length})
+          </button>
+          {allManagersList.map((mgr: any) => {
+            const count = getCounsellorsUnderManager(mgr).length;
+            const isSel = selectedManagerFilter === mgr.id;
+            return (
+              <button
+                key={mgr.id}
+                type="button"
+                className={`btn btn-sm ${isSel ? 'btn-primary' : 'btn-outline'}`}
+                style={{ fontSize: '11.5px', padding: '3px 10px', borderRadius: '999px' }}
+                onClick={() => setSelectedManagerFilter(mgr.id)}
+              >
+                👤 {mgr.fullName} ({count})
+              </button>
+            );
+          })}
+          <button
+            type="button"
+            className={`btn btn-sm ${selectedManagerFilter === 'UNASSIGNED' ? 'btn-primary' : 'btn-outline'}`}
+            style={{ fontSize: '11.5px', padding: '3px 10px', borderRadius: '999px' }}
+            onClick={() => setSelectedManagerFilter('UNASSIGNED')}
+          >
+            Unassigned ({allCounsellorsList.filter((c: any) => !(c.teamId?.id || c.teamId || c.team?.id)).length})
+          </button>
+        </div>
+      )}
+
       {subTab === 'employees' ? (
         <div className="table-container" style={{ overflow: 'visible', minHeight: '260px' }}>
           <table className="data-table">
             <thead>
-              <tr>
-                <th>Employee</th>
-                <th>Role</th>
-                <th>Team &amp; Manager</th>
-                <th>Status</th>
-                <th>Login / Logout Time</th>
-                <th>Controls</th>
-              </tr>
+              {viewMode === 'managers' && !drilldownManager ? (
+                <tr>
+                  <th>Manager</th>
+                  <th>Role</th>
+                  <th>Assigned Team</th>
+                  <th>Team Counsellors</th>
+                  <th>Status</th>
+                  <th>Login / Logout Time</th>
+                  <th>Controls</th>
+                </tr>
+              ) : (
+                <tr>
+                  <th>Employee</th>
+                  <th>Role</th>
+                  <th>Team &amp; Manager</th>
+                  <th>Status</th>
+                  <th>Login / Logout Time</th>
+                  <th>Controls</th>
+                </tr>
+              )}
             </thead>
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: '40px 20px', color: '#64748B' }}>
+                  <td
+                    colSpan={viewMode === 'managers' && !drilldownManager ? 7 : 6}
+                    style={{ textAlign: 'center', padding: '40px 20px', color: '#64748B' }}
+                  >
                     <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '10px', fontSize: '13.5px', fontWeight: 600 }}>
                       <span style={{ width: '18px', height: '18px', border: '2px solid #CBD5E1', borderTopColor: '#2563EB', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.8s linear infinite' }} />
                       Loading staff directory...
                     </div>
                   </td>
                 </tr>
-              ) : users.length === 0 ? (
+              ) : displayedUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: '40px 20px', color: '#64748B', fontSize: '13.5px' }}>
-                    {viewMode === 'managers'
+                  <td
+                    colSpan={viewMode === 'managers' && !drilldownManager ? 7 : 6}
+                    style={{ textAlign: 'center', padding: '40px 20px', color: '#64748B', fontSize: '13.5px' }}
+                  >
+                    {drilldownManager
+                      ? `No counsellors are assigned to ${drilldownManager.fullName}'s team yet.`
+                      : viewMode === 'managers'
                       ? 'No managers found.'
                       : viewMode === 'counsellors'
                       ? 'No counsellors found.'
@@ -751,7 +933,7 @@ export function UsersView({
                   </td>
                 </tr>
               ) : (
-                users.map((u: any) => {
+                displayedUsers.map((u: any) => {
                 const isUserOnline =
                   u.isOnline === true ||
                   u.presenceStatus === 'online' ||
@@ -783,12 +965,19 @@ export function UsersView({
                 const isSuperAdminTarget =
                   String(u.role || '').toUpperCase().includes('ADMIN') ||
                   String(u.rawRole || '').toUpperCase().includes('ADMIN');
+                const counsellorsUnderThisMgr = isMgr ? getCounsellorsUnderManager(u) : [];
                 return (
                 <tr key={u.id}>
                   <td>
                     <button
                       type="button"
-                      onClick={() => setSelectedStaffDetail(u)}
+                      onClick={() => {
+                        if (viewMode === 'managers' && !drilldownManager) {
+                          setDrilldownManager(u);
+                        } else {
+                          setSelectedStaffDetail(u);
+                        }
+                      }}
                       style={{
                         background: 'none',
                         border: 'none',
@@ -796,7 +985,11 @@ export function UsersView({
                         textAlign: 'left',
                         cursor: 'pointer',
                       }}
-                      title="Click to view Team Name & Staff Details"
+                      title={
+                        viewMode === 'managers' && !drilldownManager
+                          ? `Click to view all counsellors under ${u.fullName}`
+                          : "Click to view Team Name & Staff Details"
+                      }
                     >
                       <strong style={{ color: '#0F172A', textDecoration: 'underline', textDecorationColor: '#CBD5E1' }}>
                         {u.fullName}
@@ -846,18 +1039,45 @@ export function UsersView({
                         <CrmIcon name="users" size={12} />
                         {resolvedTeamName ? `Team: ${resolvedTeamName}` : 'Unassigned'}
                       </button>
-                      {isCounsellor && u.managerName && (
+                      {isCounsellor && (u.managerName || (drilldownManager && drilldownManager.fullName)) && (
                         <span style={{ fontSize: '11px', color: '#475569', fontWeight: 600 }}>
-                          Manager: {u.managerName}
-                        </span>
-                      )}
-                      {isMgr && resolvedTeamName && (
-                        <span style={{ fontSize: '11px', color: '#64748B', fontWeight: 600 }}>
-                          {teamMembersCount} {teamMembersCount === 1 ? 'Counsellor' : 'Counsellors'}
+                          Manager: {u.managerName || drilldownManager?.fullName}
                         </span>
                       )}
                     </div>
                   </td>
+                  {viewMode === 'managers' && !drilldownManager && (
+                    <td>
+                      <button
+                        type="button"
+                        onClick={() => setDrilldownManager(u)}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          background: counsellorsUnderThisMgr.length > 0 ? '#EEF2FF' : '#F8FAFC',
+                          color: counsellorsUnderThisMgr.length > 0 ? '#4338CA' : '#64748B',
+                          border: `1px solid ${
+                            counsellorsUnderThisMgr.length > 0 ? '#C7D2FE' : '#E2E8F0'
+                          }`,
+                          borderRadius: '6px',
+                          padding: '5px 12px',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                        }}
+                        title={`Click to drill-down and view ${counsellorsUnderThisMgr.length} counsellors under ${u.fullName}`}
+                      >
+                        <CrmIcon name="users" size={13} />
+                        <span>
+                          {counsellorsUnderThisMgr.length}{' '}
+                          {counsellorsUnderThisMgr.length === 1 ? 'Counsellor' : 'Counsellors'}
+                        </span>
+                        <span style={{ color: '#6366F1', fontWeight: 800 }}>&rarr; View</span>
+                      </button>
+                    </td>
+                  )}
                   <td>
                     <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
                       <span
@@ -1822,7 +2042,16 @@ export function SettingsView({
 }: {
   onShowToast: (m: string, t?: 'success' | 'danger' | 'warning') => void;
 }) {
-  const { user } = useAuthStore();
+  const { user, previewRole } = useAuthStore();
+  const effectiveRole = previewRole || user?.role || 'SUPER_ADMIN';
+  const roleKey = normalizeRoleKey(effectiveRole);
+
+  const [activeAdminTab, setActiveAdminTab] = useState<'governance' | 'profile'>('governance');
+
+  // If non-admin role (e.g. Counsellor or Manager), render their personal profile & account settings!
+  if (roleKey !== 'super_admin') {
+    return <UserProfileView onShowToast={onShowToast} isSettingsMode={true} />;
+  }
   // 5 Lead Scoring weights
   const [scoringWeights, setScoringWeights] = useState<Record<string, number>>({
     budget_match: 25,
@@ -1992,7 +2221,42 @@ export function SettingsView({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-      {/* Executive Settings Header Bar */}
+      {/* Super Admin Tab Bar */}
+      <div
+        style={{
+          display: 'flex',
+          gap: '8px',
+          padding: '6px',
+          background: '#F1F5F9',
+          borderRadius: '12px',
+          width: 'fit-content',
+        }}
+      >
+        <button
+          type="button"
+          className={`btn btn-sm ${activeAdminTab === 'governance' ? 'btn-primary' : 'btn-outline'}`}
+          onClick={() => setActiveAdminTab('governance')}
+          style={{ border: 'none' }}
+        >
+          <CrmIcon name="settings" size={15} />
+          <span>Enterprise Governance &amp; Algorithms</span>
+        </button>
+        <button
+          type="button"
+          className={`btn btn-sm ${activeAdminTab === 'profile' ? 'btn-primary' : 'btn-outline'}`}
+          onClick={() => setActiveAdminTab('profile')}
+          style={{ border: 'none' }}
+        >
+          <CrmIcon name="user" size={15} />
+          <span>My Profile &amp; Account Settings</span>
+        </button>
+      </div>
+
+      {activeAdminTab === 'profile' ? (
+        <UserProfileView onShowToast={onShowToast} />
+      ) : (
+        <>
+          {/* Executive Settings Header Bar */}
       <div
         className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 sm:p-5 bg-white rounded-xl border border-slate-200 shadow-sm"
       >
@@ -2388,6 +2652,8 @@ export function SettingsView({
           </div>
         </div>
       </div>
+        </>
+      )}
 
       <BulkImportModal
         entity="leads"

@@ -27,6 +27,7 @@ import {
 import LeadReportModal from './features/leads/LeadReportModal';
 import AuditLogViewer from './features/analytics/AuditLogViewer';
 import PrivacyComplianceView, { FirstLoginPrivacyModal } from './features/views/PrivacyComplianceView';
+import { UserProfileView } from './features/profile/UserProfileView';
 import PwaInstallPrompt from './components/PwaInstallPrompt';
 
 export default function App() {
@@ -380,6 +381,7 @@ export default function App() {
             {currentTab === 'teams' && (
               <TeamsView
                 teams={teams}
+                users={users}
                 isLoading={teamsLoading}
                 onRefresh={refreshAll}
                 onShowToast={showToast}
@@ -400,21 +402,8 @@ export default function App() {
                     : 'all'
                 }
                 isLoading={usersLoading}
-                users={
-                  currentTab === 'managers'
-                    ? users.filter((u: any) => {
-                        const r = String(u.role || u.canonicalRole || u.backendRole || '').toLowerCase();
-                        const emp = String(u.employeeId || u.employeeCode || '').toUpperCase();
-                        return (r.includes('manager') || emp.includes('MGR')) && !emp.includes('COU');
-                      })
-                    : currentTab === 'counsellors'
-                    ? users.filter((u: any) => {
-                        const r = String(u.role || u.canonicalRole || u.backendRole || '').toLowerCase();
-                        const emp = String(u.employeeId || u.employeeCode || '').toUpperCase();
-                        return r.includes('counsellor') || emp.includes('COU');
-                      })
-                    : users
-                }
+                users={users}
+                allUsers={users}
                 teams={teams}
                 onRefresh={refreshAll}
                 onShowToast={showToast}
@@ -489,7 +478,15 @@ export default function App() {
 
             {currentTab === 'sessions' && <SessionsView onShowToast={showToast} />}
 
-            {currentTab === 'settings' && <SettingsView onShowToast={showToast} />}
+            {currentTab === 'profile' && <UserProfileView onShowToast={showToast} />}
+
+            {currentTab === 'settings' && (
+              normKey !== 'super_admin' ? (
+                <UserProfileView onShowToast={showToast} isSettingsMode={true} />
+              ) : (
+                <SettingsView onShowToast={showToast} />
+              )
+            )}
 
             {currentTab === 'privacy-compliance' && (
               <PrivacyComplianceView onShowToast={showToast} />
