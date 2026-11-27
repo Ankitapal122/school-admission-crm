@@ -30,6 +30,9 @@ export function TeamsView({
   const [showCreate, setShowCreate] = useState(false);
   const [teamName, setTeamName] = useState('');
   const [region, setRegion] = useState('Uttarakhand');
+  const [teamSearch, setTeamSearch] = useState('');
+  const [teamPage, setTeamPage] = useState(1);
+  const [teamPageSize, setTeamPageSize] = useState(25);
 
   // Manage Team Members Modal State
   const [managingTeam, setManagingTeam] = useState<any | null>(null);
@@ -54,11 +57,12 @@ export function TeamsView({
 
     // Match by users prop
     const fromUsers = users.filter((u: any) => {
-      const uTeamId = u.teamId || u.team?.id || u.team_id;
+      const uTeamId = u.teamId?.id || u.teamId?._id || u.teamId || u.team?.id || u.team_id;
+      const uTeamName = u.teamName || u.team?.name || u.teamId?.name;
       return (
         (teamId && uTeamId === teamId) ||
         (teamCode && uTeamId === teamCode) ||
-        (u.team?.name && u.team.name.toLowerCase() === team.name?.toLowerCase())
+        (uTeamName && team.name && String(uTeamName).toLowerCase() === String(team.name).toLowerCase())
       );
     });
 
@@ -213,7 +217,61 @@ export function TeamsView({
         </div>
       </div>
 
-      <div className="table-container">
+      {/* Responsive Search Bar for 500+ Teams */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          padding: '10px 16px',
+          background: '#F8FAFC',
+          borderBottom: '1px solid #E2E8F0',
+          flexWrap: 'wrap',
+        }}
+      >
+        <input
+          type="text"
+          className="form-control"
+          value={teamSearch}
+          onChange={(e) => {
+            setTeamSearch(e.target.value);
+            setTeamPage(1);
+          }}
+          placeholder="Search team by name, code, region or manager..."
+          style={{ flex: '1 1 220px', minWidth: '180px', maxWidth: '380px', height: '35px', fontSize: '13px' }}
+        />
+        {teamSearch && (
+          <button
+            type="button"
+            className="btn btn-sm btn-outline"
+            onClick={() => {
+              setTeamSearch('');
+              setTeamPage(1);
+            }}
+          >
+            Clear
+          </button>
+        )}
+      </div>
+
+      {(() => {
+        const q = teamSearch.trim().toLowerCase();
+        const filteredTeams = q
+          ? teams.filter((t: any) =>
+              `${t.name || ''} ${t.teamId || ''} ${t.teamCode || ''} ${t.region || ''} ${t.description || ''} ${t.managerName || t.manager?.fullName || ''}`
+                .toLowerCase()
+                .includes(q)
+            )
+          : teams;
+        const totalTeamPages = Math.max(1, Math.ceil(filteredTeams.length / teamPageSize));
+        const safeTeamPage = Math.min(teamPage, totalTeamPages);
+        const visibleTeams = filteredTeams.slice(
+          (safeTeamPage - 1) * teamPageSize,
+          safeTeamPage * teamPageSize
+        );
+        return (
+      <>
+      <div className="table-container" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
         <table className="data-table">
           <thead>
             <tr>
@@ -234,14 +292,14 @@ export function TeamsView({
                   </div>
                 </td>
               </tr>
-            ) : teams.length === 0 ? (
+            ) : visibleTeams.length === 0 ? (
               <tr>
                 <td colSpan={5} style={{ textAlign: 'center', color: '#64748B', padding: '20px' }}>
-                  No teams configured yet.
+                  {teamSearch ? 'No teams match your search.' : 'No teams configured yet.'}
                 </td>
               </tr>
             ) : (
-              teams.map((t: any) => {
+              visibleTeams.map((t: any) => {
                 const members = getTeamMembers(t);
                 return (
                   <tr key={t.id || t._id}>
@@ -341,6 +399,65 @@ export function TeamsView({
           </tbody>
         </table>
       </div>
+      {filteredTeams.length > 0 && (
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '10px',
+            padding: '12px 16px',
+            borderTop: '1px solid #E2E8F0',
+            background: '#F8FAFC',
+            fontSize: '12.5px',
+            color: '#475569',
+          }}
+        >
+          <div style={{ fontWeight: 600 }}>
+            Showing <strong>{(safeTeamPage - 1) * teamPageSize + 1}</strong>–
+            <strong>{Math.min(safeTeamPage * teamPageSize, filteredTeams.length)}</strong> of{' '}
+            <strong>{filteredTeams.length}</strong> teams
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <select
+              className="form-control"
+              value={teamPageSize}
+              onChange={(e) => {
+                setTeamPageSize(Number(e.target.value));
+                setTeamPage(1);
+              }}
+              style={{ width: 'auto', height: '30px', padding: '2px 8px', fontSize: '12px' }}
+            >
+              <option value={25}>25 / page</option>
+              <option value={50}>50 / page</option>
+              <option value={100}>100 / page</option>
+            </select>
+            <button
+              type="button"
+              className="btn btn-sm btn-outline"
+              disabled={safeTeamPage <= 1}
+              onClick={() => setTeamPage((p) => Math.max(1, p - 1))}
+            >
+              &larr; Prev
+            </button>
+            <span style={{ fontWeight: 700, color: '#0F172A' }}>
+              Page {safeTeamPage} / {totalTeamPages}
+            </span>
+            <button
+              type="button"
+              className="btn btn-sm btn-outline"
+              disabled={safeTeamPage >= totalTeamPages}
+              onClick={() => setTeamPage((p) => Math.min(totalTeamPages, p + 1))}
+            >
+              Next &rarr;
+            </button>
+          </div>
+        </div>
+      )}
+      </>
+        );
+      })()}
 
       {/* Modal 1: Manage Team Members (Transfer / Add Member) */}
       {activeManagingTeam && (
@@ -350,17 +467,39 @@ export function TeamsView({
             style={{ maxWidth: '640px', width: '95%' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="modal-header">
-              <div>
-                <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <CrmIcon name="users" size={18} color="#2563EB" />
-                  Manage Team Members — {activeManagingTeam.name}
-                </h3>
-                <span style={{ fontSize: '11.5px', color: '#64748B' }}>
-                  Transfer counsellors between teams or assign new members to this team
-                </span>
+            <div className="modal-header" style={{ flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={() => setManagingTeam(null)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    background: '#EFF6FF',
+                    color: '#1D4ED8',
+                    border: '1.5px solid #93C5FD',
+                    borderRadius: '8px',
+                    padding: '5px 11px',
+                    fontSize: '12.5px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <CrmIcon name="arrow-left" size={15} color="#1D4ED8" />
+                  <span>Back</span>
+                </button>
+                <div>
+                  <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <CrmIcon name="users" size={18} color="#2563EB" />
+                    Manage Team Members — {activeManagingTeam.name}
+                  </h3>
+                  <span style={{ fontSize: '11.5px', color: '#64748B' }}>
+                    Transfer counsellors between teams or assign new members to this team
+                  </span>
+                </div>
               </div>
-              <button className="btn btn-sm btn-outline" onClick={() => setManagingTeam(null)}>
+              <button className="btn btn-sm btn-outline" onClick={() => setManagingTeam(null)} title="Close">
                 <CrmIcon name="x" size={16} />
               </button>
             </div>

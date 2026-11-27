@@ -38,6 +38,7 @@ export default function Sidebar({
 
   const handleNavClick = (tab: string) => {
     onSelectTab(tab);
+    window.dispatchEvent(new CustomEvent('crm-nav-reset', { detail: { tab } }));
     if (onCloseMobile) onCloseMobile();
   };
 

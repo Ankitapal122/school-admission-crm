@@ -272,8 +272,10 @@ export class CrmCoreService implements OnModuleInit {
 
     const actorRole = toBlueprintRole(actor?.role);
     const where: any = { deletedAt: null };
+    const andFilters: any[] = [];
+
     if (actorRole === 'manager' && actor?.id) {
-      where.OR = [{ managerId: actor.id }, { id: actor.id }];
+      andFilters.push({ OR: [{ managerId: actor.id }, { team: { managerId: actor.id } }, { id: actor.id }] });
     }
     if (query.role) {
       where.role = { in: matchingRoleVariants(query.role) as Role[] };
@@ -281,56 +283,86 @@ export class CrmCoreService implements OnModuleInit {
     if (query.status) {
       where.status = query.status;
     }
+    if (query.managerId) {
+      const mId = String(query.managerId);
+      andFilters.push({ OR: [{ managerId: mId }, { team: { managerId: mId } }] });
+    }
+    if (query.teamId) {
+      where.teamId = String(query.teamId);
+    }
+    if (query.search && String(query.search).trim()) {
+      const q = String(query.search).trim();
+      andFilters.push({
+        OR: [
+          { fullName: { contains: q, mode: 'insensitive' } },
+          { email: { contains: q, mode: 'insensitive' } },
+          { employeeId: { contains: q, mode: 'insensitive' } },
+        ],
+      });
+    }
+    if (andFilters.length > 0) {
+      where.AND = andFilters;
+    }
 
-    const [users, activeSessionRows] = await Promise.all([
+    const isPaginated = query.page !== undefined || query.limit !== undefined;
+    const page = Math.max(1, Number(query.page || 1));
+    const limit = Math.min(500, Math.max(1, Number(query.limit || 50)));
+
+    // Use lightweight _count instead of nested O(N*M) member arrays when directory scales to 5,500+ staff
+    const [total, users] = await Promise.all([
+      this.prisma.user.count({ where }),
       this.prisma.user.findMany({
         where,
         orderBy: { createdAt: 'asc' },
+        ...(isPaginated ? { skip: (page - 1) * limit, take: limit } : {}),
         include: {
           team: {
-            include: {
+            select: {
+              id: true,
+              name: true,
+              teamCode: true,
+              managerId: true,
               manager: { select: { id: true, fullName: true, employeeId: true } },
-              members: {
-                where: { deletedAt: null },
-                select: { id: true, fullName: true, role: true, email: true, status: true },
-              },
+              _count: { select: { members: true } },
             },
           },
           managedTeams: {
-            include: {
-              members: {
-                where: { deletedAt: null },
-                select: { id: true, fullName: true, role: true, email: true, status: true },
-              },
+            select: {
+              id: true,
+              name: true,
+              teamCode: true,
+              _count: { select: { members: true } },
             },
           },
           manager: { select: { id: true, fullName: true, employeeId: true } },
         },
       }),
-      this.prisma.refreshTokenSession.findMany({
-        where: { isActive: true, isRevoked: false, expiresAt: { gt: new Date() } },
-        select: { userId: true },
-      }),
     ]);
+
+    const userIds = users.map((u) => u.id);
+    const activeSessionRows = userIds.length
+      ? await this.prisma.refreshTokenSession.findMany({
+          where: {
+            userId: { in: userIds },
+            isActive: true,
+            isRevoked: false,
+            expiresAt: { gt: new Date() },
+          },
+          select: { userId: true },
+        })
+      : [];
 
     const activeUserIds = new Set(activeSessionRows.map((s) => s.userId));
     const ONLINE_WINDOW_MS = 2 * 60 * 1000;
 
     const formatted = users.map((u) => {
       const managed = u.managedTeams?.[0];
-      const resolvedTeam = u.team || managed || null;
+      const resolvedTeam: any = u.team || managed || null;
       const resolvedTeamName = resolvedTeam?.name || null;
       const resolvedTeamCode = resolvedTeam?.teamCode || null;
       const resolvedManagerName =
         u.manager?.fullName || (u.team as any)?.manager?.fullName || null;
-      const rawMembers = (resolvedTeam as any)?.members || [];
-      const teamMembers = rawMembers.map((m: any) => ({
-        id: m.id,
-        fullName: m.fullName,
-        role: this.mapRoleToFrontendUi(m.role),
-        email: m.email,
-        status: m.status,
-      }));
+      const teamMembersCount = Number(resolvedTeam?._count?.members || 0);
       const recentlyActive =
         Boolean(u.lastActiveAt) &&
         Date.now() - new Date(u.lastActiveAt as any).getTime() <= ONLINE_WINDOW_MS;
@@ -375,7 +407,7 @@ export class CrmCoreService implements OnModuleInit {
         managerName: resolvedManagerName,
         teamName: resolvedTeamName,
         teamCode: resolvedTeamCode,
-        teamMembers,
+        teamMembersCount,
         teamId: resolvedTeam
           ? {
               _id: resolvedTeam.id,
@@ -389,8 +421,17 @@ export class CrmCoreService implements OnModuleInit {
       };
     });
 
-    const result = apiEnvelope(formatted, 'Users loaded', { users: formatted });
-    this.cachedUsersData.set(cacheKey, { data: result, expiresAt: Date.now() + 60000 });
+    const meta = isPaginated
+      ? { users: formatted, total, page, limit, totalPages: Math.ceil(total / limit) }
+      : { users: formatted, total };
+    const result = apiEnvelope(formatted, 'Users loaded', meta);
+
+    // Cap cache size to prevent unbounded memory growth under 5,500+ distinct queries
+    if (this.cachedUsersData.size > 60) {
+      const oldestKey = this.cachedUsersData.keys().next().value;
+      if (oldestKey) this.cachedUsersData.delete(oldestKey);
+    }
+    this.cachedUsersData.set(cacheKey, { data: result, expiresAt: Date.now() + 20000 });
     return result;
   }
 

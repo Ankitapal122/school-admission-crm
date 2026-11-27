@@ -3,6 +3,7 @@ import {
   Activity,
   AlertTriangle,
   Archive,
+  ArrowLeft,
   Award,
   Ban,
   BarChart3,
@@ -19,6 +20,7 @@ import {
   CheckCircle2,
   CheckSquare,
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
   ClipboardList,
   Clock,
@@ -272,7 +274,9 @@ const ICON_MAP: Record<string, React.ComponentType<any>> = {
   play: PlayCircle,
   pause: PauseCircle,
   'chevron-down': ChevronDown,
+  'chevron-left': ChevronLeft,
   'chevron-right': ChevronRight,
+  'arrow-left': ArrowLeft,
 };
 
 export function CrmIcon({

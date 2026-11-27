@@ -486,31 +486,123 @@ export function UsersView({
   };
 
   // Compute displayed users
+  const [staffSearch, setStaffSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'ONLINE' | 'OFFLINE'>('ALL');
+  const [managerDropdownOpen, setManagerDropdownOpen] = useState(false);
+  const [managerDropdownSearch, setManagerDropdownSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+  const managerDropdownRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!managerDropdownOpen) return;
+    const handleOutside = (e: MouseEvent) => {
+      if (managerDropdownRef.current && !managerDropdownRef.current.contains(e.target as Node)) {
+        setManagerDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutside);
+    return () => document.removeEventListener('mousedown', handleOutside);
+  }, [managerDropdownOpen]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [viewMode, drilldownManager?.id, selectedManagerFilter, staffSearch, statusFilter, pageSize]);
+
+  // Reset Manager -> Counsellor drill-down whenever switching viewMode or re-clicking sidebar tab
+  useEffect(() => {
+    setDrilldownManager(null);
+  }, [viewMode]);
+
+  useEffect(() => {
+    const onNavReset = () => {
+      setDrilldownManager(null);
+      setSelectedStaffDetail(null);
+    };
+    window.addEventListener('crm-nav-reset', onNavReset);
+    return () => window.removeEventListener('crm-nav-reset', onNavReset);
+  }, []);
+
+  const isRealManagerViewer =
+    !hasRole(currentUser?.role, 'SUPER_ADMIN') &&
+    String(currentUser?.role || '').toUpperCase().includes('MANAGER');
+
+  const unassignedCounsellorsCount = useMemo(
+    () => allCounsellorsList.filter((c: any) => !(c.teamId?.id || c.teamId || c.team?.id)).length,
+    [allCounsellorsList]
+  );
+
+  // Fast searchable manager options (scales smoothly to 500+ managers without rendering 500 pills)
+  const filteredManagerOptions = useMemo(() => {
+    const q = managerDropdownSearch.trim().toLowerCase();
+    const list = q
+      ? allManagersList.filter((m: any) =>
+          `${m.fullName || ''} ${m.email || ''} ${m.employeeId || ''} ${m.teamName || ''}`
+            .toLowerCase()
+            .includes(q)
+        )
+      : allManagersList;
+    return list.slice(0, 50);
+  }, [allManagersList, managerDropdownSearch]);
+
+  const selectedManagerLabel = useMemo(() => {
+    if (selectedManagerFilter === 'ALL') return `All Counsellors (${allCounsellorsList.length})`;
+    if (selectedManagerFilter === 'UNASSIGNED') return `Unassigned (${unassignedCounsellorsCount})`;
+    const found = allManagersList.find((m: any) => m.id === selectedManagerFilter);
+    if (!found) return `All Counsellors (${allCounsellorsList.length})`;
+    return `${found.fullName} (${getCounsellorsUnderManager(found).length})`;
+  }, [selectedManagerFilter, allCounsellorsList.length, unassignedCounsellorsCount, allManagersList, teams]);
+
   const displayedUsers = useMemo(() => {
+    let base: any[] = userPool;
     if (viewMode === 'managers') {
-      if (drilldownManager) {
-        return getCounsellorsUnderManager(drilldownManager);
+      base = drilldownManager ? getCounsellorsUnderManager(drilldownManager) : allManagersList;
+    } else if (viewMode === 'counsellors') {
+      if (isRealManagerViewer) {
+        base = getCounsellorsUnderManager(currentUser);
+      } else if (selectedManagerFilter === 'ALL') {
+        base = allCounsellorsList;
+      } else if (selectedManagerFilter === 'UNASSIGNED') {
+        base = allCounsellorsList.filter((c: any) => !(c.teamId?.id || c.teamId || c.team?.id));
+      } else {
+        const targetMgr = allManagersList.find((m: any) => m.id === selectedManagerFilter);
+        base = targetMgr ? getCounsellorsUnderManager(targetMgr) : allCounsellorsList;
       }
-      return allManagersList;
     }
-    if (viewMode === 'counsellors') {
-      const isRealManager =
-        !hasRole(currentUser?.role, 'SUPER_ADMIN') &&
-        String(currentUser?.role || '').toUpperCase().includes('MANAGER');
-      if (isRealManager) {
-        return getCounsellorsUnderManager(currentUser);
+
+    const q = staffSearch.trim().toLowerCase();
+    return base.filter((u: any) => {
+      if (q) {
+        const hay = `${u.fullName || ''} ${u.email || ''} ${u.employeeId || ''} ${u.teamName || ''} ${u.managerName || ''}`.toLowerCase();
+        if (!hay.includes(q)) return false;
       }
-      if (selectedManagerFilter === 'ALL') {
-        return allCounsellorsList;
+      if (statusFilter !== 'ALL') {
+        const online = u.isOnline === true || u.presenceStatus === 'online' || u.id === currentUser?.id;
+        if (statusFilter === 'ONLINE' && !online) return false;
+        if (statusFilter === 'OFFLINE' && online) return false;
       }
-      if (selectedManagerFilter === 'UNASSIGNED') {
-        return allCounsellorsList.filter((c: any) => !(c.teamId?.id || c.teamId || c.team?.id));
-      }
-      const targetMgr = allManagersList.find((m: any) => m.id === selectedManagerFilter);
-      return targetMgr ? getCounsellorsUnderManager(targetMgr) : allCounsellorsList;
-    }
-    return userPool;
-  }, [viewMode, drilldownManager, selectedManagerFilter, allManagersList, allCounsellorsList, teams, userPool]);
+      return true;
+    });
+  }, [
+    viewMode,
+    drilldownManager,
+    selectedManagerFilter,
+    allManagersList,
+    allCounsellorsList,
+    teams,
+    userPool,
+    staffSearch,
+    statusFilter,
+    isRealManagerViewer,
+    currentUser?.id,
+  ]);
+
+  const totalPages = Math.max(1, Math.ceil(displayedUsers.length / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const paginatedUsers = useMemo(() => {
+    const start = (safePage - 1) * pageSize;
+    return displayedUsers.slice(start, start + pageSize);
+  }, [displayedUsers, safePage, pageSize]);
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newFullName, setNewFullName] = useState('');
@@ -765,21 +857,51 @@ export function UsersView({
     <div className="card">
       <div className="card-header" style={{ flexWrap: 'wrap', gap: '10px' }}>
         {drilldownManager ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <button
-              type="button"
-              className="btn btn-sm btn-outline"
-              onClick={() => setDrilldownManager(null)}
-              style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700 }}
-            >
-              <CrmIcon name="arrow-left" size={14} /> Back to All Managers
-            </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 280px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setDrilldownManager(null);
+                  setStaffSearch('');
+                  setStatusFilter('ALL');
+                }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: '#EFF6FF',
+                  color: '#1D4ED8',
+                  border: '1.5px solid #93C5FD',
+                  borderRadius: '8px',
+                  padding: '6px 14px',
+                  fontSize: '13px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  boxShadow: '0 1px 2px rgba(29, 78, 216, 0.08)',
+                }}
+              >
+                <CrmIcon name="arrow-left" size={16} color="#1D4ED8" />
+                <span>Back to All Managers</span>
+              </button>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#64748B', fontWeight: 600 }}>
+                <button
+                  type="button"
+                  onClick={() => setDrilldownManager(null)}
+                  style={{ background: 'none', border: 'none', padding: 0, color: '#2563EB', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
+                >
+                  All Managers
+                </button>
+                <CrmIcon name="chevron-right" size={13} color="#94A3B8" />
+                <span style={{ color: '#0F172A', fontWeight: 700 }}>{drilldownManager.fullName}</span>
+              </div>
+            </div>
             <div>
               <h3 className="card-title" style={{ margin: 0 }}>
                 <CrmIcon name="users" size={16} /> Team Counsellors — Managed by {drilldownManager.fullName}
               </h3>
               <span className="card-subtitle">
-                Showing all {displayedUsers.length} counsellors assigned to {drilldownManager.fullName}&apos;s team
+                Showing {displayedUsers.length} counsellors assigned to {drilldownManager.fullName}&apos;s team
               </span>
             </div>
           </div>
@@ -797,12 +919,12 @@ export function UsersView({
               {viewMode === 'managers'
                 ? 'Click any Manager to view all Counsellors working under them and inspect team performance'
                 : viewMode === 'counsellors'
-                ? 'Filter by Manager or click any Counsellor to inspect their Team Name and Reporting Manager'
+                ? 'Search or filter by Manager to inspect Counsellors, Teams, and Reporting Managers'
                 : 'Account lifecycle controls: team mapping, unlock, suspend, force-logout, role reassignment & RBAC matrix'}
             </span>
           </div>
         )}
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button
             className={`btn btn-sm ${subTab === 'employees' ? 'btn-navy' : 'btn-outline'}`}
             onClick={() => setSubTab('employees')}
@@ -830,57 +952,275 @@ export function UsersView({
         </div>
       </div>
 
-      {viewMode === 'counsellors' && subTab === 'employees' && (
+      {/* Responsive Enterprise Filter Bar (Scales smoothly to 500+ Managers & 5,000+ Counsellors on Mobile & Desktop) */}
+      {subTab === 'employees' && (
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
-            padding: '10px 14px',
+            gap: '10px',
+            padding: '12px 16px',
             background: '#F8FAFC',
             borderBottom: '1px solid #E2E8F0',
             flexWrap: 'wrap',
           }}
         >
-          <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569', display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <CrmIcon name="filter" size={13} /> Filter by Manager:
-          </span>
-          <button
-            type="button"
-            className={`btn btn-sm ${selectedManagerFilter === 'ALL' ? 'btn-primary' : 'btn-outline'}`}
-            style={{ fontSize: '11.5px', padding: '3px 10px', borderRadius: '999px' }}
-            onClick={() => setSelectedManagerFilter('ALL')}
-          >
-            All Counsellors ({allCounsellorsList.length})
-          </button>
-          {allManagersList.map((mgr: any) => {
-            const count = getCounsellorsUnderManager(mgr).length;
-            const isSel = selectedManagerFilter === mgr.id;
-            return (
+          {/* Search Input */}
+          <div style={{ position: 'relative', flex: '1 1 220px', minWidth: '180px' }}>
+            <input
+              type="text"
+              className="form-control"
+              value={staffSearch}
+              onChange={(e) => setStaffSearch(e.target.value)}
+              placeholder={
+                viewMode === 'managers' && !drilldownManager
+                  ? 'Search manager by name, email, ID or team...'
+                  : 'Search staff by name, email, ID, team or manager...'
+              }
+              style={{
+                width: '100%',
+                paddingRight: staffSearch ? '32px' : '12px',
+                fontSize: '13px',
+                height: '36px',
+              }}
+            />
+            {staffSearch && (
               <button
-                key={mgr.id}
                 type="button"
-                className={`btn btn-sm ${isSel ? 'btn-primary' : 'btn-outline'}`}
-                style={{ fontSize: '11.5px', padding: '3px 10px', borderRadius: '999px' }}
-                onClick={() => setSelectedManagerFilter(mgr.id)}
+                onClick={() => setStaffSearch('')}
+                title="Clear search"
+                style={{
+                  position: 'absolute',
+                  right: '8px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  color: '#64748B',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  padding: '2px 4px',
+                }}
               >
-                👤 {mgr.fullName} ({count})
+                ×
               </button>
-            );
-          })}
-          <button
-            type="button"
-            className={`btn btn-sm ${selectedManagerFilter === 'UNASSIGNED' ? 'btn-primary' : 'btn-outline'}`}
-            style={{ fontSize: '11.5px', padding: '3px 10px', borderRadius: '999px' }}
-            onClick={() => setSelectedManagerFilter('UNASSIGNED')}
+            )}
+          </div>
+
+          {/* Responsive Searchable Manager Dropdown (handles 500+ managers without clutter) */}
+          {viewMode === 'counsellors' && !isRealManagerViewer && (
+            <div
+              ref={managerDropdownRef}
+              style={{ position: 'relative', flex: '1 1 240px', minWidth: '210px', maxWidth: '340px' }}
+            >
+              <button
+                type="button"
+                onClick={() => setManagerDropdownOpen((o) => !o)}
+                style={{
+                  width: '100%',
+                  height: '36px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '8px',
+                  padding: '0 12px',
+                  background: selectedManagerFilter !== 'ALL' ? '#EFF6FF' : '#FFFFFF',
+                  border: `1px solid ${selectedManagerFilter !== 'ALL' ? '#93C5FD' : '#CBD5E1'}`,
+                  borderRadius: '8px',
+                  fontSize: '12.5px',
+                  fontWeight: 700,
+                  color: selectedManagerFilter !== 'ALL' ? '#1D4ED8' : '#334155',
+                  cursor: 'pointer',
+                }}
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <CrmIcon name="filter" size={13} />
+                  <span>Manager: {selectedManagerLabel}</span>
+                </span>
+                <span style={{ fontSize: '11px', flexShrink: 0 }}>{managerDropdownOpen ? '▲' : '▼'}</span>
+              </button>
+
+              {managerDropdownOpen && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 'calc(100% + 4px)',
+                    left: 0,
+                    right: 0,
+                    minWidth: '250px',
+                    background: '#FFFFFF',
+                    border: '1px solid #CBD5E1',
+                    borderRadius: '10px',
+                    boxShadow: '0 14px 32px rgba(15, 23, 42, 0.16)',
+                    zIndex: 1200,
+                    overflow: 'hidden',
+                  }}
+                >
+                  <div style={{ padding: '8px', borderBottom: '1px solid #E2E8F0', background: '#F8FAFC' }}>
+                    <input
+                      type="text"
+                      className="form-control"
+                      autoFocus
+                      value={managerDropdownSearch}
+                      onChange={(e) => setManagerDropdownSearch(e.target.value)}
+                      placeholder={`Search among ${allManagersList.length} managers...`}
+                      style={{ width: '100%', height: '32px', fontSize: '12px' }}
+                    />
+                  </div>
+                  <div style={{ maxHeight: '260px', overflowY: 'auto', padding: '4px' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedManagerFilter('ALL');
+                        setManagerDropdownOpen(false);
+                        setManagerDropdownSearch('');
+                      }}
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        padding: '8px 10px',
+                        border: 'none',
+                        borderRadius: '6px',
+                        background: selectedManagerFilter === 'ALL' ? '#EFF6FF' : 'transparent',
+                        color: selectedManagerFilter === 'ALL' ? '#1D4ED8' : '#0F172A',
+                        fontSize: '12.5px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                      }}
+                    >
+                      <span>All Counsellors</span>
+                      <span style={{ color: '#64748B' }}>{allCounsellorsList.length}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedManagerFilter('UNASSIGNED');
+                        setManagerDropdownOpen(false);
+                        setManagerDropdownSearch('');
+                      }}
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        padding: '8px 10px',
+                        border: 'none',
+                        borderRadius: '6px',
+                        background: selectedManagerFilter === 'UNASSIGNED' ? '#EFF6FF' : 'transparent',
+                        color: selectedManagerFilter === 'UNASSIGNED' ? '#1D4ED8' : '#475569',
+                        fontSize: '12.5px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                      }}
+                    >
+                      <span>Unassigned Counsellors</span>
+                      <span style={{ color: '#64748B' }}>{unassignedCounsellorsCount}</span>
+                    </button>
+                    <div style={{ height: '1px', background: '#E2E8F0', margin: '4px 6px' }} />
+                    {filteredManagerOptions.length === 0 ? (
+                      <div style={{ padding: '12px', fontSize: '12px', color: '#64748B', textAlign: 'center' }}>
+                        No manager matches &ldquo;{managerDropdownSearch}&rdquo;
+                      </div>
+                    ) : (
+                      filteredManagerOptions.map((mgr: any) => {
+                        const cnt = getCounsellorsUnderManager(mgr).length;
+                        const isSel = selectedManagerFilter === mgr.id;
+                        return (
+                          <button
+                            key={mgr.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedManagerFilter(mgr.id);
+                              setManagerDropdownOpen(false);
+                              setManagerDropdownSearch('');
+                            }}
+                            style={{
+                              width: '100%',
+                              textAlign: 'left',
+                              padding: '7px 10px',
+                              border: 'none',
+                              borderRadius: '6px',
+                              background: isSel ? '#EFF6FF' : 'transparent',
+                              color: isSel ? '#1D4ED8' : '#0F172A',
+                              fontSize: '12.5px',
+                              fontWeight: isSel ? 700 : 600,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              gap: '8px',
+                            }}
+                          >
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {mgr.fullName}
+                              {mgr.teamName ? ` · ${mgr.teamName}` : ''}
+                            </span>
+                            <span
+                              style={{
+                                background: '#F1F5F9',
+                                color: '#334155',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                padding: '1px 7px',
+                                borderRadius: '999px',
+                                flexShrink: 0,
+                              }}
+                            >
+                              {cnt}
+                            </span>
+                          </button>
+                        );
+                      })
+                    )}
+                    {allManagersList.length > 50 && !managerDropdownSearch.trim() && (
+                      <div style={{ padding: '6px 10px', fontSize: '11px', color: '#64748B', textAlign: 'center', borderTop: '1px solid #F1F5F9' }}>
+                        Showing first 50 of {allManagersList.length} managers — type above to search any manager.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Status Filter Select */}
+          <select
+            className="form-control"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as any)}
+            style={{ width: 'auto', minWidth: '130px', height: '36px', fontSize: '12.5px', flex: '0 1 auto' }}
           >
-            Unassigned ({allCounsellorsList.filter((c: any) => !(c.teamId?.id || c.teamId || c.team?.id)).length})
-          </button>
+            <option value="ALL">Status: All</option>
+            <option value="ONLINE">● Online Only</option>
+            <option value="OFFLINE">● Offline Only</option>
+          </select>
+
+          {/* Reset filters button if any filter active */}
+          {(staffSearch || statusFilter !== 'ALL' || selectedManagerFilter !== 'ALL') && (
+            <button
+              type="button"
+              className="btn btn-sm btn-outline"
+              onClick={() => {
+                setStaffSearch('');
+                setStatusFilter('ALL');
+                setSelectedManagerFilter('ALL');
+              }}
+              style={{ height: '36px', whiteSpace: 'nowrap' }}
+            >
+              Reset
+            </button>
+          )}
         </div>
       )}
 
       {subTab === 'employees' ? (
-        <div className="table-container" style={{ overflow: 'visible', minHeight: '260px' }}>
+        <>
+        <div
+          className="table-container"
+          style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', minHeight: '240px' }}
+        >
           <table className="data-table">
             <thead>
               {viewMode === 'managers' && !drilldownManager ? (
@@ -917,13 +1257,15 @@ export function UsersView({
                     </div>
                   </td>
                 </tr>
-              ) : displayedUsers.length === 0 ? (
+              ) : paginatedUsers.length === 0 ? (
                 <tr>
                   <td
                     colSpan={viewMode === 'managers' && !drilldownManager ? 7 : 6}
                     style={{ textAlign: 'center', padding: '40px 20px', color: '#64748B', fontSize: '13.5px' }}
                   >
-                    {drilldownManager
+                    {staffSearch || statusFilter !== 'ALL'
+                      ? 'No staff records match your current search or filter.'
+                      : drilldownManager
                       ? `No counsellors are assigned to ${drilldownManager.fullName}'s team yet.`
                       : viewMode === 'managers'
                       ? 'No managers found.'
@@ -933,7 +1275,7 @@ export function UsersView({
                   </td>
                 </tr>
               ) : (
-                displayedUsers.map((u: any) => {
+                paginatedUsers.map((u: any) => {
                 const isUserOnline =
                   u.isOnline === true ||
                   u.presenceStatus === 'online' ||
@@ -949,7 +1291,7 @@ export function UsersView({
                 const isCounsellor = String(u.role || u.canonicalRole || '').toLowerCase().includes('counsellor');
                 const teamMembersCount = Array.isArray(u.teamMembers)
                   ? u.teamMembers.filter((m: any) => m.id !== u.id).length
-                  : 0;
+                  : Number(u.teamMembersCount || 0);
                 const formatDateTime = (dt: any) =>
                   dt
                     ? new Date(dt).toLocaleString('en-IN', {
@@ -1401,6 +1743,65 @@ export function UsersView({
             </tbody>
           </table>
         </div>
+        {/* Responsive Pagination Footer (handles 500+ Managers & 5,000+ Counsellors cleanly on Mobile & Desktop) */}
+        {displayedUsers.length > 0 && (
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '10px',
+              padding: '12px 16px',
+              borderTop: '1px solid #E2E8F0',
+              background: '#F8FAFC',
+              borderRadius: '0 0 12px 12px',
+              fontSize: '12.5px',
+              color: '#475569',
+            }}
+          >
+            <div style={{ fontWeight: 600 }}>
+              Showing <strong>{(safePage - 1) * pageSize + 1}</strong>–
+              <strong>{Math.min(safePage * pageSize, displayedUsers.length)}</strong> of{' '}
+              <strong>{displayedUsers.length}</strong> records
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontWeight: 600 }}>
+                Rows:
+                <select
+                  className="form-control"
+                  value={pageSize}
+                  onChange={(e) => setPageSize(Number(e.target.value))}
+                  style={{ width: 'auto', height: '30px', padding: '2px 8px', fontSize: '12px' }}
+                >
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+              </label>
+              <button
+                type="button"
+                className="btn btn-sm btn-outline"
+                disabled={safePage <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+              >
+                &larr; Prev
+              </button>
+              <span style={{ fontWeight: 700, color: '#0F172A', padding: '0 4px' }}>
+                Page {safePage} / {totalPages}
+              </span>
+              <button
+                type="button"
+                className="btn btn-sm btn-outline"
+                disabled={safePage >= totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              >
+                Next &rarr;
+              </button>
+            </div>
+          </div>
+        )}
+        </>
       ) : (
         <div className="table-container">
           <table className="data-table">
@@ -1707,27 +2108,78 @@ export function UsersView({
         const isMgr = String(st.role || st.canonicalRole || '').toLowerCase().includes('manager');
         const isOnlineSt =
           st.isOnline === true || st.presenceStatus === 'online' || st.id === currentUser?.id;
-        const membersList: any[] = Array.isArray(st.teamMembers)
-          ? st.teamMembers.filter((m: any) => m.id !== st.id)
-          : [];
+        const stTeamId = st.teamId?.id || st.teamId?._id || st.teamId || resolvedTeamObj?.id || null;
+        const membersList: any[] =
+          Array.isArray(st.teamMembers) && st.teamMembers.length > 0
+            ? st.teamMembers.filter((m: any) => m.id !== st.id)
+            : stTeamId
+            ? userPool.filter((u: any) => {
+                if (u.id === st.id) return false;
+                const uT = u.teamId?.id || u.teamId?._id || u.teamId || u.team?.id;
+                return uT === stTeamId || u.managerId === st.id;
+              })
+            : [];
         return (
           <div className="modal-overlay" onClick={() => setSelectedStaffDetail(null)}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px' }}>
-              <div className="modal-header" style={{ background: 'linear-gradient(95deg, #09204C 0%, #143D85 60%, #1D4ED8 100%)', color: '#FFFFFF' }}>
-                <div>
-                  <h3 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: '#FFFFFF' }}>
-                    {st.fullName}
-                  </h3>
-                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.85)', marginTop: '2px' }}>
-                    {isMgr ? 'Team Manager' : st.role === 'admin' ? 'Super Admin' : 'Admissions Counsellor'} &bull; {st.employeeId || st.email}
+            <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px', width: '95%' }}>
+              <div
+                style={{
+                  background: 'linear-gradient(95deg, #09204C 0%, #143D85 60%, #1D4ED8 100%)',
+                  color: '#FFFFFF',
+                  padding: '14px 18px',
+                  borderRadius: '14px 14px 0 0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '10px',
+                  flexShrink: 0,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedStaffDetail(null)}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      background: 'rgba(255,255,255,0.18)',
+                      color: '#FFFFFF',
+                      border: '1px solid rgba(255,255,255,0.4)',
+                      borderRadius: '8px',
+                      padding: '5px 10px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <CrmIcon name="arrow-left" size={14} color="#FFFFFF" /> Back
+                  </button>
+                  <div style={{ minWidth: 0 }}>
+                    <h3 style={{ fontSize: '15.5px', fontWeight: 800, margin: 0, color: '#FFFFFF' }}>
+                      {st.fullName}
+                    </h3>
+                    <div style={{ fontSize: '11.5px', color: 'rgba(255,255,255,0.88)', marginTop: '2px' }}>
+                      {isMgr ? 'Team Manager' : st.role === 'admin' ? 'Super Admin' : 'Admissions Counsellor'} &bull; {st.employeeId || st.email}
+                    </div>
                   </div>
                 </div>
                 <button
-                  className="btn btn-sm btn-outline"
-                  style={{ background: 'rgba(255,255,255,0.16)', color: '#FFFFFF', border: '1px solid rgba(255,255,255,0.35)' }}
+                  type="button"
+                  style={{
+                    background: 'rgba(255,255,255,0.18)',
+                    color: '#FFFFFF',
+                    border: '1px solid rgba(255,255,255,0.4)',
+                    borderRadius: '8px',
+                    padding: '5px 8px',
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                  }}
                   onClick={() => setSelectedStaffDetail(null)}
+                  title="Close"
                 >
-                  <CrmIcon name="x" size={16} />
+                  <CrmIcon name="x" size={16} color="#FFFFFF" />
                 </button>
               </div>
               <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>

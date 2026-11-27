@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { matchingRoleVariants, normalizeCanonicalRole } from '../../common/utils/crm.utils';
 
@@ -7,23 +7,79 @@ export type PresenceStatus = 'online' | 'idle' | 'offline';
 /** Thresholds: <=2 min since last heartbeat = online, <=15 min = idle, else offline. */
 const ONLINE_MS = 2 * 60 * 1000;
 const IDLE_MS = 15 * 60 * 1000;
+const DB_FLUSH_INTERVAL_MS = 45 * 1000;
 
-export function computePresence(lastActiveAt?: Date | null, now = Date.now()): PresenceStatus {
+export function computePresence(lastActiveAt?: Date | string | number | null, now = Date.now()): PresenceStatus {
   if (!lastActiveAt) return 'offline';
-  const diff = now - new Date(lastActiveAt).getTime();
+  const ts = typeof lastActiveAt === 'number' ? lastActiveAt : new Date(lastActiveAt).getTime();
+  const diff = now - ts;
   if (diff <= ONLINE_MS) return 'online';
   if (diff <= IDLE_MS) return 'idle';
   return 'offline';
 }
 
 @Injectable()
-export class PresenceService {
+export class PresenceService implements OnModuleInit, OnModuleDestroy {
+  // High-throughput in-memory presence cache + batched DB sync for 5,500+ concurrent staff
+  private lastSeenMap = new Map<string, number>();
+  private dirtyUserIds = new Set<string>();
+  private flushTimer: NodeJS.Timeout | null = null;
+
   constructor(private prisma: PrismaService) {}
 
-  async heartbeat(userId: string) {
+  onModuleInit() {
+    this.flushTimer = setInterval(() => {
+      this.flushPresenceToDb().catch(() => {});
+    }, DB_FLUSH_INTERVAL_MS);
+  }
+
+  async onModuleDestroy() {
+    if (this.flushTimer) clearInterval(this.flushTimer);
+    await this.flushPresenceToDb().catch(() => {});
+  }
+
+  private async flushPresenceToDb() {
+    if (this.dirtyUserIds.size === 0) return;
+    const batchIds = Array.from(this.dirtyUserIds);
+    this.dirtyUserIds.clear();
     const now = new Date();
-    await this.prisma.user.update({ where: { id: userId }, data: { lastActiveAt: now } });
-    return { status: 'online' as PresenceStatus, lastActiveAt: now };
+    // Single bulk UPDATE query for all active users instead of 5,500 individual UPDATE queries
+    const CHUNK = 500;
+    for (let i = 0; i < batchIds.length; i += CHUNK) {
+      const slice = batchIds.slice(i, i + CHUNK);
+      await this.prisma.user
+        .updateMany({
+          where: { id: { in: slice } },
+          data: { lastActiveAt: now },
+        })
+        .catch(() => {});
+    }
+    // Prune stale entries older than 30 minutes to keep RAM bounded
+    const cutoff = Date.now() - 30 * 60 * 1000;
+    for (const [uid, ts] of this.lastSeenMap.entries()) {
+      if (ts < cutoff) this.lastSeenMap.delete(uid);
+    }
+  }
+
+  getLastSeenTs(userId: string, dbDate?: Date | null): number | null {
+    const memTs = this.lastSeenMap.get(userId) || 0;
+    const dbTs = dbDate ? new Date(dbDate).getTime() : 0;
+    const best = Math.max(memTs, dbTs);
+    return best > 0 ? best : null;
+  }
+
+  async heartbeat(userId: string) {
+    const nowTs = Date.now();
+    const isFirstSighting = !this.lastSeenMap.has(userId);
+    this.lastSeenMap.set(userId, nowTs);
+    this.dirtyUserIds.add(userId);
+    // Write immediately only on first login heartbeat; subsequent heartbeats batch-flush every 45s
+    if (isFirstSighting) {
+      this.prisma.user
+        .update({ where: { id: userId }, data: { lastActiveAt: new Date(nowTs) } })
+        .catch(() => {});
+    }
+    return { status: 'online' as PresenceStatus, lastActiveAt: new Date(nowTs) };
   }
 
   /**
@@ -108,7 +164,8 @@ export class PresenceService {
 
     const now = Date.now();
     const rows = users.map((u) => {
-      const presence = computePresence(u.lastActiveAt, now);
+      const effectiveLastActive = this.getLastSeenTs(u.id, u.lastActiveAt);
+      const presence = computePresence(effectiveLastActive, now);
       const callsToday = callMap.get(u.id) || 0;
       const waToday = waMap.get(u.id) || 0;
       const leadsToday = leadMap.get(u.id) || 0;
@@ -123,7 +180,7 @@ export class PresenceService {
         teamName: u.team?.name || null,
         presence,
         isOnline: presence === 'online',
-        lastActiveAt: u.lastActiveAt,
+        lastActiveAt: effectiveLastActive ? new Date(effectiveLastActive) : u.lastActiveAt,
         lastLoginAt: u.lastLoginAt,
         callsToday,
         whatsappToday: waToday,
