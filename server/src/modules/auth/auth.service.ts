@@ -299,39 +299,15 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email/mobile number or password.');
     }
 
-    // 1. Check temporary lockout expiry
-    const now = new Date();
-    if (user.status === 'locked' && user.lockedUntil) {
-      if (user.lockedUntil <= now) {
-        // 10 minutes have elapsed -> Auto-unlock cleanly
-        await this.prisma.user.update({
-          where: { id: user.id },
-          data: { status: 'active', failedLoginAttempts: 0, lockedUntil: null },
-        }).catch(() => {});
-        user.status = 'active';
-        user.failedLoginAttempts = 0;
-        user.lockedUntil = null;
-      } else {
-        // Still within 10-minute lock window
-        const remainingSecs = Math.max(
-          1,
-          Math.round((user.lockedUntil.getTime() - now.getTime()) / 1000),
-        );
-        const remainingMins = Math.floor(remainingSecs / 60);
-        const remainingSecsMod = remainingSecs % 60;
-        const timeStr = `${remainingMins}m ${remainingSecsMod}s`;
-        throw new HttpException(
-          {
-            statusCode: 423,
-            message: `5 se jyada galat password attempts ho chuke hain! Account 10 minute ke liye locked hai. Kripya ${timeStr} baad try karein.`,
-            error: 'Account Locked',
-            lockoutSeconds: remainingSecs,
-            retryAfterSeconds: remainingSecs,
-            failedAttempts: user.failedLoginAttempts || 6,
-          },
-          423,
-        );
-      }
+    // Permanently disable account locking for all roles (Admin, Manager, Counsellor)
+    if (user.status === 'locked' || user.lockedUntil || (user.failedLoginAttempts || 0) > 0) {
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { status: 'active', failedLoginAttempts: 0, lockedUntil: null },
+      }).catch(() => {});
+      user.status = 'active';
+      user.failedLoginAttempts = 0;
+      user.lockedUntil = null;
     }
 
     const isSuperAdminUser =
@@ -406,22 +382,7 @@ export class AuthService {
     }
 
     // 2. IF WRONG PASSWORD:
-    // User rule: Timer tab lagna chahiye jab password 5 se jyada galat dale (more than 5 wrong attempts)
-    const lockMins = 10;
-    const nextAttempts = (user.failedLoginAttempts || 0) + 1;
-    const shouldLock = nextAttempts > 5; // STRICTLY MORE THAN 5 failed attempts (i.e. attempt 6+)
-    const lockedUntil = shouldLock
-      ? new Date(Date.now() + lockMins * 60 * 1000)
-      : null;
-
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: {
-        failedLoginAttempts: nextAttempts,
-        ...(shouldLock ? { status: 'locked', lockedUntil } : {}),
-      },
-    }).catch(() => {});
-
+    // Never lock account or enforce timer lockout for any role (Admin, Manager, Counsellor)
     await this.prisma.auditLog.create({
       data: {
         userId: user.id,
@@ -431,10 +392,7 @@ export class AuthService {
         module: 'auth',
         entity: 'User',
         entityId: user.id,
-        isSpecialFlag: shouldLock,
         details: {
-          failedAttempt: nextAttempts,
-          locked: shouldLock,
           reason: 'wrong_password',
         },
         ipAddress,
@@ -442,35 +400,9 @@ export class AuthService {
       },
     }).catch(() => {});
 
-    if (shouldLock) {
-      user.status = 'locked';
-      user.lockedUntil = lockedUntil;
-      user.failedLoginAttempts = nextAttempts;
-
-      throw new HttpException(
-        {
-          statusCode: 423,
-          message: `5 se jyada galat password attempts ho chuke hain! Account 10 minute ke liye temporarily lock ho gaya hai.`,
-          error: 'Account Locked',
-          lockoutSeconds: lockMins * 60,
-          retryAfterSeconds: lockMins * 60,
-          failedAttempts: nextAttempts,
-        },
-        423,
-      );
-    }
-
-    const attemptsRemaining = 5 - nextAttempts;
-    if (attemptsRemaining > 0) {
-      throw new UnauthorizedException(
-        `Galat password! Attempt ${nextAttempts}/5 (${attemptsRemaining} attempt baaki hai. 5 se jyada galat hone par 10-minute timer lagega).`,
-      );
-    } else {
-      // exactly 5th attempt
-      throw new UnauthorizedException(
-        `Galat password! Yeh aapka 5th attempt hai. (Warning: Agla galat attempt hone par account 10 minute ke liye lock ho jayega).`,
-      );
-    }
+    throw new UnauthorizedException(
+      'Invalid password. Please check your password and try again.',
+    );
     });
   }
 
