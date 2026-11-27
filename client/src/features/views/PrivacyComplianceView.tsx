@@ -149,11 +149,15 @@ export function FirstLoginPrivacyModal({
     <div className="modal-overlay" style={{ zIndex: 3000 }}>
       <div className="modal-content" style={{ maxWidth: '640px' }} onClick={(e) => e.stopPropagation()}>
         <div
-          className="modal-header"
           style={{
             background: 'linear-gradient(120deg, #07193B 0%, #103272 52%, #1D4ED8 100%)',
             color: '#FFFFFF',
+            padding: '16px 20px',
             borderRadius: '14px 14px 0 0',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexShrink: 0,
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>

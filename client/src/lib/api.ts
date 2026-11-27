@@ -133,18 +133,25 @@ export async function apiCall<T = any>(
 
   let res!: Response;
   let lastNetworkErr: any = null;
-  const maxAttempts = isAuthRoute ? 6 : method === 'GET' ? 4 : 2;
+  const maxAttempts = isAuthRoute ? 6 : method === 'GET' ? 5 : 4;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       res = await performFetch();
       lastNetworkErr = null;
-      // Transparent auto-retry on transient gateway errors (502/503/504) or rate limit (429) on GET
+      // Transparent auto-retry on transient gateway errors (502/503/504) for ALL methods
+      // (a 502/503/504 from Render proxy means upstream Node did not process the request)
+      // plus 429 rate-limit retry on GET
       if (
-        ((res.status === 502 || res.status === 503 || res.status === 504) && (method === 'GET' || isAuthRoute)) ||
+        res.status === 502 ||
+        res.status === 503 ||
+        res.status === 504 ||
         (res.status === 429 && method === 'GET')
       ) {
         if (attempt < maxAttempts) {
-          const delay = res.status === 429 ? parseRetryAfterMs(res, attempt) : 2200;
+          const delay =
+            res.status === 429
+              ? parseRetryAfterMs(res, attempt)
+              : Math.min(6000, 1500 + attempt * 1000);
           await new Promise((r) => setTimeout(r, delay));
           continue;
         }
@@ -153,7 +160,7 @@ export async function apiCall<T = any>(
     } catch (networkErr: any) {
       lastNetworkErr = networkErr;
       if (attempt < maxAttempts) {
-        await new Promise((r) => setTimeout(r, 1500));
+        await new Promise((r) => setTimeout(r, Math.min(5000, 1200 + attempt * 800)));
         continue;
       }
     }
@@ -209,7 +216,14 @@ export async function apiCall<T = any>(
       if (cached) return { ...(cached as any), _offlineCached: true };
     }
     const rawMsg = Array.isArray(data?.message) ? data.message.join(', ') : data?.message;
-    const msg = rawMsg || (res.status === 429 ? 'Too many requests. Please wait a moment and try again.' : `API Error: ${res.statusText || res.status}`);
+    const isGatewayErr = res.status === 502 || res.status === 503 || res.status === 504;
+    const msg =
+      rawMsg ||
+      (isGatewayErr
+        ? 'CRM server is waking up or restarting. Please wait a few seconds and try again.'
+        : res.status === 429
+        ? 'Too many requests. Please wait a moment and try again.'
+        : `API Error: ${res.statusText || res.status}`);
     throw new ApiError(msg, res.status, data);
   }
 
@@ -242,7 +256,32 @@ export async function downloadApiFile(endpoint: string, fallbackFilename = 'expo
     });
 
   let token = useAuthStore.getState().accessToken || localStorage.getItem('crm_token');
-  let res = await doDownload(token);
+  let res!: Response;
+  let lastErr: any = null;
+
+  for (let attempt = 1; attempt <= 4; attempt++) {
+    try {
+      res = await doDownload(token);
+      lastErr = null;
+      if (res.status === 502 || res.status === 503 || res.status === 504) {
+        if (attempt < 4) {
+          await new Promise((r) => setTimeout(r, 1500 + attempt * 1000));
+          continue;
+        }
+      }
+      break;
+    } catch (e) {
+      lastErr = e;
+      if (attempt < 4) {
+        await new Promise((r) => setTimeout(r, 1500));
+        continue;
+      }
+    }
+  }
+
+  if (lastErr) {
+    throw new ApiError('Unable to reach server for download. Please retry in a moment.', 0);
+  }
 
   if (res.status === 401) {
     const newToken = await attemptSilentRefresh();
@@ -255,7 +294,15 @@ export async function downloadApiFile(endpoint: string, fallbackFilename = 'expo
 
   if (!res.ok) {
     const errJson = await res.json().catch(() => ({}));
-    throw new ApiError(errJson?.message || `Download failed (${res.status})`, res.status, errJson);
+    const isGw = res.status === 502 || res.status === 503 || res.status === 504;
+    throw new ApiError(
+      errJson?.message ||
+        (isGw
+          ? 'Server is waking up. Please wait 5 seconds and click download again.'
+          : `Download failed (${res.status})`),
+      res.status,
+      errJson
+    );
   }
 
   const blob = await res.blob();

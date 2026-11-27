@@ -30,6 +30,26 @@ export class AdmissionsController {
     return this.admissionsService.findAll(req.user, query);
   }
 
+  @Get('installments/export-excel')
+  async exportInstallmentsExcel(
+    @Req() req: any,
+    @Query() query: any,
+    @Res() res: Response,
+  ) {
+    const { buffer, filename } = await this.admissionsService.exportFeeInstallmentsExcel(
+      req.user,
+      query,
+    );
+    res.set({
+      'Content-Type':
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': `attachment; filename="${filename}"`,
+      'Content-Length': buffer.length,
+      'Cache-Control': 'no-store',
+    });
+    res.end(buffer);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string, @Req() req: any) {
     return this.admissionsService.findOne(id, req.user);
@@ -118,13 +138,27 @@ export class AdmissionsController {
 
   @Get(':id/receipt-pdf')
   async downloadReceiptPdf(@Param('id') id: string, @Res() res: Response) {
-    const pdfBuffer = await this.admissionsService.generateAdmissionPdf(id);
+    const { buffer, filename } = await this.admissionsService.generateAdmissionPdf(id);
     res.set({
       'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="BoardingEdu_Receipt_${id}.pdf"`,
-      'Content-Length': pdfBuffer.length,
+      'Content-Disposition': `attachment; filename="${filename}"`,
+      'Content-Length': buffer.length,
+      'Cache-Control': 'no-store',
     });
-    res.end(pdfBuffer);
+    res.end(buffer);
+  }
+
+  @Get(':id/receipt-excel')
+  async downloadReceiptExcel(@Param('id') id: string, @Res() res: Response) {
+    const { buffer, filename } = await this.admissionsService.generateAdmissionReceiptExcel(id);
+    res.set({
+      'Content-Type':
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': `attachment; filename="${filename}"`,
+      'Content-Length': buffer.length,
+      'Cache-Control': 'no-store',
+    });
+    res.end(buffer);
   }
 
   // ==========================================

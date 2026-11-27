@@ -66,6 +66,19 @@ export default function App() {
     setTimeout(() => setToastMsg(null), 4000);
   };
 
+  // Reset active tab cleanly when switching accounts / logging out so real Manager/Counsellor never inherits Admin's tab
+  useEffect(() => {
+    if (!isAuthenticated || !user?.id) {
+      setCurrentTab('dashboard');
+      return;
+    }
+    const actualRoleKey = normalizeRoleKey(user.role);
+    const adminOnlyTabs = ['managers', 'users', 'teams', 'audit-logs', 'roles-permissions', 'employee-monitoring'];
+    if (actualRoleKey !== 'super_admin' && adminOnlyTabs.includes(currentTab)) {
+      setCurrentTab('dashboard');
+    }
+  }, [isAuthenticated, user?.id, user?.role]);
+
   // Persistent session + role-based auto-logout (Admin: 1 month, Manager: 1 week, Counsellor: 1 week) + live presence heartbeat every 30s
   // Also enforce mandatory Privacy Policy acceptance on first login
   useEffect(() => {
@@ -153,7 +166,7 @@ export default function App() {
     queryKey: ['leads'],
     queryFn: () => apiCall('/leads'),
     enabled: isAuthenticated,
-    refetchInterval: 8000,
+    refetchInterval: 30000,
   });
 
   const {

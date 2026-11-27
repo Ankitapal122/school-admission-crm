@@ -1,5 +1,5 @@
-﻿// BoardingEdu Enterprise CRM - Progressive Web App Service Worker (v6.0)
-const CACHE_NAME = 'boardingedu-crm-shell-v6';
+﻿// BoardingEdu Enterprise CRM - Progressive Web App Service Worker (v7.0)
+const CACHE_NAME = 'boardingedu-crm-shell-v7';
 const APP_SHELL_ASSETS = [
   '/',
   '/index.html',
@@ -9,6 +9,57 @@ const APP_SHELL_ASSETS = [
   '/boardingedu-logo.png',
   '/boardingedu-logo-clean.png'
 ];
+
+function buildReconnectingResponse() {
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BoardingEdu CRM — Connecting...</title>
+  <style>
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #F1F5F9; color: #0F172A; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; box-sizing: border-box; }
+    .card { background: #FFFFFF; border-radius: 16px; padding: 32px 28px; max-width: 420px; width: 100%; text-align: center; box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08); border: 1px solid #E2E8F0; }
+    .spinner { width: 42px; height: 42px; border: 4px solid #DBEAFE; border-top-color: #1D4ED8; border-radius: 50%; margin: 0 auto 18px; animation: spin 0.9s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    h1 { margin: 0 0 8px; font-size: 19px; color: #123B70; }
+    p { margin: 0 0 18px; font-size: 13.5px; color: #475569; line-height: 1.55; }
+    .status { font-size: 12px; font-weight: 700; color: #1D4ED8; background: #EFF6FF; padding: 8px 12px; border-radius: 8px; margin-bottom: 16px; }
+    button { background: #1D4ED8; color: #fff; border: none; border-radius: 10px; padding: 10px 20px; font-size: 13.5px; font-weight: 700; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="spinner"></div>
+    <h1>BoardingEdu CRM Server Waking Up</h1>
+    <p>Server temporarily restart ya wake up ho raha hai. Page automatically load ho jayega — kuch second wait karein.</p>
+    <div class="status" id="st">Checking server connection...</div>
+    <button onclick="window.location.reload()">Retry Now</button>
+  </div>
+  <script>
+    let tries = 0;
+    async function check() {
+      tries++;
+      document.getElementById('st').textContent = 'Connecting to CRM server (attempt ' + tries + ')...';
+      try {
+        const res = await fetch('/api/health', { cache: 'no-store' });
+        if (res.ok) {
+          document.getElementById('st').textContent = 'Connected! Opening CRM...';
+          window.location.reload();
+          return;
+        }
+      } catch (e) {}
+      setTimeout(check, 2500);
+    }
+    setTimeout(check, 1500);
+  </script>
+</body>
+</html>`;
+  return new Response(html, {
+    status: 200,
+    headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' },
+  });
+}
 
 // Install: Cache core app shell
 self.addEventListener('install', (event) => {
@@ -99,7 +150,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Navigation requests: Network-first, fallback to cached /index.html on offline OR temporary 502/503/504
+  // Navigation requests: Network-first, fallback to cached /index.html OR branded auto-reconnecting page on 502/503/504
   if (req.mode === 'navigate') {
     event.respondWith(
       fetch(req)
@@ -107,6 +158,7 @@ self.addEventListener('fetch', (event) => {
           if (res.status >= 500) {
             const cachedIndex = await caches.match('/index.html');
             if (cachedIndex) return cachedIndex;
+            return buildReconnectingResponse();
           } else if (res.status === 200) {
             const clone = res.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put('/index.html', clone));
@@ -115,7 +167,7 @@ self.addEventListener('fetch', (event) => {
         })
         .catch(async () => {
           const cachedIndex = await caches.match('/index.html');
-          return cachedIndex || caches.match('/');
+          return cachedIndex || (await caches.match('/')) || buildReconnectingResponse();
         })
     );
     return;

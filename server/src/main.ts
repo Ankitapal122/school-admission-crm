@@ -49,6 +49,7 @@ async function bootstrap() {
     origin: true,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    exposedHeaders: ['Content-Disposition'],
   });
 
   app.setGlobalPrefix('api');
@@ -127,6 +128,15 @@ async function bootstrap() {
   } else {
     await app.listen(port);
   }
+
+  // Render.com / reverse-proxy official fix: prevent intermittent 502 Bad Gateway
+  // caused by Node's 5s default keepAliveTimeout racing against proxy keep-alive (60s+)
+  const httpServer = app.getHttpServer();
+  if (httpServer) {
+    httpServer.keepAliveTimeout = 120_000;
+    httpServer.headersTimeout = 125_000;
+  }
+
   console.log(`🚀 BoardingEdu Enterprise CRM Backend listening on ${listenHost || 'localhost'}:${port}/api (Docs: /api/docs, v1: /v1)`);
 }
 bootstrap().catch((err) => {

@@ -8,7 +8,7 @@ import {
 import * as fs from 'fs';
 import * as path from 'path';
 import * as XLSX from 'xlsx';
-import * as puppeteer from 'puppeteer';
+import PDFDocument from 'pdfkit';
 import { PrismaService } from '../../prisma/prisma.service';
 import { QueueEngineService } from '../queues/queue-engine.service';
 import {
@@ -1131,40 +1131,61 @@ export class ReportsService implements OnModuleInit {
 
   async buildPdfBuffer(reportKey: string, data: any): Promise<Buffer> {
     const rows = Array.isArray(data.rows) ? data.rows.slice(0, 200) : [];
-    const cols = rows.length ? Object.keys(rows[0]) : [];
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"/><style>
-      body { font-family: Arial, sans-serif; padding: 28px; color: #172B4D; }
-      h1 { color: #123B70; font-size: 20px; margin-bottom: 4px; }
-      .meta { color: #64748b; font-size: 12px; margin-bottom: 18px; }
-      table { width: 100%; border-collapse: collapse; font-size: 11px; }
-      th { background: #123B70; color: #fff; padding: 7px; text-align: left; }
-      td { border-bottom: 1px solid #e2e8f0; padding: 6px 7px; }
-    </style></head><body>
-      <h1>BoardingEdu CRM — ${data.title || reportKey}</h1>
-      <div class="meta">Generated: ${new Date().toISOString()} &bull; Records: ${rows.length}</div>
-      <table><thead><tr>${cols.map((c) => `<th>${c}</th>`).join('')}</tr></thead>
-      <tbody>${rows.map((r: any) => `<tr>${cols.map((c) => `<td>${String(r[c] ?? '')}</td>`).join('')}</tr>`).join('')}</tbody></table>
-    </body></html>`;
+    const cols = rows.length ? Object.keys(rows[0]).slice(0, 8) : [];
 
-    try {
-      const browser = await puppeteer.launch({
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      });
-      try {
-        const page = await browser.newPage();
-        await page.setContent(html, { waitUntil: 'networkidle0' });
-        const pdf = await page.pdf({ format: 'A4', printBackground: true });
-        return Buffer.from(pdf);
-      } finally {
-        await browser.close();
+    return new Promise<Buffer>((resolve, reject) => {
+      const doc = new PDFDocument({ size: 'A4', layout: 'landscape', margin: 32 });
+      const chunks: Buffer[] = [];
+      doc.on('data', (c) => chunks.push(Buffer.from(c)));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', reject);
+
+      doc.rect(32, 28, 778, 44).fill('#123B70');
+      doc
+        .fillColor('#FFFFFF')
+        .font('Helvetica-Bold')
+        .fontSize(14)
+        .text(`BoardingEdu CRM — ${data.title || reportKey}`, 44, 38, { width: 754 });
+      doc
+        .font('Helvetica')
+        .fontSize(9)
+        .fillColor('#DBEAFE')
+        .text(`Generated: ${new Date().toLocaleString('en-IN')}   |   Records: ${rows.length}`, 44, 56, { width: 754 });
+
+      let y = 84;
+      if (cols.length > 0) {
+        const colW = Math.floor(778 / cols.length);
+        const drawHeader = () => {
+          doc.rect(32, y, 778, 20).fill('#1E40AF');
+          doc.fillColor('#FFFFFF').font('Helvetica-Bold').fontSize(8);
+          cols.forEach((c, idx) => {
+            doc.text(String(c).slice(0, 22), 36 + idx * colW, y + 6, { width: colW - 6, ellipsis: true });
+          });
+          y += 20;
+        };
+        drawHeader();
+
+        rows.forEach((r: any, rIdx: number) => {
+          if (y > 535) {
+            doc.addPage();
+            y = 32;
+            drawHeader();
+          }
+          const bg = rIdx % 2 === 0 ? '#FFFFFF' : '#F8FAFC';
+          doc.rect(32, y, 778, 18).fillAndStroke(bg, '#E2E8F0');
+          doc.fillColor('#0F172A').font('Helvetica').fontSize(7.5);
+          cols.forEach((c, idx) => {
+            const val = String(r[c] ?? '—').replace(/₹/g, 'Rs. ');
+            doc.text(val.slice(0, 32), 36 + idx * colW, y + 5, { width: colW - 6, ellipsis: true });
+          });
+          y += 18;
+        });
+      } else {
+        doc.fillColor('#64748B').font('Helvetica').fontSize(11).text('No records available for this report.', 36, y + 10);
       }
-    } catch {
-      const text = `BoardingEdu Report: ${data.title || reportKey} (${rows.length} rows)`;
-      return Buffer.from(
-        `%PDF-1.4\n1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj\n3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >> endobj\n4 0 obj << /Length ${text.length + 45} >> stream\nBT /F1 12 Tf 40 720 Td (${text.replace(/[()\\]/g, '')}) Tj ET\nendstream\nendobj\n5 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj\nxref\n0 6\n0000000000 65535 f \ntrailer << /Size 6 /Root 1 0 R >>\nstartxref\n0\n%%EOF`,
-      );
-    }
+
+      doc.end();
+    });
   }
 
   getCachedReportFile(jobId: string) {

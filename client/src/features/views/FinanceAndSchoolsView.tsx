@@ -1647,13 +1647,35 @@ export function AdmissionsView({
     }
   };
 
+  const sanitizeReceiptName = (s?: string | null, fallback = 'Student') =>
+    String(s || fallback)
+      .trim()
+      .replace(/[^a-zA-Z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '') || fallback;
+
+  const handleDownloadReceiptExcel = async (app: any) => {
+    try {
+      const safeName = sanitizeReceiptName(app.studentName || app.lead?.studentName || app.leadId?.studentName, 'Student');
+      const safeApp = sanitizeReceiptName(app.admissionNumber || app.appId || app.id?.slice(0, 8), 'APP');
+      await downloadApiFile(
+        `/admissions/${app.id}/receipt-excel`,
+        `BoardingEdu_Receipt_${safeName}_${safeApp}.xlsx`
+      );
+      onShowToast(`Excel receipt downloaded for ${app.studentName || 'Student'}!`, 'success');
+    } catch (err: any) {
+      onShowToast(err?.message || 'Failed to download Excel receipt.', 'danger');
+    }
+  };
+
   const handleDownloadReceipt = async (app: any) => {
     try {
+      const safeName = sanitizeReceiptName(app.studentName || app.lead?.studentName || app.leadId?.studentName, 'Student');
+      const safeApp = sanitizeReceiptName(app.admissionNumber || app.appId || app.id?.slice(0, 8), 'APP');
       await downloadApiFile(
         `/admissions/${app.id}/receipt-pdf`,
-        `Admission_Receipt_${app.id.slice(0, 8)}.pdf`
+        `BoardingEdu_Receipt_${safeName}_${safeApp}.pdf`
       );
-      onShowToast('Authenticated PDF receipt downloaded.', 'success');
+      onShowToast(`PDF receipt downloaded for ${app.studentName || 'Student'}!`, 'success');
     } catch (err: any) {
       onShowToast(err?.message || 'Failed to download receipt PDF.', 'danger');
     }
@@ -1902,6 +1924,12 @@ export function AdmissionsView({
                           }}
                         >
                           <CrmIcon name="credit-card" size={16} /> Record Fee / Installment
+                        </button>
+                        <button
+                          className="btn btn-sm btn-success"
+                          onClick={() => handleDownloadReceiptExcel(a)}
+                        >
+                          <CrmIcon name="download" size={16} /> Receipt Excel
                         </button>
                         <button
                           className="btn btn-sm btn-primary"

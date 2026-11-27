@@ -1,6 +1,6 @@
 ﻿import React, { useMemo, useState } from 'react';
 import CrmIcon from '../../components/CrmIcon';
-import { apiCall, getApiBase } from '../../lib/api';
+import { apiCall, downloadApiFile } from '../../lib/api';
 import { useAuthStore } from '../../stores/authStore';
 
 interface InstallmentItem {
@@ -27,7 +27,7 @@ export function FeeInstallmentTracker({
   onRefresh: () => void;
   onShowToast: (m: string, t?: 'success' | 'danger' | 'warning') => void;
 }) {
-  const { accessToken, user, previewRole } = useAuthStore();
+  const { user, previewRole } = useAuthStore();
   const effectiveRoleStr = String(previewRole || user?.role || '').toLowerCase();
   const canVerifyPayment =
     effectiveRoleStr.includes('admin') || effectiveRoleStr.includes('manager');
@@ -239,79 +239,56 @@ export function FeeInstallmentTracker({
     }
   };
 
+  const sanitizeName = (s?: string | null, fallback = 'Student') =>
+    String(s || fallback)
+      .trim()
+      .replace(/[^a-zA-Z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '') || fallback;
+
+  const handleDownloadReceiptExcel = async (adm: any) => {
+    try {
+      const safeName = sanitizeName(adm.studentName || adm.lead?.studentName, 'Student');
+      const safeApp = sanitizeName(adm.admissionNumber || adm.appId || adm.id?.slice(0, 8), 'APP');
+      await downloadApiFile(
+        `/applications/${adm.id}/receipt-excel`,
+        `BoardingEdu_Receipt_${safeName}_${safeApp}.xlsx`
+      );
+      onShowToast(`Excel Fee Receipt downloaded for ${adm.studentName || 'Student'}!`, 'success');
+    } catch (err: any) {
+      onShowToast(err?.message || 'Could not download Excel receipt.', 'danger');
+    }
+  };
+
   const handleDownloadReceipt = async (adm: any) => {
     try {
-      const token = accessToken || localStorage.getItem('crm_token') || '';
-      const res = await fetch(`${getApiBase()}/applications/${adm.id}/receipt-pdf`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      if (!res.ok) throw new Error('Receipt generation failed');
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `BoardingEdu_Receipt_${adm.admissionNumber || adm.id}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-      onShowToast('Fee Receipt downloaded!', 'success');
+      const safeName = sanitizeName(adm.studentName || adm.lead?.studentName, 'Student');
+      const safeApp = sanitizeName(adm.admissionNumber || adm.appId || adm.id?.slice(0, 8), 'APP');
+      await downloadApiFile(
+        `/applications/${adm.id}/receipt-pdf`,
+        `BoardingEdu_Receipt_${safeName}_${safeApp}.pdf`
+      );
+      onShowToast(`PDF Fee Receipt downloaded for ${adm.studentName || 'Student'}!`, 'success');
     } catch (err: any) {
       onShowToast(err?.message || 'Could not download receipt PDF.', 'danger');
     }
   };
 
-  const handleExportCsv = () => {
-    const headers = [
-      'Date',
-      'Status',
-      'App Number',
-      'Student Name',
-      'Parent Name',
-      'School Name',
-      'Manager',
-      'Counsellor',
-      'Installment Title',
-      'Amount (INR)',
-      'Payment Mode',
-      'UTR / Reference',
-      'Notes',
-    ];
-    const esc = (v: any) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-    const csvLines = [
-      headers.join(','),
-      ...allLedgerRows.map((r) =>
-        [
-          r.inst.paidAt
-            ? new Date(r.inst.paidAt).toLocaleString('en-IN')
-            : new Date(r.inst.dueDate).toLocaleDateString('en-IN'),
-          r.inst.status,
-          r.appNumber,
-          r.studentName,
-          r.parentName,
-          r.schoolName,
-          r.managerName,
-          r.counsellorName,
-          r.inst.title,
-          r.inst.amount,
-          r.inst.paymentMode || '',
-          r.inst.utrNumber || '',
-          r.inst.notes || '',
-        ]
-          .map(esc)
-          .join(',')
-      ),
-    ];
-    const blob = new Blob([csvLines.join('\n')], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `BoardingEdu_Fee_Installments_Ledger_${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-    onShowToast('Fee Payment Ledger CSV exported!', 'success');
+  const handleExportExcel = async () => {
+    try {
+      const params = new URLSearchParams();
+      if (searchQuery.trim()) params.set('search', searchQuery.trim());
+      if (ledgerStatusFilter !== 'ALL') params.set('status', ledgerStatusFilter);
+      const qs = params.toString() ? `?${params.toString()}` : '';
+      const today = new Date().toISOString().slice(0, 10);
+      const fallbackName =
+        filteredAdmissions.length === 1
+          ? `BoardingEdu_Fee_Receipt_${sanitizeName(filteredAdmissions[0].studentName || filteredAdmissions[0].lead?.studentName)}_${today}.xlsx`
+          : `BoardingEdu_Fee_Installments_Ledger_${today}.xlsx`;
+      await downloadApiFile(`/applications/installments/export-excel${qs}`, fallbackName);
+      onShowToast('Formatted Fee Payment Ledger Excel (.xlsx) downloaded!', 'success');
+    } catch (err: any) {
+      onShowToast(err?.message || 'Could not export Excel ledger.', 'danger');
+    }
   };
 
   return (
@@ -386,8 +363,13 @@ export function FeeInstallmentTracker({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
-          <button type="button" className="btn btn-sm btn-outline" onClick={handleExportCsv}>
-            <CrmIcon name="download" size={14} /> Export CSV
+          <button
+            type="button"
+            className="btn btn-sm btn-outline"
+            style={{ background: '#F0FDF4', borderColor: '#86EFAC', color: '#15803D', fontWeight: 700 }}
+            onClick={handleExportExcel}
+          >
+            <CrmIcon name="download" size={14} /> Export Excel (.xlsx)
           </button>
           <button type="button" className="btn btn-sm btn-outline" onClick={onRefresh}>
             <CrmIcon name="refresh-cw" size={14} /> Refresh
@@ -553,6 +535,14 @@ export function FeeInstallmentTracker({
                             <CrmIcon name="zap" size={13} /> 3-Tier Plan
                           </button>
                         )}
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-outline"
+                          style={{ background: '#F0FDF4', borderColor: '#86EFAC', color: '#15803D', fontWeight: 700 }}
+                          onClick={() => handleDownloadReceiptExcel(adm)}
+                        >
+                          <CrmIcon name="download" size={14} /> Receipt Excel
+                        </button>
                         <button
                           type="button"
                           className="btn btn-sm btn-outline"
