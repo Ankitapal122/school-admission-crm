@@ -190,7 +190,13 @@ export default function LoginPage() {
         );
       }
     } catch (err: any) {
-      setLockoutSeconds(0);
+      if (err?.status === 423 || err?.status === 429 || String(err?.message || '').toLowerCase().includes('lock')) {
+        const rawSec = Number(err?.data?.retryAfterSeconds || err?.retryAfterSeconds || err?.data?.lockoutSeconds || err?.lockoutSeconds || 600);
+        const sec = Math.min(600, rawSec > 0 ? rawSec : 600);
+        setLockoutSeconds(sec);
+      } else {
+        setLockoutSeconds(0);
+      }
       showToast(err.message || 'Invalid credentials. Please check your email and password.', 'danger');
     } finally {
       setIsLoading(false);
@@ -1214,6 +1220,31 @@ export default function LoginPage() {
               </p>
             </div>
 
+            {lockoutSeconds > 0 && (
+              <div
+                style={{
+                  background: '#FEF2F2',
+                  border: '1.5px solid #EF4444',
+                  color: '#991B1B',
+                  padding: '12px 14px',
+                  borderRadius: '8px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  marginBottom: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                }}
+              >
+                <CrmIcon name="lock" size={20} />
+                <div>
+                  <div style={{ fontWeight: 700, color: '#B91C1C' }}>Account Temporarily Locked (10-Min Timer)</div>
+                  <div style={{ fontSize: '12.5px', marginTop: '2px', color: '#7F1D1D' }}>
+                    5 se jyada galat password attempts ho gaye hain. Unlock timer: <strong>{Math.floor(lockoutSeconds / 60)}m {String(lockoutSeconds % 60).padStart(2, '0')}s</strong>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <form onSubmit={handleLoginSubmit}>
               <input type="hidden" id="loginRole" value={selectedRole} />
@@ -1379,9 +1410,18 @@ export default function LoginPage() {
                 type="submit"
                 id="btnLogin"
                 className="auth-btn-primary"
-                disabled={isLoading}
+                disabled={isLoading || lockoutSeconds > 0}
+                style={
+                  lockoutSeconds > 0
+                    ? { background: '#94A3B8', cursor: 'not-allowed', opacity: 0.85 }
+                    : {}
+                }
               >
-                {isLoading ? 'Signing in...' : 'Login'}
+                {isLoading
+                  ? 'Signing in...'
+                  : lockoutSeconds > 0
+                  ? `Locked (${Math.floor(lockoutSeconds / 60)}m ${String(lockoutSeconds % 60).padStart(2, '0')}s)`
+                  : 'Login'}
               </button>
             </form>
 
