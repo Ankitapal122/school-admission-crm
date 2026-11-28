@@ -158,7 +158,7 @@ export class CrmCoreService implements OnModuleInit {
       where: { id: userId },
       include: {
         team: true,
-        manager: { select: { id: true, fullName: true, email: true, employeeId: true } },
+        manager: { select: { id: true, fullName: true, email: true, phone: true, employeeId: true } },
         notificationPreference: true,
         sessions: { where: { isActive: true, isRevoked: false }, orderBy: { loginAt: 'desc' } },
       },
@@ -184,7 +184,11 @@ export class CrmCoreService implements OnModuleInit {
       upiId: user.upiId || '',
       bankAccountMasked: plainBank ? maskBankAccount(plainBank) : '',
       team: user.team ? { id: user.team.id, name: user.team.name, teamCode: user.team.teamCode } : null,
+      teamName: user.team?.name || null,
       manager: user.manager || null,
+      managerName: user.manager?.fullName || null,
+      managerEmail: user.manager?.email || null,
+      managerPhone: user.manager?.phone || null,
       notificationPreference: user.notificationPreference,
       activeSessionsCount: user.sessions.length,
       lastLoginAt: user.lastLoginAt,
@@ -662,6 +666,8 @@ export class CrmCoreService implements OnModuleInit {
       },
     });
 
+    this.clearCaches();
+
     return apiEnvelope(
       {
         _id: user.id,
@@ -699,11 +705,53 @@ export class CrmCoreService implements OnModuleInit {
 
     const data: any = { version: { increment: 1 } };
     if (body.fullName || body.name) data.fullName = String(body.fullName || body.name).trim();
+    if (body.email && String(body.email).trim().toLowerCase() !== user.email.toLowerCase()) {
+      const newEmail = String(body.email).trim().toLowerCase();
+      const existing = await this.prisma.user.findFirst({
+        where: { email: newEmail, id: { not: user.id }, deletedAt: null },
+      });
+      if (existing) {
+        throw new BadRequestException(`Email "${newEmail}" is already registered to another user.`);
+      }
+      data.email = newEmail;
+    }
     if (body.phone !== undefined || body.mobile !== undefined) {
       data.phone = String(body.phone ?? body.mobile).trim();
     }
     if (body.managerId !== undefined) data.managerId = body.managerId || null;
-    if (body.teamId !== undefined) data.teamId = body.teamId || null;
+    if (body.teamId !== undefined) {
+      const newTeamId = body.teamId ? String(body.teamId).trim() : null;
+      data.teamId = newTeamId;
+
+      const userRoleStr = String(body.role || user.role || '').toLowerCase();
+      const isManagerRole =
+        toBlueprintRole(userRoleStr) === 'manager' ||
+        userRoleStr.includes('manager');
+
+      if (isManagerRole) {
+        // Clear this manager from any teams they previously managed (except newTeamId)
+        await this.prisma.team.updateMany({
+          where: { managerId: user.id, ...(newTeamId ? { id: { not: newTeamId } } : {}) },
+          data: { managerId: null },
+        }).catch(() => {});
+
+        if (newTeamId) {
+          // Assign this manager as the managerId of the target team
+          await this.prisma.team.update({
+            where: { id: newTeamId },
+            data: { managerId: user.id },
+          }).catch(() => {});
+        }
+      } else {
+        // If counsellor assigned to team without explicit managerId, inherit team manager
+        if (newTeamId && !body.managerId) {
+          const t = await this.prisma.team.findUnique({ where: { id: newTeamId } });
+          if (t?.managerId) {
+            data.managerId = t.managerId;
+          }
+        }
+      }
+    }
     if (body.upiId !== undefined) data.upiId = body.upiId;
     if (body.bankAccount) {
       data.bankAccountEncrypted = encryptSensitiveData(String(body.bankAccount));
@@ -721,6 +769,8 @@ export class CrmCoreService implements OnModuleInit {
       data,
     });
     if (updated.count === 0) throw new ConflictException('Concurrent user update conflict');
+
+    this.clearCaches();
 
     await this.prisma.auditLog.create({
       data: {
@@ -775,6 +825,8 @@ export class CrmCoreService implements OnModuleInit {
         details: { newStatus },
       },
     });
+
+    this.clearCaches();
 
     return apiEnvelope(
       { id: user.id, status: newStatus, isActive: newActive },
@@ -1051,6 +1103,34 @@ export class CrmCoreService implements OnModuleInit {
       return upd;
     });
 
+    // If the user is a manager, make them the manager of the resolved team
+    const isManagerAfter =
+      toBlueprintRole(String(newRole)) === 'manager' ||
+      String(newRole || '').toLowerCase().includes('manager');
+    if (isManagerAfter && (payload.teamId !== undefined || manualTeamName)) {
+      await this.prisma.team.updateMany({
+        where: { managerId: user.id, ...(resolvedTeamId ? { id: { not: resolvedTeamId } } : {}) },
+        data: { managerId: null },
+      }).catch(() => {});
+      if (resolvedTeamId) {
+        await this.prisma.team.update({
+          where: { id: resolvedTeamId },
+          data: { managerId: user.id },
+        }).catch(() => {});
+      }
+    } else if (!isManagerAfter && resolvedTeamId && payload.teamId !== undefined) {
+      // Counsellor: inherit the team's manager as reporting manager
+      const t = await this.prisma.team.findUnique({ where: { id: resolvedTeamId } });
+      if (t?.managerId) {
+        await this.prisma.user.update({
+          where: { id: user.id },
+          data: { managerId: t.managerId },
+        }).catch(() => {});
+      }
+    }
+
+    this.clearCaches();
+
     return apiEnvelope(
       { id: updated.id, role: updated.role, teamId: updated.teamId, sessionsRevoked: Boolean(payload.role) },
       `User ${updated.fullName} role/team updated cleanly.`,
@@ -1142,6 +1222,7 @@ export class CrmCoreService implements OnModuleInit {
       },
     });
 
+    this.clearCaches();
     return apiEnvelope({ id: user.id }, `User ${user.fullName} soft-deleted`);
   }
 
@@ -1399,6 +1480,7 @@ export class CrmCoreService implements OnModuleInit {
       },
     });
 
+    this.clearCaches();
     return apiEnvelope(updated, 'Team updated successfully', { team: updated });
   }
 
@@ -1414,6 +1496,7 @@ export class CrmCoreService implements OnModuleInit {
       data: { status: newStatus },
     });
 
+    this.clearCaches();
     return apiEnvelope(updated, `Team status changed to ${newStatus}`, { team: updated });
   }
 

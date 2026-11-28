@@ -632,6 +632,101 @@ export function UsersView({
   const [actionsAnchorRect, setActionsAnchorRect] = useState<DOMRect | null>(null);
   const leaveTimeoutRef = useRef<any>(null);
 
+  // Contact info editing for selected staff (Image 2)
+  const [isEditingStaffContact, setIsEditingStaffContact] = useState(false);
+  const [editStaffFullName, setEditStaffFullName] = useState('');
+  const [editStaffEmail, setEditStaffEmail] = useState('');
+  const [editStaffPhone, setEditStaffPhone] = useState('');
+  const [isSavingContact, setIsSavingContact] = useState(false);
+
+  // Direct team assignment modal (Image 4)
+  const [assignTeamCounsellor, setAssignTeamCounsellor] = useState<any | null>(null);
+  const [selectedTeamIdForAssign, setSelectedTeamIdForAssign] = useState<string>('');
+  const [selectedManagerIdForAssign, setSelectedManagerIdForAssign] = useState<string>('');
+  const [isSavingTeamAssignment, setIsSavingTeamAssignment] = useState(false);
+
+  useEffect(() => {
+    if (selectedStaffDetail) {
+      setEditStaffFullName(selectedStaffDetail.fullName || selectedStaffDetail.name || '');
+      setEditStaffEmail(selectedStaffDetail.email || '');
+      setEditStaffPhone(selectedStaffDetail.phone || selectedStaffDetail.mobile || '');
+      setIsEditingStaffContact(false);
+    }
+  }, [selectedStaffDetail?.id]);
+
+  const handleAssignTeamSelect = (teamIdVal: string) => {
+    setSelectedTeamIdForAssign(teamIdVal);
+    const chosenTeam = teams.find((t: any) => (t.id || t._id) === teamIdVal);
+    if (chosenTeam) {
+      const mgrId = chosenTeam.managerId?.id || chosenTeam.managerId || chosenTeam.manager?.id;
+      if (mgrId) {
+        setSelectedManagerIdForAssign(mgrId);
+      }
+    }
+  };
+
+  const handleSaveTeamAssignment = async () => {
+    if (!assignTeamCounsellor) return;
+    setIsSavingTeamAssignment(true);
+    try {
+      const targetIsManager = String(
+        assignTeamCounsellor.role || assignTeamCounsellor.canonicalRole || ''
+      )
+        .toLowerCase()
+        .includes('manager');
+      const payload: any = { teamId: selectedTeamIdForAssign || null };
+      if (!targetIsManager) {
+        payload.managerId = selectedManagerIdForAssign || null;
+      }
+      await apiCall(`/users/${assignTeamCounsellor.id}`, 'PUT', payload);
+      const teamLabel =
+        teams.find((t: any) => (t.id || t._id) === selectedTeamIdForAssign)?.name || 'Unassigned';
+      onShowToast(
+        `${assignTeamCounsellor.fullName || 'Staff'} → Team: ${teamLabel} assigned successfully!`,
+        'success'
+      );
+      setAssignTeamCounsellor(null);
+      onRefresh();
+    } catch (err: any) {
+      onShowToast(err?.message || 'Failed to update team assignment.', 'danger');
+    } finally {
+      setIsSavingTeamAssignment(false);
+    }
+  };
+
+  const handleSaveStaffContact = async () => {
+    if (!selectedStaffDetail) return;
+    if (!editStaffEmail.trim()) {
+      onShowToast('Email address is required.', 'warning');
+      return;
+    }
+    setIsSavingContact(true);
+    try {
+      await apiCall(`/users/${selectedStaffDetail.id}`, 'PUT', {
+        fullName: editStaffFullName.trim(),
+        email: editStaffEmail.trim(),
+        phone: editStaffPhone.trim(),
+      });
+      onShowToast('Contact details updated successfully!', 'success');
+      setSelectedStaffDetail((prev: any) =>
+        prev
+          ? {
+              ...prev,
+              fullName: editStaffFullName.trim(),
+              email: editStaffEmail.trim(),
+              phone: editStaffPhone.trim(),
+            }
+          : null
+      );
+      setIsEditingStaffContact(false);
+      onRefresh();
+    } catch (err: any) {
+      onShowToast(err?.message || 'Failed to update contact details.', 'danger');
+    } finally {
+      setIsSavingContact(false);
+    }
+  };
+
   useEffect(() => {
     if (!openActionsUserId) return;
     const close = () => {
@@ -1217,6 +1312,75 @@ export function UsersView({
 
       {subTab === 'employees' ? (
         <>
+        {(drilldownManager || selectedManagerFilter !== 'ALL') && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px',
+              padding: '12px 18px',
+              background: 'linear-gradient(90deg, #EFF6FF 0%, #DBEAFE 100%)',
+              borderBottom: '2px solid #93C5FD',
+              flexWrap: 'wrap',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setDrilldownManager(null);
+                  setSelectedManagerFilter('ALL');
+                  setStaffSearch('');
+                }}
+                className="btn btn-sm"
+                style={{
+                  background: '#2563EB',
+                  color: '#FFFFFF',
+                  fontWeight: 800,
+                  fontSize: '13px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '6px 14px',
+                  borderRadius: '8px',
+                  boxShadow: '0 2px 6px rgba(37,99,235,0.25)',
+                  cursor: 'pointer',
+                  border: 'none',
+                }}
+              >
+                <CrmIcon name="arrow-left" size={16} color="#FFFFFF" />
+                <span>← Back to All Managers / Counsellors</span>
+              </button>
+              <div style={{ fontSize: '13.5px', color: '#1E3A8A', fontWeight: 700 }}>
+                Viewing Counsellors under Manager:{' '}
+                <span style={{ color: '#0F172A', textDecoration: 'underline' }}>
+                  {drilldownManager?.fullName ||
+                    allManagersList.find((m: any) => m.id === selectedManagerFilter)?.fullName ||
+                    'Manager'}
+                </span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setDrilldownManager(null);
+                setSelectedManagerFilter('ALL');
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#1D4ED8',
+                fontWeight: 700,
+                fontSize: '12.5px',
+                cursor: 'pointer',
+                textDecoration: 'underline',
+              }}
+            >
+              Clear Filter &amp; Show All
+            </button>
+          </div>
+        )}
         <div
           className="table-container"
           style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', minHeight: '240px' }}
@@ -1285,7 +1449,11 @@ export function UsersView({
                   u.team?.name ||
                   u.teamId?.teamName ||
                   u.teamId?.name ||
-                  teams.find((t: any) => t.id === (u.teamId?.id || u.teamId) || t.managerId === u.id)?.name ||
+                  teams.find(
+                    (t: any) =>
+                      (t.id || t._id) === (u.teamId?.id || u.teamId) ||
+                      (t.managerId?.id || t.managerId?._id || t.managerId || t.manager?.id) === u.id
+                  )?.name ||
                   null;
                 const isMgr = String(u.role || u.canonicalRole || '').toLowerCase().includes('manager');
                 const isCounsellor = String(u.role || u.canonicalRole || '').toLowerCase().includes('counsellor');
@@ -1346,41 +1514,86 @@ export function UsersView({
                   </td>
                   <td>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start' }}>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedStaffDetail(u)}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '5px',
-                          background: resolvedTeamName
-                            ? isMgr
-                              ? '#EFF6FF'
-                              : '#ECFDF5'
-                            : '#F8FAFC',
-                          color: resolvedTeamName
-                            ? isMgr
-                              ? '#1D4ED8'
-                              : '#047857'
-                            : '#64748B',
-                          border: `1px solid ${
-                            resolvedTeamName
-                              ? isMgr
-                                ? '#BFDBFE'
-                                : '#A7F3D0'
-                              : '#E2E8F0'
-                          }`,
-                          borderRadius: '999px',
-                          padding: '3px 10px',
-                          fontSize: '11.5px',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                        }}
-                        title="Click to view full Team details"
-                      >
-                        <CrmIcon name="users" size={12} />
-                        {resolvedTeamName ? `Team: ${resolvedTeamName}` : 'Unassigned'}
-                      </button>
+                      {resolvedTeamName ? (
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedStaffDetail(u)}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                              background: isMgr ? '#EFF6FF' : '#ECFDF5',
+                              color: isMgr ? '#1D4ED8' : '#047857',
+                              border: `1.5px solid ${isMgr ? '#93C5FD' : '#6EE7B7'}`,
+                              borderRadius: '6px',
+                              padding: '5px 10px',
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                            }}
+                            title="Click to view full staff details"
+                          >
+                            <CrmIcon name="users" size={13} />
+                            Team: {resolvedTeamName}
+                          </button>
+                          {hasRole(currentUser?.role, 'SUPER_ADMIN') && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setAssignTeamCounsellor(u);
+                                setSelectedTeamIdForAssign(
+                                  u.teamId?.id ||
+                                    u.teamId ||
+                                    teams.find((t: any) => (t.managerId?.id || t.managerId || t.manager?.id) === u.id)?.id ||
+                                    ''
+                                );
+                                setSelectedManagerIdForAssign(u.managerId?.id || u.managerId || '');
+                              }}
+                              style={{
+                                background: '#F8FAFC',
+                                border: '1.5px solid #CBD5E1',
+                                color: '#334155',
+                                borderRadius: '6px',
+                                padding: '5px 10px',
+                                fontSize: '11.5px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                              }}
+                              title="Change team or reporting manager"
+                            >
+                              Change
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAssignTeamCounsellor(u);
+                            setSelectedTeamIdForAssign('');
+                            setSelectedManagerIdForAssign('');
+                          }}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            background: '#FFFBEB',
+                            color: '#92400E',
+                            border: '1.5px solid #F59E0B',
+                            borderRadius: '6px',
+                            padding: '6px 12px',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            boxShadow: '0 1px 2px rgba(245, 158, 11, 0.15)',
+                          }}
+                          title="Assign this staff member to a team and manager"
+                        >
+                          <CrmIcon name="alert-triangle" size={13} color="#D97706" />
+                          <span>Unassigned &bull; <strong>+ Assign Team</strong></span>
+                        </button>
+                      )}
                       {isCounsellor && (u.managerName || (drilldownManager && drilldownManager.fullName)) && (
                         <span style={{ fontSize: '11px', color: '#475569', fontWeight: 600 }}>
                           Manager: {u.managerName || drilldownManager?.fullName}
@@ -1577,6 +1790,70 @@ export function UsersView({
                                           <CrmIcon name="play" size={14} /> Toggle Active
                                         </button>
                                       )}
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setOpenActionsUserId(null);
+                                          setActionsAnchorRect(null);
+                                          setAssignTeamCounsellor(u);
+                                          setSelectedTeamIdForAssign(
+                                  u.teamId?.id ||
+                                    u.teamId ||
+                                    teams.find((t: any) => (t.managerId?.id || t.managerId || t.manager?.id) === u.id)?.id ||
+                                    ''
+                                );
+                                          setSelectedManagerIdForAssign(u.managerId?.id || u.managerId || '');
+                                        }}
+                                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F1F5F9')}
+                                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                                        style={{
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          gap: '8px',
+                                          width: '100%',
+                                          padding: '7px 10px',
+                                          border: 'none',
+                                          background: 'transparent',
+                                          borderRadius: '6px',
+                                          fontSize: '12.5px',
+                                          fontWeight: 600,
+                                          color: '#1E293B',
+                                          cursor: 'pointer',
+                                          textAlign: 'left',
+                                          transition: 'background 0.15s ease',
+                                        }}
+                                      >
+                                        <CrmIcon name="users" size={14} /> Assign / Change Team
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setOpenActionsUserId(null);
+                                          setActionsAnchorRect(null);
+                                          setSelectedStaffDetail(u);
+                                          setIsEditingStaffContact(true);
+                                        }}
+                                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F1F5F9')}
+                                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                                        style={{
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          gap: '8px',
+                                          width: '100%',
+                                          padding: '7px 10px',
+                                          border: 'none',
+                                          background: 'transparent',
+                                          borderRadius: '6px',
+                                          fontSize: '12.5px',
+                                          fontWeight: 600,
+                                          color: '#1E293B',
+                                          cursor: 'pointer',
+                                          textAlign: 'left',
+                                          transition: 'background 0.15s ease',
+                                        }}
+                                      >
+                                        <CrmIcon name="edit-2" size={14} /> Edit Contact Info
+                                      </button>
                                       <button
                                         type="button"
                                         onClick={() => {
@@ -2088,14 +2365,145 @@ export function UsersView({
         </div>
       )}
 
+      {/* DIRECT TEAM ASSIGNMENT MODAL (Image 4) */}
+      {assignTeamCounsellor && (
+        <div className="modal-overlay" onClick={() => setAssignTeamCounsellor(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px', width: '95%' }}>
+            <div
+              className="modal-header"
+              style={{
+                background: 'linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%)',
+                color: '#FFFFFF',
+                padding: '14px 18px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                borderRadius: '12px 12px 0 0',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CrmIcon name="users" size={18} color="#FFFFFF" />
+                <h3 style={{ fontSize: '15.5px', fontWeight: 800, margin: 0, color: '#FFFFFF' }}>
+                  Assign Team &amp; Reporting Manager
+                </h3>
+              </div>
+              <button
+                type="button"
+                style={{
+                  background: 'rgba(255,255,255,0.2)',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '4px 8px',
+                  cursor: 'pointer',
+                }}
+                onClick={() => setAssignTeamCounsellor(null)}
+              >
+                <CrmIcon name="x" size={16} color="#FFFFFF" />
+              </button>
+            </div>
+
+            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px', padding: '18px' }}>
+              <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '10px 14px' }}>
+                <div style={{ fontSize: '11px', color: '#64748B', fontWeight: 700, textTransform: 'uppercase' }}>Selected Staff</div>
+                <div style={{ fontSize: '14.5px', fontWeight: 800, color: '#0F172A', marginTop: '2px' }}>
+                  {assignTeamCounsellor.fullName}
+                </div>
+                <div style={{ fontSize: '12px', color: '#64748B' }}>
+                  {assignTeamCounsellor.email} &bull; Role: <strong>{assignTeamCounsellor.role}</strong>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" style={{ fontWeight: 700, fontSize: '12.5px', marginBottom: '6px', display: 'block' }}>
+                  Assign to Team
+                </label>
+                <select
+                  className="form-control"
+                  value={selectedTeamIdForAssign}
+                  onChange={(e) => handleAssignTeamSelect(e.target.value)}
+                  style={{ fontSize: '13px' }}
+                >
+                  <option value="">-- No Team (Unassigned) --</option>
+                  {teams.map((t: any) => (
+                    <option key={t.id || t._id} value={t.id || t._id}>
+                      {t.name} {t.managerName ? `(Manager: ${t.managerName})` : ''}
+                    </option>
+                  ))}
+                </select>
+                <small style={{ color: '#64748B', fontSize: '11px', marginTop: '4px', display: 'block' }}>
+                  Selecting a team will automatically recommend that team&apos;s manager.
+                </small>
+              </div>
+
+              {String(assignTeamCounsellor.role || assignTeamCounsellor.canonicalRole || '')
+                .toLowerCase()
+                .includes('manager') ? (
+                <div
+                  style={{
+                    background: '#EFF6FF',
+                    border: '1px solid #93C5FD',
+                    color: '#1E3A8A',
+                    borderRadius: '8px',
+                    padding: '10px 12px',
+                    fontSize: '12.5px',
+                    fontWeight: 600,
+                  }}
+                >
+                  This staff member is a Manager. Assigning a team will make them the Manager of that team,
+                  and counsellors of that team will report to them.
+                </div>
+              ) : (
+              <div className="form-group">
+                <label className="form-label" style={{ fontWeight: 700, fontSize: '12.5px', marginBottom: '6px', display: 'block' }}>
+                  Reporting Manager
+                </label>
+                <select
+                  className="form-control"
+                  value={selectedManagerIdForAssign}
+                  onChange={(e) => setSelectedManagerIdForAssign(e.target.value)}
+                  style={{ fontSize: '13px' }}
+                >
+                  <option value="">-- No Reporting Manager --</option>
+                  {allManagersList.map((m: any) => (
+                    <option key={m.id || m._id} value={m.id || m._id}>
+                      {m.fullName} ({m.email})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              )}
+            </div>
+
+            <div className="modal-footer" style={{ padding: '12px 18px', background: '#F8FAFC', borderTop: '1px solid #E2E8F0', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+              <button
+                type="button"
+                className="btn btn-sm btn-outline"
+                onClick={() => setAssignTeamCounsellor(null)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-sm btn-primary"
+                disabled={isSavingTeamAssignment}
+                onClick={handleSaveTeamAssignment}
+              >
+                {isSavingTeamAssignment ? 'Saving...' : 'Confirm & Assign Team'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Staff & Team Details Modal */}
       {selectedStaffDetail && (() => {
         const st = selectedStaffDetail;
         const resolvedTeamObj =
           teams.find(
             (t: any) =>
-              t.id === (st.teamId?.id || st.teamId) ||
-              t.managerId === st.id
+              (t.id || t._id) === (st.teamId?.id || st.teamId) ||
+              (t.managerId?.id || t.managerId || t.manager?.id) === st.id
           ) || null;
         const teamName =
           st.teamName ||
@@ -2229,16 +2637,99 @@ export function UsersView({
                   </div>
                 )}
 
-                <div style={{ fontSize: '12.5px', color: '#334155', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                  <div style={{ padding: '8px 10px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
-                    <div style={{ fontSize: '10.5px', color: '#64748B', fontWeight: 700 }}>EMAIL</div>
-                    <div style={{ fontWeight: 600, wordBreak: 'break-all' }}>{st.email || '—'}</div>
+                {isEditingStaffContact ? (
+                  <div style={{ background: '#F8FAFC', border: '1.5px solid #93C5FD', borderRadius: '10px', padding: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                      <strong style={{ fontSize: '13px', color: '#1E3A8A' }}>Edit Employee Contact Details</strong>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline"
+                        style={{ padding: '2px 8px', fontSize: '11px' }}
+                        onClick={() => setIsEditingStaffContact(false)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div>
+                        <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '2px' }}>
+                          Full Name
+                        </label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          style={{ fontSize: '12.5px', padding: '6px 8px' }}
+                          value={editStaffFullName}
+                          onChange={(e) => setEditStaffFullName(e.target.value)}
+                          placeholder="Full Name..."
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '2px' }}>
+                          Email Address *
+                        </label>
+                        <input
+                          type="email"
+                          className="form-control"
+                          style={{ fontSize: '12.5px', padding: '6px 8px' }}
+                          value={editStaffEmail}
+                          onChange={(e) => setEditStaffEmail(e.target.value)}
+                          placeholder="Email address..."
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '11px', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '2px' }}>
+                          Mobile / Phone Number
+                        </label>
+                        <input
+                          type="tel"
+                          className="form-control"
+                          style={{ fontSize: '12.5px', padding: '6px 8px' }}
+                          value={editStaffPhone}
+                          onChange={(e) => setEditStaffPhone(e.target.value)}
+                          placeholder="Phone number..."
+                        />
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px', marginTop: '4px' }}>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-primary"
+                          disabled={isSavingContact}
+                          onClick={handleSaveStaffContact}
+                        >
+                          {isSavingContact ? 'Saving...' : 'Save Contact Info'}
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <div style={{ padding: '8px 10px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
-                    <div style={{ fontSize: '10.5px', color: '#64748B', fontWeight: 700 }}>PHONE</div>
-                    <div style={{ fontWeight: 600 }}>{st.phone || st.mobile || '—'}</div>
+                ) : (
+                  <div style={{ fontSize: '12.5px', color: '#334155', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                      <div style={{ padding: '8px 10px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                        <div style={{ fontSize: '10.5px', color: '#64748B', fontWeight: 700 }}>EMAIL</div>
+                        <div style={{ fontWeight: 600, wordBreak: 'break-all' }}>{st.email || '—'}</div>
+                      </div>
+                      <div style={{ padding: '8px 10px', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                        <div style={{ fontSize: '10.5px', color: '#64748B', fontWeight: 700 }}>PHONE</div>
+                        <div style={{ fontWeight: 600 }}>{st.phone || st.mobile || '—'}</div>
+                      </div>
+                    </div>
+                    {hasRole(currentUser?.role, 'SUPER_ADMIN') && (
+                      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-outline"
+                          style={{ fontSize: '11.5px', padding: '3px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                          onClick={() => setIsEditingStaffContact(true)}
+                        >
+                          <CrmIcon name="edit-2" size={13} />
+                          <span>Edit Contact Info</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
-                </div>
+                )}
 
                 {hasRole(currentUser?.role, 'SUPER_ADMIN') && (
                   <div style={{ padding: '10px 12px', background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '10px', fontSize: '12px' }}>

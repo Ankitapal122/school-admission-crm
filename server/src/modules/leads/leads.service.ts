@@ -1687,6 +1687,83 @@ export class LeadsService implements OnModuleInit {
     return updated;
   }
 
+  async permanentDeleteLead(idOrNumber: string, user: any) {
+    const lead = await this.resolveLead(idOrNumber, true);
+    const leadId = lead.id;
+
+    await this.prisma.$transaction(async (tx) => {
+      // 1. Delete payments tied to commissions of this lead
+      const commissions = await tx.commission.findMany({
+        where: { leadId },
+        select: { id: true },
+      });
+      const commissionIds = commissions.map((c) => c.id);
+      if (commissionIds.length > 0) {
+        await tx.payment.deleteMany({
+          where: { commissionId: { in: commissionIds } },
+        });
+      }
+
+      // 2. Delete commissions
+      await tx.commission.deleteMany({ where: { leadId } });
+
+      // 3. Delete admission installments and admission records
+      const admissions = await tx.admission.findMany({
+        where: { leadId },
+        select: { id: true },
+      });
+      const admissionIds = admissions.map((a) => a.id);
+      if (admissionIds.length > 0) {
+        await tx.admissionInstallment.deleteMany({
+          where: { admissionId: { in: admissionIds } },
+        });
+      }
+      await tx.admission.deleteMany({ where: { leadId } });
+
+      // 4. Delete related activity & communication logs
+      await tx.schoolTour.deleteMany({ where: { leadId } });
+      await tx.task.deleteMany({ where: { leadId } });
+      await tx.communicationLog.deleteMany({ where: { leadId } });
+      await tx.activityConfirmation.deleteMany({ where: { leadId } });
+      await tx.whatsappLog.deleteMany({ where: { leadId } });
+      await tx.callLog.deleteMany({ where: { leadId } });
+      await tx.pendingLoggingQueue.deleteMany({ where: { leadId } });
+      await tx.followUpHistory.deleteMany({ where: { leadId } });
+      await tx.followUp.deleteMany({ where: { leadId } });
+      await tx.leadExpiryLog.deleteMany({ where: { leadId } });
+      await tx.reopenedLeadHistory.deleteMany({ where: { leadId } });
+      await tx.leadRemark.deleteMany({ where: { leadId } });
+      await tx.shortlist.deleteMany({ where: { leadId } });
+
+      // 5. Unlink any leads merged into this lead
+      await tx.lead.updateMany({
+        where: { mergedIntoId: leadId },
+        data: { mergedIntoId: null },
+      });
+
+      // 6. Permanently delete the lead record itself
+      await tx.lead.delete({
+        where: { id: leadId },
+      });
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        userId: user.id,
+        userName: user.fullName,
+        userRole: normalizeCanonicalRole(user.role),
+        action: 'DELETE',
+        module: 'leads',
+        entity: 'Lead',
+        entityId: leadId,
+        oldValue: { id: lead.id, leadNumber: lead.leadNumber, studentName: lead.studentName },
+        newValue: { permanentlyDeleted: true },
+      },
+    }).catch(() => {});
+
+    return { id: leadId, leadNumber: lead.leadNumber, permanentlyDeleted: true };
+  }
+
   async restoreLead(idOrNumber: string, user: any) {
     const lead = await this.resolveLead(idOrNumber, true);
     const updated = await this.prisma.lead.update({

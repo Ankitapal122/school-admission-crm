@@ -123,9 +123,14 @@ export class LeadsController {
 
   @Roles('SUPER_ADMIN', 'SENIOR_MANAGER')
   @Delete(':id')
-  async remove(@Param('id') id: string, @Req() req: any) {
-    const lead = await this.leadsService.softDeleteLead(id, req.user);
-    return apiEnvelope(lead, 'Lead soft-deleted cleanly', { lead });
+  async remove(@Param('id') id: string, @Query() query: any, @Req() req: any) {
+    const isSoft = query?.soft === 'true' || query?.soft === true;
+    if (isSoft) {
+      const lead = await this.leadsService.softDeleteLead(id, req.user);
+      return apiEnvelope(lead, 'Lead soft-deleted cleanly', { lead });
+    }
+    const result = await this.leadsService.permanentDeleteLead(id, req.user);
+    return apiEnvelope(result, 'Lead permanently deleted from database', { lead: result });
   }
 
   @Roles('SUPER_ADMIN')

@@ -52,7 +52,9 @@ async function bootstrap() {
     exposedHeaders: ['Content-Disposition'],
   });
 
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix('api', {
+    exclude: ['health', 'api/health', 'ping', 'api/ping', ''],
+  });
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -109,25 +111,24 @@ async function bootstrap() {
     app.use((req: Request, res: Response, next: NextFunction) => {
       if (
         !req.url.startsWith('/api') &&
+        !req.url.startsWith('/health') &&
+        !req.url.startsWith('/ping') &&
         !req.url.startsWith('/socket.io') &&
         !req.url.startsWith('/notifications') &&
         !req.url.includes('.')
       ) {
         res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-        return res.sendFile(path.join(resolvedDist, 'index.html'));
+        return res.sendFile(path.join(resolvedDist, 'index.html'), (err) => {
+          if (err) next();
+        });
       }
       next();
     });
   }
 
   const port = Number(process.env.PORT || 5000);
-  const listenHost =
-    process.env.RENDER || process.env.NODE_ENV === 'production' ? '0.0.0.0' : undefined;
-  if (listenHost) {
-    await app.listen(port, listenHost);
-  } else {
-    await app.listen(port);
-  }
+  // Always bind to 0.0.0.0 on Render / Docker / cloud containers so reverse proxies can route incoming traffic
+  await app.listen(port, '0.0.0.0');
 
   // Render.com / reverse-proxy official fix: prevent intermittent 502 Bad Gateway
   // caused by Node's 5s default keepAliveTimeout racing against proxy keep-alive (60s+)
@@ -137,7 +138,7 @@ async function bootstrap() {
     httpServer.headersTimeout = 125_000;
   }
 
-  console.log(`🚀 BoardingEdu Enterprise CRM Backend listening on ${listenHost || 'localhost'}:${port}/api (Docs: /api/docs, v1: /v1)`);
+  console.log(`🚀 BoardingEdu Enterprise CRM Backend listening on 0.0.0.0:${port} (Health: /health or /api/health, Docs: /api/docs, v1: /v1)`);
 }
 bootstrap().catch((err) => {
   console.error('[FATAL BOOTSTRAP ERROR]', err);

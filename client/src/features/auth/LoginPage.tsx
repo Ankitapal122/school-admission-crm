@@ -190,7 +190,7 @@ export default function LoginPage() {
         );
       }
     } catch (err: any) {
-      if (err?.status === 423 || err?.status === 429 || String(err?.message || '').toLowerCase().includes('lock')) {
+      if (err?.status === 423) {
         const rawSec = Number(err?.data?.retryAfterSeconds || err?.retryAfterSeconds || err?.data?.lockoutSeconds || err?.lockoutSeconds || 600);
         const sec = Math.min(600, rawSec > 0 ? rawSec : 600);
         setLockoutSeconds(sec);
@@ -1238,9 +1238,9 @@ export default function LoginPage() {
               >
                 <CrmIcon name="lock" size={20} />
                 <div>
-                  <div style={{ fontWeight: 700, color: '#B91C1C' }}>Account Temporarily Locked (10-Min Timer)</div>
+                  <div style={{ fontWeight: 700, color: '#B91C1C' }}>Account Temporarily Locked (10-Minute Lockout)</div>
                   <div style={{ fontSize: '12.5px', marginTop: '2px', color: '#7F1D1D' }}>
-                    5 se jyada galat password attempts ho gaye hain. Unlock timer: <strong>{Math.floor(lockoutSeconds / 60)}m {String(lockoutSeconds % 60).padStart(2, '0')}s</strong>
+                    More than 5 consecutive invalid password attempts. Unlock countdown: <strong>{Math.floor(lockoutSeconds / 60)}m {String(lockoutSeconds % 60).padStart(2, '0')}s</strong>
                   </div>
                 </div>
               </div>

@@ -120,8 +120,8 @@ export function LeadsView({
     try {
       const id = reasonModal.lead.id;
       if (reasonModal.action === 'delete') {
-        await apiCall(`/leads/${id}`, 'DELETE', { reason });
-        onShowToast(`Lead soft-deleted & audited cleanly.`, 'success');
+        await apiCall(`/leads/${id}?permanent=true`, 'DELETE', { reason });
+        onShowToast(`Lead permanently deleted from database.`, 'success');
       } else if (reasonModal.action === 'restore') {
         await apiCall(`/leads/${id}/restore`, 'POST', { reason });
         onShowToast(`Lead restored cleanly.`, 'success');
@@ -461,7 +461,7 @@ export function LeadsView({
                             title="Send WhatsApp Message"
                             aria-label="Send WhatsApp Message"
                             onClick={async () => {
-                              const tpl = `Namaste ${l.fatherName || l.parentName || 'Parent'}! Sharing BoardingEdu admission details for ${l.studentName} (${l.admissionClass || l.applyingForGrade || 'Class 6'}, Budget: ₹${Number(l.budgetMax || 450000).toLocaleString('en-IN')}). Documents upload & school brochure link: https://boardingedu.com/docs/${l.leadNumber || l.id?.slice(0, 6)}`;
+                              const tpl = `Hello ${l.fatherName || l.parentName || 'Parent'}! Sharing BoardingEdu admission details for ${l.studentName} (${l.admissionClass || l.applyingForGrade || 'Class 6'}, Budget: ₹${Number(l.budgetMax || 450000).toLocaleString('en-IN')}). Documents upload & school brochure link: https://boardingedu.com/docs/${l.leadNumber || l.id?.slice(0, 6)}`;
                               try {
                                 const res = await apiCall('/whatsapp/generate-link', 'POST', {
                                   lead_id: l.id,
@@ -557,14 +557,14 @@ export function LeadsView({
                                 justifyContent: 'center',
                                 borderRadius: '8px',
                               }}
-                              title={l.deletedAt ? 'Restore Lead' : 'Delete Lead'}
-                              aria-label={l.deletedAt ? 'Restore Lead' : 'Delete Lead'}
+                              title={l.deletedAt ? 'Restore Lead' : 'Permanent Delete Lead'}
+                              aria-label={l.deletedAt ? 'Restore Lead' : 'Permanent Delete Lead'}
                               onClick={() =>
                                 setReasonModal({
                                   lead: l,
                                   action: l.deletedAt ? 'restore' : 'delete',
-                                  title: l.deletedAt ? 'Restore Lead' : 'Soft-Delete Lead',
-                                  placeholder: 'Duplicate or parent cancelled requirement...',
+                                  title: l.deletedAt ? 'Restore Lead' : 'Permanent Delete Lead',
+                                  placeholder: 'Reason for permanently deleting this lead from the database...',
                                 })
                               }
                             >
@@ -755,6 +755,21 @@ export function LeadsView({
                   Lead: <strong>{reasonModal.lead.studentName}</strong> (
                   {reasonModal.lead.leadNumber || reasonModal.lead.id})
                 </p>
+                {reasonModal.action === 'delete' && (
+                  <div
+                    style={{
+                      background: '#FEF2F2',
+                      border: '1px solid #FECACA',
+                      color: '#991B1B',
+                      padding: '10px',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                      marginBottom: '10px',
+                    }}
+                  >
+                    <CrmIcon name="alert" size={16} /> <strong>Permanent Deletion:</strong> This lead and all its remarks, activities, and associated records will be permanently removed from the database.
+                  </div>
+                )}
                 {reasonModal.action === 'reopen' && reasonModal.lead.forceExpired && (
                   <div
                     style={{
@@ -872,8 +887,13 @@ export function LeadsView({
                 >
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary" disabled={busyAction}>
-                  {busyAction ? 'Processing...' : 'Confirm'}
+                <button
+                  type="submit"
+                  className={`btn ${reasonModal.action === 'delete' ? 'btn-danger' : 'btn-primary'}`}
+                  style={reasonModal.action === 'delete' ? { backgroundColor: '#DC2626', borderColor: '#DC2626', color: '#fff' } : undefined}
+                  disabled={busyAction}
+                >
+                  {busyAction ? 'Processing...' : reasonModal.action === 'delete' ? 'Permanently Delete' : 'Confirm'}
                 </button>
               </div>
             </form>
@@ -1054,7 +1074,7 @@ function LeadDetailModal({
 
   // Communications & Verification
   const [waMessage, setWaMessage] = useState(
-    `Namaste ${lead.fatherName || lead.parentName || 'Parent'}! Sharing BoardingEdu admission details for ${lead.studentName} (${lead.admissionClass || lead.applyingForGrade || 'Class 6'}, Budget: ₹${Number(lead.budgetMax || 450000).toLocaleString('en-IN')}). Upload documents & view shortlisted schools here: https://boardingedu.com/docs/${lead.leadNumber || lead.id?.slice(0, 6)}`
+    `Hello ${lead.fatherName || lead.parentName || 'Parent'}! Sharing BoardingEdu admission details for ${lead.studentName} (${lead.admissionClass || lead.applyingForGrade || 'Class 6'}, Budget: ₹${Number(lead.budgetMax || 450000).toLocaleString('en-IN')}). Upload documents & view shortlisted schools here: https://boardingedu.com/docs/${lead.leadNumber || lead.id?.slice(0, 6)}`
   );
   const [callOutcome, setCallOutcome] = useState('Connected - Interested');
   const [callNotes, setCallNotes] = useState('');

@@ -2,7 +2,7 @@
   "name": "uttarakhand-boarding-crm",
   "version": "2.0.0",
   "description": "Enterprise Student CRM for Uttarakhand Boarding Schools with Real MongoDB, JWT Auth, Role-Based Dashboards & Commission Management",
-  "main": "server.js",
+  "main": "server/dist/src/main.js",
   "scripts": {
     "build": "cd client && npm install --include=dev && npm run build && cd ../server && npm install --include=dev && npx prisma generate --schema=prisma/schema.prisma && npx nest build",
     "start": "node --max-old-space-size=384 server/dist/src/main.js",

@@ -688,7 +688,14 @@ export default function Sidebar({
             <div className="user-meta-name">
               {roleName === 'admin' ? 'Super Admin' : user?.fullName || 'User'}
             </div>
-            <div className="user-meta-role">{roleName.toUpperCase()}</div>
+            <div className="user-meta-role">
+              {roleName.toUpperCase()}
+              {user?.managerName && roleName !== 'admin' && (
+                <span style={{ display: 'block', fontSize: '10.5px', color: '#93C5FD', fontWeight: 600, textTransform: 'none', marginTop: '1px' }}>
+                  Mgr: {user.managerName}
+                </span>
+              )}
+            </div>
           </div>
         </div>
         <button

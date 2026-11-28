@@ -138,14 +138,13 @@ export async function apiCall<T = any>(
     try {
       res = await performFetch();
       lastNetworkErr = null;
-      // Transparent auto-retry on transient gateway errors (502/503/504) for ALL methods
-      // (a 502/503/504 from Render proxy means upstream Node did not process the request)
-      // plus 429 rate-limit retry on GET
+      // Transparent auto-retry on transient gateway errors (502/503/504) and 429 rate-limiting for ALL methods
+      // (a 502/503/504 or 429 from Render proxy means upstream Node did not process the request)
       if (
         res.status === 502 ||
         res.status === 503 ||
         res.status === 504 ||
-        (res.status === 429 && method === 'GET')
+        res.status === 429
       ) {
         if (attempt < maxAttempts) {
           const delay =

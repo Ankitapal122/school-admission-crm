@@ -60,7 +60,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         deletedAt: true,
         lockedUntil: true,
         teamId: true,
+        team: { select: { id: true, name: true } },
         managerId: true,
+        manager: { select: { id: true, fullName: true, email: true, phone: true } },
         isTwoFactorEnabled: true,
       },
     });
@@ -94,6 +96,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const canonRole = normalizeCanonicalRole(user.role);
     const resolvedUser = {
       ...user,
+      teamName: user.team?.name || null,
+      managerName: user.manager?.fullName || null,
+      managerEmail: user.manager?.email || null,
+      managerPhone: user.manager?.phone || null,
       canonicalRole: canonRole,
       blueprintRole: toBlueprintRole(user.role),
       sessionFamily: payload.family || null,

@@ -22,6 +22,9 @@ interface UserProfileData {
     fullName: string;
     email?: string;
   } | null;
+  managerName?: string;
+  managerEmail?: string;
+  managerPhone?: string;
   upiId?: string;
   isTwoFactorEnabled?: boolean;
   lastLoginAt?: string;
@@ -311,6 +314,13 @@ export function UserProfileView({
                 <span>
                   <strong style={{ color: '#E2E8F0' }}>Team:</strong> {displayTeam}
                 </span>
+                <span>•</span>
+                <span>
+                  <strong style={{ color: '#E2E8F0' }}>Reporting Manager:</strong>{' '}
+                  <span style={{ color: profile?.managerName || user?.managerName ? '#86EFAC' : '#94A3B8', fontWeight: 700 }}>
+                    {profile?.managerName || user?.managerName || 'Unassigned'}
+                  </span>
+                </span>
               </div>
             </div>
           </div>
@@ -495,6 +505,19 @@ export function UserProfileView({
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', background: '#F8FAFC', borderRadius: '8px' }}>
                 <span style={{ fontSize: '12.5px', color: '#64748B', fontWeight: 600 }}>Assigned Team</span>
                 <span style={{ fontSize: '13px', color: '#0F172A', fontWeight: 700 }}>{displayTeam}</span>
+              </div>
+
+              {/* Reporting Manager */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', background: '#F8FAFC', borderRadius: '8px' }}>
+                <span style={{ fontSize: '12.5px', color: '#64748B', fontWeight: 600 }}>Reporting Manager</span>
+                <span style={{ fontSize: '13px', color: '#0F172A', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  {profile?.managerName || user?.managerName || 'Unassigned'}
+                  {(profile?.managerEmail || user?.managerEmail) && (
+                    <span style={{ color: '#64748B', fontSize: '11.5px', fontWeight: 500 }}>
+                      ({profile?.managerEmail || user?.managerEmail})
+                    </span>
+                  )}
+                </span>
               </div>
 
               {/* UPI ID */}

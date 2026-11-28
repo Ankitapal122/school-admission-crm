@@ -1125,7 +1125,7 @@ export function AIView({
     const selectedLead = myLeads.find((l: any) => l.id === selectedLeadId);
     const parentName = selectedLead?.fatherName || selectedLead?.parentName || 'Parent';
     const studentName = selectedLead?.studentName || 'your child';
-    const msg = `Namaste ${parentName}! Based on your preferences for ${studentName}, we recommend *${school.name}* (${school.board || board}, ${school.city || city}, Annual Fee: ₹${Number(school.minFeeAnnual || school.annualFeeMin || 0).toLocaleString('en-IN')} - ₹${Number(school.maxFeeAnnual || school.annualFeeMax || 0).toLocaleString('en-IN')}). Reply to schedule a campus tour or brochure!`;
+    const msg = `Hello ${parentName}! Based on your preferences for ${studentName}, we recommend *${school.name}* (${school.board || board}, ${school.city || city}, Annual Fee: ₹${Number(school.minFeeAnnual || school.annualFeeMin || 0).toLocaleString('en-IN')} - ₹${Number(school.maxFeeAnnual || school.annualFeeMax || 0).toLocaleString('en-IN')}). Reply to schedule a campus tour or brochure!`;
     const targetPhone = String(selectedLead?.whatsappNumber || selectedLead?.parentPhone || '').replace(/\D/g, '').slice(-10);
     const fallbackUrl = targetPhone ? `https://wa.me/91${targetPhone}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`;
 
@@ -1169,7 +1169,7 @@ export function AIView({
       })
       .filter((s: any) => compareIds.includes(s.id));
 
-    let msg = `Namaste ${parentName}! Based on your admission requirements for *${studentName}*, here is our curated recommendation of ${selectedSchools.length} top boarding schools:\n\n`;
+    let msg = `Hello ${parentName}! Based on your admission requirements for *${studentName}*, here is our curated recommendation of ${selectedSchools.length} top boarding schools:\n\n`;
     selectedSchools.forEach((s: any, idx: number) => {
       const minFee = Number(s.minFeeAnnual || s.annualFeeMin || 0).toLocaleString('en-IN');
       const maxFee = Number(s.maxFeeAnnual || s.annualFeeMax || 0).toLocaleString('en-IN');
@@ -1573,7 +1573,7 @@ export function AIView({
 const SMART_TEMPLATE_PRESETS = [
   {
     name: 'Welcome Parent Enquiry',
-    body: 'Namaste {parentName}! Thank you for contacting BoardingEdu for {studentName}. Our counsellor will shortly share the best boarding school options matching your budget & board preference.',
+    body: 'Hello {parentName}! Thank you for contacting BoardingEdu for {studentName}. Our counsellor will shortly share the best boarding school options matching your budget & board preference.',
   },
   {
     name: 'Curated School Shortlist Share',
@@ -1615,7 +1615,7 @@ export function WhatsAppView({
   const [showNewTpl, setShowNewTpl] = useState(false);
   const [tplName, setTplName] = useState('');
   const [tplBody, setTplBody] = useState(
-    'Namaste {parentName}! Sharing {schoolName} boarding details for {studentName}.'
+    'Hello {parentName}! Sharing {schoolName} boarding details for {studentName}.'
   );
   const [tplSearch, setTplSearch] = useState('');
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);

@@ -118,13 +118,6 @@ export default function App() {
     checkSessionExpiry();
     const sessionInterval = setInterval(checkSessionExpiry, 30000);
 
-    // Immediate heartbeat on login/mount + every 60s (50% fewer server hits at 5,500-user scale, well within 2-min online window)
-    const sendHeartbeat = () => {
-      apiCall('/presence/heartbeat', 'POST', {}, { skipOfflineQueue: true }).catch(() => {});
-    };
-    sendHeartbeat();
-    const hbInterval = setInterval(sendHeartbeat, 60000);
-
     const localKey = `crm_privacy_accepted_v2_${user.id}`;
     if (localStorage.getItem(localKey) !== 'true') {
       apiCall('/privacy/status', 'GET', null, { skipOfflineQueue: true })
@@ -142,7 +135,6 @@ export default function App() {
 
     return () => {
       clearInterval(sessionInterval);
-      clearInterval(hbInterval);
     };
   }, [isAuthenticated, user?.id]);
 

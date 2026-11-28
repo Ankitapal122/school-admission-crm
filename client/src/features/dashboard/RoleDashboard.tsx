@@ -312,7 +312,7 @@ export default function RoleDashboard({
     const school = schools[0]?.name || 'Dehradun / Mussoorie Boarding School';
     setShowBrochureModal(lead);
     setBrochureText(
-      `Namaste ${lead.fatherName || lead.parentName || 'Parent'}! Sharing admission prospectus & fee details for ${lead.studentName || 'your child'} (${lead.admissionClass || 'Boarding'}) - ${school}.`
+      `Hello ${lead.fatherName || lead.parentName || 'Parent'}! Sharing admission prospectus & fee details for ${lead.studentName || 'your child'} (${lead.admissionClass || 'Boarding'}) - ${school}.`
     );
   };
 
@@ -594,7 +594,31 @@ export default function RoleDashboard({
                 }}
               >
                 <CrmIcon name="users" size={15} color="#1D4ED8" />
-                <span>Team: {teams[0]?.name || 'Unassigned'}</span>
+                <span>Team: {user?.teamName || teams[0]?.name || 'Unassigned'}</span>
+              </div>
+
+              <div
+                style={{
+                  background: '#FFFFFF',
+                  color: '#0F172A',
+                  borderRadius: '10px',
+                  padding: '8px 14px',
+                  fontSize: '12.5px',
+                  fontWeight: 700,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: '0 2px 6px rgba(15, 23, 42, 0.12)',
+                }}
+                title={user?.managerName ? `You report directly to Senior Manager: ${user.managerName}` : 'No reporting manager assigned yet'}
+              >
+                <CrmIcon name="user-check" size={15} color="#059669" />
+                <span>
+                  Reporting Manager:{' '}
+                  <span style={{ color: user?.managerName ? '#047857' : '#94A3B8', fontWeight: 800 }}>
+                    {user?.managerName || 'Unassigned'}
+                  </span>
+                </span>
               </div>
 
               <div
@@ -4998,13 +5022,13 @@ export default function RoleDashboard({
                     className="form-control"
                     rows={3}
                     required
-                    placeholder="Parent ne baat karke kya bola yahan record karein (e.g. Father Ramesh Sharma se baat hui. Unhone bola Class 10 CBSE boarding school chahiye, budget ₹5-6 lakh hai, campus visit next Saturday karenge)..."
+                    placeholder="Record parent discussion notes here (e.g. Spoke with father Ramesh Sharma. Prefers Class 10 CBSE boarding school, budget ₹5-6 Lakhs, campus visit scheduled for next Saturday)..."
                     value={callNotes}
                     onChange={(e) => setCallNotes(e.target.value)}
                     style={{ fontSize: '12.5px', lineHeight: 1.4 }}
                   />
                   <div style={{ fontSize: '11px', color: '#64748B', marginTop: '3px' }}>
-                    ✅ Yeh feedback <strong>{callParentName.trim() || selectedLeadForCall.parentName || 'Parent'}</strong> ke naam ke sath Lead Timeline aur History mein permanent record ho jayega.
+                    ✅ This feedback will be permanently logged in the Lead Timeline &amp; History under <strong>{callParentName.trim() || selectedLeadForCall.parentName || 'Parent'}</strong>.
                   </div>
                 </div>
 

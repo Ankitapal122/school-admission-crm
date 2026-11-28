@@ -12,6 +12,10 @@ export interface User {
   phone?: string;
   teamId?: string | null;
   teamName?: string;
+  managerId?: string | null;
+  managerName?: string;
+  managerEmail?: string;
+  managerPhone?: string;
   twoFaEnabled?: boolean;
   is2faEnabled?: boolean;
   status?: string;
@@ -48,6 +52,10 @@ export function normalizeUserRecord(rawUser: any): User {
     phone: String(rawUser?.phone || rawUser?.mobile || rawUser?.phoneNumber || ''),
     teamId: rawUser?.teamId || rawUser?.team_id || (typeof rawUser?.team === 'object' ? rawUser?.team?.id : null),
     teamName: typeof rawUser?.team === 'object' ? rawUser?.team?.name : (rawUser?.teamName || ''),
+    managerId: rawUser?.managerId || rawUser?.manager_id || (typeof rawUser?.manager === 'object' ? rawUser?.manager?.id : null),
+    managerName: typeof rawUser?.manager === 'object' ? rawUser?.manager?.fullName : (rawUser?.managerName || ''),
+    managerEmail: typeof rawUser?.manager === 'object' ? rawUser?.manager?.email : (rawUser?.managerEmail || ''),
+    managerPhone: typeof rawUser?.manager === 'object' ? rawUser?.manager?.phone : (rawUser?.managerPhone || ''),
     twoFaEnabled: Boolean(rawUser?.twoFaEnabled ?? rawUser?.is2faEnabled ?? rawUser?.isTwoFactorEnabled),
     is2faEnabled: Boolean(rawUser?.is2faEnabled ?? rawUser?.twoFaEnabled ?? rawUser?.isTwoFactorEnabled),
     status: String(rawUser?.status || (rawUser?.isActive ? 'active' : 'inactive')),
